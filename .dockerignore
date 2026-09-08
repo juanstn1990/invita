@@ -1,0 +1,12 @@
+# Lo que no tiene que entrar en el contexto de build.
+node_modules
+.next
+.git
+.preview
+uploads
+.env
+.env.local
+*.log
+prisma/dev.db
+prisma/dev.db-journal
+tsconfig.tsbuildinfo

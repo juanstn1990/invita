@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Sin esta clase el CSS no oculta nada: un fallo de JavaScript deja la
+     invitación legible en vez de en blanco. -->
+<script>document.documentElement.classList.add('js')</script>
+<title>Juan &amp; María · Nuestra boda</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#faf9f3; --bg-alt:#eff0e6; --card:#ffffff;
+  --ink:#2e332a; --muted:#616b58; --line:#d8dcca;
+  --brand:#5a6b43; --brand-2:#8a9a6d;
+  --accent:#5a6b43; --on-accent:#ffffff;
+  --footer-bg:#2e332a; --footer-ink:#eff0e6;
+
+  --display:'Cormorant Garamond',Georgia,serif; --sans:'Jost',system-ui,sans-serif;
+  --display-weight:400;
+  --display-leading:1.1;
+  --display-tracking:0;
+  --tracking:0.2em;
+  --caps:uppercase;
+  --quote-style:italic;
+
+  --fs-micro:11.1px;
+  --fs-small:12.7px;
+  --fs-body:16px;
+  --fs-lead:18.4px;
+  --fs-h3:clamp(20.2px,4.4vw,24.3px);
+  --fs-h2:clamp(25.4px,7vw,40.3px);
+  --fs-display:clamp(40.3px,13vw,64px);
+  --fs-number:clamp(23.2px,6.4vw,32px);
+
+  --radius:3px; --radius-sm:3px;
+  --btn-radius:0px;
+  --border:1px;
+  --shadow:none;
+
+  --pad-y:88px; --pad-y-alt:108px;
+  --gap:22px;
+
+  --panel-rgb:255,255,255;
+  --panel-alpha:0.88;
+  --hero-bg:linear-gradient(160deg,#eff0e6 0%,#faf9f3 60%,#e9ecdf 130%);
+  --splash-bg:#faf9f3;
+  --hero-ink:#2e332a;
+  --hero-ink-soft:#616b58;
+  --hero-line:#d8dcca;
+  --hero-brand:#5a6b43;
+  --hero-accent:#5a6b43;
+  --hero-on-accent:#ffffff;
+
+  /* Los componentes que inyecta el renderer. Mismos valores, otro prefijo. */
+  --inv-accent:#5a6b43; --inv-on-accent:#ffffff;
+  --inv-ink:#2e332a; --inv-surface:#ffffff;
+  --inv-field-bg:#ffffff; --inv-field-ink:#2e332a; --inv-field-border:#d8dcca;
+  --inv-focus:rgba(90,107,67,0.24);
+  --inv-radius:3px; --inv-btn-radius:0px;
+  --inv-font-ui:'Jost',system-ui,sans-serif; --inv-font-title:'Cormorant Garamond',Georgia,serif;
+  --inv-tracking:0.2em; --inv-caps:uppercase;
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);
+  font-size:var(--fs-body);line-height:1.62;overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+h1,h2,h3{font-family:var(--display);font-weight:var(--display-weight);
+  line-height:var(--display-leading);letter-spacing:var(--display-tracking)}
+img,svg{display:block;max-width:100%}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+
+#splash{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;
+  padding:22px;background:var(--splash-bg);overflow:hidden;
+  transition:opacity .7s ease,visibility .7s ease}
+#splash.hidden{opacity:0;visibility:hidden;pointer-events:none}
+.splash-modal{position:relative;z-index:3;width:min(430px,100%);
+  padding:44px 30px;text-align:center;
+  background:rgba(var(--panel-rgb),var(--panel-alpha));
+  border-radius:var(--radius);box-shadow:var(--shadow)}
+.splash-subtitle{font-size:var(--fs-micro);letter-spacing:var(--tracking);
+  text-transform:var(--caps);color:var(--brand)}
+.splash-name{margin:14px 0 12px;font-size:var(--fs-display);line-height:1}
+.splash-date{margin-top:16px;font-size:var(--fs-small);
+  letter-spacing:.14em;color:var(--muted)}
+.splash-btns{display:flex;flex-direction:column;gap:10px;margin-top:28px}
+.splash-btn{padding:14px 18px;border:var(--border) solid var(--accent);
+  border-radius:var(--btn-radius);background:transparent;color:var(--accent);
+  font:inherit;font-size:var(--fs-micro);letter-spacing:var(--tracking);
+  text-transform:var(--caps);cursor:pointer;transition:background .2s,color .2s}
+.splash-btn:hover{background:var(--accent);color:var(--on-accent)}
+.splash-btn-primary{background:var(--accent);color:var(--on-accent)}
+.splash-btn-primary:hover{opacity:.9}
+
+#hero{position:relative;min-height:100svh;display:grid;place-items:center;
+  padding:80px 22px;overflow:hidden;background:var(--hero-bg)}
+.hero-bg{position:absolute;inset:0;background-size:cover;background-position:center;
+  will-change:transform}
+.hero-content{position:relative;z-index:3;width:min(470px,100%);
+  padding:42px 30px;text-align:center;color:var(--hero-ink)}
+.hero-label{font-size:var(--fs-micro);letter-spacing:var(--tracking);
+  text-transform:var(--caps);color:var(--hero-brand)}
+.hero-name{margin:16px 0 10px;font-size:var(--fs-display);line-height:.98}
+.hero-amp{display:block;margin:4px 0;font-size:.4em;line-height:1;
+  color:var(--hero-brand);font-style:italic}
+.splash-amp{display:block;margin:4px 0;font-size:.4em;line-height:1;
+  color:var(--brand);font-style:italic}
+.footer-names .amp{display:block;margin:4px 0;font-size:.4em;line-height:1;
+  color:inherit;opacity:.7;font-style:italic}
+.hero-sub{font-size:var(--fs-small);letter-spacing:var(--tracking);
+  text-transform:var(--caps);color:var(--hero-ink-soft)}
+.hero-date{margin-top:20px;padding-top:18px;border-top:var(--border) solid var(--hero-line);
+  font-size:var(--fs-body);letter-spacing:.14em}
+.hero-quote{margin-top:16px;font-size:var(--fs-small);
+  font-style:var(--quote-style);color:var(--hero-ink-soft)}
+.hero-btn{display:inline-block;margin-top:26px;padding:13px 28px;
+  border-radius:var(--btn-radius);background:var(--hero-accent);
+  color:var(--hero-on-accent);text-decoration:none;font-size:var(--fs-micro);
+  letter-spacing:var(--tracking);text-transform:var(--caps)}
+.hero-scroll{position:absolute;left:50%;bottom:24px;z-index:3;
+  transform:translateX(-50%);color:var(--hero-brand);animation:bob 2.2s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,9px)}}
+
+section{position:relative;padding:var(--pad-y) 22px;overflow:hidden}
+section.alt{background:var(--bg-alt)}
+.container{width:min(780px,100%);margin:0 auto}
+/* La cuadrícula de secciones anchas: la galería en mosaico se sale del texto. */
+.container-wide{width:min(1040px,100%);margin:0 auto}
+
+.section-label{font-size:var(--fs-micro);letter-spacing:var(--tracking);
+  text-transform:var(--caps);color:var(--brand);text-align:center}
+.section-title{margin-top:10px;font-size:var(--fs-h2);text-align:center}
+.ornament{display:grid;place-items:center;margin:18px auto 26px;color:var(--brand)}
+.section-body{max-width:54ch;margin:18px auto 0;text-align:center;
+  color:var(--muted);font-size:var(--fs-lead)}
+
+.countdown-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:clamp(6px,2vw,12px);max-width:460px;margin:32px auto 0}
+.countdown-ring{min-width:0;display:grid;place-items:center}
+.ring-inner{min-width:0;text-align:center}
+.ring-number{display:block;font-family:var(--display);font-size:var(--fs-number);
+  line-height:1;color:var(--brand);font-variant-numeric:tabular-nums}
+.ring-label{display:block;margin-top:6px;font-size:var(--fs-micro);
+  letter-spacing:.1em;text-transform:var(--caps);color:var(--muted);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.gallery-grid{display:grid;gap:clamp(6px,1.6vw,10px);margin-top:30px}
+.gallery-item{position:relative;overflow:hidden;border-radius:var(--radius-sm);
+  background:var(--bg-alt)}
+.gallery-ph{display:grid;place-items:center;width:100%;height:100%;
+  background:var(--bg-alt);background-size:cover;background-position:center;
+  color:var(--brand);transition:transform .7s cubic-bezier(.2,.7,.3,1)}
+.gallery-item:hover .gallery-ph{transform:scale(1.06)}
+.gallery-ph-text{font-size:var(--fs-micro);letter-spacing:.12em;
+  text-transform:var(--caps);opacity:.6}
+
+/* ── Invitados ── */
+.guests-text{max-width:52ch;margin:0 auto 12px;text-align:center;
+  color:var(--muted);font-size:var(--fs-lead)}
+.guests-address{margin-top:16px;text-align:center;font-size:var(--fs-small);
+  letter-spacing:.14em;text-transform:var(--caps);color:var(--brand)}
+.guests-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  gap:12px;margin-top:30px}
+.guest-card{padding:22px 14px;text-align:center}
+.guest-avatar{display:grid;place-items:center;width:48px;height:48px;
+  margin:0 auto 12px;border-radius:50%;background:var(--bg-alt);
+  font-family:var(--display);font-size:var(--fs-h3);color:var(--brand)}
+.guest-name{font-weight:600;font-size:var(--fs-body)}
+.guest-role{margin-top:2px;font-size:var(--fs-small);color:var(--muted)}
+
+/* ── Programa ── */
+.events-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(252px,1fr));
+  gap:16px;margin-top:32px}
+.event-card{padding:30px 22px;text-align:center}
+.event-icon{display:block;font-size:var(--fs-h2);line-height:1;color:var(--brand)}
+.event-type{margin-top:14px;font-size:var(--fs-micro);letter-spacing:var(--tracking);
+  text-transform:var(--caps);color:var(--brand)}
+.event-title{margin-top:6px;font-size:var(--fs-h3)}
+.event-time{margin-top:12px;font-weight:600;font-size:var(--fs-body)}
+.event-place{margin-top:6px;color:var(--muted);font-size:var(--fs-small)}
+.event-place small{display:block;margin-top:3px;font-size:var(--fs-micro);opacity:.9}
+.event-note{margin-top:10px;font-size:var(--fs-small);
+  font-style:var(--quote-style);color:var(--muted)}
+.event-map-btn{display:inline-block;margin-top:18px;padding:10px 20px;
+  border:var(--border) solid var(--accent);border-radius:var(--btn-radius);
+  color:var(--accent);text-decoration:none;font-size:var(--fs-micro);
+  letter-spacing:var(--tracking);text-transform:var(--caps)}
+.event-map-btn:hover{background:var(--accent);color:var(--on-accent)}
+
+/* ── Confirmación ──
+   El renderer reemplaza este formulario por su propio componente; lo que
+   queda aquí es lo que se ve mientras se edita y en el diseño de muestra. */
+.confirmation-text{max-width:48ch;margin:0 auto;text-align:center;
+  color:var(--muted);font-size:var(--fs-lead)}
+.confirmation-text strong{color:var(--ink);font-weight:600}
+.confirmation-deadline{margin-top:14px;text-align:center;
+  font-family:var(--display);font-size:var(--fs-h3);color:var(--brand)}
+.confirm-form{display:flex;flex-direction:column;gap:11px;max-width:410px;
+  margin:30px auto 0}
+.confirm-input{width:100%;padding:14px 16px;font:inherit;font-size:var(--fs-body);
+  color:var(--ink);background:var(--card);
+  border:var(--border) solid var(--line);border-radius:var(--radius-sm)}
+.confirm-input:focus{outline:none;border-color:var(--accent);
+  box-shadow:0 0 0 3px var(--inv-focus)}
+.confirm-btn{padding:16px;border:0;border-radius:var(--btn-radius);
+  background:var(--accent);color:var(--on-accent);font:inherit;
+  font-size:var(--fs-micro);letter-spacing:var(--tracking);
+  text-transform:var(--caps);cursor:pointer}
+
+/* ── Galería y su bajada ── */
+.gallery-text{max-width:50ch;margin:0 auto;text-align:center;
+  color:var(--muted);font-size:var(--fs-lead)}
+
+/* ── Información útil ── */
+.features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(196px,1fr));
+  gap:14px;margin-top:32px}
+.feature-card{padding:26px 18px;text-align:center}
+.feature-icon{display:block;font-size:var(--fs-h3);line-height:1;color:var(--brand)}
+.feature-title{margin-top:12px;font-size:var(--fs-h3)}
+.feature-text{margin-top:7px;font-size:var(--fs-small);color:var(--muted)}
+
+/* ── Mesa de regalos ── */
+.gifts-text{max-width:50ch;margin:0 auto;text-align:center;
+  color:var(--muted);font-size:var(--fs-lead)}
+.gifts-account{max-width:350px;margin:26px auto 0;padding:22px;text-align:center;
+  background:var(--card);border:var(--border) dashed var(--accent);
+  border-radius:var(--radius-sm)}
+.gifts-bank{font-size:var(--fs-micro);letter-spacing:var(--tracking);
+  text-transform:var(--caps);color:var(--brand)}
+.gifts-iban{margin-top:8px;font-size:var(--fs-body);letter-spacing:.05em;font-weight:600}
+.gifts-note{margin-top:14px;text-align:center;font-size:var(--fs-small);color:var(--muted)}
+.gifts-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(186px,1fr));
+  gap:12px;margin-top:28px}
+.gift-card{padding:24px 16px;text-align:center}
+.gift-icon{display:block;font-size:var(--fs-h3);line-height:1;color:var(--brand)}
+.gift-title{margin-top:10px;font-size:var(--fs-h3)}
+.gift-desc{margin-top:5px;font-size:var(--fs-small);color:var(--muted)}
+.gift-link{display:inline-block;margin-top:12px;font-size:var(--fs-micro);
+  letter-spacing:var(--tracking);text-transform:var(--caps);color:var(--accent)}
+.gifts-btn{display:block;width:max-content;max-width:100%;margin:28px auto 0;
+  padding:15px 30px;border-radius:var(--btn-radius);background:var(--accent);
+  color:var(--on-accent);text-decoration:none;font-size:var(--fs-micro);
+  letter-spacing:var(--tracking);text-transform:var(--caps)}
+
+/* ── Redes ── */
+#social .container{text-align:center}
+.social-sub{max-width:46ch;margin:0 auto;color:var(--muted);font-size:var(--fs-lead)}
+.social-hashtag{display:block;margin-top:18px;font-family:var(--display);
+  font-size:var(--fs-h2);color:var(--brand)}
+.social-ig{display:inline-block;margin-top:14px;padding:11px 24px;
+  border:var(--border) solid var(--accent);border-radius:var(--btn-radius);
+  color:var(--accent);text-decoration:none;font-size:var(--fs-micro);
+  letter-spacing:var(--tracking);text-transform:var(--caps)}
+.social-ig:hover{background:var(--accent);color:var(--on-accent)}
+
+/* ── Pie ── */
+footer{position:relative;padding:56px 22px;text-align:center;
+  background:var(--footer-bg);color:var(--footer-ink);overflow:hidden}
+.footer-names{font-family:var(--display);font-size:var(--fs-h2);line-height:1}
+.footer-date{margin-top:12px;font-size:var(--fs-small);letter-spacing:.16em;opacity:.8}
+.footer-copy{margin-top:20px;font-size:var(--fs-micro);letter-spacing:var(--tracking);
+  text-transform:var(--caps);opacity:.6}
+
+/* ── Barra de progreso de lectura ── */
+.progress{position:fixed;top:0;left:0;right:0;z-index:9998;height:2px;
+  background:transparent;pointer-events:none}
+.progress i{display:block;height:100%;width:0;background:var(--accent);
+  transition:width .1s linear}
+
+.deco{position:absolute;pointer-events:none;z-index:1}
+.deco-arcos{top:0;left:0;width:100%;height:44%}
+.deco-aros{top:0;left:0;width:100%;height:100%}
+.deco-rayos{bottom:0;left:0;width:min(56%,420px);aspect-ratio:1}
+.deco-acuarela{top:-6%;left:-6%;width:112%;height:112%}
+.deco-aguada{bottom:0;left:0;width:100%;height:52%}
+.deco-flotantes{top:0;left:0;width:100%;height:100%}
+.deco-marco{inset:14px;width:auto;height:auto}
+
+/* El adorno bajo el título de sección. El envoltorio necesita ser un bloque
+   en línea: sobre un <span> normal el ancho y el alto en línea no aplican, y
+   la pieza sale del tamaño natural del svg, que son 256px. */
+.orn-pieza{display:inline-block;line-height:0;color:var(--brand)}
+.orn-pieza svg{width:100%;height:100%;display:block}
+.orn-filetes{display:inline-flex;align-items:center;gap:14px}
+.orn-filetes i{display:block;width:min(52px,11vw);height:var(--border)}
+.orn-tres{display:inline-flex;align-items:center;gap:9px}
+.orn-solo{display:block;width:44px;height:var(--border)}
+
+/* Confeti: cae despacio y en bucle. */
+.confetti{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden}
+.confetti i{position:absolute;display:block;border-radius:2px;opacity:.7;
+  animation:cae 9s linear infinite}
+@keyframes cae{
+  0%{transform:translateY(-12px) rotate(0)}
+  100%{transform:translateY(26px) rotate(180deg)}
+}
+
+/* Globos: suben y bajan un poco. */
+.balloon{position:absolute;z-index:1;pointer-events:none;opacity:.9;
+  animation:flota 7s ease-in-out infinite}
+@keyframes flota{
+  0%,100%{transform:translateY(0) rotate(-2deg)}
+  50%{transform:translateY(-18px) rotate(2deg)}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .confetti i,.balloon{animation:none}
+}
+
+.hero-content{background:rgba(var(--panel-rgb),var(--panel-alpha));
+  backdrop-filter:blur(10px);border-radius:var(--radius);box-shadow:var(--shadow)}
+
+/* El único alineado a la izquierda. Con el filete a la altura del antetítulo,
+   que es lo que evita que el bloque quede flotando. */
+/* Todo el texto de la sección, no sólo el título: las bajadas viven en una
+   clase por sección (.guests-text, .gifts-text, .confirmation-text…) y si no
+   se nombran se quedan centradas en medio de un diseño alineado. */
+:is(.section-label,.section-title,.section-body,.guests-text,.guests-address,
+  .gallery-text,.gifts-text,.gifts-note,.confirmation-text,
+  .confirmation-deadline,.social-sub){text-align:left;margin-left:0}
+.section-label{display:flex;align-items:center;gap:14px}
+.section-label::after{content:"";flex:1;height:var(--border);background:var(--line)}
+.ornament{place-items:start;margin-left:0}
+#social .container{text-align:left}
+.gifts-account{margin-left:0}
+.event-card,.feature-card,.gift-card,.guest-card{text-align:left}
+.guest-avatar{margin-left:0}
+
+/* Todo en un renglón, para cuando la sección debe pesar poco. */
+.countdown-grid{max-width:520px;gap:clamp(10px,3vw,22px)}
+.countdown-ring{padding:0}
+.ring-inner{display:flex;align-items:baseline;justify-content:center;gap:5px}
+.ring-number{font-size:var(--fs-h3)}
+.ring-label{margin-top:0;font-size:var(--fs-micro)}
+
+/* Una columna ancha. Para diseños que esperan fotos verticales. */
+.gallery-grid{grid-template-columns:repeat(2,1fr);max-width:620px;margin-inline:auto}
+.gallery-item{aspect-ratio:3/4}
+.gallery-item:nth-child(3n+1){grid-column:1 / -1;aspect-ratio:16/10}
+
+/* Sin caja: sólo un filete arriba. Es lo que necesitan los diseños que no
+   quieren ninguna superficie flotando. */
+.event-card,.feature-card,.gift-card,.guest-card{background:transparent;border:0;border-top:var(--border) solid var(--line);
+  border-radius:0;box-shadow:none;padding-left:0;padding-right:0}
+
+.divider{height:0;border-top:var(--border) solid var(--line);
+  width:min(120px,30vw);margin:0 auto}
+
+.js .reveal{opacity:0;transform:translateY(26px);
+  transition:opacity .8s ease,transform .8s cubic-bezier(.2,.7,.3,1)}
+.js .reveal.in{opacity:1;transform:none}
+
+/* Las tarjetas de cada grilla entran en cascada, no todas de golpe. */
+.js .reveal :is(.countdown-grid,.guests-grid,.events-grid,.features-grid,
+  .gifts-cards,.gallery-grid)>*{
+  opacity:0;transform:translateY(16px) scale(.985);
+  transition:opacity .55s ease,transform .55s cubic-bezier(.2,.7,.3,1)}
+.js .reveal.in :is(.countdown-grid,.guests-grid,.events-grid,.features-grid,
+  .gifts-cards,.gallery-grid)>*{opacity:1;transform:none}
+.js .reveal.in :is(.countdown-grid,.guests-grid,.events-grid,.features-grid,
+  .gifts-cards,.gallery-grid)>:nth-child(1){transition-delay:.10s}
+.js .reveal.in :is(.countdown-grid,.guests-grid,.events-grid,.features-grid,
+  .gifts-cards,.gallery-grid)>:nth-child(2){transition-delay:.18s}
+.js .reveal.in :is(.countdown-grid,.guests-grid,.events-grid,.features-grid,
+  .gifts-cards,.gallery-grid)>:nth-child(3){transition-delay:.26s}
+.js .reveal.in :is(.countdown-grid,.guests-grid,.events-grid,.features-grid,
+  .gifts-cards,.gallery-grid)>:nth-child(4){transition-delay:.34s}
+.js .reveal.in :is(.gallery-grid,.guests-grid)>:nth-child(5){transition-delay:.42s}
+.js .reveal.in :is(.gallery-grid,.guests-grid)>:nth-child(6){transition-delay:.50s}
+
+/* Los segundos laten al cambiar. */
+.ring-number.tick{animation:pulse .45s ease}
+@keyframes pulse{0%{transform:scale(1)}35%{transform:scale(1.14)}100%{transform:scale(1)}}
+
+.hero-btn,.gifts-btn,.confirm-btn,.splash-btn,.event-map-btn,.social-ig{
+  transition:transform .25s ease,opacity .25s ease,background .25s ease,
+    color .25s ease,box-shadow .25s ease}
+.hero-btn:hover,.gifts-btn:hover,.confirm-btn:hover{transform:translateY(-2px)}
+.event-card,.feature-card,.gift-card,.guest-card{
+  transition:transform .35s cubic-bezier(.2,.7,.3,1),box-shadow .35s ease}
+.event-card:hover,.feature-card:hover,.gift-card:hover{transform:translateY(-4px)}
+#splash.hidden .splash-modal{transform:scale(.96);opacity:0;
+  transition:transform .5s ease,opacity .4s ease}
+
+@media (prefers-reduced-motion:reduce){
+  .js .reveal,.js .reveal :is(.countdown-grid,.guests-grid,.events-grid,
+    .features-grid,.gifts-cards,.gallery-grid)>*{
+    opacity:1;transform:none;transition:none}
+  .hero-scroll{animation:none}
+  .gallery-item:hover .gallery-ph{transform:none}
+  .ring-number.tick{animation:none}
+  .progress{display:none}
+  .event-card:hover,.feature-card:hover,.gift-card:hover,
+  .hero-btn:hover,.gifts-btn:hover,.confirm-btn:hover{transform:none}
+}
+
+@media (max-width:430px){
+  section{padding:calc(var(--pad-y) * .78) 18px}
+  .hero-content{padding:34px 22px}
+  .splash-modal{padding:34px 22px}
+}</style>
+</head>
+<body>
+
+<div class="progress" aria-hidden="true"><i></i></div>
+
+<div id="splash" data-inv-section="splash">
+  
+  <div class="splash-modal">
+    <p class="splash-subtitle" data-inv="splash.label">Te invitamos a nuestra boda</p>
+    <h1 class="splash-name" data-inv="event.names">Juan<span class="splash-amp">&amp;</span>María</h1>
+    <p class="splash-subtitle" data-inv="splash.subtitle">Nos casamos</p>
+    <p class="splash-date" data-inv="event.dateLabel">15 · Noviembre · 2027</p>
+    <div class="splash-btns">
+      <button class="splash-btn splash-btn-primary" type="button" onclick="enterSite()"
+        data-inv="splash.ctaPrimary">Abrir invitación</button>
+      <button class="splash-btn" type="button" onclick="enterSite()"
+        data-inv="splash.ctaSecondary">Ver los detalles</button>
+    </div>
+  </div>
+</div>
+
+<section id="hero" data-inv-section="hero">
+  <div class="hero-bg" data-inv="hero.backgroundUrl"></div>
+  
+<svg class="deco deco-aros" viewBox="0 0 400 400" fill="none" aria-hidden="true">
+  <circle cx="200" cy="230" r="70" stroke="rgba(90,107,67,0.16)" stroke-width="1"/>
+  <circle cx="200" cy="230" r="118" stroke="rgba(90,107,67,0.13)" stroke-width="1"/>
+  <circle cx="200" cy="230" r="166" stroke="rgba(90,107,67,0.1)" stroke-width="1"/>
+  <circle cx="200" cy="230" r="214" stroke="rgba(90,107,67,0.07)" stroke-width="1"/>
+</svg>
+  <div class="hero-content">
+    <p class="hero-label" data-inv="hero.label">Nos casamos</p>
+    <h1 class="hero-name" data-inv="event.names">Juan<span class="hero-amp">&amp;</span>María</h1>
+    <p class="hero-sub" data-inv="hero.subtitle">Y queremos celebrarlo contigo</p>
+    <p class="hero-date" data-inv="event.dateLabel">15 · Noviembre · 2027</p>
+    <p class="hero-quote" data-inv="event.quote">El amor no se mira: se vive juntos mirando en la misma dirección.</p>
+    <a class="hero-btn" href="#countdown" data-inv="hero.cta">Ver la invitación</a>
+  </div>
+  <div class="hero-scroll" aria-hidden="true">
+    <svg width="18" height="26" viewBox="0 0 18 26" fill="none" stroke="currentColor"
+      stroke-width="1.4" stroke-linecap="round"><path d="M9 3v18M3 15l6 6 6-6"/></svg>
+  </div>
+</section>
+
+<div class="divider" aria-hidden="true"></div>
+
+<section id="countdown" class="reveal" data-inv-section="countdown">
+  <div class="container">
+    <p class="section-label" data-inv="countdown.label">El gran día</p>
+    <h2 class="section-title" data-inv="countdown.title">Falta muy poco</h2><div class="ornament"><span class="orn-filetes"><i style="background:#d8dcca"></i><span class="orn-pieza" style="width:17px;height:17px"><svg class="inv-orn" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M221.45,40.19a6,6,0,0,0-5.64-5.64C140.43,30.11,80.14,52.71,54.53,95c-17.44,28.79-16.76,62.8,1.79,96.2L35.76,211.76a6,6,0,1,0,8.48,8.48L64.8,199.68c17.27,9.59,34.7,14.41,51.49,14.41A85.38,85.38,0,0,0,161,201.47C203.29,175.86,225.88,115.57,221.45,40.19Zm-66.66,151c-24.08,14.58-52.64,14.37-81.13-.39l90.59-90.59a6,6,0,0,0-8.48-8.48L65.18,182.34c-14.76-28.49-15-57-.39-81.13,22.68-37.43,76.63-57.8,145-54.95C212.59,114.58,192.22,168.54,154.79,191.21Z"/></svg></span><i style="background:#d8dcca"></i></span></div>
+    <p class="section-body" data-inv="countdown.text">Estamos contando los días para verte allí.</p>
+    <div class="countdown-grid">
+      <div class="countdown-ring"><div class="ring-inner"><span class="ring-number" data-cd="days">--</span><span class="ring-label">Días</span></div></div>
+      <div class="countdown-ring"><div class="ring-inner"><span class="ring-number" data-cd="hours">--</span><span class="ring-label">Horas</span></div></div>
+      <div class="countdown-ring"><div class="ring-inner"><span class="ring-number" data-cd="mins">--</span><span class="ring-label">Minutos</span></div></div>
+      <div class="countdown-ring"><div class="ring-inner"><span class="ring-number" data-cd="secs">--</span><span class="ring-label">Segundos</span></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="guests" class="reveal alt" data-inv-section="guests">
+  <div class="container">
+    <p class="section-label" data-inv="guests.label">Con todo nuestro amor</p>
+    <h2 class="section-title" data-inv="guests.title">Queridos invitados</h2><div class="ornament"><span class="orn-filetes"><i style="background:#d8dcca"></i><span class="orn-pieza" style="width:17px;height:17px"><svg class="inv-orn" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M221.45,40.19a6,6,0,0,0-5.64-5.64C140.43,30.11,80.14,52.71,54.53,95c-17.44,28.79-16.76,62.8,1.79,96.2L35.76,211.76a6,6,0,1,0,8.48,8.48L64.8,199.68c17.27,9.59,34.7,14.41,51.49,14.41A85.38,85.38,0,0,0,161,201.47C203.29,175.86,225.88,115.57,221.45,40.19Zm-66.66,151c-24.08,14.58-52.64,14.37-81.13-.39l90.59-90.59a6,6,0,0,0-8.48-8.48L65.18,182.34c-14.76-28.49-15-57-.39-81.13,22.68-37.43,76.63-57.8,145-54.95C212.59,114.58,192.22,168.54,154.79,191.21Z"/></svg></span><i style="background:#d8dcca"></i></span></div>
+    <p class="guests-text" data-inv="guests.text">Queremos compartir con ustedes el día más importante de nuestras vidas. Su presencia lo hará inolvidable.</p>
+    <p class="guests-text" data-inv="guests.textSecondary">Los esperamos con los brazos abiertos.</p>
+    <p class="guests-address" data-inv="guests.address">Bogotá · Colombia</p>
+    <div class="guests-grid" data-inv-list="guests">
+      <div class="guest-card" data-inv-item>
+        <span class="guest-avatar" data-inv="guests.items.initial">F</span>
+        <p class="guest-name" data-inv="guests.items.name">Familia Gómez</p>
+        <p class="guest-role" data-inv="guests.items.role">Padres de la novia</p>
+      </div>
+      <div class="guest-card" data-inv-item>
+        <span class="guest-avatar" data-inv="guests.items.initial">F</span>
+        <p class="guest-name" data-inv="guests.items.name">Familia Rojas</p>
+        <p class="guest-role" data-inv="guests.items.role">Padres del novio</p>
+      </div>
+      <div class="guest-card" data-inv-item>
+        <span class="guest-avatar" data-inv="guests.items.initial">A</span>
+        <p class="guest-name" data-inv="guests.items.name">Ana y Carlos</p>
+        <p class="guest-role" data-inv="guests.items.role">Padrinos</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="events" class="reveal" data-inv-section="events">
+  <div class="container">
+    <p class="section-label" data-inv="events.label">El programa</p>
+    <h2 class="section-title" data-inv="events.title">Cómo será el día</h2><div class="ornament"><span class="orn-filetes"><i style="background:#d8dcca"></i><span class="orn-pieza" style="width:17px;height:17px"><svg class="inv-orn" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M221.45,40.19a6,6,0,0,0-5.64-5.64C140.43,30.11,80.14,52.71,54.53,95c-17.44,28.79-16.76,62.8,1.79,96.2L35.76,211.76a6,6,0,1,0,8.48,8.48L64.8,199.68c17.27,9.59,34.7,14.41,51.49,14.41A85.38,85.38,0,0,0,161,201.47C203.29,175.86,225.88,115.57,221.45,40.19Zm-66.66,151c-24.08,14.58-52.64,14.37-81.13-.39l90.59-90.59a6,6,0,0,0-8.48-8.48L65.18,182.34c-14.76-28.49-15-57-.39-81.13,22.68-37.43,76.63-57.8,145-54.95C212.59,114.58,192.22,168.54,154.79,191.21Z"/></svg></span><i style="background:#d8dcca"></i></span></div>
+    <p class="section-body" data-inv="events.text">Dos momentos y el mismo día. Aquí los detalles de cada uno.</p>
+    <div class="events-grid" data-inv-list="events">
+      <article class="event-card" data-inv-item>
+        <span class="event-icon" data-inv="events.items.icon">💒</span>
+        <p class="event-type" data-inv="events.items.kind">Ceremonia</p>
+        <h3 class="event-title" data-inv="events.items.title">La ceremonia</h3>
+        <p class="event-time" data-inv="events.items.time">16:00 h</p>
+        <p class="event-place" data-inv="events.items.place">Iglesia de Santa María<small data-inv="events.items.address">Plaza de la Catedral 5</small></p>
+        <p class="event-note" data-inv="events.items.note">Llega quince minutos antes, por favor.</p>
+        <a class="event-map-btn" href="#" data-inv="events.items.mapUrl">¿Cómo llegar?</a>
+      </article>
+      <article class="event-card" data-inv-item>
+        <span class="event-icon" data-inv="events.items.icon">🥂</span>
+        <p class="event-type" data-inv="events.items.kind">Recepción</p>
+        <h3 class="event-title" data-inv="events.items.title">La celebración</h3>
+        <p class="event-time" data-inv="events.items.time">18:30 h</p>
+        <p class="event-place" data-inv="events.items.place">Hacienda El Cortijo<small data-inv="events.items.address">Carretera de Sopó km 8</small></p>
+        <p class="event-note" data-inv="events.items.note">Habrá transporte desde la iglesia.</p>
+        <a class="event-map-btn" href="#" data-inv="events.items.mapUrl">¿Cómo llegar?</a>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section id="confirmation" class="reveal alt" data-inv-section="confirm">
+  <div class="container">
+    <p class="section-label" data-inv="confirm.label">¿Nos acompañas?</p>
+    <h2 class="section-title" data-inv="confirm.title">Confirma tu asistencia</h2><div class="ornament"><span class="orn-filetes"><i style="background:#d8dcca"></i><span class="orn-pieza" style="width:17px;height:17px"><svg class="inv-orn" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M221.45,40.19a6,6,0,0,0-5.64-5.64C140.43,30.11,80.14,52.71,54.53,95c-17.44,28.79-16.76,62.8,1.79,96.2L35.76,211.76a6,6,0,1,0,8.48,8.48L64.8,199.68c17.27,9.59,34.7,14.41,51.49,14.41A85.38,85.38,0,0,0,161,201.47C203.29,175.86,225.88,115.57,221.45,40.19Zm-66.66,151c-24.08,14.58-52.64,14.37-81.13-.39l90.59-90.59a6,6,0,0,0-8.48-8.48L65.18,182.34c-14.76-28.49-15-57-.39-81.13,22.68-37.43,76.63-57.8,145-54.95C212.59,114.58,192.22,168.54,154.79,191.21Z"/></svg></span><i style="background:#d8dcca"></i></span></div>
+    <p class="confirmation-text" data-inv="confirm.text">Por favor confirma tu asistencia. Nos ayudará a planear el mejor día posible para todos.</p>
+    <p class="confirmation-deadline" data-inv="confirm.deadlineText">Antes del 15 de octubre</p>
+    <p class="confirmation-text" data-inv="confirm.note">Si vienes con alguien, cuéntanos aquí mismo.</p>
+    <!-- El renderer reemplaza el <form> entero por su componente. Se
+         reemplaza el form y no el botón: anidar formularios es HTML inválido
+         y el navegador descarta el de dentro. -->
+    <form class="confirm-form" data-inv-rsvp>
+      <input class="confirm-input" type="text" name="nombre" placeholder="Tu nombre">
+      <input class="confirm-input" type="tel" name="telefono" placeholder="Teléfono (opcional)">
+      <input class="confirm-input" type="number" name="acompanantes" min="1" max="10" value="1">
+      <textarea class="confirm-input" name="mensaje" rows="2" placeholder="Mensaje (opcional)"></textarea>
+      <!-- Sin data-inv: el renderer reemplaza el formulario entero. -->
+      <button class="confirm-btn" type="submit">Confirmar asistencia</button>
+    </form>
+  </div>
+</section>
+
+<section id="gallery" class="reveal" data-inv-section="gallery">
+  <div class="container">
+    <p class="section-label" data-inv="gallery.label">Nuestra historia</p>
+    <h2 class="section-title" data-inv="gallery.title">Momentos juntos</h2><div class="ornament"><span class="orn-filetes"><i style="background:#d8dcca"></i><span class="orn-pieza" style="width:17px;height:17px"><svg class="inv-orn" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M221.45,40.19a6,6,0,0,0-5.64-5.64C140.43,30.11,80.14,52.71,54.53,95c-17.44,28.79-16.76,62.8,1.79,96.2L35.76,211.76a6,6,0,1,0,8.48,8.48L64.8,199.68c17.27,9.59,34.7,14.41,51.49,14.41A85.38,85.38,0,0,0,161,201.47C203.29,175.86,225.88,115.57,221.45,40.19Zm-66.66,151c-24.08,14.58-52.64,14.37-81.13-.39l90.59-90.59a6,6,0,0,0-8.48-8.48L65.18,182.34c-14.76-28.49-15-57-.39-81.13,22.68-37.43,76.63-57.8,145-54.95C212.59,114.58,192.22,168.54,154.79,191.21Z"/></svg></span><i style="background:#d8dcca"></i></span></div>
+    <p class="gallery-text" data-inv="gallery.text">Unas cuantas fotos de lo que nos trajo hasta aquí.</p>
+    <div class="gallery-grid" data-inv-list="gallery">
+      <div class="gallery-item" data-inv-item><div class="gallery-ph" data-inv="gallery.items.url"><span class="gallery-ph-text">Foto 1</span></div></div>
+      <div class="gallery-item" data-inv-item><div class="gallery-ph" data-inv="gallery.items.url"><span class="gallery-ph-text">Foto 2</span></div></div>
+      <div class="gallery-item" data-inv-item><div class="gallery-ph" data-inv="gallery.items.url"><span class="gallery-ph-text">Foto 3</span></div></div>
+      <div class="gallery-item" data-inv-item><div class="gallery-ph" data-inv="gallery.items.url"><span class="gallery-ph-text">Foto 4</span></div></div>
+      <div class="gallery-item" data-inv-item><div class="gallery-ph" data-inv="gallery.items.url"><span class="gallery-ph-text">Foto 5</span></div></div>
+      <div class="gallery-item" data-inv-item><div class="gallery-ph" data-inv="gallery.items.url"><span class="gallery-ph-text">Foto 6</span></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="features" class="reveal alt" data-inv-section="features">
+  <div class="container">
+    <p class="section-label" data-inv="features.label">Información útil</p>
+    <h2 class="section-title" data-inv="features.title">Todo lo que necesitas saber</h2><div class="ornament"><span class="orn-filetes"><i style="background:#d8dcca"></i><span class="orn-pieza" style="width:17px;height:17px"><svg class="inv-orn" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M221.45,40.19a6,6,0,0,0-5.64-5.64C140.43,30.11,80.14,52.71,54.53,95c-17.44,28.79-16.76,62.8,1.79,96.2L35.76,211.76a6,6,0,1,0,8.48,8.48L64.8,199.68c17.27,9.59,34.7,14.41,51.49,14.41A85.38,85.38,0,0,0,161,201.47C203.29,175.86,225.88,115.57,221.45,40.19Zm-66.66,151c-24.08,14.58-52.64,14.37-81.13-.39l90.59-90.59a6,6,0,0,0-8.48-8.48L65.18,182.34c-14.76-28.49-15-57-.39-81.13,22.68-37.43,76.63-57.8,145-54.95C212.59,114.58,192.22,168.54,154.79,191.21Z"/></svg></span><i style="background:#d8dcca"></i></span></div>
+    <div class="features-grid" data-inv-list="features">
+      <div class="feature-card" data-inv-item>
+        <span class="feature-icon" data-inv="features.items.icon">👗</span>
+        <h3 class="feature-title" data-inv="features.items.title">Código de vestimenta</h3>
+        <p class="feature-text" data-inv="features.items.text">Formal. Los tonos claros son bienvenidos; el blanco, reservado para la novia.</p>
+      </div>
+      <div class="feature-card" data-inv-item>
+        <span class="feature-icon" data-inv="features.items.icon">🚗</span>
+        <h3 class="feature-title" data-inv="features.items.title">Cómo llegar</h3>
+        <p class="feature-text" data-inv="features.items.text">Hay parqueadero en el lugar y transporte desde la iglesia hasta la recepción.</p>
+      </div>
+      <div class="feature-card" data-inv-item>
+        <span class="feature-icon" data-inv="features.items.icon">🏨</span>
+        <h3 class="feature-title" data-inv="features.items.title">Alojamiento</h3>
+        <p class="feature-text" data-inv="features.items.text">Tenemos tarifa preferencial en el hotel de la esquina. Escríbenos por el código.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="gifts" class="reveal" data-inv-section="gifts">
+  <div class="container">
+    <p class="section-label" data-inv="gifts.label">Con mucho cariño</p>
+    <h2 class="section-title" data-inv="gifts.title">Mesa de regalos</h2><div class="ornament"><span class="orn-filetes"><i style="background:#d8dcca"></i><span class="orn-pieza" style="width:17px;height:17px"><svg class="inv-orn" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M221.45,40.19a6,6,0,0,0-5.64-5.64C140.43,30.11,80.14,52.71,54.53,95c-17.44,28.79-16.76,62.8,1.79,96.2L35.76,211.76a6,6,0,1,0,8.48,8.48L64.8,199.68c17.27,9.59,34.7,14.41,51.49,14.41A85.38,85.38,0,0,0,161,201.47C203.29,175.86,225.88,115.57,221.45,40.19Zm-66.66,151c-24.08,14.58-52.64,14.37-81.13-.39l90.59-90.59a6,6,0,0,0-8.48-8.48L65.18,182.34c-14.76-28.49-15-57-.39-81.13,22.68-37.43,76.63-57.8,145-54.95C212.59,114.58,192.22,168.54,154.79,191.21Z"/></svg></span><i style="background:#d8dcca"></i></span></div>
+    <p class="gifts-text" data-inv="gifts.text">Su presencia es nuestro mejor regalo. Si desean acompañarnos con un detalle, aquí dejamos los datos.</p>
+    <div class="gifts-account">
+      <p class="gifts-bank" data-inv="gifts.bankLabel">Transferencia</p>
+      <p class="gifts-iban" data-inv="gifts.account">Bancolombia · 000-000000-00</p>
+    </div>
+    <p class="gifts-note" data-inv="gifts.note">Concepto: tu nombre</p>
+    <div class="gifts-cards" data-inv-list="gifts">
+      <div class="gift-card" data-inv-item>
+        <span class="gift-icon" data-inv="gifts.items.icon">✈️</span>
+        <h3 class="gift-title" data-inv="gifts.items.title">Luna de miel</h3>
+        <p class="gift-desc" data-inv="gifts.items.text">Ayúdanos a llegar más lejos.</p>
+        <a class="gift-link" href="#" data-inv="gifts.items.url">Ver</a>
+      </div>
+      <div class="gift-card" data-inv-item>
+        <span class="gift-icon" data-inv="gifts.items.icon">🏠</span>
+        <h3 class="gift-title" data-inv="gifts.items.title">Nuestra casa</h3>
+        <p class="gift-desc" data-inv="gifts.items.text">Para lo que falta del nuevo hogar.</p>
+        <a class="gift-link" href="#" data-inv="gifts.items.url">Ver</a>
+      </div>
+    </div>
+    <a class="gifts-btn" href="#" data-inv="gifts.url">Ver mesa de regalos</a>
+  </div>
+</section>
+
+<section id="social" class="reveal alt" data-inv-section="social">
+  <div class="container">
+    <p class="section-label" data-inv="social.label">Compártelo</p>
+    <h2 class="section-title" data-inv="social.title">Sube tus fotos</h2><div class="ornament"><span class="orn-filetes"><i style="background:#d8dcca"></i><span class="orn-pieza" style="width:17px;height:17px"><svg class="inv-orn" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M221.45,40.19a6,6,0,0,0-5.64-5.64C140.43,30.11,80.14,52.71,54.53,95c-17.44,28.79-16.76,62.8,1.79,96.2L35.76,211.76a6,6,0,1,0,8.48,8.48L64.8,199.68c17.27,9.59,34.7,14.41,51.49,14.41A85.38,85.38,0,0,0,161,201.47C203.29,175.86,225.88,115.57,221.45,40.19Zm-66.66,151c-24.08,14.58-52.64,14.37-81.13-.39l90.59-90.59a6,6,0,0,0-8.48-8.48L65.18,182.34c-14.76-28.49-15-57-.39-81.13,22.68-37.43,76.63-57.8,145-54.95C212.59,114.58,192.22,168.54,154.79,191.21Z"/></svg></span><i style="background:#d8dcca"></i></span></div>
+    <p class="social-sub" data-inv="social.text">Etiquétalas con nuestro hashtag para que no se pierda ninguna.</p>
+    <span class="social-hashtag" data-inv="social.hashtag">#JuanYMaria2027</span>
+    <a class="social-ig" href="#" data-inv="social.instagram">@juanymaria</a>
+  </div>
+</section>
+
+<footer data-inv-section="footer">
+  
+  <!-- El pie lleva su .container como el resto de las secciones, aunque su
+       contenido quepa sin él: es lo que el renderer sube por encima de un
+       adorno puesto "debajo del texto". Sin envoltorio posicionado, un adorno
+       absoluto se pintaba sobre estos párrafos. -->
+  <div class="container">
+    <p class="footer-names" data-inv="event.names">Juan<span class="amp">&amp;</span>María</p>
+    <p class="footer-date" data-inv="footer.dateLine">15 · Noviembre · 2027</p>
+    <p class="footer-copy" data-inv="footer.note">Con amor · Juan &amp; María</p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  document.body.style.overflow = 'hidden';
+  window.enterSite = function () {
+    var s = document.getElementById('splash');
+    if (s) s.classList.add('hidden');
+    document.body.style.overflow = '';
+  };
+
+  /* La cuenta atrás busca por [data-cd], no por ids fijos: así el renderer
+     puede sustituir la sección por una variante con marcado propio sin que
+     este script quede lanzando errores cada segundo. */
+  var TARGET = new Date('2027-11-15T16:00:00');
+  function tick() {
+    var diff = TARGET - new Date();
+    if (diff < 0) diff = 0;
+    var s = Math.floor(diff / 1000);
+    var v = {
+      days: Math.floor(s / 86400),
+      hours: Math.floor(s / 3600) % 24,
+      mins: Math.floor(s / 60) % 60,
+      secs: s % 60
+    };
+    document.querySelectorAll('[data-cd]').forEach(function (el) {
+      var n = v[el.getAttribute('data-cd')];
+      if (n === undefined) return;
+      var next = String(n).padStart(2, '0');
+      if (el.textContent === next) return;
+      el.textContent = next;
+      el.classList.remove('tick');
+      void el.offsetWidth;
+      el.classList.add('tick');
+    });
+  }
+  tick();
+  setInterval(tick, 1000);
+
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (en) {
+      if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); }
+    });
+  }, { threshold: .12 });
+  document.querySelectorAll('.reveal').forEach(function (el) { io.observe(el); });
+
+  /* Parallax de la portada y barra de progreso, en un solo rAF: dos
+     escuchadores de scroll en un móvil son una sucesión de tirones. */
+  var quieto = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var heroBg = document.querySelector('.hero-bg');
+  var barra = document.querySelector('.progress i');
+  var pendiente = false;
+  function pintar() {
+    pendiente = false;
+    var y = window.scrollY || 0;
+    if (heroBg && !quieto && y < window.innerHeight * 1.4) {
+      heroBg.style.transform = 'translate3d(0,' + (y * 0.22).toFixed(1) + 'px,0) scale(1.12)';
+    }
+    if (barra) {
+      var total = document.body.scrollHeight - window.innerHeight;
+      barra.style.width = (total > 0 ? Math.min(100, (y / total) * 100) : 0) + '%';
+    }
+  }
+  addEventListener('scroll', function () {
+    if (!pendiente) { pendiente = true; requestAnimationFrame(pintar); }
+  }, { passive: true });
+  pintar();
+})();
+</script>
+</body>
+</html>

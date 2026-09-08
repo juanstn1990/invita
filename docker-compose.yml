@@ -1,0 +1,58 @@
+# Invita en Docker, para desarrollo y para un servidor propio.
+#
+# En EasyPanel no se usa este archivo: allí la base es un servicio aparte y
+# los volúmenes se configuran en la interfaz. Esto es el equivalente local, y
+# sirve para probar exactamente lo mismo que se va a desplegar.
+#
+# La biblioteca de imágenes va en **bind mount** y la base en un servicio de
+# Postgres con su propio volumen. La distinción importa:
+#
+#   · **bind mount** (una ruta del host) — los bytes viven donde tú digas.
+#     Sobrevive a borrar el contenedor, borrar la imagen y un reset de Docker
+#     Desktop. Es lo único durable de verdad.
+#   · **volumen con nombre** — vive en la VM de datos de Docker, que en Windows
+#     es otra distro de WSL. Rápido y con un sistema de archivos de verdad,
+#     pero un "Reset to factory defaults" se lo lleva. Por eso se respalda.
+
+services:
+  app:
+    build: .
+    image: invita
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    environment:
+      UPLOADS_DIR: /data/biblioteca
+      DATABASE_URL: postgres://invita:invita@db:5432/invita?sslmode=disable
+    volumes:
+      - ${INVITA_DATA:-/mnt/c/Users/Public/Invita}/biblioteca:/data/biblioteca
+    restart: unless-stopped
+
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: invita
+      POSTGRES_PASSWORD: invita
+      POSTGRES_DB: invita
+    # Expuesto para que `npm run dev` use la misma base que el contenedor, y
+    # no dos bases distintas según cómo arranques. En 5433 y no en 5432
+    # porque en esta máquina ya hay otro Postgres en el puerto de siempre, y
+    # conectarse "a localhost:5432" acababa en la base de otro proyecto.
+    ports:
+      - "5433:5432"
+    volumes:
+      # Volumen propio y no el `base` de antes: ese traía el dev.db de cuando
+      # la base era SQLite, y Postgres se niega a inicializar sobre un
+      # directorio que no esté vacío.
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U invita -d invita"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    restart: unless-stopped
+
+volumes:
+  pgdata:

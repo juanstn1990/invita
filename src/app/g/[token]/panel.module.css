@@ -1,0 +1,89 @@
+/* El panel que se comparte con quien invita. Vive fuera del editor y se abre
+   casi siempre en un móvil, así que es una sola columna y nada más. */
+
+.page {
+  max-width: 620px;
+  margin: 0 auto;
+  padding: 28px 18px 64px;
+}
+
+.header { margin-bottom: 22px; }
+.eyebrow {
+  margin: 0 0 4px;
+  font-size: 11px; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--text-muted);
+}
+.title { margin: 0; font-size: 28px; }
+.sub { margin: 4px 0 0; font-size: 14px; color: var(--text-muted); }
+
+.aviso {
+  margin: 0 0 18px; padding: 12px 14px;
+  font-size: 13.5px; line-height: 1.55;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.caja {
+  padding: 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+.cajaTitulo { margin: 0 0 6px; font-size: 18px; }
+.ayuda { margin: 0 0 14px; font-size: 13px; line-height: 1.55; color: var(--text-muted); }
+.caja .input { margin-bottom: 14px; }
+.error { margin: 0 0 12px; font-size: 13px; color: var(--danger, #b3261e); }
+
+.cuentas {
+  display: flex; flex-wrap: wrap; gap: 8px 18px;
+  margin: 22px 0 10px;
+  font-size: 13px; color: var(--text-muted);
+}
+.cuentas b { color: var(--text); font-size: 15px; }
+
+.vacio {
+  margin: 22px 0 0; padding: 22px;
+  text-align: center; font-size: 13.5px; line-height: 1.6;
+  color: var(--text-muted);
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+}
+
+.lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.fila {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: 12px; padding: 14px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.filaCuerpo { min-width: 190px; flex: 1; }
+.nombres { margin: 0; font-size: 15px; font-weight: 600; }
+.nota { margin: 2px 0 0; font-size: 12.5px; color: var(--text-muted); }
+.enlace { margin: 6px 0 0; font-size: 11.5px; color: var(--text-muted); word-break: break-all; }
+
+.filaLado { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+.estado {
+  padding: 3px 10px; border-radius: 999px;
+  font-size: 11.5px; letter-spacing: .02em;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+.estado[data-estado="confirmado"] { color: #1c7a4a; border-color: #1c7a4a55; background: #1c7a4a12; }
+.estado[data-estado="no asiste"] { color: #a33a2f; border-color: #a33a2f55; background: #a33a2f10; }
+.estado[data-estado="parcial"] { color: #9a6b12; border-color: #9a6b1255; background: #9a6b1212; }
+
+.acciones { display: flex; gap: 6px; }
+.refrescar { margin-top: 18px; }
+
+/* Mientras la invitación siga en borrador los enlaces no abren, y eso tiene
+   que verse antes de repartirlos. */
+.avisoFuerte {
+  margin: 0 0 18px; padding: 13px 15px;
+  font-size: 13.5px; line-height: 1.6;
+  color: #7a4a12;
+  background: #fdf3e2;
+  border: 1px solid #e2c48a;
+  border-radius: 10px;
+}

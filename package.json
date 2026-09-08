@@ -1,0 +1,46 @@
+{
+  "name": "invita",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "db:push": "prisma db push",
+    "db:studio": "prisma studio",
+    "media:index": "tsx scripts/index-uploads.ts",
+    "db:migrar": "tsx scripts/migrar-a-postgres.ts",
+    "backup": "tsx scripts/backup.ts",
+    "docker:backup": "sh scripts/docker-backup.sh",
+    "docker:restore": "sh scripts/docker-restore.sh",
+    "audit:bindings": "tsx scripts/audit-bindings.ts",
+    "audit:render": "tsx scripts/smoke-render.ts",
+    "templates:build": "tsx scripts/build-templates.ts",
+    "iconos:build": "tsx scripts/build-iconos.ts",
+    "templates:shots": "tsx scripts/shots.ts",
+    "audit:browser": "tsx scripts/audit-browser.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.20.0",
+    "linkedom": "^0.18.13",
+    "next": "^14.2.15",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@phosphor-icons/core": "^2.1.1",
+    "@types/node": "^22.20.1",
+    "@types/react": "^18.3.5",
+    "@types/react-dom": "^18.3.0",
+    "playwright": "^1.62.1",
+    "prisma": "^5.20.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.4"
+  },
+  "allowScripts": {
+    "@prisma/client@5.22.0": true,
+    "@prisma/engines@5.22.0": true,
+    "esbuild@0.28.2": true,
+    "prisma@5.22.0": true
+  }
+}

@@ -1,0 +1,149 @@
+/* Chrome de la app (dashboard y editor). Las invitaciones publicadas traen
+   su propio CSS completo y no heredan nada de aquí. */
+
+:root {
+  --bg: #f7f4ef;
+  --surface: #fffdfa;
+  --surface-2: #f1ece4;
+  --border: #e2dad0;
+  --border-strong: #cdc2b4;
+  --text: #2e2a26;
+  --text-muted: #7d746a;
+  --text-faint: #a49a8e;
+  --accent: #9a6b3f;
+  --accent-soft: #f0e5d8;
+  --accent-text: #7b5228;
+  --danger: #a8442f;
+  --ok: #4a7a52;
+  --radius: 10px;
+  --shadow: 0 1px 2px rgba(46, 42, 38, .05), 0 8px 24px -12px rgba(46, 42, 38, .18);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 { font-family: var(--font-display), Georgia, serif; font-weight: 400; line-height: 1.15; margin: 0; }
+
+a { color: inherit; }
+
+button, input, select, textarea { font: inherit; color: inherit; }
+
+/* ── Botones ─────────────────────────────────────────────── */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background .15s, border-color .15s, opacity .15s;
+  white-space: nowrap;
+}
+.btn:hover { background: var(--surface-2); }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+
+.btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn-primary:hover { background: #855a34; }
+
+.btn-ghost { border-color: transparent; background: transparent; }
+.btn-ghost:hover { background: var(--surface-2); }
+
+.btn-sm { padding: 5px 10px; font-size: 13px; border-radius: 6px; }
+
+.btn-danger { color: var(--danger); }
+.btn-danger:hover { background: #f8ebe7; }
+
+/* ── Campos ──────────────────────────────────────────────── */
+
+.field-label {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.input, .textarea, .select {
+  width: 100%;
+  padding: 8px 11px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  font-size: 14px;
+  transition: border-color .15s, box-shadow .15s;
+}
+.input:focus, .textarea:focus, .select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.textarea { resize: vertical; min-height: 62px; line-height: 1.5; }
+
+.field-help { margin: 4px 0 0; font-size: 12px; color: var(--text-faint); line-height: 1.45; }
+
+/* ── Interruptor ─────────────────────────────────────────── */
+
+.switch {
+  position: relative;
+  flex: none;
+  width: 34px;
+  height: 20px;
+  border: none;
+  border-radius: 999px;
+  background: var(--border-strong);
+  cursor: pointer;
+  transition: background .18s;
+  padding: 0;
+}
+.switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform .18s;
+}
+.switch[aria-checked="true"] { background: var(--accent); }
+.switch[aria-checked="true"]::after { transform: translateX(14px); }
+.switch:disabled { opacity: .4; cursor: not-allowed; }
+
+/* ── Varios ──────────────────────────────────────────────── */
+
+.tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+.tag-live { background: #e4efe4; color: var(--ok); }
+.tag-draft { background: var(--surface-2); color: var(--text-muted); }
+
+.mono { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 13px; }

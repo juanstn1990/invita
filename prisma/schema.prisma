@@ -1,0 +1,112 @@
+generator client {
+  provider = "prisma-client-js"
+  /// `native` para la máquina de quien desarrolla y el objetivo de Debian
+  /// para la imagen de Docker. Sin la segunda, el contenedor arranca, sirve
+  /// las páginas que no tocan la base, y cualquiera que sí la toque falla con
+  /// "could not locate the Query Engine for runtime debian-openssl-3.0.x".
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Una invitación: qué diseño usa y todo su contenido como JSON.
+/// El contenido sigue el esquema canónico de `src/lib/schema.ts`, así que
+/// cambiar de diseño no pierde nada de lo que ya se escribió.
+model Invitation {
+  id         String   @id @default(cuid())
+  /// URL pública: invita.app/{slug}
+  slug       String   @unique
+  /// Resto del constructor visual, que se retiró. Las columnas siguen aquí
+  /// para no perder las invitaciones que se crearon con él; ya no se leen.
+  mode       String   @default("plantilla")
+  templateId String
+  /// Nombre interno, sólo para el listado del organizador.
+  title      String
+  data       String
+  tree       String?
+  /// Llave del panel que el organizador comparte con quien invita: quien
+  /// tenga el enlace puede crear links de invitado y ver quién confirmó.
+  manageToken String? @unique
+  published  Boolean  @default(false)
+  /// Visitas a la invitación publicada.
+  views      Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  rsvps Rsvp[]
+  links GuestLink[]
+}
+
+/// Un link personalizado: los nombres que van a salir en la invitación y un
+/// código corto para reconocer la respuesta.
+///
+/// Los nombres viajan en la dirección, como se pensó desde el principio
+/// (?invitado=Ana Gómez,Carlos Gómez), así que la invitación sigue sin
+/// necesitar registro. El código (&g=) sólo sirve para saber qué link
+/// respondió: emparejar por nombre fallaría con una tilde de más o de menos.
+model GuestLink {
+  id           String     @id @default(cuid())
+  invitationId String
+  invitation   Invitation @relation(fields: [invitationId], references: [id], onDelete: Cascade)
+  /// Los nombres tal cual van en la dirección, separados por coma.
+  names        String
+  /// Código corto que identifica este link en la respuesta.
+  code         String     @unique
+  /// Para el organizador: "familia de la novia", "compañeros de trabajo"…
+  note         String?
+  createdAt    DateTime   @default(now())
+
+  rsvps Rsvp[]
+
+  @@index([invitationId])
+}
+
+/// Confirmación de un invitado. Sin registro: sólo el nombre es obligatorio.
+model Rsvp {
+  id           String     @id @default(cuid())
+  invitationId String
+  invitation   Invitation @relation(fields: [invitationId], references: [id], onDelete: Cascade)
+  name         String
+  phone        String?
+  /// confirmado | rechazado | quiza
+  status       String
+  /// De qué link personalizado vino la respuesta, si vino de uno.
+  guestLinkId  String?
+  guestLink    GuestLink? @relation(fields: [guestLinkId], references: [id], onDelete: SetNull)
+  partySize    Int        @default(1)
+  note         String?
+  createdAt    DateTime   @default(now())
+
+  @@index([invitationId])
+}
+
+/// La biblioteca de imágenes subidas.
+///
+/// Los bytes viven en `uploads/` y se sirven por `/api/media/...`; esta tabla
+/// es el catálogo, y existe para que una imagen subida una vez se pueda
+/// reutilizar en las invitaciones siguientes en vez de volver a buscarla en
+/// el disco de quien la subió.
+///
+/// No hay relación con `Invitation` a propósito: una misma imagen puede estar
+/// en varias, y borrar una invitación no debe llevarse su decoración.
+model Media {
+  id        String   @id @default(cuid())
+  /// La ruta pública, tal como la devuelve `saveImage`.
+  url       String   @unique
+  /// El nombre del archivo original, para poder buscarla.
+  name      String
+  mime      String
+  bytes     Int
+  /// Medidas, cuando el navegador las pudo leer antes de subir.
+  width     Int?
+  height    Int?
+  /// Para separar la decoración de las fotos del evento en el selector.
+  kind      String   @default("foto")
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([kind])
+}
