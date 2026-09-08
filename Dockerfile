@@ -17,6 +17,14 @@ RUN npm ci --ignore-scripts
 FROM node:22-slim AS build
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
+# OpenSSL también aquí: sin él `prisma generate` no detecta la versión, se
+# queda en openssl-1.1.x, y `next build` acaba llenando el log de
+# "PrismaClientInitializationError: libssl.so.1.1 not found" al recolectar
+# los datos de las páginas. El build pasa —esas páginas son dinámicas— pero
+# el aviso es real y esconde los errores que sí importan.
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends openssl \
+ && rm -rf /var/lib/apt/lists/*
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 # `next build` valida los tipos, así que compilar aquí también verifica.

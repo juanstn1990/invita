@@ -1,0 +1,6 @@
+Lo estático que se sirve tal cual (un favicon, un manifest…).
+
+Este archivo existe para que la carpeta viaje en el repositorio: git no
+versiona directorios vacíos, y sin él el `COPY --from=build /app/public` del
+Dockerfile falla en cualquier máquina que clone el proyecto. En la mía
+funcionaba porque la carpeta estaba en disco, y sólo se rompió al desplegar.
