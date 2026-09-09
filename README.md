@@ -773,22 +773,71 @@ otro camino. Ahora recorre a cualquier profundidad.
 ## Vista previa al compartir
 
 Una invitación se reparte por WhatsApp, y ahí un enlace sin Open Graph sale
-como texto pelado. La invitación publicada emite `og:title` con los nombres,
-`og:description` con la fecha y la ciudad, `og:url`, y `og:image` con la
-**portada que ya subió el organizador** (o la primera foto de la galería).
+como texto pelado. Lo que se ve en esa tarjeta son tres cosas —la foto, el
+título en negrita y la línea gris de debajo— y las tres se eligen en la
+sección **«Al compartir el enlace»**, al final del panel del editor.
 
-No se genera una tarjeta aparte a propósito: su portada es exactamente lo que
-quiere mostrar, y una imagen compuesta sería otra pieza que mantener.
+Los tres campos caen en lo que se mostraba antes de que la sección existiera:
+la foto de la portada, los nombres, y la fecha con la ciudad. Así una
+invitación que no los toque se comparte igual que siempre, y las que ya
+existían no cambian.
 
-Sólo en la publicada: en el editor no se comparte nada. Las URLs son absolutas
-porque los rastreadores no resuelven rutas relativas, y el origen sale de las
-cabeceras —no de `request.url`, que en un contenedor da el hostname interno de
-Docker.
+| Campo | Vacío significa |
+| --- | --- |
+| Foto de la vista previa | la de la portada; si no hay, la primera de la galería |
+| Título | los nombres |
+| Línea de debajo | la fecha y la ciudad; si no hay, la frase de la portada |
 
-Un detalle que salió al probarlo con nombres raros: linkedom escapa las
-comillas al serializar, así que nadie se sale del atributo, pero deja `<` y
-`>` crudos. Se quitan en vez de escaparlos, porque pre-escaparlos haría que el
-`&` saliera doble.
+### La foto va tal cual se subió
+
+Sin `?w=`. Pedir un ancho la reconvierte, y como los rastreadores no mandan
+`Accept: image/webp` saldría JPEG: **un PNG con transparencia acabaría con el
+fondo en negro** justo en la imagen que representa la invitación. El navegador
+ya la reduce a 2000px al subirla, así que la original no es un archivo
+desmedido.
+
+La dirección es absoluta porque **WhatsApp y compañía no resuelven rutas
+relativas**: con `/api/media/...` a secas, la tarjeta sale sin imagen. El
+origen se lee de las cabeceras (`src/lib/origen.ts`) y no de
+`new URL(request.url)`, que dentro de Docker devuelve el nombre del
+contenedor.
+
+### Lo que no se puede: texto encima de la foto
+
+WhatsApp muestra una imagen estática, así que poner texto sobre ella
+significaría **componer la imagen en el servidor**. Se probó: `sharp` puede
+dibujar un SVG con texto, pero la imagen de producción es `node:22-slim`, que
+no trae fuentes ni fontconfig —`Fontconfig error: Cannot load default config
+file`— y el texto sale en blanco. Haría falta meter fuentes en la imagen para
+algo que Open Graph ya resuelve con el título y la descripción.
+
+### La caché de WhatsApp
+
+Si cambias la foto o el texto **después** de haber compartido el enlace,
+WhatsApp sigue mostrando la vista previa vieja: la guarda por dirección y no
+la vuelve a pedir. No hay nada que hacer desde aquí. Lo práctico es dejar esta
+sección como quieres antes de repartir el enlace; si ya se repartió,
+publicarlo en otra dirección fuerza una tarjeta nueva.
+
+### Comprobarlo
+
+`npm run audit:render` verifica ocho casos: sin tocar nada sale como antes,
+cada campo propio manda cuando está puesto, la foto elegida gana a la de la
+portada, la dirección es absoluta, el `alt` sigue al título, y los ángulos de
+un `<script>` pegado en el título no se cuelan en un atributo.
+
+Un `og:` roto no se nota: no se ve en la invitación ni en el navegador, se ve
+cuando alguien pega el enlace y ya se compartió mal.
+
+### Un cuidado con los selectores de tipografía
+
+La sección no se dibuja en la página, y eso destapó una regla equivocada:
+`support.ts` ofrecía un selector de tipografía para **todo** campo de texto,
+por su tipo. Pero la tipografía se aplica inyectando CSS sobre el selector del
+binding, así que un campo sin binding que escriba texto ofrecía un control que
+no podía hacer nada. Ahora la condición es que exista ese binding, y eso
+retiró seis controles muertos: los dos de esta sección y cuatro que ya
+estaban —los textos de los botones del RSVP y los dos saludos.
 
 ## Cuadrar los archivos con el catálogo
 

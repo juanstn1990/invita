@@ -627,6 +627,41 @@ export const SECTIONS: SectionSpec[] = [
   },
 
   {
+    key: "compartir",
+    label: "Al compartir el enlace",
+    icon: "◇",
+    optional: false,
+    hint:
+      "Lo que aparece cuando alguien pega el enlace en WhatsApp: la foto, " +
+      "el título y la línea de debajo.",
+    fields: [
+      {
+        key: "imagen",
+        label: "Foto de la vista previa",
+        type: "image",
+        span: 2,
+        help: "Si la dejas vacía se usa la foto de la portada, y si tampoco hay, la primera de la galería.",
+      },
+      {
+        key: "titulo",
+        label: "Título",
+        type: "text",
+        span: 2,
+        placeholder: "Juan & María",
+        help: "Vacío = los nombres.",
+      },
+      {
+        key: "texto",
+        label: "Línea de debajo",
+        type: "textarea",
+        span: 2,
+        placeholder: "15 de Noviembre · Bogotá",
+        help: "Vacío = la fecha y la ciudad. WhatsApp la corta a unas dos líneas, así que lo importante primero.",
+      },
+    ],
+  },
+
+  {
     key: "footer",
     label: "Pie de página",
     icon: "—",
@@ -645,11 +680,12 @@ export const SECTIONS: SectionSpec[] = [
  * una para que el organizador no entienda por qué ahí no puede poner fondo.
  *
  * `event` queda fuera porque no es una sección que se dibuje —son los datos
- * del evento—, y la portada queda fuera del fondo porque ese sitio ya lo
- * ocupa su foto.
+ * del evento—, y `compartir` porque tampoco: son las etiquetas Open Graph del
+ * `<head>`, y un fondo o un adorno ahí no tendrían dónde pintarse. La portada
+ * queda fuera del fondo porque ese sitio ya lo ocupa su foto.
  */
 for (const spec of SECTIONS) {
-  if (spec.key === "event") continue;
+  if (spec.key === "event" || spec.key === "compartir") continue;
   spec.adornos = true;
   if (spec.key !== "hero") {
     spec.fondo = true;
@@ -728,6 +764,16 @@ export function defaultData(): InvitationData {
       dateLabel: "",
       city: "Bogotá",
       quote: "El amor no se mira, se vive juntos mirando en la misma dirección.",
+    },
+    compartir: {
+      enabled: true,
+      /* Vacíos a propósito: cada uno cae en lo que ya había antes de que esta
+         sección existiera —la portada, los nombres, la fecha y la ciudad—, así
+         que las invitaciones de antes se comparten igual que siempre y sólo
+         cambia lo que se toque aquí. */
+      imagen: "",
+      titulo: "",
+      texto: "",
     },
     splash: {
       enabled: true,

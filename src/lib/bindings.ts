@@ -246,6 +246,12 @@ function construir(): TemplateMap {
   };
 
   for (const s of SECTIONS) {
+    /* "Al compartir" no se dibuja en la invitación: alimenta las etiquetas
+       Open Graph del `<head>`. No tiene marcado que buscar, y mapearla haría
+       que la auditoría exigiera un `data-inv` por cada campo. Se resuelve en
+       el paso 5 de `renderInvitation`. */
+    if (s.key === "compartir") continue;
+
     sections[s.key] = [`[data-inv-section="${s.key}"]`];
     campos(s.key, s.fields);
 

@@ -2269,36 +2269,55 @@ export function renderInvitation(opts: RenderOptions): string {
   if (titleEl) titleEl.textContent = nombres;
 
   /* Una invitación se reparte por WhatsApp, y ahí un enlace sin Open Graph
-     sale como texto pelado. La imagen es la foto que ya puso el organizador:
-     generar una tarjeta aparte sería otra pieza que mantener, y su portada ya
-     es exactamente lo que quiere mostrar. */
+     sale como texto pelado.
+
+     Los tres datos que se ven en esa tarjeta —la foto, el título en negrita y
+     la línea gris de debajo— son los tres que la sección "Al compartir" deja
+     elegir. Lo que no se puede es poner texto **encima** de la foto: WhatsApp
+     muestra una imagen estática, así que habría que componerla en el
+     servidor, y `sharp` no dibuja texto en la imagen de producción porque
+     `node:22-slim` no trae fuentes ni fontconfig (comprobado: el texto sale
+     en blanco). La foto va tal cual se subió. */
   if (!preview && opts.origin) {
     const absoluta = (u: string) =>
       /^https?:/.test(u) ? u : `${opts.origin}${u.startsWith("/") ? "" : "/"}${u}`;
 
+    const compartir = data.compartir || {};
+
+    /* Cada campo cae en lo que se mostraba antes de que la sección existiera,
+       así que una invitación que no la toque se comparte igual que siempre. */
+    const elegida = String(compartir.imagen || "").trim();
     const portada = String(data.hero?.backgroundUrl || "").trim();
     const primeraFoto = ((data.gallery?.items as { url?: string }[]) || []).find(
       (i) => (i?.url || "").trim()
     )?.url;
-    const imagen = portada || primeraFoto || "";
+    const imagen = elegida || portada || primeraFoto || "";
 
     const cuando = resolvedDateLabel(data);
     const donde = String(data.event?.city || "").trim();
     const descripcion =
+      String(compartir.texto || "").trim() ||
       [cuando, donde].filter(Boolean).join(" · ") ||
       String(data.event?.quote || "").trim();
 
+    const titulo = String(compartir.titulo || "").trim() || nombres;
+
     const meta: [string, string][] = [
       ["og:type", "website"],
-      ["og:title", nombres],
+      ["og:title", titulo],
       ["og:description", descripcion],
       ["og:locale", "es_ES"],
     ];
     if (slug) meta.push(["og:url", absoluta(`/${slug}`)]);
     if (imagen) {
-      /* El ancho grande: los rastreadores no negocian tamaños. */
-      meta.push(["og:image", absoluta(imagen) + (imagen.includes("/api/media/") ? "?w=1600" : "")]);
-      meta.push(["og:image:alt", nombres]);
+      /* Tal cual se subió, sin `?w=`.
+         Pedir un ancho la reconvierte —y como los rastreadores no mandan
+         `Accept: image/webp`, sale JPEG: un PNG con transparencia acabaría
+         con el fondo en negro justo en la imagen que representa la
+         invitación. El navegador ya la reduce a 2000px al subirla, así que la
+         original no es un archivo desmedido. */
+      meta.push(["og:image", absoluta(imagen)]);
+      meta.push(["og:image:alt", titulo]);
     }
 
     /* Los ángulos se quitan y no se escapan. linkedom escapa las comillas al

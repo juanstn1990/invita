@@ -376,6 +376,25 @@ export function Editor(props: EditorProps) {
                     />
                   );
                 })()}
+
+                {/* Al final y fuera del orden de la página: no es una sección
+                    de la invitación, es lo que se ve cuando se pega el enlace
+                    en WhatsApp. Va después del pie porque se decide cuando ya
+                    está todo lo demás. */}
+                {(() => {
+                  const comp = SECTIONS.find((s) => s.key === "compartir")!;
+                  return (
+                    <SectionEditor
+                      spec={comp}
+                      data={data.compartir || {}}
+                      support={support}
+                      inTemplate
+                      open={open === "compartir"}
+                      onToggleOpen={() => setOpen(open === "compartir" ? null : "compartir")}
+                      onChange={(patch) => patchSection("compartir", patch)}
+                    />
+                  );
+                })()}
               </>
             )}
           </div>

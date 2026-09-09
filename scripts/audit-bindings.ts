@@ -90,7 +90,12 @@ for (const tpl of TEMPLATES) {
 
   /* 2 · Las secciones */
   for (const s of SECTIONS) {
-    if (s.key === "event") continue;
+    /* `event` son los datos comunes —nombres, fecha, ciudad— y se escriben en
+       la portada, el velo y el pie, no en una sección propia. `compartir` no
+       se dibuja en la página: alimenta las etiquetas Open Graph del `<head>`
+       (ver el paso 5 de `renderInvitation`). Ninguna de las dos tiene, ni
+       debe tener, un `data-inv-section` que buscar. */
+    if (s.key === "event" || s.key === "compartir") continue;
     if (!document.querySelector(`[data-inv-section="${s.key}"]`)) {
       lineas.push(`  ✗ SECCIÓN ${s.key}`);
       faltan++;

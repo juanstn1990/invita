@@ -15,7 +15,7 @@
  * significa algo donde hay un panel translúcido que atenuar.
  */
 
-import { fontableOp } from "./bindings";
+import { fontableOp, mapFor } from "./bindings";
 import { SECTIONS } from "./schema";
 import { designOf } from "./templates";
 
@@ -36,6 +36,12 @@ export interface TemplateSupport {
 }
 
 const cache = new Map<string, TemplateSupport>();
+
+/** ¿Hay un binding que escriba texto en este campo? Sólo entonces la
+ *  tipografía tiene dónde aplicarse. */
+function escribeTexto(path: string): boolean {
+  return (mapFor().fields[path] || []).some(fontableOp);
+}
 
 /**
  * ¿Tiene sentido el control de opacidad en este diseño?
@@ -69,7 +75,13 @@ export function templateSupport(templateId: string): TemplateSupport {
       // campos que compartan selector con otro, así que ninguno se descarta:
       // antes los que iban con `nth` no ofrecían el control porque la regla
       // habría afectado a los dos.
-      if (field.type === "text" || field.type === "textarea") fields.push(`${path}@font`);
+      //
+      // Pero el tipo no basta: la tipografía se aplica inyectando una regla
+      // CSS sobre el selector del binding, así que un campo de texto **sin
+      // binding que escriba texto** ofrecería un control que no puede hacer
+      // nada. Pasaba con los metadatos de "Al compartir", que no se dibujan
+      // en la página, y ya pasaba con el texto de los botones del RSVP.
+      if (escribeTexto(path)) fields.push(`${path}@font`);
     }
 
     if (!spec.list) continue;

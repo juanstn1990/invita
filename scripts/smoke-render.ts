@@ -208,6 +208,93 @@ for (const [nombre, tocar] of CASOS) {
   }
 }
 
+
+/* ── Los metadatos del enlace compartido ─────────────────────────
+   Un `og:` roto no se ve en la invitación ni en el navegador: se ve cuando
+   alguien pega el enlace en WhatsApp, y entonces ya se compartió mal. */
+{
+  const meta = (doc: any, prop: string) =>
+    doc.querySelector(`meta[property="${prop}"]`)?.getAttribute("content") || "";
+
+  const render = (toca: (d: any) => void) => {
+    const d: any = defaultData();
+    d.event.name1 = "Andrés";
+    d.event.name2 = "Valentina";
+    d.event.city = "Cartagena";
+    toca(d);
+    return parseHTML(
+      renderInvitation({
+        templateHtml: readTemplate(TEMPLATES[0].id), templateId: TEMPLATES[0].id,
+        data: d, slug: "demo", origin: "https://invita.test",
+      })
+    ).document;
+  };
+
+  const casos: [string, (d: any) => void, (doc: any) => boolean][] = [
+    [
+      "sin tocar nada, como antes",
+      () => {},
+      (doc) =>
+        meta(doc, "og:title") === "Andrés & Valentina" &&
+        meta(doc, "og:description").includes("Cartagena"),
+    ],
+    [
+      "título propio",
+      (d) => { d.compartir.titulo = "Nos casamos"; },
+      (doc) => meta(doc, "og:title") === "Nos casamos",
+    ],
+    [
+      "el alt de la foto sigue al título",
+      (d) => {
+        d.compartir.titulo = "Nos casamos";
+        d.hero.backgroundUrl = "/api/media/2026/09/bbbbbbbbbbbbbbbbbbbbbbbb.jpg";
+      },
+      (doc) => meta(doc, "og:image:alt") === "Nos casamos",
+    ],
+    [
+      "texto propio",
+      (d) => { d.compartir.texto = "Te esperamos en la hacienda"; },
+      (doc) => meta(doc, "og:description") === "Te esperamos en la hacienda",
+    ],
+    [
+      "foto propia, tal cual se subió",
+      (d) => {
+        d.hero.backgroundUrl = "/api/media/2026/09/bbbbbbbbbbbbbbbbbbbbbbbb.jpg";
+        d.compartir.imagen = "/api/media/2026/09/aaaaaaaaaaaaaaaaaaaaaaaa.jpg";
+      },
+      (doc) =>
+        meta(doc, "og:image") ===
+        "https://invita.test/api/media/2026/09/aaaaaaaaaaaaaaaaaaaaaaaa.jpg",
+    ],
+    [
+      "sin foto propia cae en la portada",
+      (d) => { d.hero.backgroundUrl = "/api/media/2026/09/bbbbbbbbbbbbbbbbbbbbbbbb.jpg"; },
+      (doc) => meta(doc, "og:image").includes("bbbb"),
+    ],
+    [
+      "la dirección absoluta, que los rastreadores no resuelven relativas",
+      () => {},
+      (doc) => meta(doc, "og:url") === "https://invita.test/demo",
+    ],
+    [
+      "los ángulos no se cuelan en un atributo",
+      (d) => { d.compartir.titulo = 'Ana <script>alert(1)</script>'; },
+      (doc) => !meta(doc, "og:title").includes("<"),
+    ],
+  ];
+
+  for (const [nombre, toca, comprueba] of casos) {
+    let ok = false;
+    try {
+      ok = comprueba(render(toca));
+    } catch {
+      ok = false;
+    }
+    if (!ok) botonMal++;
+    console.log(`${ok ? "✓" : "✗"} al compartir · ${nombre}`);
+  }
+}
+
 console.log(
   bad || botonMal
     ? `\n${bad} diseños y ${botonMal} casos con problemas`
