@@ -1273,6 +1273,83 @@ no el botón: anidar formularios es HTML inválido y el navegador descarta el de
 adentro, y con él se iba el `data-inv-rsvp` del que cuelga toda la
 confirmación.
 
+### Una respuesta por persona
+
+Una confirmación era siempre una fila nueva. Quien recargaba la página y
+volvía a confirmar aparecía dos veces; quien confirmaba «por si acaso» dos
+días después, otra vez. Y eso no se queda en una lista fea: el panel de quien
+invita **suma `partySize`** para dar el número de cabezas, que es el número
+con el que se encarga la comida.
+
+Ahora cada respuesta lleva una `clave` que dice quién contestó, y volver a
+contestar **reemplaza** en lugar de añadir.
+
+**Quién es «la misma persona»** es una decisión, no un detalle:
+
+- **El nombre normalizado** — sin acentos, en minúsculas, con los espacios
+  colapsados. «Ana Gómez», «ana gomez» y «  Ana  Gómez » son la misma persona
+  escribiendo con prisa en un teléfono.
+- **Más el link por el que entró**, si entró por uno. Dos familias pueden
+  tener cada una su Ana, y cada link es una casa distinta. Sin esto, la Ana de
+  una familia borraría la respuesta de la otra — y perder una respuesta es un
+  daño peor que mostrar dos filas.
+
+**Gana la última.** Si alguien puso «no puedo» y después «sí voy», la que
+vale es la segunda; con la primera se quedaría fuera de la boda alguien que sí
+va. Y al actualizar no se toca el `guestLinkId`: si contestó por su link y
+luego entró por la dirección pelada, su casa tiene que seguir apareciendo como
+respondida en el panel.
+
+Lo que **no** cubre: la misma persona escribiendo «Ana» una vez y «Ana
+García» la otra son, para cualquier programa, dos personas. Los links
+personalizados lo evitan, porque ahí el nombre lo pone quien invita.
+
+### La restricción está en la base, no sólo en el código
+
+`@@unique([invitationId, clave])`. Comprobar antes de escribir deja una
+rendija de milisegundos entre la lectura y la escritura, y **un doble clic cae
+justo ahí**. Por eso es un `upsert` contra una restricción real y no un
+`findFirst` seguido de un `create`.
+
+Y si la restricción salta de todos modos —dos peticiones exactamente
+simultáneas—, la ruta lo captura (`P2002`), actualiza y responde bien. Al
+invitado no se le puede decir «no se pudo enviar» cuando su respuesta sí
+quedó: reintentaría, o pensaría que la invitación está rota.
+
+Cuando ya había contestado, el mensaje lo dice: «Actualizamos tu respuesta».
+Fingir que es la primera vez lo deja preguntándose si acaba de apuntarse dos
+veces.
+
+### Las que ya estaban repetidas
+
+```
+npm run rsvp:limpiar -- --seco     # dice qué colapsaría
+npm run rsvp:limpiar
+```
+
+Agrupa por invitación y persona con **la misma función que usa la ruta** —a
+propósito, y no una copia en SQL: si las dos normalizaciones se separaran, la
+limpieza uniría filas que la app volvería a separar y nadie se daría cuenta—,
+se queda con la más reciente y marca su clave. Es idempotente.
+
+Desplegar no exige correrlo primero: las filas viejas quedan con `clave` NULL,
+y Postgres trata los NULL como distintos en un índice único, así que el
+`db push` del arranque las deja pasar. Probado sembrando tres filas repetidas
+con clave NULL: el push entra y no se pierde ninguna.
+
+### Comprobarlo
+
+```
+npm run audit:rsvp
+```
+
+A diferencia de las demás, esta auditoría **necesita el servidor corriendo y
+la base**: lo que se comprueba es el comportamiento de la ruta contra una
+restricción de la base, y ninguna mitad sirve sola. Crea una invitación de
+prueba, le manda de todo —el mismo nombre dos veces, escrito distinto, un
+cambio de idea, tres envíos simultáneos, dos familias con una Ana cada una, un
+link con dos nombres reenviado— y la borra al final.
+
 ## Estructura
 
 ```
@@ -1304,10 +1381,13 @@ src/app/api/i/[slug]/rsvp/              confirmaciones
 src/app/g/[token]/                      panel de invitados que se comparte
 src/app/api/g/[token]/                  crear y borrar enlaces de invitado
 src/lib/invitados.ts                    códigos, nombres y estado de cada enlace
+src/lib/rsvp.ts                         quién es "la misma persona" al confirmar
 src/app/api/media/                      subir y servir fotos
 uploads/                                fotos subidas (fuera del repo)
 scripts/build-templates.ts              genera los 27 y verifica el contraste
 scripts/audit-auth.ts                   ninguna ruta sin cerradura por descuido
+scripts/audit-rsvp.ts                   que nadie pueda confirmar dos veces
+scripts/rsvp-deduplicar.ts              colapsa las repetidas que ya estaban
 scripts/audit-*.ts, shots.ts            las auditorías y las capturas
 ```
 

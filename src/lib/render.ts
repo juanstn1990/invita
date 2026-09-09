@@ -1622,6 +1622,14 @@ export const RSVP_JS = `
           done('¡Nos vemos!',
                'Quedaron ' + res.j.asisten + ' de ' + res.j.total + ' confirmados.',
                VISTO);
+        } else if (res.j.actualizada) {
+          // Ya había contestado. Decirlo evita que se pregunte si la anterior
+          // contó o si acaba de apuntarse dos veces.
+          done('¡Nos vemos!',
+               res.j.total > 1
+                 ? 'Actualizamos su respuesta. Quedaron ' + res.j.total + ' confirmados.'
+                 : 'Actualizamos tu respuesta. Sigue quedando una sola confirmación.',
+               VISTO);
         } else {
           done('¡Nos vemos!',
                res.j.total > 1

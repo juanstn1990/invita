@@ -79,7 +79,18 @@ model Rsvp {
   partySize    Int        @default(1)
   note         String?
   createdAt    DateTime   @default(now())
+  /// Cuándo contestó por última vez. Distinto de `createdAt` si cambió de idea.
+  updatedAt    DateTime   @default(now()) @updatedAt
 
+  /// Quién contestó, normalizado: `guestLinkId|nombre`. Ver `src/lib/rsvp.ts`.
+  ///
+  /// Es lo que hace que volver a confirmar reemplace la respuesta anterior en
+  /// lugar de añadir otra fila. La restricción es la única protección real
+  /// contra dos envíos simultáneos: comprobar antes de escribir deja una
+  /// rendija de milisegundos, y un doble clic cae justo ahí.
+  clave        String?
+
+  @@unique([invitationId, clave])
   @@index([invitationId])
 }
 

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { claveDeRespuesta } from "@/lib/rsvp";
 
 const STATUSES = new Set(["confirmado", "rechazado", "quiza"]);
 
@@ -57,17 +58,63 @@ export async function POST(
       })
     : null;
 
-  await prisma.rsvp.createMany({
-    data: respuestas.map((r) => ({
-      invitationId: invitation.id,
-      guestLinkId: link?.id ?? null,
+  /*
+   * Una respuesta por persona, y la última manda.
+   *
+   * Antes esto era un `createMany` y cada envío añadía filas: quien recargaba
+   * la página y volvía a confirmar aparecía dos veces, y el recuento de
+   * cabezas del panel sumaba las dos. Ahora la clave dice quién contesta (ver
+   * `src/lib/rsvp.ts`) y volver a contestar **reemplaza**: cambiar de idea de
+   * «no puedo» a «sí voy» tiene que dejar una sola respuesta, la nueva.
+   *
+   * Se hace con `upsert` y no leyendo antes para decidir: entre la lectura y
+   * la escritura hay una rendija de milisegundos, y un doble clic cae justo
+   * ahí. La restricción de la base es la que lo cierra de verdad.
+   */
+  let repetidas = 0;
+  for (const r of respuestas) {
+    const clave = claveDeRespuesta(link?.id ?? null, r.name);
+    const campos = {
       name: r.name,
       phone,
       status: r.status,
       partySize: r.status === "confirmado" ? r.partySize ?? 1 : 1,
       note,
-    })),
-  });
+    };
+    const antes = await prisma.rsvp.findUnique({
+      where: { invitationId_clave: { invitationId: invitation.id, clave } },
+      select: { id: true },
+    });
+    if (antes) repetidas++;
+
+    try {
+      await prisma.rsvp.upsert({
+        where: { invitationId_clave: { invitationId: invitation.id, clave } },
+        create: {
+          invitationId: invitation.id,
+          guestLinkId: link?.id ?? null,
+          clave,
+          ...campos,
+        },
+        /* El link no se toca al actualizar: si la primera vez contestó por su
+           link y ahora entró por la dirección pelada, seguir colgada del link
+           es lo que mantiene el panel de quien invita al día. */
+        update: campos,
+      });
+    } catch (e) {
+      /* P2002: la restricción de unicidad saltó. Sólo puede pasar si otra
+         petición del mismo invitado creó la fila entre el `create` de este
+         upsert y su escritura — el doble clic exacto. La respuesta ya está
+         registrada, así que se actualiza y se sigue: contestarle "no se pudo
+         enviar" le haría reintentar, o pensar que la invitación está rota. */
+      if ((e as { code?: string }).code !== "P2002") throw e;
+      await prisma.rsvp.update({
+        where: { invitationId_clave: { invitationId: invitation.id, clave } },
+        data: campos,
+      });
+      repetidas++;
+    }
+  }
 
   const asisten = respuestas.filter((r) => r.status === "confirmado").length;
   return NextResponse.json({
@@ -76,5 +123,9 @@ export async function POST(
     status: asisten === respuestas.length ? "confirmado" : asisten ? "mixto" : "rechazado",
     total: respuestas.length,
     asisten,
+    /* Para poder decir "actualizamos tu respuesta" en lugar de fingir que es
+       la primera vez: quien vuelve a confirmar merece saber que la anterior
+       no quedó duplicada. */
+    actualizada: repetidas === respuestas.length && repetidas > 0,
   });
 }
