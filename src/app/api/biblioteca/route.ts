@@ -4,6 +4,7 @@ import { BLOCK_BY_TYPE, type BlockSpec } from "@/lib/blocks";
 import { HERO_DISPOSICIONES } from "@/lib/schema";
 
 import { TEMPLATE_BY_ID, readTemplate } from "@/lib/templates";
+import { origenDe } from "@/lib/origen";
 
 /**
  * La portada no es un bloque —no se reordena ni se quita— pero sus formas se
@@ -41,7 +42,7 @@ export async function POST(request: Request) {
   const opts = {
     templateHtml: readTemplate(templateId),
     templateId,
-    data: withAbsoluteMedia(body.data || {}, new URL(request.url).origin),
+    data: withAbsoluteMedia(body.data || {}, origenDe(request)),
     preview: true,
   };
 

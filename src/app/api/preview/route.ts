@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { renderInvitation, withAbsoluteMedia } from "@/lib/render";
 import { TEMPLATE_BY_ID, readTemplate } from "@/lib/templates";
+import { origenDe } from "@/lib/origen";
 
 /** Render en vivo para el editor: no toca la base de datos. */
 export async function POST(request: Request) {
@@ -14,7 +15,9 @@ export async function POST(request: Request) {
       templateHtml: readTemplate(templateId),
       templateId,
       // El iframe del editor usa srcdoc: sin origen, /api/media/… no carga.
-      data: withAbsoluteMedia(body.data || {}, new URL(request.url).origin),
+      // El origen sale de las cabeceras y no de request.url, que en un
+      // contenedor da el hostname interno de Docker.
+      data: withAbsoluteMedia(body.data || {}, origenDe(request)),
       preview: true,
     });
     return new NextResponse(html, {
