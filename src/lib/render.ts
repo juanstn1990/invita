@@ -12,6 +12,7 @@ import { mapFor, type ListBinding, type Op } from "./bindings";
 import { BLOCK_BY_TYPE, readLayout, variantOf, type Block } from "./blocks";
 import { FONT_BY_ID, googleHref } from "./fonts";
 import { pesoIconos } from "./design/designs";
+import { ANCHOS } from "./storage";
 import { variablesDePaleta } from "./design/css";
 import { piel } from "./design/theme";
 import { iconoHtml, type Peso } from "./iconos";
@@ -40,10 +41,15 @@ export interface RenderOptions {
   slug?: string;
   /** En el editor: sin splash, sin envío real de RSVP. */
   preview?: boolean;
+  /**
+   * El origen público, para las etiquetas Open Graph.
+   *
+   * WhatsApp y compañía no resuelven rutas relativas: si `og:image` no es
+   * absoluta, no hay tarjeta de vista previa. Sólo lo necesita la invitación
+   * publicada; en el editor no se comparte nada.
+   */
+  origin?: string;
 }
-
-/** Una URL segura dentro de un `url("...")` de CSS. */
-const cssUrl = (u: string) => u.replace(/["\\]/g, "\\$&").replace(/[\n\r]/g, "");
 
 const escapeHtml = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -112,16 +118,64 @@ function setParts(el: El, value: string) {
  * a la portada, en los diseños que no tienen una capa `.hero-bg` propia el
  * candidato es la sección entera y le borraría el contenido.
  */
-function setImage(el: El, url: string, clearPlaceholder: boolean) {
+/* ── tamaños de imagen ───────────────────────────────────────── */
+
+/** Sólo lo que servimos nosotros se puede redimensionar. */
+const propia = (url: string) => /(^|\/)api\/media\//.test(url);
+
+const conAncho = (url: string, w: number) =>
+  `${url}${url.includes("?") ? "&" : "?"}w=${w}`;
+
+/**
+ * El `srcset` de una imagen nuestra.
+ *
+ * Deja que el navegador pida el tamaño que de verdad necesita. Sin esto una
+ * casilla de galería de 120px descargaba la foto entera: 465 kB de media, y
+ * una galería de seis más la portada eran 3,2 MB en un móvil.
+ *
+ * Una URL ajena —alguien pegó un enlace— se devuelve sin tocar: no la
+ * servimos nosotros y no la podemos redimensionar.
+ */
+function srcSet(url: string): string {
+  if (!propia(url)) return "";
+  return ANCHOS.map((w) => `${conAncho(url, w)} ${w}w`).join(", ");
+}
+
+/**
+ * Lo mismo para un `background-image`, donde `srcset` no existe.
+ *
+ * `image-set()` es su equivalente y lo entienden los navegadores que
+ * importan; el `url()` de antes se deja como respaldo para el resto.
+ */
+function fondoImagen(url: string, ancho: number): string {
+  const limpia = url.replace(/'/g, "%27");
+  if (!propia(url)) return `background-image:url('${limpia}');`;
+  const uno = conAncho(limpia, ancho);
+  const dos = conAncho(limpia, Math.min(1600, ancho * 2));
+  return (
+    `background-image:url('${uno}');` +
+    `background-image:image-set(url('${uno}') 1x, url('${dos}') 2x);`
+  );
+}
+
+function setImage(el: El, url: string, clearPlaceholder: boolean, ancho = 800) {
   if (el.tagName?.toLowerCase() === "img") {
-    el.setAttribute("src", url);
+    el.setAttribute("src", propia(url) ? conAncho(url, ancho) : url);
+    const ss = srcSet(url);
+    if (ss) {
+      el.setAttribute("srcset", ss);
+      /* Sin `sizes` el navegador supone el ancho de la ventana y se pasa de
+         tamaño en todo lo que no sea a sangre. */
+      el.setAttribute("sizes", `${ancho}px`);
+    }
     return;
   }
-  const style = (el.getAttribute("style") || "").replace(/background-image\s*:[^;]*;?/gi, "");
+  const style = (el.getAttribute("style") || "")
+    .replace(/background-image\s*:[^;]*;?/gi, "");
   const sep = style && !style.trim().endsWith(";") ? ";" : "";
   el.setAttribute(
     "style",
-    `${style}${sep}background-image:url('${url.replace(/'/g, "%27")}');` +
+    `${style}${sep}${fondoImagen(url, ancho)}` +
       "background-size:cover;background-position:center;"
   );
 
@@ -136,7 +190,7 @@ function setImage(el: El, url: string, clearPlaceholder: boolean) {
 
   const inner = el.querySelector("img");
   if (inner) {
-    inner.setAttribute("src", url);
+    setImage(inner, url, false, ancho);
     return;
   }
   if (!clearPlaceholder) return;
@@ -410,7 +464,8 @@ function colocarFotoPortada(hero: El, url: string, disp: HeroDisposicion, ctx: C
   media.setAttribute("class", `inv-hero-media inv-hm-${disp.forma}`);
   const foto = doc.createElement("div");
   foto.setAttribute("class", "inv-hero-media-img");
-  setImage(foto, url, false);
+  /* Recortada mide 260px como mucho; 800 le da de sobra en pantalla retina. */
+  setImage(foto, url, false, disp.forma === "banda" ? 1600 : 800);
   media.appendChild(foto);
 
   const caja = hero.querySelector(".hero-content") || hero;
@@ -454,7 +509,8 @@ function applyHeroPhoto(hero: El, url: string, ctx: Ctx) {
 
   const capa = hero.querySelector('[data-inv="hero.backgroundUrl"]') || hero.querySelector(".hero-bg");
   if (!capa) return;
-  setImage(capa, url, false);
+  /* La portada ocupa la pantalla entera: es la única que pide el ancho mayor. */
+  setImage(capa, url, false, 1600);
   // Los slots de portada que aclaran el texto sobre la foto se activan con
   // esta clase, no siempre: sin foto, aclarar el texto lo hace invisible.
   hero.setAttribute("class", `${hero.getAttribute("class") || ""} con-foto`.trim());
@@ -489,9 +545,12 @@ function ponerFondo(seccion: El, d: InvitationData[string], sel: string, ctx: Ct
   const capa = seccion.ownerDocument.createElement("div");
   capa.setAttribute("class", "inv-fondo");
   capa.setAttribute("aria-hidden", "true");
+  /* El fondo cubre la sección entera, así que va al ancho grande — salvo en
+     mosaico, donde se repite en pequeño. */
+  const anchoFondo = String(d.fondoAjuste || "") === "repetir" ? 800 : 1600;
   capa.setAttribute(
     "style",
-    `background-image:url("${cssUrl(url)}");${ajuste};opacity:${opacidad}`
+    `${fondoImagen(url, anchoFondo)}${ajuste};opacity:${opacidad}`
   );
   seccion.insertBefore(capa, seccion.firstChild);
 
@@ -533,7 +592,10 @@ function ponerAdornos(seccion: El, d: InvitationData[string], sel: string, ctx: 
     );
 
     const img = seccion.ownerDocument.createElement("img");
-    img.setAttribute("src", url);
+    /* El adorno mide lo que se declaró, en % del ancho de la sección. Un
+       tamaño 40 sobre un contenedor de ~780px son ~310px, y el doble en
+       retina: 800 es el escalón que le toca. */
+    setImage(img, url, false, tamano >= 70 || sitio === "sangre" ? 1600 : 800);
     img.setAttribute("alt", "");
     // La portada se ve al abrir; el resto puede esperar a que se llegue.
     img.setAttribute("loading", "lazy");
@@ -1996,9 +2058,65 @@ export function renderInvitation(opts: RenderOptions): string {
   const confirmSection = resueltos.find((r) => r.key === "confirm")?.el || null;
   if (confirmSection) wireRsvp(document, confirmSection, data, slug, preview);
 
-  /* 5 · Título de la pestaña */
+  /* 5 · Título de la pestaña y vista previa al compartir */
+  const nombres = coupleName(data) || "Invitación";
   const titleEl = document.querySelector("title");
-  if (titleEl) titleEl.textContent = coupleName(data) || "Invitación";
+  if (titleEl) titleEl.textContent = nombres;
+
+  /* Una invitación se reparte por WhatsApp, y ahí un enlace sin Open Graph
+     sale como texto pelado. La imagen es la foto que ya puso el organizador:
+     generar una tarjeta aparte sería otra pieza que mantener, y su portada ya
+     es exactamente lo que quiere mostrar. */
+  if (!preview && opts.origin) {
+    const absoluta = (u: string) =>
+      /^https?:/.test(u) ? u : `${opts.origin}${u.startsWith("/") ? "" : "/"}${u}`;
+
+    const portada = String(data.hero?.backgroundUrl || "").trim();
+    const primeraFoto = ((data.gallery?.items as { url?: string }[]) || []).find(
+      (i) => (i?.url || "").trim()
+    )?.url;
+    const imagen = portada || primeraFoto || "";
+
+    const cuando = resolvedDateLabel(data);
+    const donde = String(data.event?.city || "").trim();
+    const descripcion =
+      [cuando, donde].filter(Boolean).join(" · ") ||
+      String(data.event?.quote || "").trim();
+
+    const meta: [string, string][] = [
+      ["og:type", "website"],
+      ["og:title", nombres],
+      ["og:description", descripcion],
+      ["og:locale", "es_ES"],
+    ];
+    if (slug) meta.push(["og:url", absoluta(`/${slug}`)]);
+    if (imagen) {
+      /* El ancho grande: los rastreadores no negocian tamaños. */
+      meta.push(["og:image", absoluta(imagen) + (imagen.includes("/api/media/") ? "?w=1600" : "")]);
+      meta.push(["og:image:alt", nombres]);
+    }
+
+    /* Los ángulos se quitan y no se escapan. linkedom escapa las comillas al
+       serializar —así que nadie se sale del atributo— pero deja `<` y `>`
+       crudos, y eso no es HTML estrictamente válido. Pre-escaparlos aquí
+       haría que el `&` saliera doble (`&amp;amp;`), así que se quitan: en el
+       nombre de una pareja no tienen sitio. */
+    const limpio = (t: string) => t.replace(/[<>]/g, "").trim().slice(0, 300);
+
+    for (const [prop, contenido] of meta) {
+      const valor = limpio(contenido);
+      if (!valor) continue;
+      const m = document.createElement("meta");
+      m.setAttribute("property", prop);
+      m.setAttribute("content", valor);
+      document.head.appendChild(m);
+    }
+    /* Twitter usa `name` en vez de `property` y no lee las de Open Graph. */
+    const tarjeta = document.createElement("meta");
+    tarjeta.setAttribute("name", "twitter:card");
+    tarjeta.setAttribute("content", imagen ? "summary_large_image" : "summary");
+    document.head.appendChild(tarjeta);
+  }
 
   /* 6 · Estilos y scripts inyectados */
   // Aquí se inyectaban las variables `--inv-*` que alimentan los componentes

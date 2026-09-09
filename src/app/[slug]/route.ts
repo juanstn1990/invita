@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { origenDe } from "@/lib/origen";
 import { prisma } from "@/lib/prisma";
 import { renderInvitation } from "@/lib/render";
 import { TEMPLATE_BY_ID, readTemplate } from "@/lib/templates";
@@ -49,7 +50,7 @@ const SIN_PUBLICAR = `<!DOCTYPE html>
 para que se pueda abrir.</p></body></html>`;
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: { slug: string } }
 ) {
   const html = { "Content-Type": "text/html; charset=utf-8" };
@@ -79,6 +80,8 @@ export async function GET(
     templateId: invitation.templateId,
     data: JSON.parse(invitation.data) as InvitationData,
     slug: invitation.slug,
+    // Para las etiquetas Open Graph: WhatsApp no resuelve rutas relativas.
+    origin: origenDe(request),
   });
 
   return new NextResponse(rendered, { headers: html });

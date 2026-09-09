@@ -43,6 +43,16 @@ const TYPE_BY_EXT: Record<string, string> = Object.fromEntries(
 
 export const MAX_BYTES = 8 * 1024 * 1024;
 
+/**
+ * Los anchos que se sirven redimensionados.
+ *
+ * Son pocos a propósito: cada uno es una entrada de caché, y aceptar
+ * cualquier número convertiría el servidor en un redimensionador para quien
+ * quiera. 400 es una casilla de galería, 800 una foto entre secciones, 1600
+ * una portada a pantalla completa en retina.
+ */
+export const ANCHOS = [400, 800, 1600];
+
 /** Sólo aceptamos rutas que nosotros mismos generamos: aaaa/mm/id.ext */
 const SAFE_PATH = /^\d{4}\/\d{2}\/[a-f0-9]{24}\.(jpg|png|webp|gif|avif)$/;
 

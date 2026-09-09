@@ -722,6 +722,90 @@ npm run media:index
 Ese último comando es la red de seguridad: los archivos y el catálogo son dos
 cosas, y `media:index` reconstruye el segundo a partir del primero.
 
+## Peso de las imágenes
+
+Las fotos se sirven **al tamaño que hace falta**, no al que se subieron:
+
+```
+/api/media/2026/09/abc.jpg          el original
+/api/media/2026/09/abc.jpg?w=400    reducida a 400px, en WebP
+```
+
+| Ancho | Formato | Peso |
+| --- | --- | --- |
+| original | JPEG | 286 kB |
+| 1600 | WebP | 135 kB |
+| 800 | WebP | 61 kB |
+| **400** | **WebP** | **21 kB** |
+
+Antes se servía siempre el original. Las fotos ya se reducen a 2000px en el
+navegador antes de subir, pero **una casilla de galería de 120px descargaba
+los 2000**: con 465 kB de media por imagen, una galería de seis más la portada
+eran 3,2 MB en el móvil de quien abre la invitación. Que una invitación tarde
+en abrir no es un problema de infraestructura, es el producto.
+
+- El formato se **negocia**: WebP si el navegador lo acepta, y si no el
+  original. Un navegador sin WebP recibe el de 400 en 23 kB de JPEG.
+- Los `<img>` llevan `srcset` y `sizes`; los fondos, `image-set()`, que es su
+  equivalente donde `srcset` no existe.
+- El ancho lo decide **dónde va la imagen**: 1600 una portada a sangre, 800
+  una foto recortada o un adorno, 400 una casilla de galería.
+- **Sólo se sirven tres anchos.** Un `?w=137` devuelve el original: aceptar
+  cualquier número convertiría el servidor en un redimensionador gratuito para
+  quien quiera.
+- Un GIF se sirve tal cual, porque puede estar animado y redimensionarlo se
+  quedaría con el primer fotograma.
+
+La caché sigue siendo `immutable` a un año —el nombre del archivo es aleatorio
+y nunca cambia— y el ancho va en la URL, así que cada tamaño tiene su entrada.
+`Vary: Accept` porque el formato depende del navegador.
+
+## Vista previa al compartir
+
+Una invitación se reparte por WhatsApp, y ahí un enlace sin Open Graph sale
+como texto pelado. La invitación publicada emite `og:title` con los nombres,
+`og:description` con la fecha y la ciudad, `og:url`, y `og:image` con la
+**portada que ya subió el organizador** (o la primera foto de la galería).
+
+No se genera una tarjeta aparte a propósito: su portada es exactamente lo que
+quiere mostrar, y una imagen compuesta sería otra pieza que mantener.
+
+Sólo en la publicada: en el editor no se comparte nada. Las URLs son absolutas
+porque los rastreadores no resuelven rutas relativas, y el origen sale de las
+cabeceras —no de `request.url`, que en un contenedor da el hostname interno de
+Docker.
+
+Un detalle que salió al probarlo con nombres raros: linkedom escapa las
+comillas al serializar, así que nadie se sale del atributo, pero deja `<` y
+`>` crudos. Se quitan en vez de escaparlos, porque pre-escaparlos haría que el
+`&` saliera doble.
+
+## Cuadrar los archivos con el catálogo
+
+```bash
+npm run media:limpiar              # sólo informa
+npm run media:limpiar -- --borrar  # actúa
+```
+
+Los archivos y el catálogo son dos cosas y se desincronizan en las dos
+direcciones. Los tres descuadres, de menos a más grave:
+
+| | |
+| --- | --- |
+| Archivo sin fila | Está en disco pero la biblioteca no lo ve. Lo arregla `media:index` |
+| Fila sin archivo | La biblioteca lo ofrece y al elegirlo sale roto |
+| **En una invitación pero sin archivo** | Una invitación publicada con huecos |
+
+Lo que **no** es un descuadre: una imagen de la biblioteca que ninguna
+invitación usa. Ése es el punto de tener biblioteca — material para el próximo
+proyecto. Borrarla sería tirar lo que se guardó a propósito.
+
+Las URLs en uso se buscan con una expresión sobre el JSON en crudo y no campo
+por campo. Los sitios donde puede haber una imagen ya son seis —portada,
+galería, fondo de sección, adornos, bloques de foto, la biblioteca— y una
+lista escrita a mano se queda corta en el próximo campo que se añada. Aquí un
+falso positivo es inofensivo; un falso negativo borraría una foto en uso.
+
 ## Publicar
 
 El diálogo de publicar pide la dirección (`invitacionjuan`), la normaliza,
@@ -1022,8 +1106,6 @@ la primera vez que tomé capturas.
   `UPLOADS_DIR` ya pueden vivir fuera del proyecto y `npm run backup` las
   copia, pero en un host con sistema de archivos efímero (Vercel, Netlify)
   hace falta R2 o S3. El cambio está aislado en `src/lib/storage.ts`.
-- **Limpieza de huérfanas**: al quitar una foto del editor, el archivo se
-  queda en `uploads/`.
 - **Música**: el campo existe y funciona con una URL de `.mp3`; falta subirla.
 - **Fotos de los invitados**: el álbum colaborativo del MVP anterior no se
   migró — la galería de hoy es curada por el organizador.
