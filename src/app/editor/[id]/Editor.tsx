@@ -98,6 +98,9 @@ export function Editor(props: EditorProps) {
   const [device, setDevice] = useState<(typeof DEVICES)[number]["key"]>("phone");
   const [open, setOpen] = useState<string | null>("event");
   const [save, setSave] = useState<SaveState>("idle");
+  /* Por qué falló el último guardado, para poder decirlo en vez de dejar un
+     "No se pudo guardar" gris que se pasa por alto. */
+  const [porQue, setPorQue] = useState("");
   const [srcDoc, setSrcDoc] = useState("");
   const [rendering, setRendering] = useState(true);
   const [showPublish, setShowPublish] = useState(false);
@@ -190,7 +193,16 @@ export function Editor(props: EditorProps) {
          entere sólo por un texto gris. `dirty` se queda como está, así que en
          cuanto vuelva a haber sesión el siguiente cambio guarda todo. */
       setSave(res.status === 401 ? "caducada" : res.ok ? "saved" : "error");
-      if (res.ok) dirty.current = false;
+      if (res.ok) {
+        dirty.current = false;
+        setPorQue("");
+      } else if (res.status !== 401) {
+        /* El motivo que dé la API, y si no da ninguno, el código. Un fallo de
+           guardado silencioso es lo peor que puede hacer un editor: se sigue
+           escribiendo media hora creyendo que quedó. */
+        const j = await res.json().catch(() => ({}));
+        setPorQue(String(j.error || `El servidor respondió ${res.status}.`));
+      }
     }, 900);
     return () => clearTimeout(timer);
   }, [data, templateId, props.id]);
@@ -263,6 +275,27 @@ export function Editor(props: EditorProps) {
           </button>
         </div>
       </header>
+
+      {save === "error" && (
+        <div className={styles.caducada} role="alert">
+          <span>
+            <strong>No se guardó lo último que escribiste.</strong>{" "}
+            {porQue} Lo que ves en pantalla sigue aquí, pero no está en el
+            servidor: no cierres la pestaña todavía.
+          </span>
+          <button
+            className="btn btn-sm"
+            onClick={() => {
+              /* Volver a marcarlo como sucio dispara el guardado otra vez. */
+              dirty.current = true;
+              setSave("saving");
+              setData((prev) => ({ ...prev }));
+            }}
+          >
+            Reintentar
+          </button>
+        </div>
+      )}
 
       {save === "caducada" && (
         <div className={styles.caducada} role="alert">

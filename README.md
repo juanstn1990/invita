@@ -1118,6 +1118,23 @@ Por eso el nombre de la cookie vive en `src/lib/sesion.ts` y no en
 bundle del middleware y el build fallaba con
 `UnhandledSchemeError: Reading from "node:crypto"`.
 
+### Un guardado que falla se dice fuerte
+
+Un fallo de guardado silencioso es lo peor que puede hacer un editor: se
+sigue escribiendo media hora creyendo que quedó. Antes sólo salía «No se pudo
+guardar» en letra gris de 12px, en la barra, junto a otras cuatro cosas.
+
+Ahora sale un aviso a lo ancho con **el motivo que dé la API** —«Diseño
+desconocido», o el código si no da ninguno—, dice que lo que hay en pantalla
+no está en el servidor y que no cierre la pestaña, y trae un botón de
+reintentar.
+
+Se destapó buscando por qué unos metadatos recién escritos «no cambiaban»: la
+invitación usaba un `templateId` de los viejos, el autoguardado manda el
+`templateId` en cada envío, y la API responde 400. Nada se guardaba, y el
+único aviso era ese texto gris. Las invitaciones con diseño retirado no se
+listan en el inicio, pero por la dirección directa el editor sí las abre.
+
 ### Si la sesión caduca mientras se edita
 
 El caso donde esto podía costar una tarde de trabajo. Con la sesión cerrada
