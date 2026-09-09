@@ -33,6 +33,17 @@
 .saveState { font-size: 12.5px; color: var(--text-faint); min-width: 74px; text-align: right; }
 .saveState[data-state="error"] { color: var(--danger); }
 .saveState[data-state="saved"] { color: var(--ok); }
+.saveState[data-state="caducada"] { color: var(--danger); }
+
+/* No cabe en la barra: son 58px fijos. Va debajo, ocupando el ancho. */
+.caducada {
+  flex: none;
+  display: flex; align-items: center; justify-content: center; gap: 14px;
+  padding: 9px 16px;
+  background: #fbf0ed;
+  border-bottom: 1px solid #e8c4bb;
+  font-size: 13px; color: var(--danger);
+}
 
 .liveLink { color: var(--accent-text); text-decoration: none; }
 .liveLink:hover { text-decoration: underline; }

@@ -21,7 +21,7 @@ import { PublishDialog } from "./PublishDialog";
 import { RsvpList, type RsvpRow } from "./RsvpList";
 import styles from "./editor.module.css";
 
-type SaveState = "idle" | "saving" | "saved" | "error";
+type SaveState = "idle" | "saving" | "saved" | "error" | "caducada";
 
 /**
  * El enlace del panel de invitados, para pasárselo a quien va a invitar.
@@ -158,7 +158,11 @@ export function Editor(props: EditorProps) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ templateId, data }),
         });
-        setSrcDoc(await res.text());
+        /* Si la sesión caducó mientras se editaba, la API responde JSON y
+           volcarlo en el iframe llenaría la vista previa de `{"error":…}`.
+           Mejor dejar la última vista buena y avisar arriba. */
+        if (res.status === 401) setSave("caducada");
+        else setSrcDoc(await res.text());
       } finally {
         setRendering(false);
       }
@@ -181,7 +185,11 @@ export function Editor(props: EditorProps) {
           title: coupleName(data) || "Invitación",
         }),
       });
-      setSave(res.ok ? "saved" : "error");
+      /* Una sesión caducada no es "no se pudo guardar": tiene arreglo, y lo
+         que no se puede es dejar que quien lleva una hora escribiendo se
+         entere sólo por un texto gris. `dirty` se queda como está, así que en
+         cuanto vuelva a haber sesión el siguiente cambio guarda todo. */
+      setSave(res.status === 401 ? "caducada" : res.ok ? "saved" : "error");
       if (res.ok) dirty.current = false;
     }, 900);
     return () => clearTimeout(timer);
@@ -238,6 +246,7 @@ export function Editor(props: EditorProps) {
             {save === "saving" && "Guardando…"}
             {save === "saved" && "Guardado"}
             {save === "error" && "No se pudo guardar"}
+            {save === "caducada" && "Sesión cerrada"}
           </span>
           {published && (
             <a
@@ -254,6 +263,24 @@ export function Editor(props: EditorProps) {
           </button>
         </div>
       </header>
+
+      {save === "caducada" && (
+        <div className={styles.caducada} role="alert">
+          <span>
+            Se cerró tu sesión. <strong>No se ha perdido nada de lo escrito</strong>
+            : entra otra vez en la pestaña que se abre y esto vuelve a guardar
+            solo con el siguiente cambio.
+          </span>
+          <a
+            className="btn btn-sm"
+            href={`/entrar?volver=${encodeURIComponent(`/editor/${props.id}`)}`}
+            target="_blank"
+            rel="noopener"
+          >
+            Entrar ↗
+          </a>
+        </div>
+      )}
 
       <div className={styles.body}>
         {/* ── Panel de edición ──────────────────────────── */}

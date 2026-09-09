@@ -916,6 +916,23 @@ Por eso el nombre de la cookie vive en `src/lib/sesion.ts` y no en
 bundle del middleware y el build fallaba con
 `UnhandledSchemeError: Reading from "node:crypto"`.
 
+### Si la sesión caduca mientras se edita
+
+El caso donde esto podía costar una tarde de trabajo. Con la sesión cerrada
+por detrás, el guardado automático respondía 401 y la barra decía «no se pudo
+guardar» —un texto gris, sin decir por qué ni qué hacer— y la vista previa se
+llenaba con el `{"error":…}` de la API.
+
+Ahora un 401 no es «no se pudo guardar», que suena a fallo sin arreglo: sale
+un aviso que dice que **no se ha perdido nada** y abre `/entrar` en otra
+pestaña. La vista previa se queda en la última buena en lugar de volcar el
+JSON. Y `dirty` no se toca, así que en cuanto vuelve a haber sesión el
+siguiente cambio guarda todo lo escrito mientras no la había.
+
+Verificado en Chromium borrando la fila de la sesión a media escritura: el
+aviso sale, lo escrito sigue en pantalla, la base conserva la versión
+anterior, y al volver a entrar se guarda lo pendiente.
+
 ### Al desplegar
 
 No hay nada que configurar. Tras el primer despliegue se abre la dirección, se
