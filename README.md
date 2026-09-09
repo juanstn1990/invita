@@ -1416,6 +1416,99 @@ prueba, le manda de todo —el mismo nombre dos veces, escrito distinto, un
 cambio de idea, tres envíos simultáneos, dos familias con una Ana cada una, un
 link con dos nombres reenviado— y la borra al final.
 
+## ¿Ya la vieron?
+
+Es la primera pregunta de quien reparte invitaciones, y por enlace de invitado
+es donde sirve: dice a qué familia hay que insistirle.
+
+El panel lo muestra en dos sitios. Arriba, la cuenta que se usa para decidir:
+
+```
+3 enlaces · 3 personas invitadas · 2 confirmadas
+2 sin responder · 1 la vieron y no han contestado · 1 sin abrir
+```
+
+Y por familia, junto a su estado: **«Vista hace 3 días»** o **«Sin abrir»**.
+La distinción importa porque piden cosas distintas — a quien la vio y calla se
+le insiste; a quien no la ha abierto hay que volverle a mandar el enlace,
+porque quizá nunca le llegó.
+
+En el editor, junto a las confirmaciones, va el total: cuántas personas la
+abrieron, cuántas aperturas en total y cuándo fue la última.
+
+### Ya había un contador, y era mejor que no se mostrara
+
+La columna `views` subía en cada petición y no se leía en ningún sitio.
+Contaba tres cosas que no son una persona abriendo la invitación:
+
+1. **Los rastreadores.** WhatsApp pide la página **en el momento en que se
+   pega el enlace**, para armar la tarjeta de vista previa. Contando eso, toda
+   invitación aparece «vista» justo al compartirla — el dato miente
+   exactamente donde importa.
+2. **Las recargas.** La misma persona entrando cuatro veces no son cuatro
+   personas.
+3. **El organizador**, que abre la suya veinte veces para revisarla.
+
+La medida de la diferencia, del propio `audit:vistas`: `views=8` frente a
+`3 personas`.
+
+`views` se queda como estaba —el total crudo, documentado como tal— y lo que
+se muestra sale de la tabla `Apertura`.
+
+### La regla que separa personas de rastreadores
+
+Casi todo lo hace una sola observación: **un navegador de verdad manda un
+`User-Agent` que empieza por `Mozilla/`**. `WhatsApp/2.23.20.0 i`,
+`facebookexternalhit/1.1`, `TelegramBot`, `curl/8.5`, `python-requests` —
+ninguno lo hace.
+
+Y eso resuelve la trampa que parecía obligar a elegir: **en Android, tocar un
+enlace dentro de WhatsApp lo abre en su navegador incrustado, cuyo UA sí
+empieza por `Mozilla/5.0`**. Filtrar por la palabra «whatsapp» dejaría fuera a
+personas de verdad, que son la mayoría de quienes abren una invitación
+repartida por ahí. Filtrando por la forma del UA, el rastreador se va y la
+persona se queda.
+
+Después se aplica una lista para los que sí se disfrazan de navegador —
+Googlebot lo hace, y `HeadlessChrome`, que es lo que usan las auditorías de
+aquí y tampoco es una persona.
+
+### Personas, no visitas
+
+Una fila por visitante y por enlace, con un contador, en lugar de una fila por
+visita: la tabla no crece con las recargas y sigue respondiendo las tres
+preguntas —si abrió, cuándo fue la última vez y cuántas veces volvió.
+
+El identificador del visitante es **un número aleatorio en una cookie y nada
+más**: no sale de la IP, ni del navegador, ni de nada de la persona. Sólo
+sirve para no contar cuatro veces a quien recarga cuatro veces. Si el
+navegador no acepta cookies, cada visita trae uno nuevo y cuenta como otra
+persona — se prefiere contar de más a inventar una identidad a partir de datos
+personales.
+
+La clave es `guestLinkId|visitante`, compuesta por lo mismo que en las
+confirmaciones: en Postgres dos NULL no chocan en un índice único, y sin
+enlace no habría unicidad ninguna.
+
+Y el código del enlace se valida contra la invitación antes de colgarle la
+apertura: viaja en la dirección y podría venir cambiado.
+
+### Comprobarlo
+
+```
+npm run audit:aperturas    # lógica pura: 16 rastreadores fuera, 9 personas dentro
+npm run audit:vistas       # necesita el servidor y la base
+```
+
+El primero clasifica user-agents reales, incluido el par delicado: el
+rastreador de WhatsApp fuera, la persona en su navegador incrustado dentro.
+
+El segundo hace peticiones de verdad y comprueba lo que sólo existe en una:
+que WhatsApp y Facebook al compartir no cuenten, que recargar no multiplique
+personas pero sí sume aperturas, que cada familia quede en su enlace, que el
+organizador no se cuente a sí mismo, y que un código de otra invitación no se
+cuelgue de ésta.
+
 ## Estructura
 
 ```
@@ -1448,11 +1541,14 @@ src/app/g/[token]/                      panel de invitados que se comparte
 src/app/api/g/[token]/                  crear y borrar enlaces de invitado
 src/lib/invitados.ts                    códigos, nombres y estado de cada enlace
 src/lib/rsvp.ts                         quién es "la misma persona" al confirmar
+src/lib/aperturas.ts                    quién cuenta como persona al abrirla
 src/app/api/media/                      subir y servir fotos
 uploads/                                fotos subidas (fuera del repo)
 scripts/build-templates.ts              genera los 27 y verifica el contraste
 scripts/audit-auth.ts                   ninguna ruta sin cerradura por descuido
 scripts/audit-rsvp.ts                   que nadie pueda confirmar dos veces
+scripts/audit-aperturas.ts              rastreadores fuera, personas dentro
+scripts/audit-vistas.ts                 el contador de aperturas, contra el servidor
 scripts/rsvp-deduplicar.ts              colapsa las repetidas que ya estaban
 scripts/audit-*.ts, shots.ts            las auditorías y las capturas
 ```

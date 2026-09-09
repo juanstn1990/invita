@@ -74,6 +74,18 @@
 .estado[data-estado="no asiste"] { color: #a33a2f; border-color: #a33a2f55; background: #a33a2f10; }
 .estado[data-estado="parcial"] { color: #9a6b12; border-color: #9a6b1255; background: #9a6b1212; }
 
+/* Si la abrió, en tinta normal; si no, apagado: lo primero es un hecho sobre
+   esa familia, lo segundo la ausencia de él. */
+.apertura {
+  font-size: 11.5px;
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+.apertura[data-abierto="true"] { color: var(--text-muted); }
+
+/* La cuenta que se mira para decidir a quién escribirle. */
+.cuentaOjo b { color: #9a6b12; }
+
 .acciones { display: flex; gap: 6px; }
 .refrescar { margin-top: 18px; }
 

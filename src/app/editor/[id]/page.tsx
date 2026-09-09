@@ -20,7 +20,10 @@ export default async function EditorPage({
 
   const invitation = await prisma.invitation.findUnique({
     where: { id: params.id },
-    include: { rsvps: { orderBy: { createdAt: "desc" } } },
+    include: {
+      rsvps: { orderBy: { createdAt: "desc" } },
+      aperturas: { select: { veces: true, updatedAt: true } },
+    },
   });
   if (!invitation) notFound();
 
@@ -57,6 +60,16 @@ export default async function EditorPage({
         note: r.note,
         createdAt: r.createdAt.toISOString(),
       }))}
+      aperturas={{
+        personas: invitation.aperturas.length,
+        veces: invitation.aperturas.reduce((n, a) => n + (a.veces || 1), 0),
+        ultima:
+          invitation.aperturas.length
+            ? invitation.aperturas
+                .reduce((a, x) => (x.updatedAt > a.updatedAt ? x : a))
+                .updatedAt.toISOString()
+            : null,
+      }}
       openPanel={searchParams.panel === "rsvp" ? "rsvp" : "content"}
     />
   );

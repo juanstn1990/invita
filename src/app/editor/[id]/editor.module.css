@@ -702,3 +702,20 @@
   align-items: center;
   flex-wrap: wrap;
 }
+
+/* ── Aperturas ────────────────────────────────────────────── */
+
+.aperturas {
+  margin: 0 0 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-2);
+}
+.aperturasNum { margin: 0; font-size: 13px; color: var(--text-muted); }
+.aperturasNum b {
+  font-family: var(--font-display), serif;
+  font-size: 26px; color: var(--text); margin-right: 6px;
+}
+.aperturasPie { margin: 4px 0 0; font-size: 12px; color: var(--text-faint); }
+.aperturasVacio { margin: 0; font-size: 12.5px; line-height: 1.55; color: var(--text-faint); }

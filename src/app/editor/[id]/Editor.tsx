@@ -15,6 +15,7 @@ import type { TemplateSupport } from "@/lib/support";
 import { readLayout, type Block } from "@/lib/blocks";
 import { BlockList } from "./BlockList";
 import { Biblioteca } from "./Biblioteca";
+import { Aperturas } from "./Aperturas";
 import { SectionEditor } from "./SectionEditor";
 import { TemplateSwitcher } from "./TemplateSwitcher";
 import { PublishDialog } from "./PublishDialog";
@@ -85,6 +86,8 @@ export interface EditorProps {
   templates: TemplateInfo[];
   supports: Record<string, TemplateSupport>;
   rsvps: RsvpRow[];
+  /** Cuántas personas abrieron la invitación publicada. Ver `aperturas.ts`. */
+  aperturas: { personas: number; veces: number; ultima: string | null };
   openPanel: "content" | "rsvp";
 }
 
@@ -341,6 +344,7 @@ export function Editor(props: EditorProps) {
           <div className={styles.panelScroll}>
             {panel === "rsvp" ? (
               <>
+                <Aperturas {...props.aperturas} publicada={published} />
                 <PanelCompartido token={props.manageToken} />
                 <RsvpList rsvps={props.rsvps} published={published} slug={slug} />
               </>

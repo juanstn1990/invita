@@ -31,13 +31,16 @@ model Invitation {
   /// tenga el enlace puede crear links de invitado y ver quién confirmó.
   manageToken String? @unique
   published  Boolean  @default(false)
-  /// Visitas a la invitación publicada.
+  /// Visitas crudas, incluidos rastreadores y recargas. Se conserva porque ya
+  /// venía contando, pero lo que se muestra sale de `Apertura`, que distingue
+  /// personas de rastreadores. Ver `src/lib/aperturas.ts`.
   views      Int      @default(0)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  rsvps Rsvp[]
-  links GuestLink[]
+  rsvps     Rsvp[]
+  links     GuestLink[]
+  aperturas Apertura[]
 }
 
 /// Un link personalizado: los nombres que van a salir en la invitación y un
@@ -59,7 +62,8 @@ model GuestLink {
   note         String?
   createdAt    DateTime   @default(now())
 
-  rsvps Rsvp[]
+  rsvps     Rsvp[]
+  aperturas Apertura[]
 
   @@index([invitationId])
 }
@@ -160,4 +164,36 @@ model Session {
 
   @@index([userId])
   @@index([expiresAt])
+}
+
+/// Quién abrió la invitación, y cuántas veces.
+///
+/// «¿Ya la vieron?» es la primera pregunta de quien reparte invitaciones, y
+/// por enlace de invitado es donde sirve: dice a qué familia hay que
+/// insistirle.
+///
+/// Una fila por visitante y por enlace, con un contador, en lugar de una fila
+/// por visita: así la tabla no crece con las recargas y sigue respondiendo
+/// las tres preguntas que importan —si abrió, cuándo fue la última vez y
+/// cuántas veces volvió.
+model Apertura {
+  id           String     @id @default(cuid())
+  invitationId String
+  invitation   Invitation @relation(fields: [invitationId], references: [id], onDelete: Cascade)
+  /// De qué enlace personalizado se abrió, si se abrió de uno.
+  guestLinkId  String?
+  guestLink    GuestLink? @relation(fields: [guestLinkId], references: [id], onDelete: SetNull)
+  /// `guestLinkId|visitante`. Compuesta porque en Postgres dos NULL no chocan
+  /// en un índice único, y sin enlace no habría unicidad ninguna.
+  clave        String
+  /// Cuántas veces volvió esta misma persona.
+  veces        Int        @default(1)
+  /// La primera vez que abrió.
+  createdAt    DateTime   @default(now())
+  /// La última.
+  updatedAt    DateTime   @default(now()) @updatedAt
+
+  @@unique([invitationId, clave])
+  @@index([invitationId])
+  @@index([guestLinkId])
 }

@@ -89,6 +89,12 @@ export interface FilaInvitado {
   /** Personas anunciadas, sumando acompañantes. */
   total: number;
   respondidoEl: Date | null;
+  /** Cuántas personas distintas abrieron este enlace. */
+  abrieron: number;
+  /** Cuántas veces se abrió en total, contando quien volvió. */
+  veces: number;
+  /** La última vez que alguien lo abrió. */
+  abiertoEl: Date | null;
 }
 
 /** Estado de cada link a partir de las respuestas que trae. */
@@ -98,6 +104,7 @@ export function resumirLink(link: {
   names: string;
   note: string | null;
   rsvps: { status: string; partySize: number; createdAt: Date }[];
+  aperturas?: { veces: number; updatedAt: Date }[];
 }): FilaInvitado {
   const nombres = limpiarNombres(link.names);
   const rsvps = link.rsvps;
@@ -105,6 +112,12 @@ export function resumirLink(link: {
   const total = rsvps
     .filter((r) => r.status === "confirmado")
     .reduce((n, r) => n + (r.partySize || 1), 0);
+
+  const aperturas = link.aperturas || [];
+  const veces = aperturas.reduce((n, a) => n + (a.veces || 1), 0);
+  const abiertoEl = aperturas.length
+    ? aperturas.reduce((a, x) => (x.updatedAt > a ? x.updatedAt : a), aperturas[0].updatedAt)
+    : null;
 
   let estado: EstadoLink = "sin respuesta";
   if (rsvps.length) {
@@ -124,5 +137,8 @@ export function resumirLink(link: {
     respondidoEl: rsvps.length
       ? rsvps.reduce((a, r) => (r.createdAt > a ? r.createdAt : a), rsvps[0].createdAt)
       : null,
+    abrieron: aperturas.length,
+    veces,
+    abiertoEl,
   };
 }

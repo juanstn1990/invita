@@ -23,7 +23,9 @@
     "audit:auth": "tsx scripts/audit-auth.ts",
     "db:migrar-splash": "tsx scripts/migrar-splash-mapa.ts",
     "rsvp:limpiar": "tsx scripts/rsvp-deduplicar.ts",
-    "audit:rsvp": "tsx scripts/audit-rsvp.ts"
+    "audit:rsvp": "tsx scripts/audit-rsvp.ts",
+    "audit:aperturas": "tsx scripts/audit-aperturas.ts",
+    "audit:vistas": "tsx scripts/audit-vistas.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.20.0",

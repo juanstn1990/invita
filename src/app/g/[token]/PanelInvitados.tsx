@@ -14,6 +14,30 @@ interface Fila {
   asisten: number;
   total: number;
   respondidoEl: string | null;
+  abrieron: number;
+  veces: number;
+  abiertoEl: string | null;
+}
+
+/**
+ * «Abrió hace dos días» dice más que una fecha.
+ *
+ * Lo que se hace con este dato es decidir a quién insistirle, y para eso lo
+ * que importa es cuánto lleva sin contestar desde que la vio.
+ */
+function hace(iso: string | null): string {
+  if (!iso) return "";
+  const ms = Date.now() - new Date(iso).getTime();
+  const min = Math.round(ms / 60000);
+  if (min < 1) return "ahora mismo";
+  if (min < 60) return `hace ${min} min`;
+  const h = Math.round(min / 60);
+  if (h < 24) return `hace ${h} h`;
+  const d = Math.round(h / 24);
+  if (d === 1) return "ayer";
+  if (d < 30) return `hace ${d} días`;
+  const m = Math.round(d / 30);
+  return m === 1 ? "hace un mes" : `hace ${m} meses`;
 }
 
 const ETIQUETA: Record<EstadoLink, string> = {
@@ -56,7 +80,13 @@ export function PanelInvitados({
     const confirmados = filas.reduce((n, f) => n + f.asisten, 0);
     const conAcompanantes = filas.reduce((n, f) => n + f.total, 0);
     const sinResponder = filas.filter((f) => f.estado === "sin respuesta").length;
-    return { personas, confirmados, conAcompanantes, sinResponder };
+    /* Los que hay que perseguir: la abrieron y no contestaron. Es la lista
+       corta que de verdad se usa. */
+    const vieronYCallan = filas.filter(
+      (f) => f.estado === "sin respuesta" && f.abrieron > 0
+    ).length;
+    const sinAbrir = filas.filter((f) => f.abrieron === 0).length;
+    return { personas, confirmados, conAcompanantes, sinResponder, vieronYCallan, sinAbrir };
   }, [filas]);
 
   async function crear() {
@@ -79,7 +109,8 @@ export function PanelInvitados({
     }
     setFilas([
       { id: j.id, code: j.code, nombres: previsualizacion, note: nota.trim() || null,
-        estado: "sin respuesta", asisten: 0, total: 0, respondidoEl: null },
+        estado: "sin respuesta", asisten: 0, total: 0, respondidoEl: null,
+        abrieron: 0, veces: 0, abiertoEl: null },
       ...filas,
     ]);
     setNombres("");
@@ -163,6 +194,17 @@ export function PanelInvitados({
           <span><b>{cuentas.personas}</b> personas invitadas</span>
           <span><b>{cuentas.conAcompanantes}</b> confirmadas</span>
           <span><b>{cuentas.sinResponder}</b> sin responder</span>
+          {/* La cuenta que decide a quién escribirle: la vieron y callan.
+              Separada de "sin abrir", que necesita otra cosa —volver a
+              mandar el enlace, no insistir. */}
+          {cuentas.vieronYCallan > 0 && (
+            <span className={styles.cuentaOjo}>
+              <b>{cuentas.vieronYCallan}</b> la vieron y no han contestado
+            </span>
+          )}
+          {cuentas.sinAbrir > 0 && (
+            <span><b>{cuentas.sinAbrir}</b> sin abrir</span>
+          )}
         </div>
       )}
 
@@ -186,6 +228,20 @@ export function PanelInvitados({
                 <span className={styles.estado} data-estado={f.estado}>
                   {ETIQUETA[f.estado]}
                   {f.estado !== "sin respuesta" && f.total > 0 && ` · ${f.total}`}
+                </span>
+                {/* Si abrió y no contestó, eso es lo que hay que ver de un
+                    vistazo: es a quien se le insiste. */}
+                <span
+                  className={styles.apertura}
+                  data-abierto={f.abrieron > 0}
+                  title={
+                    f.abrieron > 0
+                      ? `${f.veces} ${f.veces === 1 ? "apertura" : "aperturas"}` +
+                        (f.abrieron > 1 ? ` · ${f.abrieron} personas` : "")
+                      : "Nadie de este enlace la ha abierto todavía"
+                  }
+                >
+                  {f.abrieron > 0 ? `Vista ${hace(f.abiertoEl)}` : "Sin abrir"}
                 </span>
                 <div className={styles.acciones}>
                   <button

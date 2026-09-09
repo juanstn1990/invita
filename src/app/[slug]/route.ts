@@ -1,4 +1,13 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import {
+  COOKIE_VISITA,
+  DIAS_VISITA,
+  claveDeApertura,
+  esRastreador,
+  nuevoVisitante,
+} from "@/lib/aperturas";
+import { COOKIE as COOKIE_SESION } from "@/lib/sesion";
 import { origenDe } from "@/lib/origen";
 import { prisma } from "@/lib/prisma";
 import { renderInvitation } from "@/lib/render";
@@ -66,13 +75,58 @@ export async function GET(
     return new NextResponse(SIN_PUBLICAR, { status: 404, headers: html });
   }
 
-  // Contar la visita sin hacer esperar a quien abre la invitación.
+  /* El contador crudo, que cuenta todo: rastreadores, recargas y al propio
+     organizador. No se muestra en ningún sitio; lo que se muestra sale de
+     `Apertura`, unas líneas más abajo. */
   prisma.invitation
     .update({ where: { id: invitation.id }, data: { views: { increment: 1 } } })
     .catch(() => null);
 
   if (!TEMPLATE_BY_ID[invitation.templateId]) {
     return new NextResponse(NOT_FOUND, { status: 404, headers: html });
+  }
+
+  /* ── ¿Quién abrió esto, y desde qué enlace? ──────────────────
+     Ver `src/lib/aperturas.ts` para por qué no vale contar peticiones. */
+  const ua = request.headers.get("user-agent");
+  const galletas = cookies();
+  /* Al organizador no se le cuenta. Basta con que la cookie esté: quien abre
+     una invitación por WhatsApp no la tiene, y comprobar que la sesión sea
+     válida costaría una consulta más en cada visita. */
+  const esOrganizador = Boolean(galletas.get(COOKIE_SESION));
+
+  let visitante = galletas.get(COOKIE_VISITA)?.value || "";
+  const nuevo = !visitante;
+  if (nuevo) visitante = nuevoVisitante();
+
+  const contar = !esRastreador(ua) && !esOrganizador;
+  if (contar) {
+    const codigo = (new URL(request.url).searchParams.get("g") || "").trim().slice(0, 40);
+    /* Se comprueba que el código sea de esta invitación: viaja en la
+       dirección y podría venir cambiado. */
+    const link = codigo
+      ? await prisma.guestLink
+          .findFirst({
+            where: { code: codigo, invitationId: invitation.id },
+            select: { id: true },
+          })
+          .catch(() => null)
+      : null;
+
+    const clave = claveDeApertura(link?.id ?? null, visitante);
+    /* Que fallar aquí no impida ver la invitación: esto es un dato para el
+       organizador, no parte de lo que el invitado vino a leer. */
+    await prisma.apertura
+      .upsert({
+        where: { invitationId_clave: { invitationId: invitation.id, clave } },
+        create: {
+          invitationId: invitation.id,
+          guestLinkId: link?.id ?? null,
+          clave,
+        },
+        update: { veces: { increment: 1 } },
+      })
+      .catch(() => null);
   }
 
   const rendered = renderInvitation({
@@ -84,5 +138,20 @@ export async function GET(
     origin: origenDe(request),
   });
 
-  return new NextResponse(rendered, { headers: html });
+  const res = new NextResponse(rendered, { headers: html });
+
+  /* El identificador del visitante: un número aleatorio, nada de la persona.
+     Sólo sirve para no contar cuatro veces a quien recarga cuatro veces. No
+     se le pone a un rastreador —no vuelve— ni al organizador. */
+  if (nuevo && contar) {
+    res.cookies.set(COOKIE_VISITA, visitante, {
+      httpOnly: true,
+      sameSite: "lax",
+      path: "/",
+      secure: process.env.NODE_ENV === "production",
+      maxAge: DIAS_VISITA * 24 * 60 * 60,
+    });
+  }
+
+  return res;
 }

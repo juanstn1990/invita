@@ -22,7 +22,10 @@ export default async function PanelPage({ params }: { params: { token: string } 
     include: {
       links: {
         orderBy: { createdAt: "desc" },
-        include: { rsvps: { select: { status: true, partySize: true, createdAt: true } } },
+        include: {
+          rsvps: { select: { status: true, partySize: true, createdAt: true } },
+          aperturas: { select: { veces: true, updatedAt: true } },
+        },
       },
     },
   });
@@ -44,7 +47,11 @@ export default async function PanelPage({ params }: { params: { token: string } 
       titulo={coupleName(data) || invitation.title}
       fecha={resolvedDateLabel(data)}
       origen={`${proto}://${host}`}
-      inicial={filas.map((f) => ({ ...f, respondidoEl: f.respondidoEl?.toISOString() ?? null }))}
+      inicial={filas.map((f) => ({
+        ...f,
+        respondidoEl: f.respondidoEl?.toISOString() ?? null,
+        abiertoEl: f.abiertoEl?.toISOString() ?? null,
+      }))}
     />
   );
 }
