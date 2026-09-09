@@ -806,6 +806,126 @@ galería, fondo de sección, adornos, bloques de foto, la biblioteca— y una
 lista escrita a mano se queda corta en el próximo campo que se añada. Aquí un
 falso positivo es inofensivo; un falso negativo borraría una foto en uso.
 
+### El botón de la portada, siempre y siempre vivo
+
+Es lo único que invita a bajar: si falta, la portada es una pantalla completa
+sin salida y quien la abre no sabe que hay algo más. Estaba en los 42
+esqueletos, y aun así fallaba de dos maneras distintas:
+
+- **Al vaciar su texto desaparecía.** La regla general del render —un campo
+  vacío se borra, para no dejar un hueco— es la correcta para un antetítulo,
+  pero aquí se llevaba el botón entero, y quien edita vacía ese campo sin
+  imaginar que va a perderlo. Ahora `hero.cta` tiene un valor derivado: si
+  queda en blanco, dice «Ver la invitación».
+- **Con la cuenta atrás apagada el botón quedaba muerto.** El esqueleto lo
+  apunta a `#countdown`, así que apagar esa sección lo dejaba visible y
+  pulsable pero sin destino: para quien lo pulsa, idéntico a que no
+  estuviera. Ahora, ya sabiendo qué secciones quedaron y en qué orden, apunta
+  a la primera visible; si no hay ninguna debajo, deja de ser enlace y se
+  queda como texto, que es mejor que un enlace roto.
+
+Ninguno de los dos se ve mirando una captura: el botón está ahí, con su color
+y su borde. Sólo se notan al pulsarlo. Así que `npm run audit:render` los
+comprueba en los 42 × 3 casos, y además se verificó **pulsándolo de verdad**
+en Chromium a 390×844 —entrando primero por el splash, como quien la abre— en
+los 42 diseños × 4 combinaciones de datos: por defecto, sin cuenta atrás, sin
+texto en el botón, y con todo apagado menos portada y confirmación. Los 168
+desplazan la página al pulsar.
+
+```
+✓ botón de portada · texto vacío
+✓ botón de portada · cuenta atrás apagada
+✓ botón de portada · las dos cosas
+```
+
+## Quién puede entrar
+
+Hasta ahora la app no pedía nada: quien abriera la dirección veía todas las
+invitaciones y podía editarlas o borrarlas. En una máquina local eso da igual;
+publicada en un servidor, significa que cualquiera con la dirección puede
+borrar el trabajo de meses de otro.
+
+La frontera se dibuja en un sitio concreto: **el editor es privado, lo
+publicado es público.** No hay registro ni «invita a tu equipo»; hay una
+cuenta, la del organizador.
+
+### Lo que queda abierto, a propósito
+
+| Ruta | Por qué |
+| --- | --- |
+| `/{slug}` | la invitación se manda por WhatsApp a gente que no tiene cuenta aquí |
+| `/api/i/{slug}/rsvp` | confirma un invitado, no el organizador |
+| `/api/media/{...}` | las fotos de una invitación publicada se piden desde el navegador de cualquiera |
+| `/g/{token}` y `/api/g/{token}` | el token del enlace **es** la llave; pedir además contraseña rompería el panel que se comparte |
+| `/entrar` | la puerta |
+
+Todo lo demás —`/`, `/nueva`, `/editor/{id}`, y las APIs de crear, guardar,
+publicar, borrar, previsualizar y la biblioteca— exige sesión.
+
+Y para que eso no se degrade con el tiempo, la regla está invertida en
+`scripts/audit-auth.ts`: recorre `src/app`, y **todo handler está protegido
+salvo lo que aparezca en la lista `ABIERTAS`, que obliga a escribir la razón**.
+Un `route.ts` nuevo sin guardia rompe `npm run audit:auth`. Una lista de lo
+protegido se olvida; una lista de lo abierto se defiende.
+
+```
+npm run audit:auth
+Todas las rutas cerradas; 7 abiertas a propósito
+```
+
+### La primera cuenta se crea al entrar
+
+No hay pantalla de registro porque no hay a quién registrar: la primera vez
+que se abre `/entrar` y no existe ningún usuario, el correo y la contraseña que
+se escriban quedan como los del organizador. En cuanto hay una cuenta, esa
+puerta se cierra y un correo desconocido responde lo mismo que una contraseña
+equivocada — «correo o contraseña incorrectos», sin decir cuál de los dos
+falló.
+
+Es deliberado que no haya `ADMIN_PASSWORD` en el entorno: una contraseña en una
+variable de EasyPanel se queda escrita en la configuración del servicio, se ve
+en los logs de despliegue y no se puede cambiar sin redesplegar.
+
+### Contraseñas y sesiones
+
+- **`scrypt`**, el de `node:crypto` — sin `bcrypt` ni `argon2`, que serían
+  dependencias nuevas con binarios que compilar en la imagen. Parámetros
+  interactivos de OWASP (N=2¹⁷, r=8, p=1); se guarda `sal:derivada`.
+- La comparación va con **`timingSafeEqual`**: con `===`, cuánto tarda en
+  responder delata cuántos bytes iniciales acertó quien está probando.
+- **Las sesiones viven en la base, no en una cookie firmada.** Con una cookie
+  autofirmada, revocar el acceso de alguien obliga a rotar el secreto y echar a
+  todos a la vez; con una fila, se borra la fila. En la cookie viaja un token
+  aleatorio de 32 bytes; en la base sólo su SHA-256, así que **un volcado de la
+  base no sirve para entrar**. Duran 30 días y las caducadas se barren al
+  iniciar sesión, no en una tarea aparte.
+- Cookie `httpOnly`, `sameSite=lax`, y `secure` sólo en producción: marcarla
+  `secure` en local la haría invisible para el navegador, que ahí habla HTTP.
+
+### El middleware es el pomo, no la cerradura
+
+`src/middleware.ts` corre en el runtime Edge, donde no hay `node:crypto` ni
+base de datos. Lo único que puede ver es **si la cookie está**, y eso sólo
+sirve para que quien no ha entrado aterrice en `/entrar?volver=…` en lugar de
+en una página en blanco. La comprobación de verdad —que la sesión exista y no
+haya caducado— la hacen las páginas con `requiereSesion()` y las APIs con
+`noAutorizado()`. Una cookie vieja pasa el middleware y muere en la página.
+
+Por eso el nombre de la cookie vive en `src/lib/sesion.ts` y no en
+`src/lib/auth.ts`: importarlo de `auth.ts` metía Prisma y `node:crypto` en el
+bundle del middleware y el build fallaba con
+`UnhandledSchemeError: Reading from "node:crypto"`.
+
+### Al desplegar
+
+No hay nada que configurar. Tras el primer despliegue se abre la dirección, se
+crea la cuenta y ya. Si se olvida la contraseña, se borra la fila y la puerta
+vuelve a ofrecer crearla:
+
+```
+docker compose exec bbdd psql -U invita -d invita -c 'delete from "User"'
+```
+
 ## Publicar
 
 El diálogo de publicar pide la dirección (`invitacionjuan`), la normaliza,
@@ -996,6 +1116,11 @@ src/lib/design/
   designs/        los 18 diseños + las parejas tipográficas
 templates/*.html                        los 27, generados
 src/lib/{schema,blocks,bindings,render,support,templates,presets,fonts,slug,storage}.ts
+src/lib/auth.ts                         contraseñas, sesiones y los dos guardias
+src/lib/sesion.ts                       el nombre de la cookie, aparte para el Edge
+src/middleware.ts                       redirige a /entrar; no es la cerradura
+src/app/entrar/                          la puerta (y la primera cuenta)
+src/app/api/salir/                       cerrar sesión
 src/lib/iconos.ts                       la API; iconos.datos.ts la tabla, iconos.arte.ts el arte
 src/app/page.tsx                        mis invitaciones
 src/app/nueva/                          selector de diseño (vista previa real en iframe)
@@ -1012,6 +1137,7 @@ src/lib/invitados.ts                    códigos, nombres y estado de cada enlac
 src/app/api/media/                      subir y servir fotos
 uploads/                                fotos subidas (fuera del repo)
 scripts/build-templates.ts              genera los 27 y verifica el contraste
+scripts/audit-auth.ts                   ninguna ruta sin cerradura por descuido
 scripts/audit-*.ts, shots.ts            las auditorías y las capturas
 ```
 

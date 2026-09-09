@@ -1,9 +1,12 @@
 import Link from "next/link";
 import { TEMPLATES, KIND_LABEL, FAMILIES } from "@/lib/templates";
 import { TemplateCard } from "./TemplateCard";
+import { requiereSesion } from "@/lib/auth";
 import styles from "./nueva.module.css";
 
-export default function NuevaPage() {
+export default async function NuevaPage() {
+  await requiereSesion("/nueva");
+
   return (
     <main className={styles.page}>
       <header className={styles.header}>

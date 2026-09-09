@@ -1795,6 +1795,12 @@ export function renderInvitation(opts: RenderOptions): string {
 
   /** Valores compuestos que no salen tal cual del formulario. */
   const derived: Record<string, string> = {
+    /* El botón de la portada no desaparece si se vacía su texto.
+       La regla general —un campo vacío se borra para no dejar un hueco— es la
+       correcta para un antetítulo, pero aquí deja la portada sin salida: es lo
+       único que invita a bajar, y quien edita puede vaciarlo sin darse cuenta
+       de que se lleva el botón. */
+    "hero.cta": String(data.hero?.cta || "").trim() || "Ver la invitación",
     "event.names": coupleName(data),
     "event.dateLabel": resolvedDateLabel(data),
     "event.quote": String(data.event?.quote || ""),
@@ -1929,6 +1935,28 @@ export function renderInvitation(opts: RenderOptions): string {
     padre.insertBefore(r.el, tope);
   }
   if (ancla && ancla.parentNode === padre) padre.insertBefore(ancla, padre.firstChild);
+
+  /* 3 · bis · El botón de la portada apunta a la primera sección visible.
+     El esqueleto lo deja en `#countdown`, y si esa sección está apagada el
+     botón queda vivo pero no lleva a ningún sitio: para quien lo pulsa es lo
+     mismo que si no estuviera. Aquí ya se sabe qué secciones quedaron y en
+     qué orden, así que se apunta a la primera de verdad. */
+  {
+    const btn = hero?.querySelector?.(".hero-btn") as El | null;
+    if (btn && (btn.getAttribute("href") || "").startsWith("#")) {
+      const visible = resueltos.find((r) => {
+        const id = r.el.getAttribute?.("id");
+        return id && r.el.getAttribute?.("hidden") === null;
+      });
+      const destino =
+        visible?.el.getAttribute("id") ||
+        pick(document, map.sections.footer || [])?.getAttribute?.("id");
+      /* Sin ninguna sección debajo —todas apagadas— el botón deja de ser un
+         enlace y pasa a ser sólo texto: mejor eso que un enlace muerto. */
+      if (destino) btn.setAttribute("href", `#${destino}`);
+      else btn.removeAttribute("href");
+    }
+  }
 
   /* 3a · Los adornos de la portada ya no se tocan.
      Aquí había un paso que, en los diseños de boda, escondía todo lo que

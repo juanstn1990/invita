@@ -110,3 +110,43 @@ model Media {
   @@index([createdAt])
   @@index([kind])
 }
+
+/// Quién puede entrar al editor.
+///
+/// La app nació sin autenticación —«cualquiera que abra la app ve y edita
+/// todas las invitaciones»— y eso era distinto cuando corría sólo en una
+/// máquina. Publicada, significaba que quien tuviera la dirección podía
+/// borrar el trabajo de cualquiera.
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  /// scrypt: sal y derivada, separadas por ":". Nunca la contraseña.
+  password  String
+  name      String?
+  createdAt DateTime @default(now())
+
+  sessions Session[]
+}
+
+/// Una sesión abierta.
+///
+/// Se guardan en la base y no sólo en una cookie firmada para poder cerrarlas:
+/// con una cookie autofirmada, revocar el acceso de alguien obliga a rotar el
+/// secreto y echar a todos a la vez.
+///
+/// Lo que viaja en la cookie es el token en claro; aquí se guarda su hash, así
+/// que una copia de la base no sirve para entrar.
+model Session {
+  id        String   @id @default(cuid())
+  /// SHA-256 del token que viaja en la cookie.
+  tokenHash String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  /// Para que el organizador reconozca sus sesiones al cerrarlas.
+  agent     String?
+
+  @@index([userId])
+  @@index([expiresAt])
+}

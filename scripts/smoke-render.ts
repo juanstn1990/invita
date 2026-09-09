@@ -68,4 +68,43 @@ for (const tpl of TEMPLATES) {
     console.log(`✗ ${tpl.id.padEnd(28)} ERROR ${(e as Error).message}`);
   }
 }
-console.log(bad ? `\n${bad} diseños con problemas` : "\nTodos los diseños renderizan limpio");
+/* ── El botón de la portada, en los casos que lo hacían desaparecer ──
+   Dos fallos reales: al vaciar su texto se borraba el elemento (la regla
+   general de "un campo vacío no deja hueco", que aquí dejaba la portada sin
+   salida), y con la cuenta atrás apagada su `#countdown` apuntaba a una
+   sección oculta — vivo pero sin llevar a ningún sitio. */
+const CASOS: [string, (d: any) => void][] = [
+  ["texto vacío", (d) => { d.hero.cta = ""; }],
+  ["cuenta atrás apagada", (d) => { d.countdown.enabled = false; }],
+  ["las dos cosas", (d) => { d.hero.cta = ""; d.countdown.enabled = false; }],
+];
+
+let botonMal = 0;
+for (const [nombre, tocar] of CASOS) {
+  const sin: string[] = [];
+  const muerta: string[] = [];
+  for (const tpl of TEMPLATES) {
+    const d: any = defaultData();
+    tocar(d);
+    const html = renderInvitation({
+      templateHtml: readTemplate(tpl.id), templateId: tpl.id, data: d, slug: "demo",
+    });
+    const { document } = parseHTML(html);
+    const b = document.querySelector(".hero-btn") as any;
+    if (!b) { sin.push(tpl.id); continue; }
+    const href = b.getAttribute("href") || "";
+    if (href.startsWith("#")) {
+      const destino = document.querySelector(href) as any;
+      if (!destino || destino.getAttribute("hidden") !== null) muerta.push(tpl.id);
+    }
+  }
+  const ok = !sin.length && !muerta.length;
+  if (!ok) botonMal++;
+  console.log(
+    `${ok ? "✓" : "✗"} botón de portada · ${nombre.padEnd(22)}` +
+      `${sin.length ? `  ${sin.length} sin botón` : ""}` +
+      `${muerta.length ? `  ${muerta.length} con ancla muerta` : ""}`
+  );
+}
+
+console.log((bad || botonMal) ? `\n${bad} diseños y ${botonMal} casos del botón con problemas` : "\nTodos los diseños renderizan limpio");

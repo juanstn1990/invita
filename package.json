@@ -19,7 +19,8 @@
     "templates:build": "tsx scripts/build-templates.ts",
     "iconos:build": "tsx scripts/build-iconos.ts",
     "templates:shots": "tsx scripts/shots.ts",
-    "audit:browser": "tsx scripts/audit-browser.ts"
+    "audit:browser": "tsx scripts/audit-browser.ts",
+    "audit:auth": "tsx scripts/audit-auth.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.20.0",

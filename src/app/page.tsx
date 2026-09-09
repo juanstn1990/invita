@@ -3,11 +3,14 @@ import { prisma } from "@/lib/prisma";
 import { TEMPLATE_BY_ID } from "@/lib/templates";
 import { coupleName, resolvedDateLabel, type InvitationData } from "@/lib/schema";
 import styles from "./home.module.css";
+import { requiereSesion } from "@/lib/auth";
 import { DeleteButton } from "./DeleteButton";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
+  const sesion = await requiereSesion();
+
   const todas = await prisma.invitation.findMany({
     orderBy: { updatedAt: "desc" },
     include: { _count: { select: { rsvps: true } } },
@@ -24,9 +27,16 @@ export default async function HomePage() {
           <p className={styles.eyebrow}>Invita</p>
           <h1 className={styles.title}>Mis invitaciones</h1>
         </div>
-        <Link href="/nueva" className="btn btn-primary">
-          + Nueva invitación
-        </Link>
+        <div className={styles.headerAcciones}>
+          <form action="/api/salir" method="post">
+            <button type="submit" className="btn btn-ghost btn-sm" title={sesion.email}>
+              Salir
+            </button>
+          </form>
+          <Link href="/nueva" className="btn btn-primary">
+            + Nueva invitación
+          </Link>
+        </div>
       </header>
 
       {invitations.length === 0 ? (

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { ALLOWED_TYPES, MAX_BYTES, saveImage } from "@/lib/storage";
+import { noAutorizado } from "@/lib/auth";
 
 /** Las clases de imagen que distingue la biblioteca. */
 const KINDS = new Set(["foto", "adorno"]);
@@ -13,6 +14,9 @@ const KINDS = new Set(["foto", "adorno"]);
  * arrastrar.
  */
 export async function POST(request: Request) {
+  const no = await noAutorizado();
+  if (no) return no;
+
   const form = await request.formData().catch(() => null);
   if (!form) {
     return NextResponse.json({ error: "Envío inválido." }, { status: 400 });
@@ -75,6 +79,9 @@ export async function POST(request: Request) {
  * ya se usó en otra invitación.
  */
 export async function GET(request: Request) {
+  const no = await noAutorizado();
+  if (no) return no;
+
   const url = new URL(request.url);
   const kind = url.searchParams.get("kind");
   const q = (url.searchParams.get("q") || "").trim();
@@ -101,6 +108,9 @@ export async function GET(request: Request) {
 
 /** Saca una imagen de la biblioteca. Los bytes se quedan: puede estar en uso. */
 export async function DELETE(request: Request) {
+  const no = await noAutorizado();
+  if (no) return no;
+
   const id = new URL(request.url).searchParams.get("id");
   if (!id) return NextResponse.json({ error: "Falta el id." }, { status: 400 });
   await prisma.media.delete({ where: { id } }).catch(() => null);

@@ -4,6 +4,7 @@ import { nuevoTokenPanel } from "@/lib/invitados";
 import { TEMPLATES } from "@/lib/templates";
 import { templateSupport } from "@/lib/support";
 import type { InvitationData } from "@/lib/schema";
+import { requiereSesion } from "@/lib/auth";
 import { Editor } from "./Editor";
 
 export const dynamic = "force-dynamic";
@@ -15,6 +16,8 @@ export default async function EditorPage({
   params: { id: string };
   searchParams: { panel?: string };
 }) {
+  await requiereSesion(`/editor/${params.id}`);
+
   const invitation = await prisma.invitation.findUnique({
     where: { id: params.id },
     include: { rsvps: { orderBy: { createdAt: "desc" } } },

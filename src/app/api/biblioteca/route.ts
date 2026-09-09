@@ -5,6 +5,7 @@ import { HERO_DISPOSICIONES } from "@/lib/schema";
 
 import { TEMPLATE_BY_ID, readTemplate } from "@/lib/templates";
 import { origenDe } from "@/lib/origen";
+import { noAutorizado } from "@/lib/auth";
 
 /**
  * La portada no es un bloque —no se reordena ni se quita— pero sus formas se
@@ -29,6 +30,9 @@ const PORTADA: BlockSpec = {
  * textos.
  */
 export async function POST(request: Request) {
+  const no = await noAutorizado();
+  if (no) return no;
+
   const body = await request.json().catch(() => ({}));
   const templateId = String(body.templateId || "");
   const tipo = String(body.tipo || "");

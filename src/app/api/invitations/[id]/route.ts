@@ -2,11 +2,15 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { TEMPLATE_BY_ID } from "@/lib/templates";
 import { normalizeSlug, slugError } from "@/lib/slug";
+import { noAutorizado } from "@/lib/auth";
 
 export async function PATCH(
   request: Request,
   { params }: { params: { id: string } }
 ) {
+  const no = await noAutorizado();
+  if (no) return no;
+
   const body = await request.json().catch(() => ({}));
   const update: Record<string, unknown> = {};
 
@@ -56,6 +60,9 @@ export async function DELETE(
   _request: Request,
   { params }: { params: { id: string } }
 ) {
+  const no = await noAutorizado();
+  if (no) return no;
+
   await prisma.invitation.delete({ where: { id: params.id } }).catch(() => null);
   return NextResponse.json({ ok: true });
 }

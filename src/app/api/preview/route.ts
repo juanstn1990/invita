@@ -2,9 +2,13 @@ import { NextResponse } from "next/server";
 import { renderInvitation, withAbsoluteMedia } from "@/lib/render";
 import { TEMPLATE_BY_ID, readTemplate } from "@/lib/templates";
 import { origenDe } from "@/lib/origen";
+import { noAutorizado } from "@/lib/auth";
 
 /** Render en vivo para el editor: no toca la base de datos. */
 export async function POST(request: Request) {
+  const no = await noAutorizado();
+  if (no) return no;
+
   const body = await request.json().catch(() => ({}));
   const templateId = String(body.templateId || "");
   if (!TEMPLATE_BY_ID[templateId]) {

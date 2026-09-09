@@ -36,3 +36,9 @@
   .card { flex-wrap: wrap; }
   .cardSide { width: 100%; justify-content: flex-end; }
 }
+
+.headerAcciones {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}

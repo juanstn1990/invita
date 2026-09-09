@@ -4,9 +4,13 @@ import { presetFor } from "@/lib/presets";
 import { TEMPLATE_BY_ID } from "@/lib/templates";
 import { normalizeSlug } from "@/lib/slug";
 import { defaultData } from "@/lib/schema";
+import { noAutorizado } from "@/lib/auth";
 
 /** Crea una invitación a partir de un diseño, con contenido de ejemplo. */
 export async function POST(request: Request) {
+  const no = await noAutorizado();
+  if (no) return no;
+
   const body = await request.json().catch(() => ({}));
 
   const templateId = String(body.templateId || "");
