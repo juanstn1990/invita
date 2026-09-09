@@ -9,6 +9,7 @@
  *  3. Que la foto del organizador siga puesta después de que corran los
  *     scripts — los templates traían uno que la pisaba.
  *  4. Que nada tape la barra de controles de un vídeo a sangre.
+ *  5. Que la marca de agua no se coma los clics de la invitación.
  *
  *   npm run audit:browser
  */
@@ -57,6 +58,14 @@ const ORIGEN = "https://invitacion.local";
     const data = presetFor(tpl);
     (data.hero as any).backgroundUrl = PORTADA;
     (data.gallery as any).items = [{ url: FOTO }, { url: FOTO }, { url: FOTO }];
+    /* La marca de agua encendida, para la comprobación 5: es una capa fija
+       sobre toda la página, y si pierde `pointer-events:none` la invitación
+       entera deja de responder — no se puede ni entrar por el velo. Eso no lo
+       ve ninguna captura: la marca se vería perfecta. */
+    (data as any).marca = {
+      enabled: true, texto: "MUESTRA", disposicion: "repetida",
+      tamano: "120", opacidad: "14", color: "",
+    };
     /* Un vídeo a sangre, para la comprobación 4. */
     (data as any).layout = {
       blocks: [
@@ -130,6 +139,49 @@ const ORIGEN = "https://invitacion.local";
       return (el.tagName.toLowerCase() + '.' + String(el.className || '').split(' ').filter(Boolean).join('.'));
     })()`);
 
+    /* ¿Se puede pulsar algo con la marca de agua puesta?
+       Se busca un botón de verdad y se le pregunta al navegador quién está en
+       su sitio. El botón se elige por lo que se ve: en modo vista previa el
+       velo va oculto —el editor enseña el contenido, no el velo— así que ahí
+       el candidato es el de la portada. */
+    const marcaTapa: string = await page.evaluate(`(() => {
+      var m = document.querySelector('.inv-marca');
+      if (!m) return 'no se puso la marca de agua';
+      if (getComputedStyle(m).pointerEvents !== 'none') return 'la capa recibe clics';
+
+      var velo = document.querySelector('#splash');
+      if (velo && getComputedStyle(velo).visibility !== 'hidden') {
+        var zM = Number(getComputedStyle(m).zIndex);
+        var zV = Number(getComputedStyle(velo).zIndex);
+        if (zM <= zV) return 'la marca queda por debajo del velo (' + zM + ' vs ' + zV + ')';
+      }
+
+      var visible = function (el) {
+        if (!el) return false;
+        var s = getComputedStyle(el);
+        if (s.visibility === 'hidden' || s.display === 'none' || Number(s.opacity) === 0) return false;
+        var padre = el.closest('#splash');
+        if (padre && getComputedStyle(padre).visibility === 'hidden') return false;
+        var r = el.getBoundingClientRect();
+        return r.width > 4 && r.height > 4;
+      };
+
+      var btn = null;
+      var candidatos = ['#splash .splash-btn-primary', '.hero-btn', '.confirm-btn', '.inv-mapa-btn'];
+      for (var i = 0; i < candidatos.length && !btn; i++) {
+        var c = document.querySelector(candidatos[i]);
+        if (visible(c)) btn = c;
+      }
+      if (!btn) return '';
+
+      btn.scrollIntoView({ block: 'center', behavior: 'instant' });
+      var caja = btn.getBoundingClientRect();
+      if (caja.bottom < 0 || caja.top > window.innerHeight) return '';
+      var el = document.elementFromPoint(caja.left + caja.width / 2, caja.top + caja.height / 2);
+      if (!el || el === btn || btn.contains(el) || el.contains(btn)) return '';
+      return 'el botón queda bajo ' + el.tagName.toLowerCase() + '.' + String(el.className || '');
+    })()`);
+
     // ¿La foto del organizador sobrevivió a los scripts del template?
     const sobrevive = await page.evaluate((url) => {
       const fondo = Array.from(document.querySelectorAll<HTMLElement>("*")).some((n) =>
@@ -144,7 +196,8 @@ const ORIGEN = "https://invitacion.local";
     await page.close();
 
     const ok =
-      !errores.length && !externas.length && sobrevive && !adornosGrandes.length && !tapado;
+      !errores.length && !externas.length && sobrevive && !adornosGrandes.length &&
+      !tapado && !marcaTapa;
     if (!ok) malos++;
     console.log(
       `${ok ? "✓" : "✗"} ${tpl.id.padEnd(28)}` +
@@ -152,7 +205,8 @@ const ORIGEN = "https://invitacion.local";
         `${externas.length ? `  pide ${externas[0]}` : ""}` +
         `${sobrevive ? "" : "  FOTO PISADA"}` +
         `${adornosGrandes.length ? `  adorno gigante: ${adornosGrandes[0]}` : ""}` +
-        `${tapado ? `  controles del vídeo tapados por ${tapado}` : ""}`
+        `${tapado ? `  controles del vídeo tapados por ${tapado}` : ""}` +
+        `${marcaTapa ? `  marca de agua: ${marcaTapa}` : ""}`
     );
   }
 

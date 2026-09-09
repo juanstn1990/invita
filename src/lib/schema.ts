@@ -627,6 +627,72 @@ export const SECTIONS: SectionSpec[] = [
   },
 
   {
+    key: "marca",
+    label: "Marca de agua",
+    icon: "◈",
+    optional: true,
+    hint:
+      "Tu firma sobre toda la invitación, para que un borrador no se pueda " +
+      "usar como si fuera el final. Apágala cuando entregues.",
+    fields: [
+      {
+        key: "texto",
+        label: "Texto",
+        type: "text",
+        span: 2,
+        placeholder: "MUESTRA",
+        help: "Lo que se repite encima. Si pones un logo abajo, manda el logo.",
+      },
+      {
+        key: "imagen",
+        label: "Logo",
+        type: "image",
+        span: 2,
+        help: "Opcional, en vez del texto. Un PNG con fondo transparente es lo que se ve bien.",
+      },
+      {
+        key: "disposicion",
+        label: "Cómo se coloca",
+        type: "select",
+        span: 2,
+        options: [
+          { value: "repetida", label: "Repetida en diagonal, por todas partes" },
+          { value: "centro", label: "Una sola, grande, cruzada en el centro" },
+          { value: "esquina", label: "Fija en una esquina, discreta" },
+        ],
+      },
+      {
+        key: "tamano",
+        label: "Tamaño",
+        type: "range",
+        min: 40,
+        max: 400,
+        step: 10,
+        unit: "px",
+        fallback: 120,
+      },
+      {
+        key: "opacidad",
+        label: "Opacidad",
+        type: "range",
+        min: 3,
+        max: 60,
+        step: 1,
+        unit: "%",
+        fallback: 12,
+        help: "Lo bastante para que se lea de quién es, no tanto que estorbe para leer la invitación.",
+      },
+      {
+        key: "color",
+        label: "Color del texto",
+        type: "color",
+        span: 2,
+        help: "Vacío = el color de las letras del diseño, así encaja en los 42.",
+      },
+    ],
+  },
+
+  {
     key: "compartir",
     label: "Al compartir el enlace",
     icon: "◇",
@@ -685,7 +751,7 @@ export const SECTIONS: SectionSpec[] = [
  * queda fuera del fondo porque ese sitio ya lo ocupa su foto.
  */
 for (const spec of SECTIONS) {
-  if (spec.key === "event" || spec.key === "compartir") continue;
+  if (spec.key === "event" || spec.key === "compartir" || spec.key === "marca") continue;
   spec.adornos = true;
   if (spec.key !== "hero") {
     spec.fondo = true;
@@ -764,6 +830,17 @@ export function defaultData(): InvitationData {
       dateLabel: "",
       city: "Bogotá",
       quote: "El amor no se mira, se vive juntos mirando en la misma dirección.",
+    },
+    marca: {
+      /* Apagada: nadie quiere una marca de agua por defecto. Se prende para
+         mandar el borrador y se apaga al entregar. */
+      enabled: false,
+      texto: "",
+      imagen: "",
+      disposicion: "repetida",
+      tamano: "",
+      opacidad: "",
+      color: "",
     },
     compartir: {
       enabled: true,

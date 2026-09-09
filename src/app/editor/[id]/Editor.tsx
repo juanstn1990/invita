@@ -414,10 +414,25 @@ export function Editor(props: EditorProps) {
                   );
                 })()}
 
-                {/* Al final y fuera del orden de la página: no es una sección
-                    de la invitación, es lo que se ve cuando se pega el enlace
-                    en WhatsApp. Va después del pie porque se decide cuando ya
-                    está todo lo demás. */}
+                {/* Las dos últimas no son secciones de la invitación: una es
+                    la capa que va encima de todo y la otra lo que se ve al
+                    pegar el enlace. Van después del pie porque se deciden
+                    cuando ya está todo lo demás. */}
+                {(() => {
+                  const marca = SECTIONS.find((s) => s.key === "marca")!;
+                  return (
+                    <SectionEditor
+                      spec={marca}
+                      data={data.marca || {}}
+                      support={support}
+                      inTemplate
+                      open={open === "marca"}
+                      onToggleOpen={() => setOpen(open === "marca" ? null : "marca")}
+                      onChange={(patch) => patchSection("marca", patch)}
+                    />
+                  );
+                })()}
+
                 {(() => {
                   const comp = SECTIONS.find((s) => s.key === "compartir")!;
                   return (

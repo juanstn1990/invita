@@ -1416,6 +1416,67 @@ prueba, le manda de todo —el mismo nombre dos veces, escrito distinto, un
 cambio de idea, tres envíos simultáneos, dos familias con una Ana cada una, un
 link con dos nombres reenviado— y la borra al final.
 
+## Marca de agua
+
+Tu firma encima de toda la invitación, para que un borrador no se pueda
+repartir como si fuera el final. Se prende para mandar la muestra y se apaga
+al entregar — está **apagada por defecto**, porque una marca de agua que
+aparece sola en la invitación que alguien entrega sería un desastre.
+
+Un texto (`MUESTRA`, el nombre del estudio) o un logo, y tres formas de
+colocarla:
+
+| Disposición | Para qué |
+| --- | --- |
+| Repetida en diagonal | Por todas partes. La que de verdad estorba copiarla. |
+| Una sola, cruzada en el centro | El sello clásico de «borrador». |
+| Fija en una esquina | Discreta, para firmar el trabajo. |
+
+Con tamaño, opacidad y color. El color vacío toma el de las letras del
+diseño, así encaja en los 42 sin elegir nada.
+
+### Lo primero, y sin adornos: no es infalible
+
+Es una página web. Quien abra el inspector la borra en diez segundos. Lo que
+esto evita es que un cliente mande el borrador por WhatsApp como si estuviera
+pagado, y deja claro de quién es el trabajo. Para lo otro no hay solución en
+el navegador, y prometerla sería mentir.
+
+### Encima, no detrás
+
+Va sobre el contenido y no debajo. Detrás la tapa la primera foto de portada a
+pantalla completa, que es justo la pantalla que más se comparte.
+
+Y va **por encima del velo de bienvenida**, que vive en `z-index: 9999`: sin
+eso, la primera pantalla —la única que muchos ven antes de decidir si siguen—
+saldría limpia.
+
+### `pointer-events: none`, o la invitación se rompe entera
+
+Es una capa fija sobre toda la página. Sin esa línea **se come todos los
+clics**: no se puede entrar por el velo, ni confirmar, ni darle al play a un
+vídeo. Y no lo ve ninguna captura, porque la marca se vería perfecta.
+
+Por eso `npm run audit:browser` la enciende en los 42 diseños y hace una
+prueba de impacto sobre el botón del velo: pregunta al navegador **quién está
+en ese punto** y falla si no es el botón. Comprueba además que la capa
+declare `pointer-events: none` y que su `z-index` gane al del velo.
+
+### Copias en vez de un fondo repetido
+
+La versión repetida es un lienzo girado, más grande que la pantalla, con las
+copias dentro: girar un fondo repetido no se puede en CSS, girar la caja que
+lo contiene sí.
+
+Son elementos de texto y no un SVG en `background-image` para que usen **la
+tipografía del diseño**: un SVG metido en `background-image` es un documento
+aislado y no ve las fuentes de la página, así que el nombre del estudio
+saldría en una fuente genérica distinta en cada diseño.
+
+Cuántas copias hacen falta no se sabe al renderizar —el tamaño de la pantalla
+se conoce en el navegador—, así que se emiten las que caben en la más grande
+razonable y `overflow: hidden` recorta el resto.
+
 ## ¿Ya la vieron?
 
 Es la primera pregunta de quien reparte invitaciones, y por enlace de invitado

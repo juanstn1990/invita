@@ -93,9 +93,10 @@ for (const tpl of TEMPLATES) {
     /* `event` son los datos comunes —nombres, fecha, ciudad— y se escriben en
        la portada, el velo y el pie, no en una sección propia. `compartir` no
        se dibuja en la página: alimenta las etiquetas Open Graph del `<head>`
-       (ver el paso 5 de `renderInvitation`). Ninguna de las dos tiene, ni
-       debe tener, un `data-inv-section` que buscar. */
-    if (s.key === "event" || s.key === "compartir") continue;
+       (ver el paso 5 de `renderInvitation`), y `marca` es una capa que se
+       añade encima de todo. Ninguna de las tres tiene, ni debe tener, un
+       `data-inv-section` que buscar. */
+    if (s.key === "event" || s.key === "compartir" || s.key === "marca") continue;
     if (!document.querySelector(`[data-inv-section="${s.key}"]`)) {
       lineas.push(`  ✗ SECCIÓN ${s.key}`);
       faltan++;

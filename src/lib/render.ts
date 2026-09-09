@@ -2342,6 +2342,99 @@ export function renderInvitation(opts: RenderOptions): string {
     document.head.appendChild(tarjeta);
   }
 
+  /* 5 bis · La marca de agua, encima de todo.
+     Su razón de ser es que un borrador no se pueda repartir como si fuera el
+     final, así que va sobre el contenido y no detrás: detrás la tapa la
+     primera foto de portada a pantalla completa.
+
+     Y hay que decirlo sin adornos: esto **no** es infalible. Es una página
+     web, y quien abra el inspector la borra en diez segundos. Lo que evita es
+     que un cliente mande el borrador por WhatsApp como si estuviera pagado, y
+     deja claro de quién es el trabajo. Para lo otro no hay solución en el
+     navegador. */
+  {
+    const m = data.marca || {};
+    /* Al contrario que las demás secciones, ésta está apagada salvo que se
+       diga que sí: una marca de agua que aparece por defecto sería un
+       desastre en la invitación que alguien entrega. */
+    const encendida = m.enabled === true;
+    const imagen = String(m.imagen || "").trim();
+    const texto = String(m.texto || "").trim();
+
+    if (encendida && (imagen || texto)) {
+      const disp = ["repetida", "centro", "esquina"].includes(String(m.disposicion))
+        ? String(m.disposicion)
+        : "repetida";
+      const tamano = Math.min(400, Math.max(40, Number(m.tamano) || 120));
+      const opacidad = Math.min(60, Math.max(3, Number(m.opacidad) || 12)) / 100;
+      const color = HEX.test(String(m.color || "").trim())
+        ? String(m.color).trim()
+        : "var(--inv-ink, currentColor)";
+
+      const capa = document.createElement("div");
+      capa.setAttribute("class", "inv-marca");
+      capa.setAttribute("data-disp", disp);
+      capa.setAttribute("aria-hidden", "true");
+
+      const pieza = () => {
+        if (imagen) {
+          const img = document.createElement("img");
+          setImage(img, imagen, false, 800);
+          img.setAttribute("alt", "");
+          return img;
+        }
+        const sp = document.createElement("span");
+        sp.textContent = texto;
+        return sp;
+      };
+
+      if (disp === "repetida") {
+        /* Un lienzo girado y más grande que la pantalla, con las copias
+           dentro: girar un fondo repetido no se puede, girar la caja que lo
+           contiene sí. Cuántas copias no se sabe aquí —el tamaño de la
+           pantalla se conoce en el navegador— así que se emiten las que
+           caben en la más grande razonable, y `overflow:hidden` recorta el
+           resto. Son spans, no un SVG de fondo, para que use la tipografía
+           del diseño: un SVG en `background-image` es un documento aislado y
+           no ve las fuentes de la página. */
+        const rejilla = document.createElement("div");
+        rejilla.setAttribute("class", "inv-marca-rejilla");
+        const cuantas = Math.min(240, Math.max(24, Math.ceil((2600 / tamano) * (2000 / tamano))));
+        for (let i = 0; i < cuantas; i++) rejilla.appendChild(pieza());
+        capa.appendChild(rejilla);
+      } else {
+        capa.appendChild(pieza());
+      }
+
+      document.body.appendChild(capa);
+
+      ctx.css.push(
+        /* Por encima del velo de bienvenida, que va en 9999: si no, la
+           primera pantalla —la que más se comparte— saldría sin marca. */
+        `.inv-marca{position:fixed;inset:0;z-index:10000;overflow:hidden;` +
+          /* Sin esto la capa se come todos los clics de la invitación: los
+             botones, el formulario de confirmación, los controles del vídeo. */
+          `pointer-events:none;opacity:${opacidad};color:${color};` +
+          `font-family:var(--inv-font-title,serif);text-transform:uppercase;` +
+          `letter-spacing:.18em;line-height:1;white-space:nowrap}`,
+        `.inv-marca img{display:block;width:${tamano}px;height:auto;max-width:none}`,
+        `.inv-marca span{display:block;font-size:${Math.round(tamano / 5.5)}px}`,
+
+        `.inv-marca[data-disp="repetida"] .inv-marca-rejilla{position:absolute;` +
+          `top:-50%;left:-50%;width:200%;height:200%;transform:rotate(-30deg);` +
+          `display:grid;grid-template-columns:repeat(auto-fill,minmax(${tamano}px,1fr));` +
+          `align-content:start;gap:${Math.round(tamano * 0.55)}px ${Math.round(tamano * 0.5)}px;` +
+          `place-items:center}`,
+
+        `.inv-marca[data-disp="centro"]{display:grid;place-items:center}`,
+        `.inv-marca[data-disp="centro"]>*{transform:rotate(-30deg) scale(2.2)}`,
+
+        `.inv-marca[data-disp="esquina"]{display:grid;place-items:end;` +
+          `padding:18px 20px}`
+      );
+    }
+  }
+
   /* 6 · Estilos y scripts inyectados */
   // Aquí se inyectaban las variables `--inv-*` que alimentan los componentes
   // propios (la confirmación, los bloques con marcado nuestro), leídas de

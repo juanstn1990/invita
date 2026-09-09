@@ -246,11 +246,12 @@ function construir(): TemplateMap {
   };
 
   for (const s of SECTIONS) {
-    /* "Al compartir" no se dibuja en la invitación: alimenta las etiquetas
-       Open Graph del `<head>`. No tiene marcado que buscar, y mapearla haría
-       que la auditoría exigiera un `data-inv` por cada campo. Se resuelve en
-       el paso 5 de `renderInvitation`. */
-    if (s.key === "compartir") continue;
+    /* Dos secciones no se dibujan dentro de la invitación y por tanto no
+       tienen marcado que buscar: "Al compartir" alimenta las etiquetas Open
+       Graph del `<head>`, y "Marca de agua" es una capa que el render añade
+       encima de todo. Mapearlas haría que la auditoría exigiera un `data-inv`
+       por cada uno de sus campos. Ver los pasos 5 y 7 de `renderInvitation`. */
+    if (s.key === "compartir" || s.key === "marca") continue;
 
     sections[s.key] = [`[data-inv-section="${s.key}"]`];
     campos(s.key, s.fields);
