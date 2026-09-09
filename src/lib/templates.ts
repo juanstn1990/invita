@@ -12,39 +12,38 @@
 import fs from "fs";
 import path from "path";
 import { DESIGNS, DESIGN_BY_SLUG, templateId } from "./design/designs";
-import type { Occasion, Variant } from "./design/theme";
+import { swatch } from "./design/paleta";
+import type { Occasion, Palette } from "./design/theme";
 
 export interface TemplateInfo {
   id: string;
   name: string;
   kind: Occasion;
   mood: string;
-  /** Tres colores para el swatch del selector. */
+  /** Tres colores para el swatch del selector: los de la paleta por defecto. */
   palette: [string, string, string];
-  /** Sólo en los infantiles: la versión niña o niño del mismo diseño. */
-  variant?: "nina" | "nino";
+  /** Las paletas entre las que se puede elegir al editar. */
+  palettes: Palette[];
   /** El diseño del que sale, para volver a generarlo. */
   design: string;
 }
 
-/** Un nombre por variante: "Globos · Niña". */
-const NOMBRE_VARIANTE: Record<Variant, string> = {
-  nina: " · Niña",
-  nino: " · Niño",
-  unico: "",
-};
-
-export const TEMPLATES: TemplateInfo[] = DESIGNS.flatMap((d) =>
-  (Object.keys(d.themes) as Variant[]).map((v) => ({
-    id: templateId(d.slug, v),
-    name: d.name + NOMBRE_VARIANTE[v],
-    kind: d.occasion,
-    mood: d.mood,
-    palette: d.swatch[v] ?? ["#ffffff", "#cccccc", "#333333"],
-    variant: v === "unico" ? undefined : v,
-    design: d.slug,
-  }))
-);
+/**
+ * Un template por diseño.
+ *
+ * Antes había uno por diseño **y variante**, porque niña y niño eran dos
+ * archivos generados del mismo marcado con otra paleta. Ahora la paleta se
+ * elige al editar, así que la lista es la de los diseños.
+ */
+export const TEMPLATES: TemplateInfo[] = DESIGNS.map((d) => ({
+  id: templateId(d.slug),
+  name: d.name,
+  kind: d.occasion,
+  mood: d.mood,
+  palette: swatch(d.palettes[0]),
+  palettes: d.palettes,
+  design: d.slug,
+}));
 
 
 export const KIND_LABEL: Record<Occasion, string> = {
@@ -80,6 +79,35 @@ export const FAMILIES: { label: string; kinds: Occasion[] }[] = [
 const ALIAS: Record<string, string> = {
   "invitacion-aurum-wine-ii": "invitacion-aurum-wine",
   "invitacion-ivory-leaf-ii": "invitacion-ivory-leaf",
+  /* Los cinco infantiles tenían un archivo por versión. La versión pasó a ser
+     una paleta, así que los diez ids viejos apuntan al único template que
+     queda de cada diseño. La paleta guardada en la invitación decide el color;
+     una que no la tenga cae en la de por defecto. */
+  "invitacion-1-globos-nina": "invitacion-1-globos",
+  "invitacion-1-globos-nino": "invitacion-1-globos",
+  "invitacion-1-osito-nina": "invitacion-1-osito",
+  "invitacion-1-osito-nino": "invitacion-1-osito",
+  "invitacion-bs-nube-nina": "invitacion-bs-nube",
+  "invitacion-bs-nube-nino": "invitacion-bs-nube",
+  "invitacion-bs-bosque-nina": "invitacion-bs-bosque",
+  "invitacion-bs-bosque-nino": "invitacion-bs-bosque",
+  "invitacion-bs-acuarela-nina": "invitacion-bs-acuarela",
+  "invitacion-bs-acuarela-nino": "invitacion-bs-acuarela",
+};
+
+/**
+ * La paleta que le toca a un id viejo de niña/niño.
+ *
+ * Sin esto, una invitación guardada como "globos-niño" se abriría en rosa: el
+ * template es el mismo y su paleta por defecto es la primera. Se conserva la
+ * elección que ya estaba hecha, aunque ahora se guarde en otro sitio.
+ */
+export const PALETA_POR_ID_VIEJO: Record<string, string> = {
+  "invitacion-1-globos-nino": "azul",
+  "invitacion-1-osito-nino": "pizarra",
+  "invitacion-bs-nube-nino": "cielo",
+  "invitacion-bs-bosque-nino": "pizarra",
+  "invitacion-bs-acuarela-nino": "petroleo",
 };
 
 /** El id vigente de un template, resolviendo los alias. */

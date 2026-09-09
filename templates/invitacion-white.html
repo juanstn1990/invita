@@ -12,11 +12,11 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#ffffff; --bg-alt:#f7f4ee; --card:#ffffff;
-  --ink:#211d18; --muted:#6a6156; --line:#e2dbcd;
-  --brand:#7d6429; --brand-2:#c9a84c;
-  --accent:#7d6429; --on-accent:#ffffff;
-  --footer-bg:#211d18; --footer-ink:#f7f4ee;
+  --bg:#ffffff; --bg-alt:#efefef; --card:#ffffff;
+  --ink:#211d18; --muted:#6c6a67; --line:#e0dfdf;
+  --brand:#7e6930; --brand-2:#e8d9a8;
+  --accent:#a1863d; --on-accent:#211d18;
+  --footer-bg:#211d18; --footer-ink:#efefef;
 
   --display:'Cormorant Garamond',Georgia,serif; --sans:'Inter',system-ui,sans-serif;
   --display-weight:300;
@@ -44,21 +44,21 @@
   --gap:22px;
 
   --panel-rgb:255,255,255;
-  --panel-alpha:0.86;
-  --hero-bg:linear-gradient(180deg,#f7f4ee 0%,#ffffff 100%);
-  --splash-bg:#ffffff;
+  --panel-alpha:0.88;
+  --hero-bg:linear-gradient(165deg,#efefef 0%,#ffffff 55%,#f0ebdd 130%);
+  --splash-bg:linear-gradient(165deg,#efefef 0%,#ffffff 55%,#f0ebdd 130%);
   --hero-ink:#211d18;
-  --hero-ink-soft:#6a6156;
-  --hero-line:#e2dbcd;
-  --hero-brand:#7d6429;
-  --hero-accent:#7d6429;
-  --hero-on-accent:#ffffff;
+  --hero-ink-soft:#6c6a67;
+  --hero-line:#e0dfdf;
+  --hero-brand:#7b662f;
+  --hero-accent:#9d833b;
+  --hero-on-accent:#211d18;
 
   /* Los componentes que inyecta el renderer. Mismos valores, otro prefijo. */
-  --inv-accent:#7d6429; --inv-on-accent:#ffffff;
+  --inv-accent:#a1863d; --inv-on-accent:#211d18;
   --inv-ink:#211d18; --inv-surface:#ffffff;
-  --inv-field-bg:#ffffff; --inv-field-ink:#211d18; --inv-field-border:#e2dbcd;
-  --inv-focus:rgba(125,100,41,0.24);
+  --inv-field-bg:#ffffff; --inv-field-ink:#211d18; --inv-field-border:#e0dfdf;
+  --inv-focus:rgba(161,134,61,0.24);
   --inv-radius:0px; --inv-btn-radius:0px;
   --inv-font-ui:'Inter',system-ui,sans-serif; --inv-font-title:'Cormorant Garamond',Georgia,serif;
   --inv-tracking:0.2em; --inv-caps:uppercase;
@@ -438,7 +438,7 @@ section.alt .event-card,section.alt .feature-card,section.alt .gift-card,section
 <section id="countdown" class="reveal" data-inv-section="countdown">
   <div class="container">
     <p class="section-label" data-inv="countdown.label">El gran día</p>
-    <h2 class="section-title" data-inv="countdown.title">Falta muy poco</h2><div class="ornament"><span class="orn-solo" style="background:#7d6429"></span></div>
+    <h2 class="section-title" data-inv="countdown.title">Falta muy poco</h2><div class="ornament"><span class="orn-solo" style="background:#7e6930"></span></div>
     <p class="section-body" data-inv="countdown.text">Estamos contando los días para verte allí.</p>
     <div class="countdown-grid">
       <div class="countdown-ring"><div class="ring-inner"><span class="ring-number" data-cd="days">--</span><span class="ring-label">Días</span></div></div>
@@ -452,7 +452,7 @@ section.alt .event-card,section.alt .feature-card,section.alt .gift-card,section
 <section id="guests" class="reveal alt" data-inv-section="guests">
   <div class="container">
     <p class="section-label" data-inv="guests.label">Con todo nuestro amor</p>
-    <h2 class="section-title" data-inv="guests.title">Queridos invitados</h2><div class="ornament"><span class="orn-solo" style="background:#7d6429"></span></div>
+    <h2 class="section-title" data-inv="guests.title">Queridos invitados</h2><div class="ornament"><span class="orn-solo" style="background:#7e6930"></span></div>
     <p class="guests-text" data-inv="guests.text">Queremos compartir con ustedes el día más importante de nuestras vidas. Su presencia lo hará inolvidable.</p>
     <p class="guests-text" data-inv="guests.textSecondary">Los esperamos con los brazos abiertos.</p>
     <p class="guests-address" data-inv="guests.address">Bogotá · Colombia</p>
@@ -479,7 +479,7 @@ section.alt .event-card,section.alt .feature-card,section.alt .gift-card,section
 <section id="events" class="reveal" data-inv-section="events">
   <div class="container">
     <p class="section-label" data-inv="events.label">El programa</p>
-    <h2 class="section-title" data-inv="events.title">Cómo será el día</h2><div class="ornament"><span class="orn-solo" style="background:#7d6429"></span></div>
+    <h2 class="section-title" data-inv="events.title">Cómo será el día</h2><div class="ornament"><span class="orn-solo" style="background:#7e6930"></span></div>
     <p class="section-body" data-inv="events.text">Dos momentos y el mismo día. Aquí los detalles de cada uno.</p>
     <div class="events-grid" data-inv-list="events">
       <article class="event-card" data-inv-item>
@@ -507,7 +507,7 @@ section.alt .event-card,section.alt .feature-card,section.alt .gift-card,section
 <section id="confirmation" class="reveal alt" data-inv-section="confirm">
   <div class="container">
     <p class="section-label" data-inv="confirm.label">¿Nos acompañas?</p>
-    <h2 class="section-title" data-inv="confirm.title">Confirma tu asistencia</h2><div class="ornament"><span class="orn-solo" style="background:#7d6429"></span></div>
+    <h2 class="section-title" data-inv="confirm.title">Confirma tu asistencia</h2><div class="ornament"><span class="orn-solo" style="background:#7e6930"></span></div>
     <p class="confirmation-text" data-inv="confirm.text">Por favor confirma tu asistencia. Nos ayudará a planear el mejor día posible para todos.</p>
     <p class="confirmation-deadline" data-inv="confirm.deadlineText">Antes del 15 de octubre</p>
     <p class="confirmation-text" data-inv="confirm.note">Si vienes con alguien, cuéntanos aquí mismo.</p>
@@ -528,7 +528,7 @@ section.alt .event-card,section.alt .feature-card,section.alt .gift-card,section
 <section id="gallery" class="reveal" data-inv-section="gallery">
   <div class="container">
     <p class="section-label" data-inv="gallery.label">Nuestra historia</p>
-    <h2 class="section-title" data-inv="gallery.title">Momentos juntos</h2><div class="ornament"><span class="orn-solo" style="background:#7d6429"></span></div>
+    <h2 class="section-title" data-inv="gallery.title">Momentos juntos</h2><div class="ornament"><span class="orn-solo" style="background:#7e6930"></span></div>
     <p class="gallery-text" data-inv="gallery.text">Unas cuantas fotos de lo que nos trajo hasta aquí.</p>
     <div class="gallery-grid" data-inv-list="gallery">
       <div class="gallery-item" data-inv-item><div class="gallery-ph" data-inv="gallery.items.url"><span class="gallery-ph-text">Foto 1</span></div></div>
@@ -544,7 +544,7 @@ section.alt .event-card,section.alt .feature-card,section.alt .gift-card,section
 <section id="features" class="reveal alt" data-inv-section="features">
   <div class="container">
     <p class="section-label" data-inv="features.label">Información útil</p>
-    <h2 class="section-title" data-inv="features.title">Todo lo que necesitas saber</h2><div class="ornament"><span class="orn-solo" style="background:#7d6429"></span></div>
+    <h2 class="section-title" data-inv="features.title">Todo lo que necesitas saber</h2><div class="ornament"><span class="orn-solo" style="background:#7e6930"></span></div>
     <div class="features-grid" data-inv-list="features">
       <div class="feature-card" data-inv-item>
         <span class="feature-icon" data-inv="features.items.icon">👗</span>
@@ -568,7 +568,7 @@ section.alt .event-card,section.alt .feature-card,section.alt .gift-card,section
 <section id="gifts" class="reveal" data-inv-section="gifts">
   <div class="container">
     <p class="section-label" data-inv="gifts.label">Con mucho cariño</p>
-    <h2 class="section-title" data-inv="gifts.title">Mesa de regalos</h2><div class="ornament"><span class="orn-solo" style="background:#7d6429"></span></div>
+    <h2 class="section-title" data-inv="gifts.title">Mesa de regalos</h2><div class="ornament"><span class="orn-solo" style="background:#7e6930"></span></div>
     <p class="gifts-text" data-inv="gifts.text">Su presencia es nuestro mejor regalo. Si desean acompañarnos con un detalle, aquí dejamos los datos.</p>
     <div class="gifts-account">
       <p class="gifts-bank" data-inv="gifts.bankLabel">Transferencia</p>
@@ -596,7 +596,7 @@ section.alt .event-card,section.alt .feature-card,section.alt .gift-card,section
 <section id="social" class="reveal alt" data-inv-section="social">
   <div class="container">
     <p class="section-label" data-inv="social.label">Compártelo</p>
-    <h2 class="section-title" data-inv="social.title">Sube tus fotos</h2><div class="ornament"><span class="orn-solo" style="background:#7d6429"></span></div>
+    <h2 class="section-title" data-inv="social.title">Sube tus fotos</h2><div class="ornament"><span class="orn-solo" style="background:#7e6930"></span></div>
     <p class="social-sub" data-inv="social.text">Etiquétalas con nuestro hashtag para que no se pierda ninguna.</p>
     <span class="social-hashtag" data-inv="social.hashtag">#JuanYMaria2027</span>
     <a class="social-ig" href="#" data-inv="social.instagram">@juanymaria</a>

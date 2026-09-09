@@ -108,6 +108,26 @@ export function Editor(props: EditorProps) {
   const dirty = useRef(false);
 
   const support = props.supports[templateId];
+
+  /**
+   * Rellena las opciones del selector de paleta.
+   *
+   * El esquema declara el campo pero no sus opciones: dependen del diseño
+   * elegido, y el esquema no sabe cuál es. Cambiar de diseño cambia las
+   * paletas disponibles, así que se resuelven aquí, en cada render.
+   */
+  const paletas = props.templates.find((t) => t.id === templateId)?.palettes || [];
+  const conPaletas = (spec: (typeof SECTIONS)[number]) =>
+    spec.key !== "event" || !paletas.length
+      ? spec
+      : {
+          ...spec,
+          fields: spec.fields.map((f) =>
+            f.key !== "paleta"
+              ? f
+              : { ...f, options: paletas.map((p) => ({ value: p.id, label: p.nombre })) }
+          ),
+        };
   /** La biblioteca de portadas, abierta o no. */
   const [verPortadas, setVerPortadas] = useState(false);
   const deviceWidth = DEVICES.find((d) => d.key === device)!.width;
@@ -267,7 +287,7 @@ export function Editor(props: EditorProps) {
             ) : (
               <>
                 {FIJAS.map((key) => {
-                  const spec = SECTIONS.find((s) => s.key === key)!;
+                  const spec = conPaletas(SECTIONS.find((s) => s.key === key)!);
                   return (
                     <SectionEditor
                       key={spec.key}

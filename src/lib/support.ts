@@ -8,7 +8,7 @@
  * quince no tenían frase en la portada, 13 de 14 no tenían sección de redes.
  * Eran 213 combinaciones campo/diseño escondidas.
  *
- * Los 27 salen ahora del mismo esqueleto, que trae **todos** los campos del
+ * Todos salen ahora del mismo esqueleto, que trae **todos** los campos del
  * esquema. Así que no hay nada que detectar ni nada que esconder: el soporte
  * se declara. Queda una sola excepción, y es real —no una ausencia de
  * marcado, sino de sentido: la opacidad del panel de la portada sólo
@@ -91,7 +91,7 @@ export function templateSupport(templateId: string): TemplateSupport {
  * Campos que el organizador ya llenó pero este diseño no puede mostrar.
  *
  * Alimenta el aviso de "esto no va a caber" antes de cambiar de diseño. Con
- * los 27 soportando todo, lo normal es que devuelva la lista vacía y el aviso
+ * todos soportando todo, lo normal es que devuelva la lista vacía y el aviso
  * no aparezca — que es exactamente lo que se quería. Se conserva porque sigue
  * siendo la respuesta correcta a la pregunta, y porque un diseño futuro que
  * se salga del esqueleto la volvería a necesitar.

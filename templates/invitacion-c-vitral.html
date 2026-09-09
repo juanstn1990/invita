@@ -6,61 +6,61 @@
 <!-- Sin esta clase el CSS no oculta nada: un fallo de JavaScript deja la
      invitación legible en vez de en blanco. -->
 <script>document.documentElement.classList.add('js')</script>
-<title>Martín · Mi primer añito</title>
+<title>Mateo · Mi primera comunión</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&family=Nunito+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#f6f7f5; --bg-alt:#e5ebef; --card:#ffffff;
-  --ink:#27333d; --muted:#556876; --line:#cbd8e0;
-  --brand:#426280; --brand-2:#7f9273;
-  --accent:#426280; --on-accent:#ffffff;
-  --footer-bg:#27333d; --footer-ink:#e5ebef;
+  --bg:#faf8fd; --bg-alt:#ece9f0; --card:#fdfcfe;
+  --ink:#2f2740; --muted:#6b6676; --line:#d8d6dd;
+  --brand:#6b5495; --brand-2:#c0b0dc;
+  --accent:#6b5495; --on-accent:#ffffff;
+  --footer-bg:#2f2740; --footer-ink:#ece9f0;
 
-  --display:'Quicksand',system-ui,sans-serif; --sans:'Nunito Sans',system-ui,sans-serif;
-  --display-weight:600;
-  --display-leading:1.1;
-  --display-tracking:-0.01em;
+  --display:'DM Serif Display',Georgia,serif; --sans:'DM Sans',system-ui,sans-serif;
+  --display-weight:400;
+  --display-leading:1.03;
+  --display-tracking:-0.02em;
   --tracking:0.2em;
   --caps:uppercase;
   --quote-style:italic;
 
-  --fs-micro:10.9px;
-  --fs-small:12.6px;
+  --fs-micro:10px;
+  --fs-small:11.9px;
   --fs-body:16px;
-  --fs-lead:18.5px;
-  --fs-h3:clamp(20.3px,4.4vw,24.6px);
-  --fs-h2:clamp(25.8px,7vw,41.6px);
-  --fs-display:clamp(41.6px,13vw,67.1px);
-  --fs-number:clamp(23.5px,6.4vw,32.8px);
+  --fs-lead:19.1px;
+  --fs-h3:clamp(21.4px,4.4vw,27.1px);
+  --fs-h2:clamp(28.7px,7vw,51.6px);
+  --fs-display:clamp(51.6px,13vw,92.6px);
+  --fs-number:clamp(25.6px,6.4vw,38.5px);
 
-  --radius:24px; --radius-sm:999px;
-  --btn-radius:999px;
+  --radius:8px; --radius-sm:6px;
+  --btn-radius:2px;
   --border:1px;
-  --shadow:none;
+  --shadow:0 4px 10px rgba(0,0,0,.05), 0 26px 56px -28px rgba(0,0,0,.34);
 
   --pad-y:64px; --pad-y-alt:78px;
   --gap:16px;
 
-  --panel-rgb:255,255,255;
-  --panel-alpha:0.86;
-  --hero-bg:linear-gradient(180deg,#e5ebef 0%,#f6f7f5 100%);
-  --splash-bg:#f6f7f5;
-  --hero-ink:#27333d;
-  --hero-ink-soft:#556876;
-  --hero-line:#cbd8e0;
-  --hero-brand:#426280;
-  --hero-accent:#426280;
+  --panel-rgb:253,252,254;
+  --panel-alpha:0.88;
+  --hero-bg:linear-gradient(165deg,#ece9f0 0%,#faf8fd 55%,#ece7f3 130%);
+  --splash-bg:linear-gradient(165deg,#ece9f0 0%,#faf8fd 55%,#ece7f3 130%);
+  --hero-ink:#2f2740;
+  --hero-ink-soft:#6b6676;
+  --hero-line:#d8d6dd;
+  --hero-brand:#6b5495;
+  --hero-accent:#6b5495;
   --hero-on-accent:#ffffff;
 
   /* Los componentes que inyecta el renderer. Mismos valores, otro prefijo. */
-  --inv-accent:#426280; --inv-on-accent:#ffffff;
-  --inv-ink:#27333d; --inv-surface:#ffffff;
-  --inv-field-bg:#ffffff; --inv-field-ink:#27333d; --inv-field-border:#cbd8e0;
-  --inv-focus:rgba(66,98,128,0.24);
-  --inv-radius:999px; --inv-btn-radius:999px;
-  --inv-font-ui:'Nunito Sans',system-ui,sans-serif; --inv-font-title:'Quicksand',system-ui,sans-serif;
+  --inv-accent:#6b5495; --inv-on-accent:#ffffff;
+  --inv-ink:#2f2740; --inv-surface:#fdfcfe;
+  --inv-field-bg:#fdfcfe; --inv-field-ink:#2f2740; --inv-field-border:#d8d6dd;
+  --inv-focus:rgba(107,84,149,0.24);
+  --inv-radius:6px; --inv-btn-radius:2px;
+  --inv-font-ui:'DM Sans',system-ui,sans-serif; --inv-font-title:'DM Serif Display',Georgia,serif;
   --inv-tracking:0.2em; --inv-caps:uppercase;
 }
 
@@ -312,33 +312,35 @@ footer{position:relative;padding:56px 22px;text-align:center;
   .confetti i,.balloon{animation:none}
 }
 
-/* Foto arriba, nombres abajo sobre el fondo del diseño: nada se superpone,
-   así que la foto se ve entera y el texto no necesita velo. */
-#hero{display:grid;grid-template-rows:54svh auto;place-items:stretch;
-  padding:0;background:var(--bg)}
-.hero-bg{position:relative;grid-row:1;inset:auto;width:100%;height:100%}
-.hero-content{grid-row:2;width:min(560px,100%);margin:0 auto;
-  padding:44px 26px 76px;background:transparent}
-/* La decoración se queda en la fila de la foto. Cubriendo toda la portada
-   se colaba detrás de los nombres —el trigo de Campestre cruzaba la frase—
-   y aquí, a diferencia de los otros slots, el texto no tiene panel que lo
-   despegue del fondo. */
-#hero .deco{top:0;bottom:auto;height:54svh}
+/* Banda de lado a lado a media altura. Es la única que sale del ancho. */
+.hero-content{width:100%;max-width:none;border-radius:0;padding:40px 22px;
+  background:rgba(var(--panel-rgb),calc(var(--panel-alpha) * .96));
+  backdrop-filter:blur(6px)}
+.hero-content>*{max-width:520px;margin-left:auto;margin-right:auto}
 
+/* Dos pisos de título: el antetítulo en la tipografía de los títulos y el
+   título mucho más grande debajo.
+   
+   El primer intento ponía el antetítulo grande y desvaído *detrás* del
+   título, como una marca de agua. Con etiquetas de una palabra funcionaba,
+   pero "Información útil" a ese tamaño se parte en dos líneas en un móvil y
+   choca con el título: parecía un error de render. Lo que da escala aquí es
+   la diferencia de tamaño entre los dos pisos, no la superposición. */
+.section-label{font-family:var(--display);font-size:var(--fs-h3);
+  letter-spacing:0;text-transform:none;color:var(--brand);opacity:.9;
+  line-height:1.2}
+.section-title{margin-top:2px;font-size:var(--fs-display);line-height:1}
 
-.countdown-ring{aspect-ratio:1;border:var(--border) solid var(--accent);
-  border-radius:50%;background:transparent}
+.countdown-ring{aspect-ratio:1;background:var(--card);
+  border-radius:var(--radius-sm);box-shadow:var(--shadow)}
 
-/* Una columna ancha. Para diseños que esperan fotos verticales. */
-.gallery-grid{grid-template-columns:repeat(2,1fr);max-width:620px;margin-inline:auto}
-.gallery-item{aspect-ratio:3/4}
-.gallery-item:nth-child(3n+1){grid-column:1 / -1;aspect-ratio:16/10}
+/* La primera de cada seis ocupa el doble: rompe la retícula sin desordenarla. */
+.gallery-grid{grid-template-columns:repeat(3,1fr);grid-auto-rows:1fr}
+.gallery-item{aspect-ratio:1}
+.gallery-item:nth-child(6n+1){grid-column:span 2;grid-row:span 2;aspect-ratio:auto}
 
-.event-card,.feature-card,.gift-card,.guest-card{background:var(--bg-alt);border-radius:var(--radius);box-shadow:none}
-section.alt .event-card,section.alt .feature-card,section.alt .gift-card,section.alt .guest-card{background:var(--card)}
-
-.divider{height:52px;margin-top:-52px;position:relative;z-index:4;
-  background:var(--bg);border-radius:50% 50% 0 0/100% 100% 0 0}
+.event-card,.feature-card,.gift-card,.guest-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow)}
+.divider{display:none}
 
 .js .reveal{opacity:0;transform:translateY(26px);
   transition:opacity .8s ease,transform .8s cubic-bezier(.2,.7,.3,1)}
@@ -392,10 +394,7 @@ section.alt .event-card,section.alt .feature-card,section.alt .gift-card,section
   section{padding:calc(var(--pad-y) * .78) 18px}
   .hero-content{padding:34px 22px}
   .splash-modal{padding:34px 22px}
-}
-/* El arco es el motivo del diseño: las fotos y las tarjetas lo repiten. */
-.gallery-item{border-radius:999px 999px 24px 24px}
-.guest-avatar{border-radius:999px 999px 12px 12px}</style>
+}</style>
 </head>
 <body>
 
@@ -404,10 +403,10 @@ section.alt .event-card,section.alt .feature-card,section.alt .gift-card,section
 <div id="splash" data-inv-section="splash">
   
   <div class="splash-modal">
-    <p class="splash-subtitle" data-inv="splash.label">Te invito a celebrar</p>
-    <h1 class="splash-name" data-inv="event.names">Martín</h1>
-    <p class="splash-subtitle" data-inv="splash.subtitle">Mi primer añito</p>
-    <p class="splash-date" data-inv="event.dateLabel">14 · Marzo · 2027</p>
+    <p class="splash-subtitle" data-inv="splash.label">Te invito a acompañarme</p>
+    <h1 class="splash-name" data-inv="event.names">Mateo</h1>
+    <p class="splash-subtitle" data-inv="splash.subtitle">Mi primera comunión</p>
+    <p class="splash-date" data-inv="event.dateLabel">16 · Mayo · 2027</p>
     <div class="splash-btns">
       <button class="splash-btn splash-btn-primary" type="button" onclick="enterSite()"
         data-inv="splash.ctaPrimary">Abrir invitación</button>
@@ -420,17 +419,23 @@ section.alt .event-card,section.alt .feature-card,section.alt .gift-card,section
 <section id="hero" data-inv-section="hero">
   <div class="hero-bg" data-inv="hero.backgroundUrl"></div>
   
-<svg class="deco deco-arcos" viewBox="0 0 400 200" fill="none" aria-hidden="true" preserveAspectRatio="none">
-  <path d="M-40 200a240 170 0 0 1 480 0" stroke="rgba(66,98,128,0.3)" stroke-width="1"/>
-  <path d="M-14 200a214 150 0 0 1 428 0" stroke="rgba(66,98,128,0.21999999999999997)" stroke-width="1"/>
-  <path d="M12 200a188 130 0 0 1 376 0" stroke="rgba(66,98,128,0.13999999999999999)" stroke-width="1"/>
+<svg class="deco deco-rayos" viewBox="0 0 200 200" fill="none" aria-hidden="true">
+  <path d="M0 200 L0.0 -100.0" stroke="rgba(107,84,149,0.12)" stroke-width="1"/>
+  <path d="M0 200 L58.5 -94.2" stroke="rgba(107,84,149,0.12)" stroke-width="1"/>
+  <path d="M0 200 L114.8 -77.2" stroke="rgba(107,84,149,0.12)" stroke-width="1"/>
+  <path d="M0 200 L166.7 -49.4" stroke="rgba(107,84,149,0.12)" stroke-width="1"/>
+  <path d="M0 200 L212.1 -12.1" stroke="rgba(107,84,149,0.12)" stroke-width="1"/>
+  <path d="M0 200 L249.4 33.3" stroke="rgba(107,84,149,0.12)" stroke-width="1"/>
+  <path d="M0 200 L277.2 85.2" stroke="rgba(107,84,149,0.12)" stroke-width="1"/>
+  <path d="M0 200 L294.2 141.5" stroke="rgba(107,84,149,0.12)" stroke-width="1"/>
+  <path d="M0 200 L300.0 200.0" stroke="rgba(107,84,149,0.12)" stroke-width="1"/>
 </svg>
   <div class="hero-content">
-    <p class="hero-label" data-inv="hero.label">Cumplo un año</p>
-    <h1 class="hero-name" data-inv="event.names">Martín</h1>
-    <p class="hero-sub" data-inv="hero.subtitle">Y quiero festejarlo contigo</p>
-    <p class="hero-date" data-inv="event.dateLabel">14 · Marzo · 2027</p>
-    <p class="hero-quote" data-inv="event.quote">Un año lleno de primeras veces, y la más linda fue conocerte.</p>
+    <p class="hero-label" data-inv="hero.label">Mi primera comunión</p>
+    <h1 class="hero-name" data-inv="event.names">Mateo</h1>
+    <p class="hero-sub" data-inv="hero.subtitle">Y quiero compartirla contigo</p>
+    <p class="hero-date" data-inv="event.dateLabel">16 · Mayo · 2027</p>
+    <p class="hero-quote" data-inv="event.quote">Dejen que los niños se acerquen a mí.</p>
     <a class="hero-btn" href="#countdown" data-inv="hero.cta">Ver la invitación</a>
   </div>
   <div class="hero-scroll" aria-hidden="true">
@@ -444,8 +449,8 @@ section.alt .event-card,section.alt .feature-card,section.alt .gift-card,section
 <section id="countdown" class="reveal" data-inv-section="countdown">
   <div class="container">
     <p class="section-label" data-inv="countdown.label">Ya casi</p>
-    <h2 class="section-title" data-inv="countdown.title">Faltan para mi fiesta</h2><div class="ornament"><span class="orn-filetes"><i style="background:#cbd8e0"></i><span class="orn-pieza" style="width:13px;height:13px"><svg class="inv-orn" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M229.67,133.62l-96,96a7.94,7.94,0,0,1-11.24,0l-96-96a7.94,7.94,0,0,1,0-11.24l96.05-96a7.94,7.94,0,0,1,11.24,0l96,96.05A7.94,7.94,0,0,1,229.67,133.62Z" opacity="0.2"/><path d="M235.33,116.72,139.28,20.66a16,16,0,0,0-22.56,0l-96,96.06a16,16,0,0,0,0,22.56l96.05,96.06h0a16,16,0,0,0,22.56,0l96.05-96.06a16,16,0,0,0,0-22.56ZM128,224h0L32,128,128,32,224,128Z"/></svg></span><i style="background:#cbd8e0"></i></span></div>
-    <p class="section-body" data-inv="countdown.text">El primer añito se celebra a lo grande, y no sería lo mismo sin ti.</p>
+    <h2 class="section-title" data-inv="countdown.title">Faltan para el día</h2><div class="ornament"><span class="orn-filetes"><i style="background:#d8d6dd"></i><span class="orn-pieza" style="width:13px;height:13px"><svg class="inv-orn" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M233.92,118.14,137.86,22.08a14,14,0,0,0-19.72,0L22.08,118.14a14,14,0,0,0,0,19.72l96.06,96.06h0a14,14,0,0,0,19.72,0l96-96.06a13.94,13.94,0,0,0,0-19.72Zm-8.49,11.24-96.05,96.06a2,2,0,0,1-2.76,0L30.57,129.38a2,2,0,0,1,0-2.76l96.05-96.06a2,2,0,0,1,2.76,0l96.05,96.06a2,2,0,0,1,0,2.76Z"/></svg></span><i style="background:#d8d6dd"></i></span></div>
+    <p class="section-body" data-inv="countdown.text">Estoy contando los días para verte allí.</p>
     <div class="countdown-grid">
       <div class="countdown-ring"><div class="ring-inner"><span class="ring-number" data-cd="days">--</span><span class="ring-label">Días</span></div></div>
       <div class="countdown-ring"><div class="ring-inner"><span class="ring-number" data-cd="hours">--</span><span class="ring-label">Horas</span></div></div>
@@ -457,26 +462,26 @@ section.alt .event-card,section.alt .feature-card,section.alt .gift-card,section
 
 <section id="guests" class="reveal alt" data-inv-section="guests">
   <div class="container">
-    <p class="section-label" data-inv="guests.label">Con todo el corazón</p>
-    <h2 class="section-title" data-inv="guests.title">Mis personas favoritas</h2><div class="ornament"><span class="orn-filetes"><i style="background:#cbd8e0"></i><span class="orn-pieza" style="width:13px;height:13px"><svg class="inv-orn" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M229.67,133.62l-96,96a7.94,7.94,0,0,1-11.24,0l-96-96a7.94,7.94,0,0,1,0-11.24l96.05-96a7.94,7.94,0,0,1,11.24,0l96,96.05A7.94,7.94,0,0,1,229.67,133.62Z" opacity="0.2"/><path d="M235.33,116.72,139.28,20.66a16,16,0,0,0-22.56,0l-96,96.06a16,16,0,0,0,0,22.56l96.05,96.06h0a16,16,0,0,0,22.56,0l96.05-96.06a16,16,0,0,0,0-22.56ZM128,224h0L32,128,128,32,224,128Z"/></svg></span><i style="background:#cbd8e0"></i></span></div>
-    <p class="guests-text" data-inv="guests.text">Mi primer año pasó volando y fue increíble gracias a ustedes.</p>
-    <p class="guests-text" data-inv="guests.textSecondary">Los espero para soplar la velita.</p>
+    <p class="section-label" data-inv="guests.label">Con todo mi cariño</p>
+    <h2 class="section-title" data-inv="guests.title">Mi familia y mis amigos</h2><div class="ornament"><span class="orn-filetes"><i style="background:#d8d6dd"></i><span class="orn-pieza" style="width:13px;height:13px"><svg class="inv-orn" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M233.92,118.14,137.86,22.08a14,14,0,0,0-19.72,0L22.08,118.14a14,14,0,0,0,0,19.72l96.06,96.06h0a14,14,0,0,0,19.72,0l96-96.06a13.94,13.94,0,0,0,0-19.72Zm-8.49,11.24-96.05,96.06a2,2,0,0,1-2.76,0L30.57,129.38a2,2,0,0,1,0-2.76l96.05-96.06a2,2,0,0,1,2.76,0l96.05,96.06a2,2,0,0,1,0,2.76Z"/></svg></span><i style="background:#d8d6dd"></i></span></div>
+    <p class="guests-text" data-inv="guests.text">Quiero que este día tan importante esté rodeado de la gente que quiero.</p>
+    <p class="guests-text" data-inv="guests.textSecondary">Los espero a todos en la misa y después en el almuerzo.</p>
     <p class="guests-address" data-inv="guests.address">Bogotá · Colombia</p>
     <div class="guests-grid" data-inv-list="guests">
       <div class="guest-card" data-inv-item>
         <span class="guest-avatar" data-inv="guests.items.initial">F</span>
-        <p class="guest-name" data-inv="guests.items.name">Familia Pérez</p>
+        <p class="guest-name" data-inv="guests.items.name">Familia Torres</p>
         <p class="guest-role" data-inv="guests.items.role">Mis papás</p>
       </div>
       <div class="guest-card" data-inv-item>
         <span class="guest-avatar" data-inv="guests.items.initial">A</span>
-        <p class="guest-name" data-inv="guests.items.name">Abuelos Pérez</p>
+        <p class="guest-name" data-inv="guests.items.name">Abuelos Torres</p>
         <p class="guest-role" data-inv="guests.items.role">Los consentidores</p>
       </div>
       <div class="guest-card" data-inv-item>
         <span class="guest-avatar" data-inv="guests.items.initial">T</span>
-        <p class="guest-name" data-inv="guests.items.name">Tía Sara</p>
-        <p class="guest-role" data-inv="guests.items.role">La de los mimos</p>
+        <p class="guest-name" data-inv="guests.items.name">Tío Andrés</p>
+        <p class="guest-role" data-inv="guests.items.role">Mi padrino</p>
       </div>
     </div>
   </div>
@@ -485,25 +490,25 @@ section.alt .event-card,section.alt .feature-card,section.alt .gift-card,section
 <section id="events" class="reveal" data-inv-section="events">
   <div class="container">
     <p class="section-label" data-inv="events.label">El programa</p>
-    <h2 class="section-title" data-inv="events.title">Cómo será la tarde</h2><div class="ornament"><span class="orn-filetes"><i style="background:#cbd8e0"></i><span class="orn-pieza" style="width:13px;height:13px"><svg class="inv-orn" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M229.67,133.62l-96,96a7.94,7.94,0,0,1-11.24,0l-96-96a7.94,7.94,0,0,1,0-11.24l96.05-96a7.94,7.94,0,0,1,11.24,0l96,96.05A7.94,7.94,0,0,1,229.67,133.62Z" opacity="0.2"/><path d="M235.33,116.72,139.28,20.66a16,16,0,0,0-22.56,0l-96,96.06a16,16,0,0,0,0,22.56l96.05,96.06h0a16,16,0,0,0,22.56,0l96.05-96.06a16,16,0,0,0,0-22.56ZM128,224h0L32,128,128,32,224,128Z"/></svg></span><i style="background:#cbd8e0"></i></span></div>
-    <p class="section-body" data-inv="events.text">Una tarde corta, para que los chiquitos aguanten.</p>
+    <h2 class="section-title" data-inv="events.title">Cómo será el día</h2><div class="ornament"><span class="orn-filetes"><i style="background:#d8d6dd"></i><span class="orn-pieza" style="width:13px;height:13px"><svg class="inv-orn" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M233.92,118.14,137.86,22.08a14,14,0,0,0-19.72,0L22.08,118.14a14,14,0,0,0,0,19.72l96.06,96.06h0a14,14,0,0,0,19.72,0l96-96.06a13.94,13.94,0,0,0,0-19.72Zm-8.49,11.24-96.05,96.06a2,2,0,0,1-2.76,0L30.57,129.38a2,2,0,0,1,0-2.76l96.05-96.06a2,2,0,0,1,2.76,0l96.05,96.06a2,2,0,0,1,0,2.76Z"/></svg></span><i style="background:#d8d6dd"></i></span></div>
+    <p class="section-body" data-inv="events.text">La misa por la mañana y el almuerzo después, en el mismo barrio.</p>
     <div class="events-grid" data-inv-list="events">
       <article class="event-card" data-inv-item>
-        <span class="event-icon" data-inv="events.items.icon">🎂</span>
-        <p class="event-type" data-inv="events.items.kind">La fiesta</p>
-        <h3 class="event-title" data-inv="events.items.title">Torta y velita</h3>
-        <p class="event-time" data-inv="events.items.time">15:00 h</p>
-        <p class="event-place" data-inv="events.items.place">Salón Arcoíris<small data-inv="events.items.address">Calle 85 · 14-20</small></p>
-        <p class="event-note" data-inv="events.items.note">La velita se sopla a las cuatro.</p>
+        <span class="event-icon" data-inv="events.items.icon">⛪</span>
+        <p class="event-type" data-inv="events.items.kind">Ceremonia</p>
+        <h3 class="event-title" data-inv="events.items.title">La misa</h3>
+        <p class="event-time" data-inv="events.items.time">11:00 h</p>
+        <p class="event-place" data-inv="events.items.place">Parroquia de San Antonio<small data-inv="events.items.address">Calle 60 · 12-15</small></p>
+        <p class="event-note" data-inv="events.items.note">Llega quince minutos antes, por favor.</p>
         <a class="event-map-btn" href="#" data-inv="events.items.mapUrl">¿Cómo llegar?</a>
       </article>
       <article class="event-card" data-inv-item>
-        <span class="event-icon" data-inv="events.items.icon">🎈</span>
-        <p class="event-type" data-inv="events.items.kind">Juegos</p>
-        <h3 class="event-title" data-inv="events.items.title">Hora de jugar</h3>
-        <p class="event-time" data-inv="events.items.time">16:00 h</p>
-        <p class="event-place" data-inv="events.items.place">El jardín del salón<small data-inv="events.items.address">Al fondo, a la derecha</small></p>
-        <p class="event-note" data-inv="events.items.note">Hay piscina de pelotas y sombra.</p>
+        <span class="event-icon" data-inv="events.items.icon">🍽️</span>
+        <p class="event-type" data-inv="events.items.kind">Celebración</p>
+        <h3 class="event-title" data-inv="events.items.title">El almuerzo</h3>
+        <p class="event-time" data-inv="events.items.time">13:30 h</p>
+        <p class="event-place" data-inv="events.items.place">Casa de los abuelos<small data-inv="events.items.address">Calle 62 · 10-40</small></p>
+        <p class="event-note" data-inv="events.items.note">Hay mesa de niños y jardín.</p>
         <a class="event-map-btn" href="#" data-inv="events.items.mapUrl">¿Cómo llegar?</a>
       </article>
     </div>
@@ -513,10 +518,10 @@ section.alt .event-card,section.alt .feature-card,section.alt .gift-card,section
 <section id="confirmation" class="reveal alt" data-inv-section="confirm">
   <div class="container">
     <p class="section-label" data-inv="confirm.label">¿Nos acompañas?</p>
-    <h2 class="section-title" data-inv="confirm.title">Confirma tu asistencia</h2><div class="ornament"><span class="orn-filetes"><i style="background:#cbd8e0"></i><span class="orn-pieza" style="width:13px;height:13px"><svg class="inv-orn" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M229.67,133.62l-96,96a7.94,7.94,0,0,1-11.24,0l-96-96a7.94,7.94,0,0,1,0-11.24l96.05-96a7.94,7.94,0,0,1,11.24,0l96,96.05A7.94,7.94,0,0,1,229.67,133.62Z" opacity="0.2"/><path d="M235.33,116.72,139.28,20.66a16,16,0,0,0-22.56,0l-96,96.06a16,16,0,0,0,0,22.56l96.05,96.06h0a16,16,0,0,0,22.56,0l96.05-96.06a16,16,0,0,0,0-22.56ZM128,224h0L32,128,128,32,224,128Z"/></svg></span><i style="background:#cbd8e0"></i></span></div>
-    <p class="confirmation-text" data-inv="confirm.text">Confírmanos si vienes, así apartamos tu silla y tu porción de torta.</p>
-    <p class="confirmation-deadline" data-inv="confirm.deadlineText">Antes del 7 de marzo</p>
-    <p class="confirmation-text" data-inv="confirm.note">Cuéntanos cuántos chiquitos vienen, para los recuerdos.</p>
+    <h2 class="section-title" data-inv="confirm.title">Confirma tu asistencia</h2><div class="ornament"><span class="orn-filetes"><i style="background:#d8d6dd"></i><span class="orn-pieza" style="width:13px;height:13px"><svg class="inv-orn" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M233.92,118.14,137.86,22.08a14,14,0,0,0-19.72,0L22.08,118.14a14,14,0,0,0,0,19.72l96.06,96.06h0a14,14,0,0,0,19.72,0l96-96.06a13.94,13.94,0,0,0,0-19.72Zm-8.49,11.24-96.05,96.06a2,2,0,0,1-2.76,0L30.57,129.38a2,2,0,0,1,0-2.76l96.05-96.06a2,2,0,0,1,2.76,0l96.05,96.06a2,2,0,0,1,0,2.76Z"/></svg></span><i style="background:#d8d6dd"></i></span></div>
+    <p class="confirmation-text" data-inv="confirm.text">Confírmanos si vienes, así apartamos tu puesto en la mesa.</p>
+    <p class="confirmation-deadline" data-inv="confirm.deadlineText">Antes del 16 de abril</p>
+    <p class="confirmation-text" data-inv="confirm.note">Cuéntanos si vienes con más gente de la familia.</p>
     <!-- El renderer reemplaza el <form> entero por su componente. Se
          reemplaza el form y no el botón: anidar formularios es HTML inválido
          y el navegador descarta el de dentro. -->
@@ -533,9 +538,9 @@ section.alt .event-card,section.alt .feature-card,section.alt .gift-card,section
 
 <section id="gallery" class="reveal" data-inv-section="gallery">
   <div class="container">
-    <p class="section-label" data-inv="gallery.label">Mi primer año</p>
-    <h2 class="section-title" data-inv="gallery.title">Cómo he crecido</h2><div class="ornament"><span class="orn-filetes"><i style="background:#cbd8e0"></i><span class="orn-pieza" style="width:13px;height:13px"><svg class="inv-orn" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M229.67,133.62l-96,96a7.94,7.94,0,0,1-11.24,0l-96-96a7.94,7.94,0,0,1,0-11.24l96.05-96a7.94,7.94,0,0,1,11.24,0l96,96.05A7.94,7.94,0,0,1,229.67,133.62Z" opacity="0.2"/><path d="M235.33,116.72,139.28,20.66a16,16,0,0,0-22.56,0l-96,96.06a16,16,0,0,0,0,22.56l96.05,96.06h0a16,16,0,0,0,22.56,0l96.05-96.06a16,16,0,0,0,0-22.56ZM128,224h0L32,128,128,32,224,128Z"/></svg></span><i style="background:#cbd8e0"></i></span></div>
-    <p class="gallery-text" data-inv="gallery.text">De recién nacido a caminar en doce meses.</p>
+    <p class="section-label" data-inv="gallery.label">Estos años</p>
+    <h2 class="section-title" data-inv="gallery.title">Cómo he crecido</h2><div class="ornament"><span class="orn-filetes"><i style="background:#d8d6dd"></i><span class="orn-pieza" style="width:13px;height:13px"><svg class="inv-orn" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M233.92,118.14,137.86,22.08a14,14,0,0,0-19.72,0L22.08,118.14a14,14,0,0,0,0,19.72l96.06,96.06h0a14,14,0,0,0,19.72,0l96-96.06a13.94,13.94,0,0,0,0-19.72Zm-8.49,11.24-96.05,96.06a2,2,0,0,1-2.76,0L30.57,129.38a2,2,0,0,1,0-2.76l96.05-96.06a2,2,0,0,1,2.76,0l96.05,96.06a2,2,0,0,1,0,2.76Z"/></svg></span><i style="background:#d8d6dd"></i></span></div>
+    <p class="gallery-text" data-inv="gallery.text">Unas fotos de estos años.</p>
     <div class="gallery-grid" data-inv-list="gallery">
       <div class="gallery-item" data-inv-item><div class="gallery-ph" data-inv="gallery.items.url"><span class="gallery-ph-text">Foto 1</span></div></div>
       <div class="gallery-item" data-inv-item><div class="gallery-ph" data-inv="gallery.items.url"><span class="gallery-ph-text">Foto 2</span></div></div>
@@ -550,22 +555,22 @@ section.alt .event-card,section.alt .feature-card,section.alt .gift-card,section
 <section id="features" class="reveal alt" data-inv-section="features">
   <div class="container">
     <p class="section-label" data-inv="features.label">Información útil</p>
-    <h2 class="section-title" data-inv="features.title">Todo lo que necesitas saber</h2><div class="ornament"><span class="orn-filetes"><i style="background:#cbd8e0"></i><span class="orn-pieza" style="width:13px;height:13px"><svg class="inv-orn" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M229.67,133.62l-96,96a7.94,7.94,0,0,1-11.24,0l-96-96a7.94,7.94,0,0,1,0-11.24l96.05-96a7.94,7.94,0,0,1,11.24,0l96,96.05A7.94,7.94,0,0,1,229.67,133.62Z" opacity="0.2"/><path d="M235.33,116.72,139.28,20.66a16,16,0,0,0-22.56,0l-96,96.06a16,16,0,0,0,0,22.56l96.05,96.06h0a16,16,0,0,0,22.56,0l96.05-96.06a16,16,0,0,0,0-22.56ZM128,224h0L32,128,128,32,224,128Z"/></svg></span><i style="background:#cbd8e0"></i></span></div>
+    <h2 class="section-title" data-inv="features.title">Todo lo que necesitas saber</h2><div class="ornament"><span class="orn-filetes"><i style="background:#d8d6dd"></i><span class="orn-pieza" style="width:13px;height:13px"><svg class="inv-orn" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M233.92,118.14,137.86,22.08a14,14,0,0,0-19.72,0L22.08,118.14a14,14,0,0,0,0,19.72l96.06,96.06h0a14,14,0,0,0,19.72,0l96-96.06a13.94,13.94,0,0,0,0-19.72Zm-8.49,11.24-96.05,96.06a2,2,0,0,1-2.76,0L30.57,129.38a2,2,0,0,1,0-2.76l96.05-96.06a2,2,0,0,1,2.76,0l96.05,96.06a2,2,0,0,1,0,2.76Z"/></svg></span><i style="background:#d8d6dd"></i></span></div>
     <div class="features-grid" data-inv-list="features">
       <div class="feature-card" data-inv-item>
-        <span class="feature-icon" data-inv="features.items.icon">👕</span>
-        <h3 class="feature-title" data-inv="features.items.title">Cómo vestir</h3>
-        <p class="feature-text" data-inv="features.items.text">Cómodos: hay juegos, jardín y piso para gatear.</p>
+        <span class="feature-icon" data-inv="features.items.icon">👔</span>
+        <h3 class="feature-title" data-inv="features.items.title">Código de vestimenta</h3>
+        <p class="feature-text" data-inv="features.items.text">Elegante y cómodo. Es a media mañana y hay jardín.</p>
       </div>
       <div class="feature-card" data-inv-item>
         <span class="feature-icon" data-inv="features.items.icon">🚗</span>
         <h3 class="feature-title" data-inv="features.items.title">Cómo llegar</h3>
-        <p class="feature-text" data-inv="features.items.text">Hay parqueadero en el salón y entrada por la calle 85.</p>
+        <p class="feature-text" data-inv="features.items.text">Hay parqueadero en la parroquia y la casa está a dos cuadras.</p>
       </div>
       <div class="feature-card" data-inv-item>
-        <span class="feature-icon" data-inv="features.items.icon">🍰</span>
-        <h3 class="feature-title" data-inv="features.items.title">La comida</h3>
-        <p class="feature-text" data-inv="features.items.text">Hay mesa de dulces, y opciones sin azúcar para los chiquitos.</p>
+        <span class="feature-icon" data-inv="features.items.icon">🎁</span>
+        <h3 class="feature-title" data-inv="features.items.title">Regalos</h3>
+        <p class="feature-text" data-inv="features.items.text">Tu compañía es lo que importa. Si insistes, hay mesa de regalos.</p>
       </div>
     </div>
   </div>
@@ -574,24 +579,24 @@ section.alt .event-card,section.alt .feature-card,section.alt .gift-card,section
 <section id="gifts" class="reveal" data-inv-section="gifts">
   <div class="container">
     <p class="section-label" data-inv="gifts.label">Con mucho cariño</p>
-    <h2 class="section-title" data-inv="gifts.title">Mesa de regalos</h2><div class="ornament"><span class="orn-filetes"><i style="background:#cbd8e0"></i><span class="orn-pieza" style="width:13px;height:13px"><svg class="inv-orn" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M229.67,133.62l-96,96a7.94,7.94,0,0,1-11.24,0l-96-96a7.94,7.94,0,0,1,0-11.24l96.05-96a7.94,7.94,0,0,1,11.24,0l96,96.05A7.94,7.94,0,0,1,229.67,133.62Z" opacity="0.2"/><path d="M235.33,116.72,139.28,20.66a16,16,0,0,0-22.56,0l-96,96.06a16,16,0,0,0,0,22.56l96.05,96.06h0a16,16,0,0,0,22.56,0l96.05-96.06a16,16,0,0,0,0-22.56ZM128,224h0L32,128,128,32,224,128Z"/></svg></span><i style="background:#cbd8e0"></i></span></div>
+    <h2 class="section-title" data-inv="gifts.title">Mesa de regalos</h2><div class="ornament"><span class="orn-filetes"><i style="background:#d8d6dd"></i><span class="orn-pieza" style="width:13px;height:13px"><svg class="inv-orn" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M233.92,118.14,137.86,22.08a14,14,0,0,0-19.72,0L22.08,118.14a14,14,0,0,0,0,19.72l96.06,96.06h0a14,14,0,0,0,19.72,0l96-96.06a13.94,13.94,0,0,0,0-19.72Zm-8.49,11.24-96.05,96.06a2,2,0,0,1-2.76,0L30.57,129.38a2,2,0,0,1,0-2.76l96.05-96.06a2,2,0,0,1,2.76,0l96.05,96.06a2,2,0,0,1,0,2.76Z"/></svg></span><i style="background:#d8d6dd"></i></span></div>
     <p class="gifts-text" data-inv="gifts.text">Tu compañía es el mejor regalo. Si quieres dejarme un detalle, aquí están los datos.</p>
     <div class="gifts-account">
       <p class="gifts-bank" data-inv="gifts.bankLabel">Transferencia</p>
       <p class="gifts-iban" data-inv="gifts.account">Bancolombia · 000-000000-00</p>
     </div>
-    <p class="gifts-note" data-inv="gifts.note">Concepto: el añito de Martín</p>
+    <p class="gifts-note" data-inv="gifts.note">Concepto: tu nombre</p>
     <div class="gifts-cards" data-inv-list="gifts">
       <div class="gift-card" data-inv-item>
-        <span class="gift-icon" data-inv="gifts.items.icon">🧸</span>
-        <h3 class="gift-title" data-inv="gifts.items.title">Mis juguetes</h3>
-        <p class="gift-desc" data-inv="gifts.items.text">Todo lo que se pueda morder.</p>
+        <span class="gift-icon" data-inv="gifts.items.icon">📚</span>
+        <h3 class="gift-title" data-inv="gifts.items.title">Mis libros</h3>
+        <p class="gift-desc" data-inv="gifts.items.text">Los que vienen para el colegio.</p>
         <a class="gift-link" href="#" data-inv="gifts.items.url">Ver</a>
       </div>
       <div class="gift-card" data-inv-item>
-        <span class="gift-icon" data-inv="gifts.items.icon">👚</span>
-        <h3 class="gift-title" data-inv="gifts.items.title">Mi ropa</h3>
-        <p class="gift-desc" data-inv="gifts.items.text">Talla 18 meses, que crezco rápido.</p>
+        <span class="gift-icon" data-inv="gifts.items.icon">⚽</span>
+        <h3 class="gift-title" data-inv="gifts.items.title">Mi equipo</h3>
+        <p class="gift-desc" data-inv="gifts.items.text">Estoy juntando para el uniforme.</p>
         <a class="gift-link" href="#" data-inv="gifts.items.url">Ver</a>
       </div>
     </div>
@@ -602,10 +607,10 @@ section.alt .event-card,section.alt .feature-card,section.alt .gift-card,section
 <section id="social" class="reveal alt" data-inv-section="social">
   <div class="container">
     <p class="section-label" data-inv="social.label">Compártelo</p>
-    <h2 class="section-title" data-inv="social.title">Sube tus fotos</h2><div class="ornament"><span class="orn-filetes"><i style="background:#cbd8e0"></i><span class="orn-pieza" style="width:13px;height:13px"><svg class="inv-orn" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M229.67,133.62l-96,96a7.94,7.94,0,0,1-11.24,0l-96-96a7.94,7.94,0,0,1,0-11.24l96.05-96a7.94,7.94,0,0,1,11.24,0l96,96.05A7.94,7.94,0,0,1,229.67,133.62Z" opacity="0.2"/><path d="M235.33,116.72,139.28,20.66a16,16,0,0,0-22.56,0l-96,96.06a16,16,0,0,0,0,22.56l96.05,96.06h0a16,16,0,0,0,22.56,0l96.05-96.06a16,16,0,0,0,0-22.56ZM128,224h0L32,128,128,32,224,128Z"/></svg></span><i style="background:#cbd8e0"></i></span></div>
+    <h2 class="section-title" data-inv="social.title">Sube tus fotos</h2><div class="ornament"><span class="orn-filetes"><i style="background:#d8d6dd"></i><span class="orn-pieza" style="width:13px;height:13px"><svg class="inv-orn" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M233.92,118.14,137.86,22.08a14,14,0,0,0-19.72,0L22.08,118.14a14,14,0,0,0,0,19.72l96.06,96.06h0a14,14,0,0,0,19.72,0l96-96.06a13.94,13.94,0,0,0,0-19.72Zm-8.49,11.24-96.05,96.06a2,2,0,0,1-2.76,0L30.57,129.38a2,2,0,0,1,0-2.76l96.05-96.06a2,2,0,0,1,2.76,0l96.05,96.06a2,2,0,0,1,0,2.76Z"/></svg></span><i style="background:#d8d6dd"></i></span></div>
     <p class="social-sub" data-inv="social.text">Etiquétalas con mi hashtag para que no se pierda ninguna.</p>
-    <span class="social-hashtag" data-inv="social.hashtag">#MartínCumple1</span>
-    <a class="social-ig" href="#" data-inv="social.instagram">@familiaperez</a>
+    <span class="social-hashtag" data-inv="social.hashtag">#PrimeraComunionMateo</span>
+    <a class="social-ig" href="#" data-inv="social.instagram">@familiatorres</a>
   </div>
 </section>
 
@@ -616,9 +621,9 @@ section.alt .event-card,section.alt .feature-card,section.alt .gift-card,section
        adorno puesto "debajo del texto". Sin envoltorio posicionado, un adorno
        absoluto se pintaba sobre estos párrafos. -->
   <div class="container">
-    <p class="footer-names" data-inv="event.names">Martín</p>
-    <p class="footer-date" data-inv="footer.dateLine">14 · Marzo · 2027</p>
-    <p class="footer-copy" data-inv="footer.note">Con amor · Martín</p>
+    <p class="footer-names" data-inv="event.names">Mateo</p>
+    <p class="footer-date" data-inv="footer.dateLine">16 · Mayo · 2027</p>
+    <p class="footer-copy" data-inv="footer.note">Con cariño · Mateo</p>
   </div>
 </footer>
 
@@ -634,7 +639,7 @@ section.alt .event-card,section.alt .feature-card,section.alt .gift-card,section
   /* La cuenta atrás busca por [data-cd], no por ids fijos: así el renderer
      puede sustituir la sección por una variante con marcado propio sin que
      este script quede lanzando errores cada segundo. */
-  var TARGET = new Date('2027-03-14T15:00:00');
+  var TARGET = new Date('2027-05-16T11:00:00');
   function tick() {
     var diff = TARGET - new Date();
     if (diff < 0) diff = 0;

@@ -299,6 +299,17 @@ export const SECTIONS: SectionSpec[] = [
         help: "Déjalo vacío si la invitación es de una sola persona (quince, cumpleaños).",
       },
       {
+        key: "paleta",
+        label: "Paleta de colores",
+        type: "select",
+        span: 2,
+        fallback: 0,
+        /* Las opciones las pone el editor: dependen del diseño elegido, y el
+           esquema no sabe cuál es. Vacío = la paleta por defecto. */
+        options: [],
+        help: "Cambia los colores sin cambiar el diseño.",
+      },
+      {
         key: "date",
         label: "Fecha y hora",
         type: "datetime",
@@ -483,7 +494,7 @@ export const SECTIONS: SectionSpec[] = [
           { value: "whatsapp", label: "Abrir WhatsApp" },
         ],
         span: 2,
-        help: "El formulario es el mismo en los 27 diseños y toma los colores de cada uno. Si le agregas ?invitado=Nombre a la dirección, saluda por ese nombre y esconde el campo; con varios nombres separados por coma, aparece una casilla por persona.",
+        help: "El formulario es el mismo en todos los diseños y toma los colores de cada uno. Si le agregas ?invitado=Nombre a la dirección, saluda por ese nombre y esconde el campo; con varios nombres separados por coma, aparece una casilla por persona.",
       },
       {
         key: "greeting",

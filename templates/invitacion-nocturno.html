@@ -12,8 +12,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#0e0e11; --bg-alt:#16161b; --card:#1c1c22;
-  --ink:#f0ece2; --muted:#b3ac9c; --line:#3a3730;
+  --bg:#0e0e11; --bg-alt:#1c1c1f; --card:#262629;
+  --ink:#f0ece2; --muted:#a3a19b; --line:#403f3f;
   --brand:#cfa963; --brand-2:#8a7346;
   --accent:#cfa963; --on-accent:#0e0e11;
   --footer-bg:#08080a; --footer-ink:#cfa963;
@@ -43,21 +43,21 @@
   --pad-y:88px; --pad-y-alt:108px;
   --gap:22px;
 
-  --panel-rgb:14,14,17;
-  --panel-alpha:0.66;
-  --hero-bg:radial-gradient(130% 100% at 50% 10%,#1c1c22 0%,#0e0e11 68%);
-  --splash-bg:#0e0e11;
-  --hero-ink:#f0ece2;
-  --hero-ink-soft:#b3ac9c;
-  --hero-line:#3a3730;
+  --panel-rgb:38,38,41;
+  --panel-alpha:0.7;
+  --hero-bg:linear-gradient(165deg,#1c1c1f 0%,#0e0e11 55%,#433a2d 130%);
+  --splash-bg:linear-gradient(165deg,#1c1c1f 0%,#0e0e11 55%,#433a2d 130%);
+  --hero-ink:#fff;
+  --hero-ink-soft:rgba(255,255,255,.84);
+  --hero-line:rgba(255,255,255,.4);
   --hero-brand:#cfa963;
   --hero-accent:#cfa963;
   --hero-on-accent:#0e0e11;
 
   /* Los componentes que inyecta el renderer. Mismos valores, otro prefijo. */
   --inv-accent:#cfa963; --inv-on-accent:#0e0e11;
-  --inv-ink:#f0ece2; --inv-surface:#1c1c22;
-  --inv-field-bg:#1c1c22; --inv-field-ink:#f0ece2; --inv-field-border:#3a3730;
+  --inv-ink:#f0ece2; --inv-surface:#262629;
+  --inv-field-bg:#262629; --inv-field-ink:#f0ece2; --inv-field-border:#403f3f;
   --inv-focus:rgba(207,169,99,0.24);
   --inv-radius:0px; --inv-btn-radius:0px;
   --inv-font-ui:'Jost',system-ui,sans-serif; --inv-font-title:'Cormorant Garamond',Georgia,serif;
@@ -443,7 +443,7 @@ footer{position:relative;padding:56px 22px;text-align:center;
 <section id="countdown" class="reveal" data-inv-section="countdown">
   <div class="container">
     <p class="section-label" data-inv="countdown.label">El gran día</p>
-    <h2 class="section-title" data-inv="countdown.title">Falta muy poco</h2><div class="ornament"><span class="orn-filetes"><i style="background:#3a3730"></i><span class="orn-pieza" style="width:13px;height:13px"><svg class="inv-orn" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M233.92,118.14,137.86,22.08a14,14,0,0,0-19.72,0L22.08,118.14a14,14,0,0,0,0,19.72l96.06,96.06h0a14,14,0,0,0,19.72,0l96-96.06a13.94,13.94,0,0,0,0-19.72Zm-8.49,11.24-96.05,96.06a2,2,0,0,1-2.76,0L30.57,129.38a2,2,0,0,1,0-2.76l96.05-96.06a2,2,0,0,1,2.76,0l96.05,96.06a2,2,0,0,1,0,2.76Z"/></svg></span><i style="background:#3a3730"></i></span></div>
+    <h2 class="section-title" data-inv="countdown.title">Falta muy poco</h2><div class="ornament"><span class="orn-filetes"><i style="background:#403f3f"></i><span class="orn-pieza" style="width:13px;height:13px"><svg class="inv-orn" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M233.92,118.14,137.86,22.08a14,14,0,0,0-19.72,0L22.08,118.14a14,14,0,0,0,0,19.72l96.06,96.06h0a14,14,0,0,0,19.72,0l96-96.06a13.94,13.94,0,0,0,0-19.72Zm-8.49,11.24-96.05,96.06a2,2,0,0,1-2.76,0L30.57,129.38a2,2,0,0,1,0-2.76l96.05-96.06a2,2,0,0,1,2.76,0l96.05,96.06a2,2,0,0,1,0,2.76Z"/></svg></span><i style="background:#403f3f"></i></span></div>
     <p class="section-body" data-inv="countdown.text">Estamos contando los días para verte allí.</p>
     <div class="countdown-grid">
       <div class="countdown-ring"><div class="ring-inner"><span class="ring-number" data-cd="days">--</span><span class="ring-label">Días</span></div></div>
@@ -457,7 +457,7 @@ footer{position:relative;padding:56px 22px;text-align:center;
 <section id="guests" class="reveal alt" data-inv-section="guests">
   <div class="container">
     <p class="section-label" data-inv="guests.label">Con todo nuestro amor</p>
-    <h2 class="section-title" data-inv="guests.title">Queridos invitados</h2><div class="ornament"><span class="orn-filetes"><i style="background:#3a3730"></i><span class="orn-pieza" style="width:13px;height:13px"><svg class="inv-orn" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M233.92,118.14,137.86,22.08a14,14,0,0,0-19.72,0L22.08,118.14a14,14,0,0,0,0,19.72l96.06,96.06h0a14,14,0,0,0,19.72,0l96-96.06a13.94,13.94,0,0,0,0-19.72Zm-8.49,11.24-96.05,96.06a2,2,0,0,1-2.76,0L30.57,129.38a2,2,0,0,1,0-2.76l96.05-96.06a2,2,0,0,1,2.76,0l96.05,96.06a2,2,0,0,1,0,2.76Z"/></svg></span><i style="background:#3a3730"></i></span></div>
+    <h2 class="section-title" data-inv="guests.title">Queridos invitados</h2><div class="ornament"><span class="orn-filetes"><i style="background:#403f3f"></i><span class="orn-pieza" style="width:13px;height:13px"><svg class="inv-orn" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M233.92,118.14,137.86,22.08a14,14,0,0,0-19.72,0L22.08,118.14a14,14,0,0,0,0,19.72l96.06,96.06h0a14,14,0,0,0,19.72,0l96-96.06a13.94,13.94,0,0,0,0-19.72Zm-8.49,11.24-96.05,96.06a2,2,0,0,1-2.76,0L30.57,129.38a2,2,0,0,1,0-2.76l96.05-96.06a2,2,0,0,1,2.76,0l96.05,96.06a2,2,0,0,1,0,2.76Z"/></svg></span><i style="background:#403f3f"></i></span></div>
     <p class="guests-text" data-inv="guests.text">Queremos compartir con ustedes el día más importante de nuestras vidas. Su presencia lo hará inolvidable.</p>
     <p class="guests-text" data-inv="guests.textSecondary">Los esperamos con los brazos abiertos.</p>
     <p class="guests-address" data-inv="guests.address">Bogotá · Colombia</p>
@@ -484,7 +484,7 @@ footer{position:relative;padding:56px 22px;text-align:center;
 <section id="events" class="reveal" data-inv-section="events">
   <div class="container">
     <p class="section-label" data-inv="events.label">El programa</p>
-    <h2 class="section-title" data-inv="events.title">Cómo será el día</h2><div class="ornament"><span class="orn-filetes"><i style="background:#3a3730"></i><span class="orn-pieza" style="width:13px;height:13px"><svg class="inv-orn" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M233.92,118.14,137.86,22.08a14,14,0,0,0-19.72,0L22.08,118.14a14,14,0,0,0,0,19.72l96.06,96.06h0a14,14,0,0,0,19.72,0l96-96.06a13.94,13.94,0,0,0,0-19.72Zm-8.49,11.24-96.05,96.06a2,2,0,0,1-2.76,0L30.57,129.38a2,2,0,0,1,0-2.76l96.05-96.06a2,2,0,0,1,2.76,0l96.05,96.06a2,2,0,0,1,0,2.76Z"/></svg></span><i style="background:#3a3730"></i></span></div>
+    <h2 class="section-title" data-inv="events.title">Cómo será el día</h2><div class="ornament"><span class="orn-filetes"><i style="background:#403f3f"></i><span class="orn-pieza" style="width:13px;height:13px"><svg class="inv-orn" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M233.92,118.14,137.86,22.08a14,14,0,0,0-19.72,0L22.08,118.14a14,14,0,0,0,0,19.72l96.06,96.06h0a14,14,0,0,0,19.72,0l96-96.06a13.94,13.94,0,0,0,0-19.72Zm-8.49,11.24-96.05,96.06a2,2,0,0,1-2.76,0L30.57,129.38a2,2,0,0,1,0-2.76l96.05-96.06a2,2,0,0,1,2.76,0l96.05,96.06a2,2,0,0,1,0,2.76Z"/></svg></span><i style="background:#403f3f"></i></span></div>
     <p class="section-body" data-inv="events.text">Dos momentos y el mismo día. Aquí los detalles de cada uno.</p>
     <div class="events-grid" data-inv-list="events">
       <article class="event-card" data-inv-item>
@@ -512,7 +512,7 @@ footer{position:relative;padding:56px 22px;text-align:center;
 <section id="confirmation" class="reveal alt" data-inv-section="confirm">
   <div class="container">
     <p class="section-label" data-inv="confirm.label">¿Nos acompañas?</p>
-    <h2 class="section-title" data-inv="confirm.title">Confirma tu asistencia</h2><div class="ornament"><span class="orn-filetes"><i style="background:#3a3730"></i><span class="orn-pieza" style="width:13px;height:13px"><svg class="inv-orn" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M233.92,118.14,137.86,22.08a14,14,0,0,0-19.72,0L22.08,118.14a14,14,0,0,0,0,19.72l96.06,96.06h0a14,14,0,0,0,19.72,0l96-96.06a13.94,13.94,0,0,0,0-19.72Zm-8.49,11.24-96.05,96.06a2,2,0,0,1-2.76,0L30.57,129.38a2,2,0,0,1,0-2.76l96.05-96.06a2,2,0,0,1,2.76,0l96.05,96.06a2,2,0,0,1,0,2.76Z"/></svg></span><i style="background:#3a3730"></i></span></div>
+    <h2 class="section-title" data-inv="confirm.title">Confirma tu asistencia</h2><div class="ornament"><span class="orn-filetes"><i style="background:#403f3f"></i><span class="orn-pieza" style="width:13px;height:13px"><svg class="inv-orn" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M233.92,118.14,137.86,22.08a14,14,0,0,0-19.72,0L22.08,118.14a14,14,0,0,0,0,19.72l96.06,96.06h0a14,14,0,0,0,19.72,0l96-96.06a13.94,13.94,0,0,0,0-19.72Zm-8.49,11.24-96.05,96.06a2,2,0,0,1-2.76,0L30.57,129.38a2,2,0,0,1,0-2.76l96.05-96.06a2,2,0,0,1,2.76,0l96.05,96.06a2,2,0,0,1,0,2.76Z"/></svg></span><i style="background:#403f3f"></i></span></div>
     <p class="confirmation-text" data-inv="confirm.text">Por favor confirma tu asistencia. Nos ayudará a planear el mejor día posible para todos.</p>
     <p class="confirmation-deadline" data-inv="confirm.deadlineText">Antes del 15 de octubre</p>
     <p class="confirmation-text" data-inv="confirm.note">Si vienes con alguien, cuéntanos aquí mismo.</p>
@@ -533,7 +533,7 @@ footer{position:relative;padding:56px 22px;text-align:center;
 <section id="gallery" class="reveal" data-inv-section="gallery">
   <div class="container">
     <p class="section-label" data-inv="gallery.label">Nuestra historia</p>
-    <h2 class="section-title" data-inv="gallery.title">Momentos juntos</h2><div class="ornament"><span class="orn-filetes"><i style="background:#3a3730"></i><span class="orn-pieza" style="width:13px;height:13px"><svg class="inv-orn" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M233.92,118.14,137.86,22.08a14,14,0,0,0-19.72,0L22.08,118.14a14,14,0,0,0,0,19.72l96.06,96.06h0a14,14,0,0,0,19.72,0l96-96.06a13.94,13.94,0,0,0,0-19.72Zm-8.49,11.24-96.05,96.06a2,2,0,0,1-2.76,0L30.57,129.38a2,2,0,0,1,0-2.76l96.05-96.06a2,2,0,0,1,2.76,0l96.05,96.06a2,2,0,0,1,0,2.76Z"/></svg></span><i style="background:#3a3730"></i></span></div>
+    <h2 class="section-title" data-inv="gallery.title">Momentos juntos</h2><div class="ornament"><span class="orn-filetes"><i style="background:#403f3f"></i><span class="orn-pieza" style="width:13px;height:13px"><svg class="inv-orn" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M233.92,118.14,137.86,22.08a14,14,0,0,0-19.72,0L22.08,118.14a14,14,0,0,0,0,19.72l96.06,96.06h0a14,14,0,0,0,19.72,0l96-96.06a13.94,13.94,0,0,0,0-19.72Zm-8.49,11.24-96.05,96.06a2,2,0,0,1-2.76,0L30.57,129.38a2,2,0,0,1,0-2.76l96.05-96.06a2,2,0,0,1,2.76,0l96.05,96.06a2,2,0,0,1,0,2.76Z"/></svg></span><i style="background:#403f3f"></i></span></div>
     <p class="gallery-text" data-inv="gallery.text">Unas cuantas fotos de lo que nos trajo hasta aquí.</p>
     <div class="gallery-grid" data-inv-list="gallery">
       <div class="gallery-item" data-inv-item><div class="gallery-ph" data-inv="gallery.items.url"><span class="gallery-ph-text">Foto 1</span></div></div>
@@ -549,7 +549,7 @@ footer{position:relative;padding:56px 22px;text-align:center;
 <section id="features" class="reveal alt" data-inv-section="features">
   <div class="container">
     <p class="section-label" data-inv="features.label">Información útil</p>
-    <h2 class="section-title" data-inv="features.title">Todo lo que necesitas saber</h2><div class="ornament"><span class="orn-filetes"><i style="background:#3a3730"></i><span class="orn-pieza" style="width:13px;height:13px"><svg class="inv-orn" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M233.92,118.14,137.86,22.08a14,14,0,0,0-19.72,0L22.08,118.14a14,14,0,0,0,0,19.72l96.06,96.06h0a14,14,0,0,0,19.72,0l96-96.06a13.94,13.94,0,0,0,0-19.72Zm-8.49,11.24-96.05,96.06a2,2,0,0,1-2.76,0L30.57,129.38a2,2,0,0,1,0-2.76l96.05-96.06a2,2,0,0,1,2.76,0l96.05,96.06a2,2,0,0,1,0,2.76Z"/></svg></span><i style="background:#3a3730"></i></span></div>
+    <h2 class="section-title" data-inv="features.title">Todo lo que necesitas saber</h2><div class="ornament"><span class="orn-filetes"><i style="background:#403f3f"></i><span class="orn-pieza" style="width:13px;height:13px"><svg class="inv-orn" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M233.92,118.14,137.86,22.08a14,14,0,0,0-19.72,0L22.08,118.14a14,14,0,0,0,0,19.72l96.06,96.06h0a14,14,0,0,0,19.72,0l96-96.06a13.94,13.94,0,0,0,0-19.72Zm-8.49,11.24-96.05,96.06a2,2,0,0,1-2.76,0L30.57,129.38a2,2,0,0,1,0-2.76l96.05-96.06a2,2,0,0,1,2.76,0l96.05,96.06a2,2,0,0,1,0,2.76Z"/></svg></span><i style="background:#403f3f"></i></span></div>
     <div class="features-grid" data-inv-list="features">
       <div class="feature-card" data-inv-item>
         <span class="feature-icon" data-inv="features.items.icon">👗</span>
@@ -573,7 +573,7 @@ footer{position:relative;padding:56px 22px;text-align:center;
 <section id="gifts" class="reveal" data-inv-section="gifts">
   <div class="container">
     <p class="section-label" data-inv="gifts.label">Con mucho cariño</p>
-    <h2 class="section-title" data-inv="gifts.title">Mesa de regalos</h2><div class="ornament"><span class="orn-filetes"><i style="background:#3a3730"></i><span class="orn-pieza" style="width:13px;height:13px"><svg class="inv-orn" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M233.92,118.14,137.86,22.08a14,14,0,0,0-19.72,0L22.08,118.14a14,14,0,0,0,0,19.72l96.06,96.06h0a14,14,0,0,0,19.72,0l96-96.06a13.94,13.94,0,0,0,0-19.72Zm-8.49,11.24-96.05,96.06a2,2,0,0,1-2.76,0L30.57,129.38a2,2,0,0,1,0-2.76l96.05-96.06a2,2,0,0,1,2.76,0l96.05,96.06a2,2,0,0,1,0,2.76Z"/></svg></span><i style="background:#3a3730"></i></span></div>
+    <h2 class="section-title" data-inv="gifts.title">Mesa de regalos</h2><div class="ornament"><span class="orn-filetes"><i style="background:#403f3f"></i><span class="orn-pieza" style="width:13px;height:13px"><svg class="inv-orn" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M233.92,118.14,137.86,22.08a14,14,0,0,0-19.72,0L22.08,118.14a14,14,0,0,0,0,19.72l96.06,96.06h0a14,14,0,0,0,19.72,0l96-96.06a13.94,13.94,0,0,0,0-19.72Zm-8.49,11.24-96.05,96.06a2,2,0,0,1-2.76,0L30.57,129.38a2,2,0,0,1,0-2.76l96.05-96.06a2,2,0,0,1,2.76,0l96.05,96.06a2,2,0,0,1,0,2.76Z"/></svg></span><i style="background:#403f3f"></i></span></div>
     <p class="gifts-text" data-inv="gifts.text">Su presencia es nuestro mejor regalo. Si desean acompañarnos con un detalle, aquí dejamos los datos.</p>
     <div class="gifts-account">
       <p class="gifts-bank" data-inv="gifts.bankLabel">Transferencia</p>
@@ -601,7 +601,7 @@ footer{position:relative;padding:56px 22px;text-align:center;
 <section id="social" class="reveal alt" data-inv-section="social">
   <div class="container">
     <p class="section-label" data-inv="social.label">Compártelo</p>
-    <h2 class="section-title" data-inv="social.title">Sube tus fotos</h2><div class="ornament"><span class="orn-filetes"><i style="background:#3a3730"></i><span class="orn-pieza" style="width:13px;height:13px"><svg class="inv-orn" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M233.92,118.14,137.86,22.08a14,14,0,0,0-19.72,0L22.08,118.14a14,14,0,0,0,0,19.72l96.06,96.06h0a14,14,0,0,0,19.72,0l96-96.06a13.94,13.94,0,0,0,0-19.72Zm-8.49,11.24-96.05,96.06a2,2,0,0,1-2.76,0L30.57,129.38a2,2,0,0,1,0-2.76l96.05-96.06a2,2,0,0,1,2.76,0l96.05,96.06a2,2,0,0,1,0,2.76Z"/></svg></span><i style="background:#3a3730"></i></span></div>
+    <h2 class="section-title" data-inv="social.title">Sube tus fotos</h2><div class="ornament"><span class="orn-filetes"><i style="background:#403f3f"></i><span class="orn-pieza" style="width:13px;height:13px"><svg class="inv-orn" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M233.92,118.14,137.86,22.08a14,14,0,0,0-19.72,0L22.08,118.14a14,14,0,0,0,0,19.72l96.06,96.06h0a14,14,0,0,0,19.72,0l96-96.06a13.94,13.94,0,0,0,0-19.72Zm-8.49,11.24-96.05,96.06a2,2,0,0,1-2.76,0L30.57,129.38a2,2,0,0,1,0-2.76l96.05-96.06a2,2,0,0,1,2.76,0l96.05,96.06a2,2,0,0,1,0,2.76Z"/></svg></span><i style="background:#403f3f"></i></span></div>
     <p class="social-sub" data-inv="social.text">Etiquétalas con nuestro hashtag para que no se pierda ninguna.</p>
     <span class="social-hashtag" data-inv="social.hashtag">#JuanYMaria2027</span>
     <a class="social-ig" href="#" data-inv="social.instagram">@juanymaria</a>

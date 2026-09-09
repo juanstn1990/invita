@@ -1,17 +1,15 @@
 /**
- * Genera los 27 archivos de `templates/`.
+ * Genera los archivos de `templates/`, uno por diseño.
  *
  *   npm run templates:build
  *
- * Los 27 salen del mismo esqueleto. Antes eran 14 archivos HTML escritos a
- * mano más 13 generados, y esa división costaba: los hechos a mano
- * necesitaban un mapa de 555 líneas de selectores para saber dónde poner cada
- * campo, fallaban 213 veces, y sus tokens visuales había que sacarlos
- * abriéndolos en Chromium.
+ * Cada archivo se hornea con la **paleta por defecto** del diseño (la
+ * primera). Las otras las aplica el renderer sustituyendo variables CSS, así
+ * que 42 diseños × 4 paletas siguen siendo 42 archivos y no 168.
  *
- * El build **valida antes de escribir**: si un tema tiene un par de colores
- * ilegible, falla y dice cuál. Es la comprobación que antes hacía el renderer
- * a mano y a destiempo.
+ * El build **valida antes de escribir**: si una paleta de un diseño tiene un
+ * par de colores ilegible, falla y dice cuál. Se comprueban las 168, no sólo
+ * las que se hornean, porque cualquiera se puede elegir al editar.
  */
 
 import fs from "fs";
@@ -20,24 +18,25 @@ import { contenido } from "../src/lib/design/content";
 import { explicar, revisar } from "../src/lib/design/contraste";
 import { DESIGNS, templateId } from "../src/lib/design/designs";
 import { page } from "../src/lib/design/skeleton";
-import type { Variant } from "../src/lib/design/theme";
+import { piel } from "../src/lib/design/theme";
 
 const OUT = path.join(process.cwd(), "templates");
 
-/* ── Validar ────────────────────────────────────────────────── */
+/* ── Validar las 168 combinaciones ──────────────────────────── */
 
 let fallas = 0;
+let revisadas = 0;
 for (const d of DESIGNS) {
-  for (const [variant, t] of Object.entries(d.themes)) {
-    if (!t) continue;
-    for (const f of revisar(t)) {
-      console.error(`✗ ${d.slug} · ${variant}  ${explicar(f)}`);
+  for (const p of d.palettes) {
+    revisadas++;
+    for (const f of revisar(piel(d, p.id))) {
+      console.error(`✗ ${d.slug} · ${p.id}  ${explicar(f)}`);
       fallas++;
     }
   }
 }
 if (fallas) {
-  console.error(`\n${fallas} pares de colores ilegibles. No escribo nada.`);
+  console.error(`\n${fallas} pares ilegibles en ${revisadas} combinaciones. No escribo nada.`);
   process.exit(1);
 }
 
@@ -48,25 +47,22 @@ const previos = new Set(
 );
 
 let bytes = 0;
-let n = 0;
 const escritos: string[] = [];
 
 for (const d of DESIGNS) {
-  for (const [variant, t] of Object.entries(d.themes)) {
-    if (!t) continue;
-    const id = templateId(d.slug, variant);
-    const html = page(d, t, contenido(d.occasion, variant as Variant));
-    fs.writeFileSync(path.join(OUT, `${id}.html`), html);
-    escritos.push(`${id}.html`);
-    bytes += html.length;
-    n++;
-    console.log(`${id.padEnd(30)} ${(html.length / 1024).toFixed(1)} kb`);
-  }
+  const id = templateId(d.slug);
+  const html = page(d, piel(d), contenido(d.occasion, d.palettes[0].id));
+  fs.writeFileSync(path.join(OUT, `${id}.html`), html);
+  escritos.push(`${id}.html`);
+  bytes += html.length;
+  console.log(
+    `${id.padEnd(28)} ${(html.length / 1024).toFixed(1)} kb · ` +
+      `${d.palettes.length} paletas (${d.palettes.map((p) => p.id).join(", ")})`
+  );
 }
 
-/* Los archivos de la generación anterior que ya nadie declara. Se avisa en
-   vez de borrarlos: borrar solo el HTML de alguien es la clase de cosa que
-   no se debe hacer sin preguntar. */
+/* Los archivos de una generación anterior que ya nadie declara. Se avisa en
+   vez de borrarlos: borrar el HTML de alguien sin preguntar no toca. */
 const huerfanos = [...previos].filter((f) => !escritos.includes(f));
 if (huerfanos.length) {
   console.log(`\nSobran ${huerfanos.length} archivos de la versión anterior:`);
@@ -74,4 +70,7 @@ if (huerfanos.length) {
   console.log("Ningún diseño los declara. Bórralos cuando lo verifiques.");
 }
 
-console.log(`\n${n} invitaciones · ${(bytes / 1024).toFixed(0)} kb · contraste verificado`);
+console.log(
+  `\n${escritos.length} diseños · ${(bytes / 1024).toFixed(0)} kb · ` +
+    `${revisadas} paletas con contraste verificado`
+);

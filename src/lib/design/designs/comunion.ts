@@ -1,177 +1,184 @@
 /**
- * Los cuatro de primera comunión y bautizo.
+ * Los diseños de primera comunión y bautizo.
  *
  * Tropical era el único con carácter y los otros tres eran el mismo blanco con
- * dorado. Ahora Blanco es enmarcado y sobrio, Vintage tiene textura de
- * pergamino y filo rasgado, Amanecer parte la portada, y Tropical va a la
- * izquierda sin cajas.
+ * dorado. Ahora el color se elige al editar y cada diseño tiene su estructura:
+ * enmarcado, con textura de pergamino, con la foto arriba, o sin cajas.
  */
 
-import { alpha, theme, type Design } from "../theme";
+import type { Design } from "../theme";
+import { paleta } from "../paleta";
 import * as deco from "../deco";
-import { CORMORANT_INTER, DMSERIF_DMSANS, MARCELLUS_JOST } from "./fuentes";
+import {
+  CORMORANT_INTER,
+  DMSERIF_DMSANS,
+  MARCELLUS_JOST,
+  QUICKSAND,
+} from "./fuentes";
 
-/* ── Comunión Blanco ────────────────────────────────────────── */
+/* ── Paletas ────────────────────────────────────────────────── */
+
+const NIEVE = paleta({
+  id: "nieve", nombre: "Blanco y oro",
+  base: "#ffffff", tinta: "#26251f", marca: "#8c7038", segundo: "#c2ab73",
+});
+const PERGAMINO = paleta({
+  id: "pergamino", nombre: "Pergamino",
+  base: "#f6f1e6", tinta: "#3a3225", marca: "#8a6c3c", segundo: "#ab9264",
+});
+const MELOCOTON = paleta({
+  id: "melocoton", nombre: "Melocotón",
+  base: "#fffaf7", tinta: "#40291f", marca: "#b56a45", segundo: "#e3a884",
+});
+const SELVA = paleta({
+  id: "selva", nombre: "Verde selva y fucsia",
+  base: "#fdf7f0", tinta: "#16302a", marca: "#14685c", segundo: "#b02765",
+});
+const CIELO = paleta({
+  id: "cielo", nombre: "Cielo y plata",
+  base: "#f6fafd", tinta: "#1d2c3a", marca: "#3d6c92", segundo: "#a8c6dd",
+});
+const OLIVA = paleta({
+  id: "oliva", nombre: "Oliva y marfil",
+  base: "#faf9f2", tinta: "#2c3126", marca: "#5f6f42", segundo: "#9aa878",
+});
+const TRIGO = paleta({
+  id: "trigo", nombre: "Trigo y miel",
+  base: "#fdf9ee", tinta: "#3a3220", marca: "#94702c", segundo: "#dcc07f",
+});
+const AGUA = paleta({
+  id: "agua", nombre: "Agua y coral",
+  base: "#f4fbfb", tinta: "#123033", marca: "#1f7285", segundo: "#e8917a",
+});
+const LAVANDA = paleta({
+  id: "lavanda", nombre: "Lavanda",
+  base: "#faf8fd", tinta: "#2f2740", marca: "#6b5495", segundo: "#c0b0dc",
+});
+
+/* ── Los cuatro de siempre ──────────────────────────────────── */
 
 const blanco: Design = {
   slug: "c-white",
   name: "Comunión Blanco",
   occasion: "comunion",
-  mood: "Blanco puro y oro, enmarcado con hilos",
+  mood: "Enmarcado con hilos, sin sombras y muy aireado",
   fontUrl: CORMORANT_INTER.url,
-  layout: {
-    hero: "frame",
-    head: "rule",
-    cards: "outline",
-    countdown: "circles",
-    gallery: "grid",
-    divider: "none",
-  },
-  swatch: { unico: ["#ffffff", "#7c632f", "#c2ab73"] },
-  themes: {
-    unico: theme({
-      palette: {
-        bg: "#ffffff", bgAlt: "#f6f5f1", card: "#ffffff",
-        ink: "#26251f", muted: "#63615a", line: "#e3e1d8",
-        brand: "#7c632f", brand2: "#c2ab73",
-        accent: "#7c632f", onAccent: "#ffffff",
-        footerBg: "#26251f", footerInk: "#f6f5f1",
-      },
-      type: { ...CORMORANT_INTER, scale: 1.3, displayWeight: 300, displayTracking: "0.02em" },
-      shape: { radius: 0, radiusSm: 0, btnRadius: 0, shadow: "none" },
-      density: "airy",
-      panelRgb: "255,255,255",
-      panelAlpha: 0.9,
-      heroBg: "linear-gradient(180deg,#f6f5f1 0%,#ffffff 100%)",
-      heroBase: "#f6f5f1",
-    }),
-  },
+  layout: { hero: "frame", head: "rule", cards: "outline", countdown: "circles", gallery: "grid", divider: "none" },
+  type: { ...CORMORANT_INTER, scale: 1.3, displayWeight: 300, displayTracking: "0.02em" },
+  shape: { radius: 0, radiusSm: 0, btnRadius: 0, shadow: "none" },
+  density: "airy",
+  palettes: [NIEVE, CIELO, OLIVA, TRIGO],
   deco: { ornament: deco.rombo, hero: deco.marco, splash: deco.marco },
 };
-
-/* ── Comunión Vintage ───────────────────────────────────────── */
 
 const vintage: Design = {
   slug: "c-vintage",
   name: "Comunión Vintage",
   occasion: "comunion",
-  mood: "Pergamino y oro envejecido, con filo rasgado",
+  mood: "Textura de pergamino, filo rasgado y galería en columna",
   fontUrl: MARCELLUS_JOST.url,
-  layout: {
-    hero: "panel",
-    head: "center",
-    cards: "flat",
-    countdown: "tiles",
-    gallery: "stack",
-    divider: "torn",
-  },
-  swatch: { unico: ["#f6f1e6", "#6d552e", "#ab9264"] },
-  themes: {
-    unico: theme({
-      palette: {
-        bg: "#f6f1e6", bgAlt: "#ebe3d2", card: "#fdfaf2",
-        ink: "#3a3225", muted: "#6b6049", line: "#d8cdb4",
-        brand: "#6d552e", brand2: "#ab9264",
-        accent: "#6d552e", onAccent: "#ffffff",
-        footerBg: "#3a3225", footerInk: "#ebe3d2",
-      },
-      type: { ...MARCELLUS_JOST, scale: 1.26, displayWeight: 400, displayTracking: "0.02em" },
-      shape: { radius: 6, radiusSm: 4, btnRadius: 2, shadow: "none" },
-      density: "normal",
-      panelAlpha: 0.9,
-      heroBg: "linear-gradient(165deg,#ebe3d2 0%,#f6f1e6 60%,#e7dfcb 130%)",
-      heroBase: "#e7dfcb",
-    }),
-  },
+  layout: { hero: "panel", head: "center", cards: "flat", countdown: "tiles", gallery: "stack", divider: "torn" },
+  type: { ...MARCELLUS_JOST, scale: 1.26, displayTracking: "0.02em" },
+  shape: { radius: 6, radiusSm: 4, btnRadius: 2, shadow: "none" },
+  palettes: [PERGAMINO, TRIGO, OLIVA, NIEVE],
   css: (t) => `
-/* Grano de pergamino, con degradados. */
+/* Grano de pergamino, con degradados: sin imágenes externas. */
 body{background-image:
-  repeating-linear-gradient(88deg,transparent 0 4px,${alpha(t.palette.brand2, 0.05)} 4px 5px),
-  radial-gradient(60% 40% at 20% 10%,${alpha(t.palette.brand2, 0.07)} 0%,transparent 100%)}`,
+  repeating-linear-gradient(88deg,transparent 0 4px,${t.palette.line} 4px 5px),
+  radial-gradient(60% 40% at 20% 10%,${t.palette.bgAlt} 0%,transparent 100%)}`,
   deco: { ornament: deco.anillo },
 };
-
-/* ── Comunión Amanecer ──────────────────────────────────────── */
 
 const amanecer: Design = {
   slug: "c-amanecer",
   name: "Comunión Amanecer",
   occasion: "comunion",
-  mood: "Melocotón y crema, con la foto arriba",
+  mood: "Foto arriba, títulos de dos pisos y galería en mosaico",
   fontUrl: DMSERIF_DMSANS.url,
-  layout: {
-    hero: "split",
-    head: "stacked",
-    cards: "elevated",
-    countdown: "line",
-    gallery: "mosaic",
-    divider: "arc",
-  },
-  swatch: { unico: ["#fffaf7", "#945038", "#e3a884"] },
-  themes: {
-    unico: theme({
-      palette: {
-        bg: "#fffaf7", bgAlt: "#fceee6", card: "#ffffff",
-        ink: "#40291f", muted: "#7a5a48", line: "#eed9cc",
-        brand: "#945038", brand2: "#e3a884",
-        accent: "#945038", onAccent: "#ffffff",
-        footerBg: "#40291f", footerInk: "#fceee6",
-      },
-      type: { ...DMSERIF_DMSANS, scale: 1.3, displayWeight: 400, displayTracking: "-0.012em" },
-      shape: { radius: 20, radiusSm: 14, btnRadius: "pill", shadow: "soft" },
-      density: "normal",
-      heroBg: "linear-gradient(180deg,#fceee6 0%,#fffaf7 100%)",
-      heroBase: "#fceee6",
-    }),
-  },
+  layout: { hero: "split", head: "stacked", cards: "elevated", countdown: "line", gallery: "mosaic", divider: "arc" },
+  type: { ...DMSERIF_DMSANS, scale: 1.3, displayTracking: "-0.012em" },
+  shape: { radius: 20, radiusSm: 14 },
+  palettes: [MELOCOTON, LAVANDA, CIELO, TRIGO],
   deco: { ornament: deco.filete },
 };
-
-/* ── Comunión Tropical ──────────────────────────────────────── */
 
 const tropical: Design = {
   slug: "c-tropical",
   name: "Comunión Tropical",
   occasion: "comunion",
-  mood: "Verde selva y fucsia, sin cajas y a la izquierda",
+  mood: "Sin cajas y a la izquierda, con filo de ola y texto sobre la foto",
   fontUrl: DMSERIF_DMSANS.url,
-  layout: {
-    hero: "minimal",
-    head: "left",
-    cards: "rule",
-    countdown: "type",
-    gallery: "grid",
-    divider: "wave",
-  },
-  swatch: { unico: ["#fdf7f0", "#14685c", "#b02765"] },
-  themes: {
-    unico: theme({
-      palette: {
-        bg: "#fdf7f0", bgAlt: "#eaf1ea", card: "#ffffff",
-        ink: "#16302a", muted: "#4e6b60", line: "#cfe0d5",
-        brand: "#14685c", brand2: "#b02765",
-        accent: "#14685c", onAccent: "#ffffff",
-        footerBg: "#16302a", footerInk: "#eaf1ea",
-      },
-      type: { ...DMSERIF_DMSANS, scale: 1.32, displayWeight: 400, displayTracking: "-0.015em" },
-      shape: { radius: 4, radiusSm: 4, btnRadius: "pill", shadow: "none" },
-      density: "normal",
-      heroBg: "linear-gradient(150deg,#14685c 0%,#16302a 85%)",
-      heroInk: "light",
-      // El verde selva es el tramo claro, y la marca del diseño es ese mismo
-      // verde: en la portada hace falta otra.
-      heroBase: "#14685c",
-      heroBrand: "#f7ddce",
-      heroAccent: "#eaf1ea",
-      heroOnAccent: "#16302a",
-    }),
-  },
+  layout: { hero: "minimal", head: "left", cards: "rule", countdown: "type", gallery: "grid", divider: "wave" },
+  type: { ...DMSERIF_DMSANS, scale: 1.32, displayTracking: "-0.015em" },
+  shape: { radius: 4, radiusSm: 4, shadow: "none" },
+  palettes: [SELVA, AGUA, OLIVA, CIELO],
   css: (t) => `
-/* El fucsia es el segundo color de marca: aparece en los adornos, nunca
-   detrás de texto. */
-.gallery-item:nth-child(3n+2) .gallery-ph{background:${alpha(t.palette.brand2, 0.12)}}
+/* El segundo color aparece en los huecos de la galería, nunca tras texto. */
+.gallery-item:nth-child(3n+2) .gallery-ph{background:${t.palette.bgAlt}}
 .event-icon{color:${t.palette.brand2}}`,
   deco: { ornament: deco.loto, hero: deco.aguada, splash: deco.aguada },
 };
 
-export const COMUNION: Design[] = [blanco, vintage, amanecer, tropical];
+/* ── Los cuatro nuevos ──────────────────────────────────────── */
+
+const paloma: Design = {
+  slug: "c-paloma",
+  name: "Comunión Paloma",
+  occasion: "comunion",
+  mood: "El arco como motivo: portada, fotos y avatares lo repiten",
+  fontUrl: CORMORANT_INTER.url,
+  layout: { hero: "panel", head: "rule", cards: "outline", countdown: "circles", gallery: "stack", divider: "arc" },
+  type: { ...CORMORANT_INTER, scale: 1.29, displayWeight: 300, displayTracking: "0.03em" },
+  shape: { radius: 999, radiusSm: 18, btnRadius: "pill", shadow: "none" },
+  density: "airy",
+  palettes: [CIELO, NIEVE, LAVANDA, AGUA],
+  css: () => `
+.hero-content{border-radius:999px 999px var(--radius-sm) var(--radius-sm)}
+.gallery-item{border-radius:999px 999px var(--radius-sm) var(--radius-sm)}
+.guest-avatar{border-radius:999px 999px 6px 6px}`,
+  deco: { ornament: deco.anillo, hero: deco.arcos, splash: deco.arcos },
+};
+
+const espiga: Design = {
+  slug: "c-espiga",
+  name: "Comunión Espiga",
+  occasion: "comunion",
+  mood: "Campestre: aguada abajo, tarjetas planas y cuenta atrás en placas",
+  fontUrl: MARCELLUS_JOST.url,
+  layout: { hero: "split", head: "center", cards: "flat", countdown: "tiles", gallery: "grid", divider: "torn" },
+  type: { ...MARCELLUS_JOST, scale: 1.28, displayTracking: "0.015em" },
+  shape: { radius: 10, radiusSm: 8, btnRadius: 2, shadow: "none" },
+  palettes: [TRIGO, OLIVA, PERGAMINO, MELOCOTON],
+  deco: { ornament: deco.hojas, hero: deco.aguada, footer: deco.aguada },
+};
+
+const vitral: Design = {
+  slug: "c-vitral",
+  name: "Comunión Vitral",
+  occasion: "comunion",
+  mood: "Portada en banda, títulos grandes y rayos desde la esquina",
+  fontUrl: DMSERIF_DMSANS.url,
+  layout: { hero: "band", head: "stacked", cards: "elevated", countdown: "tiles", gallery: "mosaic", divider: "none" },
+  type: { ...DMSERIF_DMSANS, scale: 1.34, displayTracking: "-0.02em", displayLeading: 1.03 },
+  shape: { radius: 8, radiusSm: 6, btnRadius: 2, shadow: "lifted" },
+  palettes: [LAVANDA, CIELO, SELVA, AGUA],
+  deco: { ornament: deco.rombo, hero: deco.rayos },
+};
+
+const primera: Design = {
+  slug: "c-primera",
+  name: "Comunión Primera",
+  occasion: "comunion",
+  mood: "Redondeado y amable, con la cuenta atrás en un renglón",
+  fontUrl: QUICKSAND.url,
+  layout: { hero: "panel", head: "center", cards: "elevated", countdown: "line", gallery: "grid", divider: "wave" },
+  type: { ...QUICKSAND, scale: 1.27, displayWeight: 600, displayTracking: "-0.008em" },
+  shape: { radius: 26, radiusSm: 18, btnRadius: "pill", shadow: "soft" },
+  palettes: [AGUA, MELOCOTON, LAVANDA, TRIGO],
+  deco: { ornament: deco.estrellas, hero: deco.flotantes, splash: deco.flotantes },
+};
+
+export const COMUNION: Design[] = [
+  blanco, vintage, amanecer, tropical,
+  paloma, espiga, vitral, primera,
+];

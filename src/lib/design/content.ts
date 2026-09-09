@@ -9,7 +9,7 @@
  * "Martín" y "faltan para conocer**lo**", la de niña "Emilia" y "conocer**la**".
  */
 
-import type { Occasion, Variant } from "./theme";
+import type { Occasion } from "./theme";
 
 export interface Content {
   name: string;
@@ -388,15 +388,20 @@ const comunion = (): Content => ({
    Primer añito y baby shower
    ──────────────────────────────────────────────────────────────── */
 
-const NOMBRE: Record<Variant, string> = {
-  nina: "Emilia",
-  nino: "Martín",
-  unico: "Emilia",
-};
+/**
+ * El nombre de muestra de los infantiles.
+ *
+ * Antes salía de la variante (niña/niño). Ahora sale de la **paleta**, que es
+ * donde quedó esa elección: con la paleta azul el ejemplo dice "Martín" y con
+ * el resto "Emilia". Es sólo contenido de muestra —lo que se ve en el
+ * selector— y se reemplaza en cuanto alguien escribe su nombre.
+ */
+const MASCULINAS = new Set(["azul", "cielo", "pizarra", "petroleo", "indigo"]);
+const nombreDe = (paletaId: string) => (MASCULINAS.has(paletaId) ? "Martín" : "Emilia");
 
-const primerAno = (v: Variant): Content => {
-  const ella = v !== "nino";
-  const name = NOMBRE[v];
+const primerAno = (paletaId: string): Content => {
+  const name = nombreDe(paletaId);
+  const ella = name === "Emilia";
   return {
     name,
     dateIso: "2027-03-14T15:00:00",
@@ -492,9 +497,9 @@ const primerAno = (v: Variant): Content => {
   };
 };
 
-const babyShower = (v: Variant): Content => {
-  const ella = v !== "nino";
-  const name = NOMBRE[v];
+const babyShower = (paletaId: string): Content => {
+  const name = nombreDe(paletaId);
+  const ella = name === "Emilia";
   const la = ella ? "la" : "lo";
   return {
     name,
@@ -595,7 +600,7 @@ const babyShower = (v: Variant): Content => {
    Elegir
    ──────────────────────────────────────────────────────────────── */
 
-export function contenido(occasion: Occasion, variant: Variant): Content {
+export function contenido(occasion: Occasion, paletaId = ""): Content {
   switch (occasion) {
     case "boda":
       return boda();
@@ -604,8 +609,8 @@ export function contenido(occasion: Occasion, variant: Variant): Content {
     case "comunion":
       return comunion();
     case "primer-ano":
-      return primerAno(variant);
+      return primerAno(paletaId);
     case "baby-shower":
-      return babyShower(variant);
+      return babyShower(paletaId);
   }
 }

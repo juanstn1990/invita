@@ -1,5 +1,5 @@
 /**
- * Auditoría en navegador de los 27 diseños.
+ * Auditoría en navegador de todos los diseños.
  *
  * Renderiza cada uno con foto de portada y de galería, lo abre en Chromium y
  * revisa tres cosas que sólo se ven ejecutando la página:
@@ -70,7 +70,7 @@ const ORIGEN = "https://invitacion.local";
        Esta comprobación existe por un fallo real: al reorganizar el CSS se
        perdieron las reglas de `.orn-pieza`, el envoltorio dejó de ser un
        bloque en línea, y el adorno bajo cada título pasó a medir los 256px
-       naturales del svg en los 27 diseños. Las otras auditorías no lo vieron
+       naturales del svg en todos los diseños. Las otras auditorías no lo vieron
        porque miran el marcado y los errores de JavaScript, no los tamaños. */
     const adornosGrandes: string[] = await page.evaluate(`(() => {
       var malos = [];
@@ -115,6 +115,10 @@ const ORIGEN = "https://invitacion.local";
   }
 
   await b.close();
-  console.log(malos ? `\n${malos} diseños con problemas` : "\nLos 27 corren limpio en el navegador");
+  console.log(
+    malos
+      ? `\n${malos} de ${TEMPLATES.length} diseños con problemas`
+      : `\nLos ${TEMPLATES.length} corren limpio en el navegador`
+  );
   process.exit(malos ? 1 : 0);
 })();

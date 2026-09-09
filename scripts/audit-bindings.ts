@@ -1,5 +1,5 @@
 /**
- * Verifica el contrato de atributos entre el esquema y los 27 templates.
+ * Verifica el contrato de atributos entre el esquema y los templates.
  *
  *   npm run audit:bindings
  *   npm run audit:bindings -- --full     # campo por campo, con su texto
@@ -9,7 +9,7 @@
  * los 14 hechos a mano. Ahora comprueba dos cosas, y las dos importan:
  *
  * 1. **Que no falte nada**: todo campo del esquema tiene su `data-inv` en
- *    los 27. Si falta, el editor ofrecería un campo que no se escribe en
+ *    todos. Si falta, el editor ofrecería un campo que no se escribe en
  *    ningún sitio.
  * 2. **Que no sobre nada**: todo `data-inv` del marcado corresponde a un
  *    campo del esquema. Si sobra, es un atributo que quedó de un campo que se
@@ -158,4 +158,4 @@ console.log(
     `${faltan} sin marcado · ${sobran} atributos de más`
 );
 if (faltan || sobran) process.exit(1);
-console.log("El marcado y el esquema coinciden en los 27.");
+console.log(`El marcado y el esquema coinciden en los ${TEMPLATES.length}.`);

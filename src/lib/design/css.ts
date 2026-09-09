@@ -1,5 +1,5 @@
 /**
- * La hoja de estilo compartida por los 27 diseños.
+ * La hoja de estilo compartida por todos los diseños.
  *
  * Todo sale de dos sitios: los tokens del `Theme` y los slots del `Layout`.
  * No hay números sueltos —los tamaños salen de la escala tipográfica, el aire
@@ -61,6 +61,10 @@ const sombra = (t: Theme): string => {
  * son las mismas del tema, así que la confirmación y los bloques con marcado
  * propio no pueden desafinar respecto al diseño.
  */
+export function variablesDePaleta(t: Theme): string {
+  return variables(t);
+}
+
 function variables(t: Theme): string {
   const p = t.palette;
   const [padY, padYAlt] = AIRE[t.density];

@@ -13,11 +13,13 @@ export const DESIGN_BY_SLUG: Record<string, Design> = Object.fromEntries(
 );
 
 /**
- * El id del template que sale de un diseño y una variante.
- * `invitacion-1-globos-nina`, `invitacion-vintage`.
+ * El id del template de un diseño.
+ *
+ * Antes llevaba la variante pegada (`invitacion-1-globos-nina`) porque niña y
+ * niño eran dos archivos. Con la paleta elegible al editar hay un template
+ * por diseño y la paleta se guarda en la invitación.
  */
-export const templateId = (slug: string, variant: string): string =>
-  `invitacion-${slug}${variant === "unico" ? "" : `-${variant}`}`;
+export const templateId = (slug: string): string => `invitacion-${slug}`;
 
 /**
  * El peso de los iconos de un diseño.

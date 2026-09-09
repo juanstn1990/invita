@@ -1,7 +1,7 @@
 # Invita
 
-Elige uno de 27 diseños de invitación, edítalo, y publícalo en la dirección
-que tú definas: `tudominio.com/invitacionjuan`.
+Elige uno de 42 diseños de invitación, súbele tus fotos, cámbiale la paleta,
+y publícalo en la dirección que tú definas: `tudominio.com/invitacionjuan`.
 
 ```bash
 npm install
@@ -109,16 +109,69 @@ incertidumbre de los 14.
 
 ## Los diseños
 
-18 diseños, 27 invitaciones: los cinco infantiles vienen en versión niña y
-niño, declaradas juntas para que no se desincronicen.
+42 diseños, y **cada uno con cuatro paletas**: 168 combinaciones.
 
-| Categoría | Diseños |
+| Ocasión | Diseños |
 | --- | --- |
-| **Bodas** | Vintage · Blanco Oro · Marsala · Aurum Wine · Ivory Leaf · Editorial · Nocturno · Campestre |
-| **Quince años** | Quince Blanco · Burdeos · Amanecer · Hojas · Viaje |
-| **Primera comunión y bautizo** | Comunión Blanco · Vintage · Amanecer · Tropical |
-| **Infantiles · Primer añito** | Globos · Osito |
-| **Infantiles · Baby shower** | Nube · Bosque · Acuarela |
+| **Bodas** (12) | Vintage · Blanco Oro · Marsala · Aurum · Ivory Leaf · Editorial · Nocturno · Campestre · Capilla · Bruma · Jardín · Gala |
+| **Quince años** (9) | Blanco · Burdeos · Amanecer · Hojas · Viaje · Corona · Confeti · Vals · Jardín |
+| **Comunión y bautizo** (8) | Blanco · Vintage · Amanecer · Tropical · Paloma · Espiga · Vitral · Primera |
+| **Primer añito** (6) | Globos · Osito · Circo · Pastelito · Cuento · Huellita |
+| **Baby shower** (7) | Nube · Bosque · Acuarela · Cigüeña · Lunita · Canastilla · Semilla |
+
+### La paleta se elige al editar, no al escoger diseño
+
+Un diseño es su **estructura** —dónde se apoya la portada, cómo es la cabecera
+de cada sección, si las tarjetas llevan sombra o filete— y el color es una
+elección aparte. Antes iban juntos, y por eso los cinco de quince eran cinco
+variaciones de blanco con dorado: cambiar el color obligaba a hacer otro
+diseño.
+
+La paleta son **variables CSS**, así que el renderer la sustituye sobre el
+template ya generado:
+
+| | Archivos | Peso |
+| --- | --- | --- |
+| Una paleta = un template | 168 | ~7 MB, y un selector de 168 tarjetas |
+| **Una paleta = unas variables** | **42** | 1,8 MB |
+
+El obstáculo eran 45 valores hex escritos a mano en los degradados de portada
+de bodas, quince y comunión. Ya no hay ninguno: el color vive en la paleta y
+la portada se deriva de ella.
+
+**Niña y niño dejaron de ser dos templates.** Eran el mismo marcado y el mismo
+CSS generados dos veces con otra paleta; ahora son dos de las cuatro opciones
+de un diseño. Se fueron diez archivos duplicados y la elección pasó del
+catálogo a la invitación, que es su sitio. Los diez ids viejos siguen
+abriendo, y `PALETA_POR_ID_VIEJO` les conserva el color: sin eso, una
+invitación guardada como «globos-niño» se abriría en rosa.
+
+### Las paletas se construyen, no se escriben
+
+Una paleta completa son trece colores que tienen que cumplir diecinueve pares
+de contraste. Escribirlas a mano se hizo inviable en cuanto cada diseño quiso
+cuatro: 168 paletas son 2.184 valores que afinar a ojo hasta que pase el
+verificador.
+
+`paleta()` recibe **cinco decisiones** —fondo, tinta, marca, acento y un
+segundo color— y deriva el resto. Lo importante: **lo que lleva texto se
+ajusta solo** hasta cumplir su razón mínima, probando las dos direcciones y
+quedándose con la que llega.
+
+```
+marca #c9a84c → #7e6930     el oro de Blanco Oro, oscurecido para que se lea
+marca #f2a3bd → #855a68     un rosa clarísimo, ídem
+```
+
+Se probó con casos imposibles a propósito —blanco sobre blanco, todo gris
+medio, amarillo chillón sobre amarillo— y las diez pasan. Tres defectos reales
+del constructor salieron de esas pruebas: el acento no garantizaba contraste
+con su propia letra, el degradado de la portada no se medía contra el texto
+que lleva encima, y el ajuste probaba una sola dirección (sobre un gris medio
+empujaba hacia el blanco, donde nunca llega a 4,5:1).
+
+`npm run templates:build` verifica **las 168**, no sólo las que se hornean:
+cualquiera se puede elegir al editar.
 
 ### Los slots de layout
 

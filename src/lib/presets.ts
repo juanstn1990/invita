@@ -8,10 +8,17 @@
 import { defaultData, type InvitationData } from "./schema";
 import type { TemplateInfo } from "./templates";
 
-type Target = Pick<TemplateInfo, "kind" | "variant">;
+/**
+ * Lo que el preset necesita saber del diseño: su ocasión y, en los
+ * infantiles, la paleta — que es donde quedó la elección de niña o niño.
+ */
+type Target = Pick<TemplateInfo, "kind"> & { paleta?: string };
 
 export function presetFor(target: Target | TemplateInfo["kind"]): InvitationData {
-  const { kind, variant } = typeof target === "string" ? { kind: target, variant: undefined } : target;
+  const { kind, paleta } =
+    typeof target === "string" ? { kind: target, paleta: undefined } : target;
+  /* Las paletas frías son las que antes eran la versión de niño. */
+  const nino = ["azul", "cielo", "pizarra", "petroleo", "indigo"].includes(paleta || "");
   const d = defaultData();
 
   if (kind === "quince") {
@@ -63,7 +70,6 @@ export function presetFor(target: Target | TemplateInfo["kind"]): InvitationData
   }
 
   if (kind === "primer-ano") {
-    const nino = variant === "nino";
     Object.assign(d.event, {
       type: "primer-ano", name1: nino ? "Martín" : "Emilia", name2: "",
       quote: "Un año lleno de primeras veces, y la más linda fue conocerte.",
@@ -109,7 +115,6 @@ export function presetFor(target: Target | TemplateInfo["kind"]): InvitationData
   }
 
   if (kind === "baby-shower") {
-    const nino = variant === "nino";
     const nombre = nino ? "Martín" : "Emilia";
     Object.assign(d.event, {
       type: "baby-shower", name1: nombre, name2: "",

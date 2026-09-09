@@ -9,58 +9,58 @@
 <title>Juan &amp; María · Nuestra boda</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#faf7f1; --bg-alt:#ede9e3; --card:#fdfbf9;
-  --ink:#3a3330; --muted:#6c6764; --line:#d9d7d1;
-  --brand:#6e6249; --brand-2:#9aab9c;
-  --accent:#8a7248; --on-accent:#ffffff;
-  --footer-bg:#3a3330; --footer-ink:#ede9e3;
+  --bg:#2a0d16; --bg-alt:#371c24; --card:#3f252d;
+  --ink:#f4e6d8; --muted:#af9c96; --line:#563d41;
+  --brand:#d4b06a; --brand-2:#a8607a;
+  --accent:#d4b06a; --on-accent:#2a0d16;
+  --footer-bg:#19080d; --footer-ink:#d4b06a;
 
-  --display:'Cormorant Garamond',Georgia,serif; --sans:'Jost',system-ui,sans-serif;
+  --display:'DM Serif Display',Georgia,serif; --sans:'DM Sans',system-ui,sans-serif;
   --display-weight:400;
-  --display-leading:1.1;
-  --display-tracking:0.01em;
+  --display-leading:1.02;
+  --display-tracking:-0.02em;
   --tracking:0.2em;
   --caps:uppercase;
   --quote-style:italic;
 
-  --fs-micro:10.8px;
-  --fs-small:12.5px;
+  --fs-micro:9.9px;
+  --fs-small:11.9px;
   --fs-body:16px;
-  --fs-lead:18.6px;
-  --fs-h3:clamp(20.5px,4.4vw,25px);
-  --fs-h2:clamp(26.2px,7vw,42.9px);
-  --fs-display:clamp(42.9px,13vw,70.4px);
-  --fs-number:clamp(23.7px,6.4vw,33.6px);
+  --fs-lead:19.2px;
+  --fs-h3:clamp(21.6px,4.4vw,27.5px);
+  --fs-h2:clamp(29.2px,7vw,53.1px);
+  --fs-display:clamp(53.1px,13vw,96.9px);
+  --fs-number:clamp(25.9px,6.4vw,39.4px);
 
-  --radius:4px; --radius-sm:3px;
-  --btn-radius:999px;
+  --radius:6px; --radius-sm:6px;
+  --btn-radius:2px;
   --border:1px;
-  --shadow:none;
+  --shadow:0 4px 10px rgba(0,0,0,.05), 0 26px 56px -28px rgba(0,0,0,.34);
 
-  --pad-y:88px; --pad-y-alt:108px;
-  --gap:22px;
+  --pad-y:64px; --pad-y-alt:78px;
+  --gap:16px;
 
-  --panel-rgb:253,251,249;
-  --panel-alpha:0.88;
-  --hero-bg:linear-gradient(165deg,#ede9e3 0%,#faf7f1 55%,#e8e7e0 130%);
-  --splash-bg:linear-gradient(165deg,#ede9e3 0%,#faf7f1 55%,#e8e7e0 130%);
-  --hero-ink:#3a3330;
-  --hero-ink-soft:#6c6764;
-  --hero-line:#d9d7d1;
-  --hero-brand:#6e6249;
-  --hero-accent:#8a7248;
-  --hero-on-accent:#ffffff;
+  --panel-rgb:63,37,45;
+  --panel-alpha:0.7;
+  --hero-bg:linear-gradient(165deg,#371c24 0%,#2a0d16 55%,#5f3442 130%);
+  --splash-bg:linear-gradient(165deg,#371c24 0%,#2a0d16 55%,#5f3442 130%);
+  --hero-ink:#fff;
+  --hero-ink-soft:rgba(255,255,255,.84);
+  --hero-line:rgba(255,255,255,.4);
+  --hero-brand:#d4b06a;
+  --hero-accent:#d4b06a;
+  --hero-on-accent:#2a0d16;
 
   /* Los componentes que inyecta el renderer. Mismos valores, otro prefijo. */
-  --inv-accent:#8a7248; --inv-on-accent:#ffffff;
-  --inv-ink:#3a3330; --inv-surface:#fdfbf9;
-  --inv-field-bg:#fdfbf9; --inv-field-ink:#3a3330; --inv-field-border:#d9d7d1;
-  --inv-focus:rgba(138,114,72,0.24);
-  --inv-radius:3px; --inv-btn-radius:999px;
-  --inv-font-ui:'Jost',system-ui,sans-serif; --inv-font-title:'Cormorant Garamond',Georgia,serif;
+  --inv-accent:#d4b06a; --inv-on-accent:#2a0d16;
+  --inv-ink:#f4e6d8; --inv-surface:#3f252d;
+  --inv-field-bg:#3f252d; --inv-field-ink:#f4e6d8; --inv-field-border:#563d41;
+  --inv-focus:rgba(212,176,106,0.24);
+  --inv-radius:6px; --inv-btn-radius:2px;
+  --inv-font-ui:'DM Sans',system-ui,sans-serif; --inv-font-title:'DM Serif Display',Georgia,serif;
   --inv-tracking:0.2em; --inv-caps:uppercase;
 }
 
@@ -312,29 +312,35 @@ footer{position:relative;padding:56px 22px;text-align:center;
   .confetti i,.balloon{animation:none}
 }
 
-/* Doble marco de hilos. El texto no lleva fondo: lo enmarca el trazo. */
-.hero-content{background:transparent;padding:52px 40px;
-  box-shadow:0 0 0 var(--border) var(--brand),0 0 0 calc(var(--border) * 5) transparent,
-    0 0 0 calc(var(--border) * 6) var(--brand)}
-.hero-content .hero-date{border-top-color:var(--brand)}
+/* Banda de lado a lado a media altura. Es la única que sale del ancho. */
+.hero-content{width:100%;max-width:none;border-radius:0;padding:40px 22px;
+  background:rgba(var(--panel-rgb),calc(var(--panel-alpha) * .96));
+  backdrop-filter:blur(6px)}
+.hero-content>*{max-width:520px;margin-left:auto;margin-right:auto}
 
-/* Filete a los dos lados del título: el clásico de invitación, hecho con
-   flex en vez de pseudo-elementos posicionados, así se adapta al texto. */
-.section-title{display:flex;align-items:center;justify-content:center;gap:18px}
-.section-title::before,.section-title::after{content:"";width:min(64px,12vw);
-  height:var(--border);background:var(--line)}
+/* Dos pisos de título: el antetítulo en la tipografía de los títulos y el
+   título mucho más grande debajo.
+   
+   El primer intento ponía el antetítulo grande y desvaído *detrás* del
+   título, como una marca de agua. Con etiquetas de una palabra funcionaba,
+   pero "Información útil" a ese tamaño se parte en dos líneas en un móvil y
+   choca con el título: parecía un error de render. Lo que da escala aquí es
+   la diferencia de tamaño entre los dos pisos, no la superposición. */
+.section-label{font-family:var(--display);font-size:var(--fs-h3);
+  letter-spacing:0;text-transform:none;color:var(--brand);opacity:.9;
+  line-height:1.2}
+.section-title{margin-top:2px;font-size:var(--fs-display);line-height:1}
 
-.countdown-ring{aspect-ratio:1;border:var(--border) solid var(--accent);
-  border-radius:50%;background:transparent}
+.countdown-ring{aspect-ratio:1;background:var(--card);
+  border-radius:var(--radius-sm);box-shadow:var(--shadow)}
 
-.gallery-grid{grid-template-columns:repeat(3,1fr)}
+/* La primera de cada seis ocupa el doble: rompe la retícula sin desordenarla. */
+.gallery-grid{grid-template-columns:repeat(3,1fr);grid-auto-rows:1fr}
 .gallery-item{aspect-ratio:1}
+.gallery-item:nth-child(6n+1){grid-column:span 2;grid-row:span 2;aspect-ratio:auto}
 
-.event-card,.feature-card,.gift-card,.guest-card{background:transparent;border:var(--border) solid var(--line);
-  border-radius:var(--radius);box-shadow:none}
-
-.divider{height:0;border-top:var(--border) solid var(--line);
-  width:min(120px,30vw);margin:0 auto}
+.event-card,.feature-card,.gift-card,.guest-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow)}
+.divider{display:none}
 
 .js .reveal{opacity:0;transform:translateY(26px);
   transition:opacity .8s ease,transform .8s cubic-bezier(.2,.7,.3,1)}
@@ -396,12 +402,6 @@ footer{position:relative;padding:56px 22px;text-align:center;
 
 <div id="splash" data-inv-section="splash">
   
-<svg class="deco deco-aros" viewBox="0 0 400 400" fill="none" aria-hidden="true">
-  <circle cx="200" cy="230" r="70" stroke="rgba(110,98,73,0.16)" stroke-width="1"/>
-  <circle cx="200" cy="230" r="118" stroke="rgba(110,98,73,0.13)" stroke-width="1"/>
-  <circle cx="200" cy="230" r="166" stroke="rgba(110,98,73,0.1)" stroke-width="1"/>
-  <circle cx="200" cy="230" r="214" stroke="rgba(110,98,73,0.07)" stroke-width="1"/>
-</svg>
   <div class="splash-modal">
     <p class="splash-subtitle" data-inv="splash.label">Te invitamos a nuestra boda</p>
     <h1 class="splash-name" data-inv="event.names">Juan<span class="splash-amp">&amp;</span>María</h1>
@@ -419,11 +419,16 @@ footer{position:relative;padding:56px 22px;text-align:center;
 <section id="hero" data-inv-section="hero">
   <div class="hero-bg" data-inv="hero.backgroundUrl"></div>
   
-<svg class="deco deco-aros" viewBox="0 0 400 400" fill="none" aria-hidden="true">
-  <circle cx="200" cy="230" r="70" stroke="rgba(110,98,73,0.16)" stroke-width="1"/>
-  <circle cx="200" cy="230" r="118" stroke="rgba(110,98,73,0.13)" stroke-width="1"/>
-  <circle cx="200" cy="230" r="166" stroke="rgba(110,98,73,0.1)" stroke-width="1"/>
-  <circle cx="200" cy="230" r="214" stroke="rgba(110,98,73,0.07)" stroke-width="1"/>
+<svg class="deco deco-rayos" viewBox="0 0 200 200" fill="none" aria-hidden="true">
+  <path d="M0 200 L0.0 -100.0" stroke="rgba(212,176,106,0.12)" stroke-width="1"/>
+  <path d="M0 200 L58.5 -94.2" stroke="rgba(212,176,106,0.12)" stroke-width="1"/>
+  <path d="M0 200 L114.8 -77.2" stroke="rgba(212,176,106,0.12)" stroke-width="1"/>
+  <path d="M0 200 L166.7 -49.4" stroke="rgba(212,176,106,0.12)" stroke-width="1"/>
+  <path d="M0 200 L212.1 -12.1" stroke="rgba(212,176,106,0.12)" stroke-width="1"/>
+  <path d="M0 200 L249.4 33.3" stroke="rgba(212,176,106,0.12)" stroke-width="1"/>
+  <path d="M0 200 L277.2 85.2" stroke="rgba(212,176,106,0.12)" stroke-width="1"/>
+  <path d="M0 200 L294.2 141.5" stroke="rgba(212,176,106,0.12)" stroke-width="1"/>
+  <path d="M0 200 L300.0 200.0" stroke="rgba(212,176,106,0.12)" stroke-width="1"/>
 </svg>
   <div class="hero-content">
     <p class="hero-label" data-inv="hero.label">Nos casamos</p>
@@ -444,7 +449,7 @@ footer{position:relative;padding:56px 22px;text-align:center;
 <section id="countdown" class="reveal" data-inv-section="countdown">
   <div class="container">
     <p class="section-label" data-inv="countdown.label">El gran día</p>
-    <h2 class="section-title" data-inv="countdown.title">Falta muy poco</h2><div class="ornament"><span class="orn-filetes"><i style="background:#d9d7d1"></i><span class="orn-pieza" style="width:17px;height:17px"><svg class="inv-orn" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M221.45,40.19a6,6,0,0,0-5.64-5.64C140.43,30.11,80.14,52.71,54.53,95c-17.44,28.79-16.76,62.8,1.79,96.2L35.76,211.76a6,6,0,1,0,8.48,8.48L64.8,199.68c17.27,9.59,34.7,14.41,51.49,14.41A85.38,85.38,0,0,0,161,201.47C203.29,175.86,225.88,115.57,221.45,40.19Zm-66.66,151c-24.08,14.58-52.64,14.37-81.13-.39l90.59-90.59a6,6,0,0,0-8.48-8.48L65.18,182.34c-14.76-28.49-15-57-.39-81.13,22.68-37.43,76.63-57.8,145-54.95C212.59,114.58,192.22,168.54,154.79,191.21Z"/></svg></span><i style="background:#d9d7d1"></i></span></div>
+    <h2 class="section-title" data-inv="countdown.title">Falta muy poco</h2><div class="ornament"><span class="orn-filetes"><i style="background:#563d41"></i><span class="orn-pieza" style="width:13px;height:13px"><svg class="inv-orn" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M233.92,118.14,137.86,22.08a14,14,0,0,0-19.72,0L22.08,118.14a14,14,0,0,0,0,19.72l96.06,96.06h0a14,14,0,0,0,19.72,0l96-96.06a13.94,13.94,0,0,0,0-19.72Zm-8.49,11.24-96.05,96.06a2,2,0,0,1-2.76,0L30.57,129.38a2,2,0,0,1,0-2.76l96.05-96.06a2,2,0,0,1,2.76,0l96.05,96.06a2,2,0,0,1,0,2.76Z"/></svg></span><i style="background:#563d41"></i></span></div>
     <p class="section-body" data-inv="countdown.text">Estamos contando los días para verte allí.</p>
     <div class="countdown-grid">
       <div class="countdown-ring"><div class="ring-inner"><span class="ring-number" data-cd="days">--</span><span class="ring-label">Días</span></div></div>
@@ -458,7 +463,7 @@ footer{position:relative;padding:56px 22px;text-align:center;
 <section id="guests" class="reveal alt" data-inv-section="guests">
   <div class="container">
     <p class="section-label" data-inv="guests.label">Con todo nuestro amor</p>
-    <h2 class="section-title" data-inv="guests.title">Queridos invitados</h2><div class="ornament"><span class="orn-filetes"><i style="background:#d9d7d1"></i><span class="orn-pieza" style="width:17px;height:17px"><svg class="inv-orn" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M221.45,40.19a6,6,0,0,0-5.64-5.64C140.43,30.11,80.14,52.71,54.53,95c-17.44,28.79-16.76,62.8,1.79,96.2L35.76,211.76a6,6,0,1,0,8.48,8.48L64.8,199.68c17.27,9.59,34.7,14.41,51.49,14.41A85.38,85.38,0,0,0,161,201.47C203.29,175.86,225.88,115.57,221.45,40.19Zm-66.66,151c-24.08,14.58-52.64,14.37-81.13-.39l90.59-90.59a6,6,0,0,0-8.48-8.48L65.18,182.34c-14.76-28.49-15-57-.39-81.13,22.68-37.43,76.63-57.8,145-54.95C212.59,114.58,192.22,168.54,154.79,191.21Z"/></svg></span><i style="background:#d9d7d1"></i></span></div>
+    <h2 class="section-title" data-inv="guests.title">Queridos invitados</h2><div class="ornament"><span class="orn-filetes"><i style="background:#563d41"></i><span class="orn-pieza" style="width:13px;height:13px"><svg class="inv-orn" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M233.92,118.14,137.86,22.08a14,14,0,0,0-19.72,0L22.08,118.14a14,14,0,0,0,0,19.72l96.06,96.06h0a14,14,0,0,0,19.72,0l96-96.06a13.94,13.94,0,0,0,0-19.72Zm-8.49,11.24-96.05,96.06a2,2,0,0,1-2.76,0L30.57,129.38a2,2,0,0,1,0-2.76l96.05-96.06a2,2,0,0,1,2.76,0l96.05,96.06a2,2,0,0,1,0,2.76Z"/></svg></span><i style="background:#563d41"></i></span></div>
     <p class="guests-text" data-inv="guests.text">Queremos compartir con ustedes el día más importante de nuestras vidas. Su presencia lo hará inolvidable.</p>
     <p class="guests-text" data-inv="guests.textSecondary">Los esperamos con los brazos abiertos.</p>
     <p class="guests-address" data-inv="guests.address">Bogotá · Colombia</p>
@@ -485,7 +490,7 @@ footer{position:relative;padding:56px 22px;text-align:center;
 <section id="events" class="reveal" data-inv-section="events">
   <div class="container">
     <p class="section-label" data-inv="events.label">El programa</p>
-    <h2 class="section-title" data-inv="events.title">Cómo será el día</h2><div class="ornament"><span class="orn-filetes"><i style="background:#d9d7d1"></i><span class="orn-pieza" style="width:17px;height:17px"><svg class="inv-orn" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M221.45,40.19a6,6,0,0,0-5.64-5.64C140.43,30.11,80.14,52.71,54.53,95c-17.44,28.79-16.76,62.8,1.79,96.2L35.76,211.76a6,6,0,1,0,8.48,8.48L64.8,199.68c17.27,9.59,34.7,14.41,51.49,14.41A85.38,85.38,0,0,0,161,201.47C203.29,175.86,225.88,115.57,221.45,40.19Zm-66.66,151c-24.08,14.58-52.64,14.37-81.13-.39l90.59-90.59a6,6,0,0,0-8.48-8.48L65.18,182.34c-14.76-28.49-15-57-.39-81.13,22.68-37.43,76.63-57.8,145-54.95C212.59,114.58,192.22,168.54,154.79,191.21Z"/></svg></span><i style="background:#d9d7d1"></i></span></div>
+    <h2 class="section-title" data-inv="events.title">Cómo será el día</h2><div class="ornament"><span class="orn-filetes"><i style="background:#563d41"></i><span class="orn-pieza" style="width:13px;height:13px"><svg class="inv-orn" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M233.92,118.14,137.86,22.08a14,14,0,0,0-19.72,0L22.08,118.14a14,14,0,0,0,0,19.72l96.06,96.06h0a14,14,0,0,0,19.72,0l96-96.06a13.94,13.94,0,0,0,0-19.72Zm-8.49,11.24-96.05,96.06a2,2,0,0,1-2.76,0L30.57,129.38a2,2,0,0,1,0-2.76l96.05-96.06a2,2,0,0,1,2.76,0l96.05,96.06a2,2,0,0,1,0,2.76Z"/></svg></span><i style="background:#563d41"></i></span></div>
     <p class="section-body" data-inv="events.text">Dos momentos y el mismo día. Aquí los detalles de cada uno.</p>
     <div class="events-grid" data-inv-list="events">
       <article class="event-card" data-inv-item>
@@ -513,7 +518,7 @@ footer{position:relative;padding:56px 22px;text-align:center;
 <section id="confirmation" class="reveal alt" data-inv-section="confirm">
   <div class="container">
     <p class="section-label" data-inv="confirm.label">¿Nos acompañas?</p>
-    <h2 class="section-title" data-inv="confirm.title">Confirma tu asistencia</h2><div class="ornament"><span class="orn-filetes"><i style="background:#d9d7d1"></i><span class="orn-pieza" style="width:17px;height:17px"><svg class="inv-orn" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M221.45,40.19a6,6,0,0,0-5.64-5.64C140.43,30.11,80.14,52.71,54.53,95c-17.44,28.79-16.76,62.8,1.79,96.2L35.76,211.76a6,6,0,1,0,8.48,8.48L64.8,199.68c17.27,9.59,34.7,14.41,51.49,14.41A85.38,85.38,0,0,0,161,201.47C203.29,175.86,225.88,115.57,221.45,40.19Zm-66.66,151c-24.08,14.58-52.64,14.37-81.13-.39l90.59-90.59a6,6,0,0,0-8.48-8.48L65.18,182.34c-14.76-28.49-15-57-.39-81.13,22.68-37.43,76.63-57.8,145-54.95C212.59,114.58,192.22,168.54,154.79,191.21Z"/></svg></span><i style="background:#d9d7d1"></i></span></div>
+    <h2 class="section-title" data-inv="confirm.title">Confirma tu asistencia</h2><div class="ornament"><span class="orn-filetes"><i style="background:#563d41"></i><span class="orn-pieza" style="width:13px;height:13px"><svg class="inv-orn" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M233.92,118.14,137.86,22.08a14,14,0,0,0-19.72,0L22.08,118.14a14,14,0,0,0,0,19.72l96.06,96.06h0a14,14,0,0,0,19.72,0l96-96.06a13.94,13.94,0,0,0,0-19.72Zm-8.49,11.24-96.05,96.06a2,2,0,0,1-2.76,0L30.57,129.38a2,2,0,0,1,0-2.76l96.05-96.06a2,2,0,0,1,2.76,0l96.05,96.06a2,2,0,0,1,0,2.76Z"/></svg></span><i style="background:#563d41"></i></span></div>
     <p class="confirmation-text" data-inv="confirm.text">Por favor confirma tu asistencia. Nos ayudará a planear el mejor día posible para todos.</p>
     <p class="confirmation-deadline" data-inv="confirm.deadlineText">Antes del 15 de octubre</p>
     <p class="confirmation-text" data-inv="confirm.note">Si vienes con alguien, cuéntanos aquí mismo.</p>
@@ -534,7 +539,7 @@ footer{position:relative;padding:56px 22px;text-align:center;
 <section id="gallery" class="reveal" data-inv-section="gallery">
   <div class="container">
     <p class="section-label" data-inv="gallery.label">Nuestra historia</p>
-    <h2 class="section-title" data-inv="gallery.title">Momentos juntos</h2><div class="ornament"><span class="orn-filetes"><i style="background:#d9d7d1"></i><span class="orn-pieza" style="width:17px;height:17px"><svg class="inv-orn" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M221.45,40.19a6,6,0,0,0-5.64-5.64C140.43,30.11,80.14,52.71,54.53,95c-17.44,28.79-16.76,62.8,1.79,96.2L35.76,211.76a6,6,0,1,0,8.48,8.48L64.8,199.68c17.27,9.59,34.7,14.41,51.49,14.41A85.38,85.38,0,0,0,161,201.47C203.29,175.86,225.88,115.57,221.45,40.19Zm-66.66,151c-24.08,14.58-52.64,14.37-81.13-.39l90.59-90.59a6,6,0,0,0-8.48-8.48L65.18,182.34c-14.76-28.49-15-57-.39-81.13,22.68-37.43,76.63-57.8,145-54.95C212.59,114.58,192.22,168.54,154.79,191.21Z"/></svg></span><i style="background:#d9d7d1"></i></span></div>
+    <h2 class="section-title" data-inv="gallery.title">Momentos juntos</h2><div class="ornament"><span class="orn-filetes"><i style="background:#563d41"></i><span class="orn-pieza" style="width:13px;height:13px"><svg class="inv-orn" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M233.92,118.14,137.86,22.08a14,14,0,0,0-19.72,0L22.08,118.14a14,14,0,0,0,0,19.72l96.06,96.06h0a14,14,0,0,0,19.72,0l96-96.06a13.94,13.94,0,0,0,0-19.72Zm-8.49,11.24-96.05,96.06a2,2,0,0,1-2.76,0L30.57,129.38a2,2,0,0,1,0-2.76l96.05-96.06a2,2,0,0,1,2.76,0l96.05,96.06a2,2,0,0,1,0,2.76Z"/></svg></span><i style="background:#563d41"></i></span></div>
     <p class="gallery-text" data-inv="gallery.text">Unas cuantas fotos de lo que nos trajo hasta aquí.</p>
     <div class="gallery-grid" data-inv-list="gallery">
       <div class="gallery-item" data-inv-item><div class="gallery-ph" data-inv="gallery.items.url"><span class="gallery-ph-text">Foto 1</span></div></div>
@@ -550,7 +555,7 @@ footer{position:relative;padding:56px 22px;text-align:center;
 <section id="features" class="reveal alt" data-inv-section="features">
   <div class="container">
     <p class="section-label" data-inv="features.label">Información útil</p>
-    <h2 class="section-title" data-inv="features.title">Todo lo que necesitas saber</h2><div class="ornament"><span class="orn-filetes"><i style="background:#d9d7d1"></i><span class="orn-pieza" style="width:17px;height:17px"><svg class="inv-orn" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M221.45,40.19a6,6,0,0,0-5.64-5.64C140.43,30.11,80.14,52.71,54.53,95c-17.44,28.79-16.76,62.8,1.79,96.2L35.76,211.76a6,6,0,1,0,8.48,8.48L64.8,199.68c17.27,9.59,34.7,14.41,51.49,14.41A85.38,85.38,0,0,0,161,201.47C203.29,175.86,225.88,115.57,221.45,40.19Zm-66.66,151c-24.08,14.58-52.64,14.37-81.13-.39l90.59-90.59a6,6,0,0,0-8.48-8.48L65.18,182.34c-14.76-28.49-15-57-.39-81.13,22.68-37.43,76.63-57.8,145-54.95C212.59,114.58,192.22,168.54,154.79,191.21Z"/></svg></span><i style="background:#d9d7d1"></i></span></div>
+    <h2 class="section-title" data-inv="features.title">Todo lo que necesitas saber</h2><div class="ornament"><span class="orn-filetes"><i style="background:#563d41"></i><span class="orn-pieza" style="width:13px;height:13px"><svg class="inv-orn" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M233.92,118.14,137.86,22.08a14,14,0,0,0-19.72,0L22.08,118.14a14,14,0,0,0,0,19.72l96.06,96.06h0a14,14,0,0,0,19.72,0l96-96.06a13.94,13.94,0,0,0,0-19.72Zm-8.49,11.24-96.05,96.06a2,2,0,0,1-2.76,0L30.57,129.38a2,2,0,0,1,0-2.76l96.05-96.06a2,2,0,0,1,2.76,0l96.05,96.06a2,2,0,0,1,0,2.76Z"/></svg></span><i style="background:#563d41"></i></span></div>
     <div class="features-grid" data-inv-list="features">
       <div class="feature-card" data-inv-item>
         <span class="feature-icon" data-inv="features.items.icon">👗</span>
@@ -574,7 +579,7 @@ footer{position:relative;padding:56px 22px;text-align:center;
 <section id="gifts" class="reveal" data-inv-section="gifts">
   <div class="container">
     <p class="section-label" data-inv="gifts.label">Con mucho cariño</p>
-    <h2 class="section-title" data-inv="gifts.title">Mesa de regalos</h2><div class="ornament"><span class="orn-filetes"><i style="background:#d9d7d1"></i><span class="orn-pieza" style="width:17px;height:17px"><svg class="inv-orn" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M221.45,40.19a6,6,0,0,0-5.64-5.64C140.43,30.11,80.14,52.71,54.53,95c-17.44,28.79-16.76,62.8,1.79,96.2L35.76,211.76a6,6,0,1,0,8.48,8.48L64.8,199.68c17.27,9.59,34.7,14.41,51.49,14.41A85.38,85.38,0,0,0,161,201.47C203.29,175.86,225.88,115.57,221.45,40.19Zm-66.66,151c-24.08,14.58-52.64,14.37-81.13-.39l90.59-90.59a6,6,0,0,0-8.48-8.48L65.18,182.34c-14.76-28.49-15-57-.39-81.13,22.68-37.43,76.63-57.8,145-54.95C212.59,114.58,192.22,168.54,154.79,191.21Z"/></svg></span><i style="background:#d9d7d1"></i></span></div>
+    <h2 class="section-title" data-inv="gifts.title">Mesa de regalos</h2><div class="ornament"><span class="orn-filetes"><i style="background:#563d41"></i><span class="orn-pieza" style="width:13px;height:13px"><svg class="inv-orn" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M233.92,118.14,137.86,22.08a14,14,0,0,0-19.72,0L22.08,118.14a14,14,0,0,0,0,19.72l96.06,96.06h0a14,14,0,0,0,19.72,0l96-96.06a13.94,13.94,0,0,0,0-19.72Zm-8.49,11.24-96.05,96.06a2,2,0,0,1-2.76,0L30.57,129.38a2,2,0,0,1,0-2.76l96.05-96.06a2,2,0,0,1,2.76,0l96.05,96.06a2,2,0,0,1,0,2.76Z"/></svg></span><i style="background:#563d41"></i></span></div>
     <p class="gifts-text" data-inv="gifts.text">Su presencia es nuestro mejor regalo. Si desean acompañarnos con un detalle, aquí dejamos los datos.</p>
     <div class="gifts-account">
       <p class="gifts-bank" data-inv="gifts.bankLabel">Transferencia</p>
@@ -602,7 +607,7 @@ footer{position:relative;padding:56px 22px;text-align:center;
 <section id="social" class="reveal alt" data-inv-section="social">
   <div class="container">
     <p class="section-label" data-inv="social.label">Compártelo</p>
-    <h2 class="section-title" data-inv="social.title">Sube tus fotos</h2><div class="ornament"><span class="orn-filetes"><i style="background:#d9d7d1"></i><span class="orn-pieza" style="width:17px;height:17px"><svg class="inv-orn" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M221.45,40.19a6,6,0,0,0-5.64-5.64C140.43,30.11,80.14,52.71,54.53,95c-17.44,28.79-16.76,62.8,1.79,96.2L35.76,211.76a6,6,0,1,0,8.48,8.48L64.8,199.68c17.27,9.59,34.7,14.41,51.49,14.41A85.38,85.38,0,0,0,161,201.47C203.29,175.86,225.88,115.57,221.45,40.19Zm-66.66,151c-24.08,14.58-52.64,14.37-81.13-.39l90.59-90.59a6,6,0,0,0-8.48-8.48L65.18,182.34c-14.76-28.49-15-57-.39-81.13,22.68-37.43,76.63-57.8,145-54.95C212.59,114.58,192.22,168.54,154.79,191.21Z"/></svg></span><i style="background:#d9d7d1"></i></span></div>
+    <h2 class="section-title" data-inv="social.title">Sube tus fotos</h2><div class="ornament"><span class="orn-filetes"><i style="background:#563d41"></i><span class="orn-pieza" style="width:13px;height:13px"><svg class="inv-orn" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M233.92,118.14,137.86,22.08a14,14,0,0,0-19.72,0L22.08,118.14a14,14,0,0,0,0,19.72l96.06,96.06h0a14,14,0,0,0,19.72,0l96-96.06a13.94,13.94,0,0,0,0-19.72Zm-8.49,11.24-96.05,96.06a2,2,0,0,1-2.76,0L30.57,129.38a2,2,0,0,1,0-2.76l96.05-96.06a2,2,0,0,1,2.76,0l96.05,96.06a2,2,0,0,1,0,2.76Z"/></svg></span><i style="background:#563d41"></i></span></div>
     <p class="social-sub" data-inv="social.text">Etiquétalas con nuestro hashtag para que no se pierda ninguna.</p>
     <span class="social-hashtag" data-inv="social.hashtag">#JuanYMaria2027</span>
     <a class="social-ig" href="#" data-inv="social.instagram">@juanymaria</a>

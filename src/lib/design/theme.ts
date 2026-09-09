@@ -28,6 +28,10 @@ export type Occasion =
    ──────────────────────────────────────────────────────────────── */
 
 export interface Palette {
+  /** Identificador estable. Es lo que se guarda en la invitación. */
+  id: string;
+  /** Cómo se llama en el selector: "Crema y salvia", "Vino y oro". */
+  nombre: string;
   /** Fondo de la página. */
   bg: string;
   /** Fondo de las secciones que alternan. Debe contrastar poco con `bg`. */
@@ -54,6 +58,44 @@ export interface Palette {
   /** Pie de página. */
   footerBg: string;
   footerInk: string;
+
+  /* ── El tratamiento de la portada ──
+     Vive en la paleta y no en el diseño porque es color: un degradado escrito
+     con los hex de otra paleta es exactamente lo que impedía cambiarla. */
+
+  /** Color del panel de la portada, como "R,G,B". Por defecto, el de `card`. */
+  panelRgb?: string;
+  /** Opacidad de ese panel. El organizador la puede cambiar. */
+  panelAlpha?: number;
+  /** Fondo de la portada cuando no hay foto. CSS completo. */
+  heroBg?: string;
+  /** Fondo de la pantalla de bienvenida. */
+  splashBg?: string;
+  /**
+   * La tinta de la portada **cuando no hay foto**.
+   *
+   * Con foto puesta el texto va siempre en claro sobre el velo, que es
+   * seguro. Sin foto se ve el `heroBg`, y ahí depende: sobre un degradado
+   * claro hace falta la tinta normal, sobre un verde selva hace falta claro.
+   * Declararlo evita el caso que rompía: texto blanco sobre fondo claro,
+   * invisible hasta que alguien sube una foto.
+   */
+  heroInk?: "auto" | "light";
+  /** El color de marca dentro de la portada, si el del diseño no sirve ahí. */
+  heroBrand?: string;
+  /** Igual para el acento: es el fondo del botón de la portada. */
+  heroAccent?: string;
+  /** Texto sobre `heroAccent`. */
+  heroOnAccent?: string;
+  /**
+   * Un color sólido que represente el `heroBg` para el verificador.
+   *
+   * `heroBg` es un degradado, así que no se puede comprobar como un color. La
+   * paleta declara aquí su tramo **más adverso** —el más claro si el texto de
+   * la portada es claro, el más oscuro si es oscuro— y con eso el build
+   * verifica los pares de la portada igual que los demás.
+   */
+  heroBase?: string;
 }
 
 /* ────────────────────────────────────────────────────────────────
@@ -110,49 +152,28 @@ export type Density = "compact" | "normal" | "airy";
    El tema completo
    ──────────────────────────────────────────────────────────────── */
 
+/**
+ * El tema **compuesto**: un diseño con una paleta concreta puesta.
+ *
+ * No se declara, se calcula con `piel()`. Es lo que reciben la hoja de estilo,
+ * los adornos y el esqueleto, y por eso conserva la forma que tenía cuando el
+ * color y la tipografía vivían juntos: así cambiar de sitio la paleta no
+ * obligó a reescribir `css.ts` ni `deco.ts`.
+ */
 export interface Theme {
-  variant: Variant;
   palette: Palette;
   type: Typography;
   shape: Shape;
   density: Density;
-  /** Color del panel de la portada, como "R,G,B". */
+  /* Copiados de la paleta, ya con sus valores por defecto resueltos. */
   panelRgb: string;
-  /** Opacidad de ese panel. El organizador la puede cambiar. */
   panelAlpha: number;
-  /** Fondo de la portada cuando no hay foto. CSS completo. */
   heroBg?: string;
-  /** Fondo de la pantalla de bienvenida. */
   splashBg?: string;
-  /**
-   * La tinta de la portada **cuando no hay foto**.
-   *
-   * Con foto puesta el texto va siempre en claro sobre el velo, que es
-   * seguro. Sin foto se ve el `heroBg` del diseño, y ahí depende: sobre el
-   * degradado claro de Blanco Oro hace falta la tinta normal, sobre el verde
-   * selva de Tropical hace falta claro. Declararlo evita el caso que rompía:
-   * texto blanco sobre un fondo claro, invisible hasta que alguien sube una
-   * foto.
-   */
   heroInk?: "auto" | "light";
-  /**
-   * El color de marca **dentro de la portada**, si el del diseño no sirve
-   * ahí. En Comunión Tropical la marca es verde selva y el `heroBg` también:
-   * el antetítulo quedaba verde sobre verde.
-   */
   heroBrand?: string;
-  /** Igual para el acento: es el fondo del botón de la portada. */
   heroAccent?: string;
-  /** Texto sobre `heroAccent`. */
   heroOnAccent?: string;
-  /**
-   * Un color sólido que represente el `heroBg` para el verificador.
-   *
-   * `heroBg` es un degradado, así que no se puede comprobar como un color.
-   * El diseño declara aquí su tramo **más adverso** —el más claro si el texto
-   * de la portada es claro, el más oscuro si es oscuro— y con eso el build
-   * verifica los pares de la portada igual que los demás.
-   */
   heroBase?: string;
 }
 
@@ -223,19 +244,28 @@ export interface Design {
   /** URL de Google Fonts con exactamente los pesos que usa. */
   fontUrl: string;
   layout: Layout;
-  themes: Partial<Record<Variant, Theme>>;
-  /** Los tres colores del swatch, por variante. */
-  swatch: Partial<Record<Variant, [string, string, string]>>;
+  /**
+   * Tipografía, forma y ritmo. Son del **diseño**, no de la paleta: cambiar
+   * de paleta cambia el color, no la escala ni las esquinas.
+   */
+  /** Sólo hay que declarar las familias; el resto tiene valor por defecto. */
+  type: Partial<Typography> & Pick<Typography, "display" | "body">;
+  shape?: Partial<Shape>;
+  density?: Density;
+  /**
+   * Las paletas entre las que puede elegir quien edita. La primera es la de
+   * por defecto y la que se hornea en el template generado.
+   *
+   * Estar aquí y no en templates aparte es lo que evita que el catálogo
+   * pase de 42 archivos a 168: la paleta son variables CSS, así que el
+   * renderer la sustituye sin volver a generar nada.
+   */
+  palettes: Palette[];
+  /** El peso de los iconos. Por defecto sale de la ocasión. */
+  iconos?: "light" | "duotone";
   /** CSS propio, corto: lo que el sistema de slots no cubre. */
   css?: (t: Theme) => string;
   deco?: Deco;
-  /**
-   * El peso de los iconos. Por defecto sale de la ocasión: `duotone` en los
-   * infantiles, `light` en el resto. Se declara sólo para salirse de eso.
-   */
-  iconos?: "light" | "duotone";
-  /** Secciones que el diseño decide no traer. */
-  missing?: string[];
 }
 
 /* ────────────────────────────────────────────────────────────────
@@ -259,28 +289,18 @@ export const gfont = (query: string): string =>
   `https://fonts.googleapis.com/css2?${query}&display=swap`;
 
 /**
- * Un tema con lo mínimo escrito. Los diseños declaran su paleta y su
- * tipografía; la forma y el ritmo casi siempre son los de aquí.
+ * El tema de un diseño con una paleta puesta.
+ *
+ * `paletaId` vacío o desconocido cae en la primera paleta, que es la de por
+ * defecto: así una invitación guardada antes de que existieran las paletas
+ * sigue viéndose igual.
  */
-export function theme(t: {
-  variant?: Variant;
-  palette: Palette;
-  type: Partial<Typography> & Pick<Typography, "display" | "body">;
-  shape?: Partial<Shape>;
-  density?: Density;
-  panelRgb?: string;
-  panelAlpha?: number;
-  heroBg?: string;
-  splashBg?: string;
-  heroInk?: "auto" | "light";
-  heroBrand?: string;
-  heroAccent?: string;
-  heroOnAccent?: string;
-  heroBase?: string;
-}): Theme {
+export function piel(d: Design, paletaId?: string): Theme {
+  const palette =
+    d.palettes.find((p) => p.id === paletaId) || d.palettes[0];
+
   return {
-    variant: t.variant ?? "unico",
-    palette: t.palette,
+    palette,
     type: {
       displayWeight: 400,
       scale: 1.24,
@@ -290,7 +310,7 @@ export function theme(t: {
       tracking: "0.2em",
       caps: "uppercase",
       quoteStyle: "italic",
-      ...t.type,
+      ...d.type,
     },
     shape: {
       radius: 18,
@@ -298,17 +318,20 @@ export function theme(t: {
       btnRadius: "pill",
       border: 1,
       shadow: "soft",
-      ...t.shape,
+      ...d.shape,
     },
-    density: t.density ?? "normal",
-    panelRgb: t.panelRgb ?? rgbTriple(t.palette.card),
-    panelAlpha: t.panelAlpha ?? 0.86,
-    heroBg: t.heroBg,
-    splashBg: t.splashBg,
-    heroInk: t.heroInk ?? "auto",
-    heroBrand: t.heroBrand,
-    heroAccent: t.heroAccent,
-    heroOnAccent: t.heroOnAccent,
-    heroBase: t.heroBase,
+    density: d.density ?? "normal",
+    panelRgb: palette.panelRgb ?? rgbTriple(palette.card),
+    panelAlpha: palette.panelAlpha ?? 0.86,
+    heroBg: palette.heroBg,
+    splashBg: palette.splashBg,
+    heroInk: palette.heroInk ?? "auto",
+    heroBrand: palette.heroBrand,
+    heroAccent: palette.heroAccent,
+    heroOnAccent: palette.heroOnAccent,
+    heroBase: palette.heroBase,
   };
 }
+
+/** La paleta por defecto de un diseño. */
+export const paletaPorDefecto = (d: Design): Palette => d.palettes[0];

@@ -8,11 +8,11 @@
  * fallaba 213 veces, y el renderer no podía distinguir "el diseño no trae
  * este elemento" de "mi selector no lo encontró".
  *
- * **Ahora**: los 27 salen del mismo esqueleto y cada elemento editable lleva
+ * **Ahora**: todos salen del mismo esqueleto y cada elemento editable lleva
  * `data-inv="seccion.campo"`. El mapa se **deriva del esquema**: el tipo del
  * campo dice qué operación le toca, y el atributo dice dónde va. Cero
  * overrides, cero campos sin mapear, y añadir un campo al esquema lo hace
- * editable en los 27 sin tocar este archivo.
+ * editable en todos sin tocar este archivo.
  *
  * Queda una tabla de clases, `CLASES`, y es pequeña a propósito: el marcado
  * que sintetiza `blocks.ts` para las variantes lleva las clases canónicas
@@ -164,6 +164,8 @@ const APARTE = new Set([
   "type",
   "disposicion",
   "saludoInvitado",
+  // La paleta no escribe texto: sustituye variables CSS.
+  "paleta",
   "musicUrl",
   // El fondo de la sección lo pone `ponerFondo` en una capa propia.
   "fondoUrl",
@@ -305,7 +307,7 @@ function construir(): TemplateMap {
 const MAPA = construir();
 
 /**
- * El mapa. Ya no depende del diseño —los 27 comparten el marcado— pero se
+ * El mapa. Ya no depende del diseño —todos comparten el marcado— pero se
  * conserva la firma con el id porque es lo que llaman el renderer y los
  * scripts de auditoría, y porque deja la puerta abierta a un diseño que
  * algún día quiera salirse del esqueleto.

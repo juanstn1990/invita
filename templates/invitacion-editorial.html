@@ -12,11 +12,11 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#ffffff; --bg-alt:#f4f2ee; --card:#ffffff;
-  --ink:#17150f; --muted:#5e5a4f; --line:#d9d5c9;
+  --bg:#ffffff; --bg-alt:#efefee; --card:#ffffff;
+  --ink:#17150f; --muted:#666561; --line:#dfdedd;
   --brand:#55503f; --brand-2:#a89880;
   --accent:#17150f; --on-accent:#ffffff;
-  --footer-bg:#17150f; --footer-ink:#f4f2ee;
+  --footer-bg:#17150f; --footer-ink:#efefee;
 
   --display:'Inter',system-ui,sans-serif; --sans:'Inter',system-ui,sans-serif;
   --display-weight:500;
@@ -44,12 +44,12 @@
   --gap:22px;
 
   --panel-rgb:255,255,255;
-  --panel-alpha:0.86;
-  --hero-bg:#f4f2ee;
-  --splash-bg:#ffffff;
+  --panel-alpha:0.88;
+  --hero-bg:linear-gradient(165deg,#efefee 0%,#ffffff 55%,#e5e2dc 130%);
+  --splash-bg:linear-gradient(165deg,#efefee 0%,#ffffff 55%,#e5e2dc 130%);
   --hero-ink:#17150f;
-  --hero-ink-soft:#5e5a4f;
-  --hero-line:#d9d5c9;
+  --hero-ink-soft:#666561;
+  --hero-line:#dfdedd;
   --hero-brand:#55503f;
   --hero-accent:#17150f;
   --hero-on-accent:#ffffff;
@@ -57,7 +57,7 @@
   /* Los componentes que inyecta el renderer. Mismos valores, otro prefijo. */
   --inv-accent:#17150f; --inv-on-accent:#ffffff;
   --inv-ink:#17150f; --inv-surface:#ffffff;
-  --inv-field-bg:#ffffff; --inv-field-ink:#17150f; --inv-field-border:#d9d5c9;
+  --inv-field-bg:#ffffff; --inv-field-ink:#17150f; --inv-field-border:#dfdedd;
   --inv-focus:rgba(23,21,15,0.24);
   --inv-radius:0px; --inv-btn-radius:0px;
   --inv-font-ui:'Inter',system-ui,sans-serif; --inv-font-title:'Inter',system-ui,sans-serif;
@@ -409,8 +409,7 @@ footer{position:relative;padding:56px 22px;text-align:center;
 }
 /* El único sin ornamento: los filetes de 1px hacen todo el trabajo de
    separar, así que no hay nada que dibujar bajo los títulos. */
-.ornament{display:none}
-.hero-content .hero-name{text-transform:none}</style>
+.ornament{display:none}</style>
 </head>
 <body>
 

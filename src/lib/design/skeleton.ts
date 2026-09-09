@@ -1,5 +1,5 @@
 /**
- * El marcado, uno solo para los 27 diseños.
+ * El marcado, uno solo para todos los diseños.
  *
  * Cada elemento editable declara **qué campo del esquema es**:
  *
@@ -13,7 +13,7 @@
  * "el selector no lo encontró". Ahora el marcado lo dice y el renderer sólo
  * busca por atributo: `[data-inv="events.title"]`.
  *
- * La consecuencia es que los 27 soportan todos los campos. Los que faltaban
+ * La consecuencia es que todos soportan todos los campos. Los que faltaban
  * —la frase de la portada, la sección de redes, el pie— están aquí, así que
  * ya no hay nada que esconder en el editor.
  *

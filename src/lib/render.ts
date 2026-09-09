@@ -12,9 +12,11 @@ import { mapFor, type ListBinding, type Op } from "./bindings";
 import { BLOCK_BY_TYPE, readLayout, variantOf, type Block } from "./blocks";
 import { FONT_BY_ID, googleHref } from "./fonts";
 import { pesoIconos } from "./design/designs";
+import { variablesDePaleta } from "./design/css";
+import { piel } from "./design/theme";
 import { iconoHtml, type Peso } from "./iconos";
 import { FONT_ALIAS, fontableOp } from "./support";
-import { TEMPLATE_BY_ID, designOf } from "./templates";
+import { PALETA_POR_ID_VIEJO, TEMPLATE_BY_ID, designOf } from "./templates";
 import {
   HERO_POR_ID,
   SECTION_BY_KEY,
@@ -726,7 +728,7 @@ function wireRsvp(doc: Doc, section: El, data: InvitationData, slug: string, pre
     return;
   }
 
-  /* El mismo componente en los 27 diseños: saludo y casillas ocultos hasta
+  /* El mismo componente en todos los diseños: saludo y casillas ocultos hasta
      que la dirección traiga nombres (?invitado=…), y dos botones en vez de un
      desplegable de sí/no. Antes se reutilizaba el formulario de cada template
      y la confirmación cambiaba de forma según el diseño. */
@@ -917,7 +919,7 @@ export const INJECTED_CSS = `
 /* ── El nombre de quien abre su enlace ─────────────────────────
    Es lo que sustituye a la lista de invitados de ejemplo que traía cada
    diseño. Los nombres entran uno a uno y el filete se abre debajo; todo con
-   los tokens del template, así que se ve intencionado en los 27. */
+   los tokens del template, así que se ve intencionado en todos. */
 .inv-invitados{margin:16px auto 4px;max-width:22ch;text-align:center}
 .inv-invitados[hidden]{display:none !important}
 .inv-inv-antes,.inv-inv-despues{margin:0;font-family:var(--inv-font-ui);
@@ -979,7 +981,7 @@ export const INJECTED_CSS = `
 
 /* ── Cuenta atrás: cinco componentes propios ──────────────────
    Mismo marcado, distinto CSS. Todos con los tokens del diseño, así que se
-   ven intencionales en los 27 en vez de heredar las cajas de cada template. */
+   ven intencionales en todos en vez de heredar las cajas de cada template. */
 .inv-cd{margin:28px auto 0}
 .inv-cd .countdown-ring{background:transparent;border:0;box-shadow:none;padding:0}
 /* Varios diseños superponen su número sobre un svg subiendo .ring-inner con
@@ -2010,9 +2012,27 @@ export function renderInvitation(opts: RenderOptions): string {
   // el acento de Burdeos salía crema sobre oro. Había una guarda de contraste
   // para cada caso. Los pares se verifican ahora en `templates:build`.
 
+  /* ── La paleta elegida ──
+     El template se horneó con la paleta por defecto del diseño. Si la
+     invitación pide otra, se reinyectan sus variables: todo el CSS del
+     diseño se apoya en ellas (`var(--bg)`, `var(--brand)`…), así que una
+     regla posterior en el mismo `<style>` las reemplaza sin regenerar nada.
+     Es lo que evita que 42 diseños × 4 paletas sean 168 archivos. */
+  const paletaCss = (() => {
+    const d = designOf(templateId);
+    /* Una invitación guardada como "globos-niño" no tiene campo de paleta:
+       la elección estaba en el id del template. Se recupera de ahí, o se
+       abriría en rosa. */
+    const pedida =
+      String(data.event?.paleta || "").trim() || PALETA_POR_ID_VIEJO[templateId] || "";
+    if (!d || !pedida || pedida === d.palettes[0].id) return "";
+    if (!d.palettes.some((p) => p.id === pedida)) return "";
+    return variablesDePaleta(piel(d, pedida));
+  })();
+
   const style = document.createElement("style");
   // El color elegido va después de todo, para poder ganarle al velo de la foto.
-  style.textContent = [INJECTED_CSS, ...extraCss, ...fontCss, ...colorCss].join("\n");
+  style.textContent = [paletaCss, INJECTED_CSS, ...extraCss, ...fontCss, ...colorCss].join("\n");
 
   const href = googleHref([...fontIds]);
   if (href) {
