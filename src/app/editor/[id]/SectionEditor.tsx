@@ -47,7 +47,21 @@ export function SectionEditor({
         }
       : undefined;
 
-  const visible = spec.fields.filter((f) => supports(`${spec.key}.${f.key}`));
+  /** Un campo condicionado a otro (ver `showIf`) sólo aparece si toca. */
+  const toca = (f: FieldSpec) => {
+    if (!f.showIf) return true;
+    const actual = String(data[f.showIf.key] ?? "");
+    const valores = Array.isArray(f.showIf.value) ? f.showIf.value : [f.showIf.value];
+    /* Vacío = el valor por defecto del select, que es su primera opción. */
+    const efectivo =
+      actual ||
+      String(spec.fields.find((o) => o.key === f.showIf!.key)?.options?.[0]?.value ?? "");
+    return valores.includes(efectivo);
+  };
+
+  const visible = spec.fields.filter(
+    (f) => supports(`${spec.key}.${f.key}`) && toca(f)
+  );
   const hidden = spec.fields.filter((f) => !supports(`${spec.key}.${f.key}`));
   const listVisible = spec.list && supports(`${spec.key}.items`);
 
@@ -208,6 +222,8 @@ function Field({
         </select>
       ) : field.type === "image" ? (
         <ImageField value={v} onChange={onChange} kind={mediaKind} />
+      ) : field.type === "video" ? (
+        <ImageField value={v} onChange={onChange} kind="video" />
       ) : (
         <input
           className="input"

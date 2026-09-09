@@ -49,6 +49,10 @@ for (const s of SECTIONS) {
  * - `panelOpacity` no escribe texto: inyecta una regla CSS.
  * - `mapSrc` es un campo calculado del bloque de Ubicación, que sólo existe
  *   como marcado sintetizado.
+ * - `splash.mapUrl` es el href del botón secundario del velo, y ese elemento
+ *   lleva ya el `data-inv` de su texto (`splash.ctaSecondary`): un elemento
+ *   sólo puede llevar un atributo, así que el href se resuelve por la clase
+ *   `.splash-btn-mapa`.
  */
 [
   "event.name1",
@@ -56,6 +60,7 @@ for (const s of SECTIONS) {
   "event.city",
   "hero.panelOpacity",
   "ubicacion.mapSrc",
+  "splash.mapUrl",
 ].forEach((k) => esperados.delete(k));
 
 // La rejilla de invitados no se edita, pero su marcado existe y se vacía.

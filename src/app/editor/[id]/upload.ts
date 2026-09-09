@@ -15,6 +15,9 @@ const QUALITY = 0.85;
 const PASS_THROUGH = new Set(["image/gif"]);
 
 async function shrink(file: File): Promise<Blob> {
+  /* El vídeo sube tal cual: reducirlo en el navegador exigiría recodificarlo,
+     que es minutos de CPU y una pérdida de calidad que nadie pidió. */
+  if (file.type.startsWith("video/")) return file;
   if (PASS_THROUGH.has(file.type)) return file;
 
   let bitmap: ImageBitmap;
@@ -64,9 +67,11 @@ async function medir(blob: Blob): Promise<string> {
  * `kind` separa las fotos del evento de los adornos, que es lo que permite
  * que la biblioteca ofrezca sólo marcos cuando se está poniendo un marco.
  */
+export type MediaKind = "foto" | "adorno" | "video";
+
 export async function uploadImages(
   files: File[],
-  kind: "foto" | "adorno" = "foto"
+  kind: MediaKind = "foto"
 ): Promise<string[]> {
   const form = new FormData();
   const medidas: string[] = [];
@@ -81,7 +86,7 @@ export async function uploadImages(
 
   const res = await fetch("/api/media", { method: "POST", body: form });
   const json = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(json.error || "No se pudo subir la imagen.");
+  if (!res.ok) throw new Error(json.error || "No se pudo subir el archivo.");
   return json.urls as string[];
 }
 
@@ -92,6 +97,8 @@ export interface MediaItem {
   width: number | null;
   height: number | null;
   kind: string;
+  /** Para saber si la miniatura es una imagen de fondo o un <video>. */
+  mime: string;
 }
 
 /** Lo que ya se subió antes, para reutilizarlo sin volver a buscarlo. */
@@ -105,3 +112,6 @@ export async function fetchBiblioteca(kind?: string): Promise<MediaItem[]> {
 }
 
 export const IMAGE_ACCEPT = "image/jpeg,image/png,image/webp,image/gif,image/avif";
+
+/** Los dos que reproducen todos los navegadores. Ver `ALLOWED_VIDEO`. */
+export const VIDEO_ACCEPT = "video/mp4,video/webm";

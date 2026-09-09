@@ -109,6 +109,9 @@ const CLASES: Record<string, string> = {
   "photo.title": ".section-title",
   "photo.caption": ".inv-foto-pie",
   "photo.url": ".gallery-ph",
+  "video.label": ".section-label",
+  "video.title": ".section-title",
+  "video.caption": ".inv-video-pie",
   "ubicacion.label": ".section-label",
   "ubicacion.title": ".section-title",
   "ubicacion.text": ".section-body",
@@ -190,6 +193,10 @@ const A_MANO: Record<string, Op[]> = {
   ],
   // Calculado a partir de lo que se busca en el mapa (ver deriveSection).
   "ubicacion.mapSrc": [{ kind: "attr", attr: "src", sel: [".inv-mapa-frame"] }],
+  /* El botón secundario del velo lleva el `data-inv` de su texto, así que su
+     href se resuelve por clase. Si queda sin link, el render lo esconde: ver
+     el paso "3 · ter" de renderInvitation. */
+  "splash.mapUrl": [{ kind: "attr", attr: "href", sel: [".splash-btn-mapa"] }],
 };
 
 /** El atributo y, si existe, la clase de respaldo. */

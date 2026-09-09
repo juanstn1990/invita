@@ -102,7 +102,7 @@ const boda = (): Content => ({
     label: "Te invitamos a nuestra boda",
     subtitle: "Nos casamos",
     cta1: "Abrir invitación",
-    cta2: "Ver los detalles",
+    cta2: "Cómo llegar",
   },
   hero: {
     label: "Nos casamos",
@@ -200,7 +200,7 @@ const quince = (): Content => ({
     label: "Te invito a celebrar",
     subtitle: "Mis quince años",
     cta1: "Abrir invitación",
-    cta2: "Ver los detalles",
+    cta2: "Cómo llegar",
   },
   hero: {
     label: "Mis quince años",
@@ -298,7 +298,7 @@ const comunion = (): Content => ({
     label: "Te invito a acompañarme",
     subtitle: "Mi primera comunión",
     cta1: "Abrir invitación",
-    cta2: "Ver los detalles",
+    cta2: "Cómo llegar",
   },
   hero: {
     label: "Mi primera comunión",
@@ -410,7 +410,7 @@ const primerAno = (paletaId: string): Content => {
       label: "Te invito a celebrar",
       subtitle: "Mi primer añito",
       cta1: "Abrir invitación",
-      cta2: "Ver los detalles",
+      cta2: "Cómo llegar",
     },
     hero: {
       label: "Cumplo un año",
@@ -509,7 +509,7 @@ const babyShower = (paletaId: string): Content => {
       label: "Te invitamos a celebrar",
       subtitle: `La llegada de ${name}`,
       cta1: "Abrir invitación",
-      cta2: "Ver los detalles",
+      cta2: "Cómo llegar",
     },
     hero: {
       label: "Estamos esperando",

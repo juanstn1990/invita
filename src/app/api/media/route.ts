@@ -1,10 +1,16 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { ALLOWED_TYPES, MAX_BYTES, saveImage } from "@/lib/storage";
+import {
+  ALLOWED_TYPES,
+  ALLOWED_VIDEO,
+  MAX_BYTES,
+  MAX_VIDEO_BYTES,
+  saveImage,
+} from "@/lib/storage";
 import { noAutorizado } from "@/lib/auth";
 
-/** Las clases de imagen que distingue la biblioteca. */
-const KINDS = new Set(["foto", "adorno"]);
+/** Las clases de archivo que distingue la biblioteca. */
+const KINDS = new Set(["foto", "adorno", "video"]);
 
 /**
  * Sube una o varias imágenes y las anota en la biblioteca.
@@ -24,10 +30,10 @@ export async function POST(request: Request) {
 
   const files = form.getAll("file").filter((f): f is File => f instanceof File);
   if (!files.length) {
-    return NextResponse.json({ error: "No llegó ninguna imagen." }, { status: 400 });
+    return NextResponse.json({ error: "No llegó ningún archivo." }, { status: 400 });
   }
   if (files.length > 12) {
-    return NextResponse.json({ error: "Máximo 12 imágenes a la vez." }, { status: 400 });
+    return NextResponse.json({ error: "Máximo 12 archivos a la vez." }, { status: 400 });
   }
 
   const kindRaw = String(form.get("kind") || "foto");
@@ -38,14 +44,26 @@ export async function POST(request: Request) {
 
   const urls: string[] = [];
   for (const [i, file] of files.entries()) {
-    if (!ALLOWED_TYPES[file.type]) {
+    const video = Boolean(ALLOWED_VIDEO[file.type]);
+    if (!video && !ALLOWED_TYPES[file.type]) {
+      /* Se nombra el archivo porque casi siempre es uno de varios, y sin el
+         nombre no se sabe cuál quitar. El caso típico es un MOV del iPhone. */
       return NextResponse.json(
-        { error: `"${file.name}" no es una imagen JPG, PNG, WebP, GIF o AVIF.` },
+        {
+          error:
+            `"${file.name}" no es un formato que los navegadores reproduzcan: ` +
+            `imágenes JPG, PNG, WebP, GIF o AVIF, y vídeo MP4 o WebM.`,
+        },
         { status: 415 }
       );
     }
-    if (file.size > MAX_BYTES) {
-      return NextResponse.json({ error: `"${file.name}" pesa más de 8 MB.` }, { status: 413 });
+
+    const techo = video ? MAX_VIDEO_BYTES : MAX_BYTES;
+    if (file.size > techo) {
+      return NextResponse.json(
+        { error: `"${file.name}" pesa más de ${video ? "64 MB" : "8 MB"}.` },
+        { status: 413 }
+      );
     }
 
     const url = await saveImage(Buffer.from(await file.arrayBuffer()), file.type);
@@ -63,7 +81,10 @@ export async function POST(request: Request) {
           bytes: file.size,
           width: w || null,
           height: h || null,
-          kind,
+          /* Un vídeo va siempre al estante de vídeo, aunque se haya subido
+             desde el campo de una foto: es lo que hace que la biblioteca
+             pueda filtrarlo después. */
+          kind: video ? "video" : kind,
         },
       })
       .catch(() => null);
@@ -96,7 +117,7 @@ export async function GET(request: Request) {
     orderBy: { createdAt: "desc" },
     take: take + 1,
     ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
-    select: { id: true, url: true, name: true, width: true, height: true, kind: true },
+    select: { id: true, url: true, name: true, width: true, height: true, kind: true, mime: true },
   });
 
   const hayMas = items.length > take;

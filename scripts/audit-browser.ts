@@ -8,6 +8,7 @@
  *  2. Que no salga ni una petición a un dominio externo de imágenes.
  *  3. Que la foto del organizador siga puesta después de que corran los
  *     scripts — los templates traían uno que la pisaba.
+ *  4. Que nada tape la barra de controles de un vídeo a sangre.
  *
  *   npm run audit:browser
  */
@@ -56,6 +57,13 @@ const ORIGEN = "https://invitacion.local";
     const data = presetFor(tpl);
     (data.hero as any).backgroundUrl = PORTADA;
     (data.gallery as any).items = [{ url: FOTO }, { url: FOTO }, { url: FOTO }];
+    /* Un vídeo a sangre, para la comprobación 4. */
+    (data as any).layout = {
+      blocks: [
+        { id: "vid", type: "video", variant: "completa",
+          data: { enabled: true, fuente: "subido", url: "https://ejemplo.test/clip.mp4" } },
+      ],
+    };
 
     const html = renderInvitation({
       templateHtml: readTemplate(tpl.id), templateId: tpl.id, data, preview: true,
@@ -90,6 +98,38 @@ const ORIGEN = "https://invitacion.local";
       return malos.slice(0, 3);
     })()`);
 
+    /* ¿Se puede darle al play?
+       El divisor de cada diseño —una ola, un arco— se monta sobre el final de
+       la sección anterior con un margen negativo y z-index 4. Sobre un vídeo a
+       sangre eso caía justo en la barra de controles: el vídeo se veía y no se
+       podía reproducir. Se mira quién está encima de ese punto, que es lo
+       único que distingue "tapado" de "se ve bien". */
+    /* El velo bloquea el desplazamiento hasta que se entra, así que primero
+       se suelta y se desplaza, y la medición va aparte: `scrollIntoView` no
+       ha terminado cuando vuelve, y midiendo en la misma pasada el punto caía
+       fuera de la ventana en los 42. */
+    await page.evaluate(`(() => {
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+      var m = document.getElementById('main');
+      if (m) { m.style.opacity = '1'; m.style.visibility = 'visible'; }
+      var v = document.querySelector('.inv-video-propio');
+      if (v) v.scrollIntoView({ block: 'center', behavior: 'instant' });
+    })()`);
+    await page.waitForTimeout(500);
+
+    const tapado: string = await page.evaluate(`(() => {
+      var v = document.querySelector('.inv-video-propio');
+      if (!v) return 'sin vídeo en la página';
+      var c = v.getBoundingClientRect();
+      if (c.bottom > window.innerHeight || c.bottom < 0) return 'no se pudo poner a la vista';
+      // 18px por encima del borde inferior: donde vive la barra de controles.
+      var el = document.elementFromPoint(c.left + c.width / 2, c.bottom - 18);
+      if (!el) return 'nada en ese punto';
+      if (el === v || v.contains(el)) return '';
+      return (el.tagName.toLowerCase() + '.' + String(el.className || '').split(' ').filter(Boolean).join('.'));
+    })()`);
+
     // ¿La foto del organizador sobrevivió a los scripts del template?
     const sobrevive = await page.evaluate((url) => {
       const fondo = Array.from(document.querySelectorAll<HTMLElement>("*")).some((n) =>
@@ -103,14 +143,16 @@ const ORIGEN = "https://invitacion.local";
 
     await page.close();
 
-    const ok = !errores.length && !externas.length && sobrevive && !adornosGrandes.length;
+    const ok =
+      !errores.length && !externas.length && sobrevive && !adornosGrandes.length && !tapado;
     if (!ok) malos++;
     console.log(
       `${ok ? "✓" : "✗"} ${tpl.id.padEnd(28)}` +
         `${errores.length ? `  ${errores.length} error(es): ${errores[0]}` : ""}` +
         `${externas.length ? `  pide ${externas[0]}` : ""}` +
         `${sobrevive ? "" : "  FOTO PISADA"}` +
-        `${adornosGrandes.length ? `  adorno gigante: ${adornosGrandes[0]}` : ""}`
+        `${adornosGrandes.length ? `  adorno gigante: ${adornosGrandes[0]}` : ""}` +
+        `${tapado ? `  controles del vídeo tapados por ${tapado}` : ""}`
     );
   }
 

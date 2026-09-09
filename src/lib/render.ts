@@ -619,6 +619,130 @@ function ponerAdornos(seccion: El, d: InvitationData[string], sel: string, ctx: 
   }
 }
 
+/* ── vídeo ───────────────────────────────────────────────────── */
+
+/**
+ * Saca el identificador de un link de YouTube, en cualquiera de sus formas.
+ *
+ * Nadie copia el link "canónico": se copia lo que la barra del navegador
+ * tenga, y eso puede ser `watch?v=`, `youtu.be/`, `/shorts/`, `/embed/`, con
+ * `?si=` de la app de compartir, con `&list=` de una lista, o con la hora a
+ * la que iba el vídeo. Rechazar todo eso menos uno sería trasladar el
+ * problema a quien edita.
+ *
+ * Un link que no sea de YouTube devuelve `null`, y el bloque se esconde en
+ * lugar de dejar un recuadro roto.
+ */
+function youtube(link: string): { id: string; desde: number } | null {
+  const bruto = link.trim();
+  if (!bruto) return null;
+
+  /* Un identificador pegado a secas: 11 caracteres del alfabeto de YouTube. */
+  if (/^[\w-]{11}$/.test(bruto)) return { id: bruto, desde: 0 };
+
+  let u: URL;
+  try {
+    u = new URL(bruto.includes("//") ? bruto : `https://${bruto}`);
+  } catch {
+    return null;
+  }
+
+  const host = u.hostname.replace(/^www\.|^m\./, "");
+  const partes = u.pathname.split("/").filter(Boolean);
+
+  let id = "";
+  if (host === "youtu.be") id = partes[0] || "";
+  else if (host === "youtube.com" || host === "youtube-nocookie.com") {
+    if (partes[0] === "watch") id = u.searchParams.get("v") || "";
+    else if (["embed", "shorts", "live", "v"].includes(partes[0])) id = partes[1] || "";
+  }
+  if (!/^[\w-]{11}$/.test(id)) return null;
+
+  /* `t` viene como `90`, `1m30s` o `90s` según de dónde se copie. */
+  const t = u.searchParams.get("t") || u.searchParams.get("start") || "";
+  let desde = 0;
+  const reloj = /^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?$/.exec(t);
+  if (/^\d+$/.test(t)) desde = Number(t);
+  else if (reloj && t) {
+    desde = Number(reloj[1] || 0) * 3600 + Number(reloj[2] || 0) * 60 + Number(reloj[3] || 0);
+  }
+
+  return { id, desde };
+}
+
+/**
+ * Resuelve un bloque de vídeo: elige el reproductor y borra el otro.
+ *
+ * El marcado trae los dos —un `<iframe>` y un `<video>`— porque se construye
+ * sin saber qué eligió quien edita (ver `lienzoVideo`). Aquí ya se sabe.
+ *
+ * Sin vídeo de ninguna clase el bloque se esconde entero. Un reproductor
+ * vacío no es "todavía sin llenar": es un rectángulo negro en medio de la
+ * invitación, y quien la abre no distingue eso de algo roto.
+ */
+function ponerVideo(root: El, d: InvitationData[string]): boolean {
+  const lienzo = root.querySelector?.(".inv-video-lienzo") as El | null;
+  if (!lienzo) return true;
+
+  const marco = lienzo.querySelector(".inv-video-frame") as El | null;
+  const propio = lienzo.querySelector(".inv-video-propio") as El | null;
+
+  const subido = String(d.url || "").trim();
+  const enlace = String(d.youtubeUrl || "").trim();
+  /* Lo elegido manda, pero si ese lado está vacío y el otro tiene algo, se
+     usa el que hay: cambiar de fuente y olvidar el selector es lo normal. */
+  const quiere = String(d.fuente || "").trim();
+  const yt = youtube(enlace);
+  const usaYoutube = quiere === "subido" ? Boolean(!subido && yt) : Boolean(yt);
+  const sola = String(d.reproduccion || "").trim() === "automatica";
+
+  if (usaYoutube && yt) {
+    propio?.parentNode?.removeChild(propio);
+    if (marco) {
+      const q = new URLSearchParams({ rel: "0", modestbranding: "1", playsinline: "1" });
+      if (yt.desde) q.set("start", String(yt.desde));
+      if (sola) {
+        q.set("autoplay", "1");
+        q.set("mute", "1");
+        q.set("controls", "0");
+        q.set("loop", "1");
+        /* El bucle de YouTube sólo funciona con una lista, y una lista de un
+           solo vídeo es el propio vídeo. Sin esto se reproduce una vez. */
+        q.set("playlist", yt.id);
+      }
+      /* `-nocookie` es el mismo reproductor sin la cookie de seguimiento
+         hasta que le dan al play: una invitación de boda no tiene por qué
+         dejar a YouTube marcar a los invitados. */
+      marco.setAttribute("src", `https://www.youtube-nocookie.com/embed/${yt.id}?${q}`);
+    }
+    return true;
+  }
+
+  if (subido) {
+    marco?.parentNode?.removeChild(marco);
+    if (propio) {
+      /* Tal cual: el redimensionador de `/api/media` no toca el vídeo, y
+         pedirle un `?w=` sólo añadiría una URL que no cachea igual. */
+      propio.setAttribute("src", subido);
+      const poster = String(d.poster || "").trim();
+      if (poster) propio.setAttribute("poster", conAncho(poster, 800));
+      if (sola) {
+        /* Sonar sola no lo permite ningún navegador, así que la única
+           reproducción automática posible es en silencio. Y sin `muted`
+           puesto, el `autoplay` se ignora y queda un vídeo parado. */
+        propio.setAttribute("muted", "");
+        propio.setAttribute("autoplay", "");
+        propio.setAttribute("loop", "");
+        propio.removeAttribute("controls");
+      }
+    }
+    return true;
+  }
+
+  ocultar(root);
+  return false;
+}
+
 /* ── listas repetibles ───────────────────────────────────────── */
 
 /**
@@ -1228,6 +1352,32 @@ export const INJECTED_CSS = `
 .inv-foto-arco .gallery-item{max-width:340px;margin:26px auto 0;aspect-ratio:3/4;
   border-radius:50% 50% 10px 10px / 34% 34% 5px 5px}
 
+/* ── Vídeo ── */
+.inv-video{margin:0}
+.inv-video-lienzo{position:relative;overflow:hidden;margin:26px auto 0;
+  border-radius:var(--inv-radius);border:1px solid var(--inv-field-border);
+  background:#000}
+.inv-video-frame,.inv-video-propio{position:absolute;inset:0;width:100%;height:100%;
+  border:0;display:block}
+/* cover y no contain: el marco ya lleva la proporción del vídeo, y una franja
+   negra alrededor delata que la forma elegida no era la del vídeo. */
+.inv-video-propio{object-fit:cover;background:#000}
+.inv-video-pie{margin-top:10px;text-align:center;font-size:12.5px;opacity:.68}
+
+.inv-video-16-9 .inv-video-lienzo{aspect-ratio:16/9;max-width:620px}
+.inv-video-9-16 .inv-video-lienzo{aspect-ratio:9/16;max-width:320px}
+
+.inv-block.inv-v-completa .inv-video-lienzo{margin:0;border-radius:0;
+  border-left:0;border-right:0;aspect-ratio:16/9}
+/* El divisor del diseño (una ola, un arco) se monta sobre el final de la
+   sección anterior con un margen negativo y z-index 4. Sobre un vídeo a
+   sangre eso cae justo en la barra de controles: se veía el vídeo y no se
+   podía darle al play. El vídeo pasa por encima. */
+.inv-block.inv-v-completa:has(.inv-video){position:relative;z-index:5}
+@media (max-width:640px){
+  .inv-block.inv-v-completa .inv-video-lienzo{aspect-ratio:4/3}
+}
+
 /* ── Ubicación ── */
 .inv-mapa{margin-top:26px}
 .inv-mapa-lienzo{position:relative;overflow:hidden;border-radius:var(--inv-radius);
@@ -1649,24 +1799,28 @@ const HIDE_SPLASH_JS = `
  * volverlas absolutas antes de renderizar.
  */
 export function withAbsoluteMedia(data: InvitationData, origin: string): InvitationData {
-  const fix = (v: unknown) =>
-    typeof v === "string" && v.startsWith("/api/media/") ? `${origin}${v}` : v;
-
-  const out: InvitationData = {};
-  for (const [key, section] of Object.entries(data)) {
-    const next: Record<string, unknown> = {};
-    for (const [k, v] of Object.entries(section)) {
-      next[k] = Array.isArray(v)
-        ? v.map((item) =>
-            item && typeof item === "object"
-              ? Object.fromEntries(Object.entries(item).map(([ik, iv]) => [ik, fix(iv)]))
-              : item
-          )
-        : fix(v);
+  /*
+   * Recorre a cualquier profundidad, y eso importa.
+   *
+   * Antes bajaba dos niveles —sección y, si era una lista, sus elementos— y
+   * con eso bastaba mientras todo vivía en secciones planas. Los bloques
+   * agregados guardan lo suyo en `layout.blocks[].data`, que son tres
+   * niveles, así que la foto de un bloque de Foto y el archivo de un bloque
+   * de Vídeo se quedaban relativos y no se veían en la vista previa: el
+   * mismo fallo de las fotos que ya se arregló una vez, por otro camino.
+   */
+  const camina = (v: unknown): unknown => {
+    if (typeof v === "string") {
+      return v.startsWith("/api/media/") ? `${origin}${v}` : v;
     }
-    out[key] = next as InvitationData[string];
-  }
-  return out;
+    if (Array.isArray(v)) return v.map(camina);
+    if (v && typeof v === "object") {
+      return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, camina(x)]));
+    }
+    return v;
+  };
+
+  return camina(data) as InvitationData;
 }
 
 /* ── render ──────────────────────────────────────────────────── */
@@ -1958,6 +2112,17 @@ export function renderInvitation(opts: RenderOptions): string {
     }
   }
 
+  /* 3 · ter · El botón del mapa en el velo de bienvenida.
+     Era un segundo "Confirmar asistencia" que sólo entraba a la invitación,
+     como el primero. Ahora abre la ubicación en Google Maps, y sin link no
+     tiene nada que abrir: se esconde en lugar de quedarse como un botón que
+     no hace nada. */
+  {
+    const btn = document.querySelector(".splash-btn-mapa") as El | null;
+    const link = String(data.splash?.mapUrl || "").trim();
+    if (btn && !/^https?:\/\//i.test(link)) ocultar(btn);
+  }
+
   /* 3a · Los adornos de la portada ya no se tocan.
      Aquí había un paso que, en los diseños de boda, escondía todo lo que
      pareciera decoración de la portada: ornamentos, iniciales, marcas de
@@ -2045,6 +2210,10 @@ export function renderInvitation(opts: RenderOptions): string {
     // El fondo va detrás de todo y los adornos donde el organizador diga.
     ponerFondo(root, sectionData, sectionSel, ctx);
     ponerAdornos(root, sectionData, sectionSel, ctx);
+
+    /* Un bloque de vídeo sin vídeo se esconde, y entonces no hay nada más
+       que escribirle dentro. */
+    if (r.block.type === "video" && !ponerVideo(root, sectionData)) continue;
 
     if (spec) collectFonts(spec, sectionSel, root, sectionData);
 

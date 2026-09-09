@@ -174,7 +174,10 @@ const SPLASH = `
 .splash-date{margin-top:16px;font-size:var(--fs-small);
   letter-spacing:.14em;color:var(--muted)}
 .splash-btns{display:flex;flex-direction:column;gap:10px;margin-top:28px}
-.splash-btn{padding:14px 18px;border:var(--border) solid var(--accent);
+/* Uno de los dos es un <a> al mapa y el otro un <button>: las tres primeras
+   declaraciones son las que hacen que se vean iguales. */
+.splash-btn{display:block;text-align:center;text-decoration:none;
+  padding:14px 18px;border:var(--border) solid var(--accent);
   border-radius:var(--btn-radius);background:transparent;color:var(--accent);
   font:inherit;font-size:var(--fs-micro);letter-spacing:var(--tracking);
   text-transform:var(--caps);cursor:pointer;transition:background .2s,color .2s}

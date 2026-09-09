@@ -197,6 +197,10 @@ export function BlockList({
                     ? "Un texto libre en cualquier parte"
                     : spec.type === "photo"
                     ? "Una sola foto, a sangre o con marco"
+                    : spec.type === "video"
+                    ? "De YouTube o subiendo el archivo"
+                    : spec.type === "ubicacion"
+                    ? "El mapa y cómo llegar"
                     : "Otra galería, con su propio diseño"}
                 </span>
               </span>

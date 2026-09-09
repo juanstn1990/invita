@@ -110,8 +110,8 @@ export function page(d: Design, t: Theme, c: Content): string {
     <div class="splash-btns">
       <button class="splash-btn splash-btn-primary" type="button" onclick="enterSite()"
         data-inv="splash.ctaPrimary">${e(c.splash.cta1)}</button>
-      <button class="splash-btn" type="button" onclick="enterSite()"
-        data-inv="splash.ctaSecondary">${e(c.splash.cta2)}</button>
+      <a class="splash-btn splash-btn-mapa" target="_blank" rel="noopener"
+        data-inv="splash.ctaSecondary">${e(c.splash.cta2)}</a>
     </div>
   </div>
 </div>

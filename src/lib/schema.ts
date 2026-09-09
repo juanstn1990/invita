@@ -18,6 +18,8 @@ export type FieldType =
   | "url"
   | "tel"
   | "image"
+  /** Un vídeo subido. Se guarda igual que una imagen; cambia el que lo pinta. */
+  | "video"
   | "emoji"
   | "select"
   | "range"
@@ -41,6 +43,15 @@ export interface FieldSpec {
   fallback?: number;
   /** Ancho en la grilla del formulario: 1 = media fila, 2 = fila completa. */
   span?: 1 | 2;
+  /**
+   * Muéstralo sólo si otro campo de la misma sección vale esto.
+   *
+   * Lo pide el bloque de vídeo: con la fuente en YouTube, el campo de subir
+   * archivo y el de la portada no tienen nada que hacer ahí, y un formulario
+   * con la mitad de los campos sin sentido es un formulario en el que se
+   * llena el equivocado.
+   */
+  showIf?: { key: string; value: string | string[] };
 }
 
 export interface ListSpec {
@@ -345,7 +356,15 @@ export const SECTIONS: SectionSpec[] = [
       { key: "label", label: "Antetítulo", type: "text", placeholder: "Te invitamos a celebrar" },
       { key: "subtitle", label: "Subtítulo", type: "text", placeholder: "Nuestra Boda" },
       { key: "ctaPrimary", label: "Botón principal", type: "text", placeholder: "Abrir invitación" },
-      { key: "ctaSecondary", label: "Botón secundario", type: "text", placeholder: "Confirmar asistencia" },
+      { key: "ctaSecondary", label: "Botón secundario", type: "text", placeholder: "Cómo llegar" },
+      {
+        key: "mapUrl",
+        label: "Link de Google Maps",
+        type: "url",
+        span: 2,
+        placeholder: "https://maps.app.goo.gl/...",
+        help: "El botón secundario abre este link en otra pestaña. Sin link, el botón no aparece: uno que no lleva a ningún sitio es peor que ninguno.",
+      },
       {
         key: "musicUrl",
         label: "Música de fondo (URL .mp3)",
@@ -716,7 +735,8 @@ export function defaultData(): InvitationData {
       label: "Te invitamos a celebrar",
       subtitle: "Nuestra Boda",
       ctaPrimary: "Abrir invitación",
-      ctaSecondary: "Confirmar asistencia",
+      ctaSecondary: "Cómo llegar",
+      mapUrl: "",
       musicUrl: "",
     },
     hero: {

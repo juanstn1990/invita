@@ -20,7 +20,8 @@
     "iconos:build": "tsx scripts/build-iconos.ts",
     "templates:shots": "tsx scripts/shots.ts",
     "audit:browser": "tsx scripts/audit-browser.ts",
-    "audit:auth": "tsx scripts/audit-auth.ts"
+    "audit:auth": "tsx scripts/audit-auth.ts",
+    "db:migrar-splash": "tsx scripts/migrar-splash-mapa.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.20.0",

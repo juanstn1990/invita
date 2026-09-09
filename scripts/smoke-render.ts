@@ -107,4 +107,110 @@ for (const [nombre, tocar] of CASOS) {
   );
 }
 
-console.log((bad || botonMal) ? `\n${bad} diseños y ${botonMal} casos del botón con problemas` : "\nTodos los diseños renderizan limpio");
+
+
+/* ── El botón del mapa en el velo de bienvenida ──────────────────
+   Antes era un segundo "Confirmar asistencia" que hacía lo mismo que el
+   primero: entrar. Ahora abre la ubicación, y sin link no tiene nada que
+   abrir. */
+{
+  const casos: [string, string, boolean][] = [
+    ["con link", "https://maps.app.goo.gl/abc123", true],
+    ["sin link", "", false],
+    ["basura en el campo", "no es un link", false],
+  ];
+  for (const [nombre, link, debeVerse] of casos) {
+    const mal: string[] = [];
+    for (const tpl of TEMPLATES) {
+      const d: any = defaultData();
+      d.splash.mapUrl = link;
+      const { document } = parseHTML(
+        renderInvitation({
+          templateHtml: readTemplate(tpl.id), templateId: tpl.id, data: d, slug: "demo",
+        })
+      );
+      const b = document.querySelector(".splash-btn-mapa") as any;
+      const visible = Boolean(b) && b.getAttribute("hidden") === null;
+      if (visible !== debeVerse) mal.push(tpl.id);
+      /* Visible tiene que llevar el href puesto: un botón que se ve y no
+         lleva a ningún sitio es el fallo que ya se arregló en la portada. */
+      if (debeVerse && visible && (b.getAttribute("href") || "") !== link) {
+        mal.push(`${tpl.id} (href)`);
+      }
+    }
+    if (mal.length) botonMal++;
+    console.log(
+      `${mal.length ? "✗" : "✓"} botón del mapa · ${nombre.padEnd(22)}` +
+        (mal.length ? `  ${mal.length} mal: ${mal.slice(0, 3).join(", ")}` : "")
+    );
+  }
+}
+
+/* ── El bloque de vídeo ──────────────────────────────────────────
+   El marcado trae los dos reproductores y el render borra el que no toca.
+   Si se quedaran los dos, la invitación mostraría el vídeo dos veces; si se
+   borraran los dos, un rectángulo negro. */
+{
+  const casos: [string, Record<string, string>, "yt" | "propio" | "nada", string?][] = [
+    ["youtube watch", { fuente: "youtube", youtubeUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ" }, "yt", "dQw4w9WgXcQ"],
+    ["youtu.be con ?si=", { fuente: "youtube", youtubeUrl: "https://youtu.be/dQw4w9WgXcQ?si=xY7" }, "yt", "dQw4w9WgXcQ"],
+    ["shorts", { fuente: "youtube", youtubeUrl: "https://www.youtube.com/shorts/dQw4w9WgXcQ" }, "yt", "dQw4w9WgXcQ"],
+    ["con minuto de inicio", { fuente: "youtube", youtubeUrl: "https://youtu.be/dQw4w9WgXcQ?t=1m30s" }, "yt", "start=90"],
+    ["archivo subido", { fuente: "subido", url: "/api/media/2026/09/aaaaaaaaaaaaaaaaaaaaaaaa.mp4" }, "propio"],
+    ["fuente youtube pero sólo hay archivo", { fuente: "youtube", url: "/api/media/2026/09/aaaaaaaaaaaaaaaaaaaaaaaa.mp4" }, "propio"],
+    ["link que no es de youtube", { fuente: "youtube", youtubeUrl: "https://vimeo.com/12345" }, "nada"],
+    ["sin nada", { fuente: "youtube" }, "nada"],
+  ];
+
+  for (const [nombre, datos, espera, contiene] of casos) {
+    const mal: string[] = [];
+    for (const tpl of TEMPLATES) {
+      const d: any = defaultData();
+      d.layout = {
+        blocks: [{ id: "v1", type: "video", variant: "marco", data: { enabled: true, ...datos } }],
+      };
+      const { document } = parseHTML(
+        renderInvitation({
+          templateHtml: readTemplate(tpl.id), templateId: tpl.id, data: d, slug: "demo",
+        })
+      );
+      const bloque = document.querySelector(".inv-video") as any;
+      const marco = document.querySelector(".inv-video-frame") as any;
+      const propio = document.querySelector(".inv-video-propio") as any;
+      const oculto = (el: any) =>
+        !el || (el.closest?.("[hidden]") ?? null) !== null || el.getAttribute("hidden") !== null;
+
+      if (espera === "nada") {
+        if (bloque && !oculto(bloque)) mal.push(`${tpl.id} (debía esconderse)`);
+        continue;
+      }
+      if (espera === "yt") {
+        if (!marco) mal.push(`${tpl.id} (sin iframe)`);
+        else if (propio) mal.push(`${tpl.id} (quedaron los dos)`);
+        else {
+          const src = marco.getAttribute("src") || "";
+          if (!src.includes("youtube-nocookie.com/embed/")) mal.push(`${tpl.id} (src: ${src})`);
+          if (contiene && !src.includes(contiene)) mal.push(`${tpl.id} (falta ${contiene})`);
+        }
+      } else {
+        if (!propio) mal.push(`${tpl.id} (sin <video>)`);
+        else if (marco) mal.push(`${tpl.id} (quedaron los dos)`);
+        else if (!(propio.getAttribute("src") || "").endsWith(".mp4")) {
+          mal.push(`${tpl.id} (src: ${propio.getAttribute("src")})`);
+        }
+      }
+    }
+    if (mal.length) botonMal++;
+    console.log(
+      `${mal.length ? "✗" : "✓"} vídeo · ${nombre.padEnd(34)}` +
+        (mal.length ? `  ${mal.length} mal: ${mal.slice(0, 2).join(", ")}` : "")
+    );
+  }
+}
+
+console.log(
+  bad || botonMal
+    ? `\n${bad} diseños y ${botonMal} casos con problemas`
+    : "\nTodos los diseños renderizan limpio"
+);
+if (bad || botonMal) process.exit(1);

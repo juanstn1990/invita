@@ -760,6 +760,16 @@ La caché sigue siendo `immutable` a un año —el nombre del archivo es aleator
 y nunca cambia— y el ancho va en la URL, así que cada tamaño tiene su entrada.
 `Vary: Accept` porque el formato depende del navegador.
 
+### Las fotos de los bloques en la vista previa
+
+`withAbsoluteMedia` bajaba dos niveles —la sección y, si era una lista, sus
+elementos—, que era todo lo que hacía falta mientras el contenido vivía en
+secciones planas. Los bloques agregados guardan lo suyo en
+`layout.blocks[].data`, que son tres, así que **la foto de un bloque de Foto y
+el archivo de un bloque de Vídeo se quedaban relativos y no se veían en la
+vista previa** — el mismo síntoma de las fotos que ya se arregló una vez, por
+otro camino. Ahora recorre a cualquier profundidad.
+
 ## Vista previa al compartir
 
 Una invitación se reparte por WhatsApp, y ahí un enlace sin Open Graph sale
@@ -837,6 +847,149 @@ desplazan la página al pulsar.
 ✓ botón de portada · cuenta atrás apagada
 ✓ botón de portada · las dos cosas
 ```
+
+## El velo de bienvenida: «Cómo llegar», no un segundo «Confirmar»
+
+El velo tenía dos botones y los dos hacían lo mismo: entrar a la invitación.
+El primero decía «Abrir invitación» y el segundo «Confirmar asistencia», que
+además prometía algo que no cumplía — no llevaba a confirmar nada, entraba
+igual que el otro.
+
+Ahora el segundo abre la ubicación en Google Maps, en otra pestaña, y hay un
+campo para el link. Es la pregunta que de verdad se hace quien recibe una
+invitación por WhatsApp antes de leerla entera.
+
+**Sin link no aparece.** Un botón que no lleva a ningún sitio es peor que
+ninguno: quien lo pulsa no sabe si la invitación está rota o si es él. Lo
+mismo si el campo tiene algo que no es una dirección web.
+
+Un detalle de implementación que cuesta ver: el botón pasó de `<button>` a
+`<a>`, y un enlace no se parece a un botón por defecto —sale subrayado y con
+el texto a la izquierda—. Las tres primeras declaraciones de `.splash-btn`
+(`display:block`, `text-align:center`, `text-decoration:none`) son las que
+hacen que los dos se vean idénticos. `npm run audit:render` comprueba que
+aparezca y desaparezca cuando toca, y una prueba en navegador midió los dos
+botones de los 42 velos para que ninguno quedara más alto o más ancho que el
+otro.
+
+### Las invitaciones que ya existían
+
+El texto por defecto del esquema cambió, pero eso sólo vale para las nuevas:
+en las guardadas está escrito dentro de su JSON. Y dejarlo así no es
+cosmético — en cuanto se le ponga el link, un botón que dice «Confirmar
+asistencia» abriría un mapa.
+
+```
+npm run db:migrar-splash -- --seco     # dice qué cambiaría
+npm run db:migrar-splash               # lo cambia
+```
+
+Sólo toca el texto exacto que ponía el esquema. Quien lo haya cambiado a mano
+—«Ver los detalles», «Más información»— se queda con el suyo: eso es una
+decisión de quien edita y no le corresponde a una migración.
+
+## Vídeo
+
+Un bloque más, que se agrega donde se quiera y funciona en los 42 porque sale
+del mismo vocabulario de clases que los demás. Dos fuentes:
+
+- **De YouTube** — se pega el link tal cual esté en la barra del navegador.
+- **Un archivo propio** — MP4 o WebM, hasta 64 MB.
+
+Tres formas: apaisado (16:9), vertical (9:16, para lo grabado con el celular
+de pie) y a sangre, de borde a borde.
+
+### El link de YouTube: cualquiera de sus formas
+
+Nadie copia el link canónico; se copia lo que haya en la barra. Así que se
+aceptan `watch?v=`, `youtu.be/`, `/shorts/`, `/embed/`, `/live/`, con el `?si=`
+que agrega la app al compartir, con el `&list=` de una lista, y con la hora a
+la que iba el vídeo (`t=90`, `t=1m30s`), que se respeta como minuto de
+inicio. También el identificador pelado.
+
+Un link que **no** sea de YouTube —un Vimeo, un Drive— devuelve `null` y el
+bloque se esconde. Es a propósito: un reproductor que no puede cargar nada es
+un rectángulo negro en medio de la invitación, y quien la abre no lo distingue
+de algo roto.
+
+El reproductor es `youtube-nocookie.com`: el mismo, sin la cookie de
+seguimiento hasta que se le da al play. Una invitación de boda no tiene por
+qué dejar que YouTube marque a los invitados.
+
+### Los dos reproductores, y por qué el marcado trae los dos
+
+El bloque se construye con un `<iframe>` **y** un `<video>` dentro, y el
+render borra el que no toca. La razón es que `build()` no recibe datos: el
+marcado de un bloque se arma sin saber qué eligió quien edita. La alternativa
+era una variante por fuente, y entonces pasar de YouTube a un archivo subido
+obligaría a cambiar también de variante y perder la forma elegida.
+
+Si se quedaran los dos, la invitación mostraría el vídeo dos veces; si se
+borraran los dos, un recuadro negro. `npm run audit:render` comprueba las
+ocho combinaciones —cada forma de link, el archivo, la fuente equivocada, el
+link que no es de YouTube y el bloque vacío— en los 42 diseños.
+
+### El archivo subido se sirve por tramos
+
+Esto no es una optimización, es la diferencia entre que se vea y que no:
+
+- **Safari, y iOS entero, no reproduce un vídeo si el servidor no responde
+  `206 Partial Content`.** Pide los primeros bytes con `Range` para leer la
+  cabecera del MP4 y, si recibe un `200` con el archivo completo, abandona y
+  deja un recuadro negro. Y las invitaciones se abren en el móvil.
+- **Adelantar** el vídeo depende de lo mismo: sin tramos, el navegador
+  tendría que bajarlo entero para saltar al minuto dos.
+- **Memoria.** Las imágenes se leen enteras y se devuelven; un MP4 de 60 MB
+  leído entero por petición, con varias personas abriendo la invitación a la
+  vez, tumba el contenedor. El vídeo va como stream desde el disco.
+
+Así que `/api/media/{...}` se bifurca antes de todo lo demás: si el archivo es
+vídeo, `videoPorTramos()`. Anuncia `Accept-Ranges: bytes`, responde `206` con
+su `Content-Range`, entiende `bytes=-500` (los últimos 500) y devuelve `416`
+a un tramo más allá del final, que es lo que el reproductor espera para dejar
+de insistir.
+
+Verificado de punta a punta en Chromium, sin `ffmpeg`: el propio navegador
+graba un WebM con `MediaRecorder` sobre un canvas, se sube por la API real, se
+sirve, y se comprueba que decodifica (`readyState 4`, `videoWidth` > 0), que
+avanza al reproducirlo y que se puede adelantar.
+
+### MP4 y WebM, nada más
+
+Son los dos que reproducen todos los navegadores sin plugins. Un MOV de
+iPhone o un AVI se rechazan **con su nombre** —«"iphone.MOV" no es un formato
+que los navegadores reproduzcan»— porque casi siempre es uno entre varios
+archivos y sin el nombre no se sabe cuál quitar. MKV queda fuera aunque el
+contenedor pueda llevar H.264 dentro: ninguno lo reproduce de forma fiable.
+
+Un vídeo se cataloga siempre en el estante de vídeo de la biblioteca, aunque
+se suba desde el campo de una foto, y no se reduce en el navegador como las
+imágenes: recodificarlo serían minutos de CPU y una pérdida de calidad que
+nadie pidió.
+
+### La reproducción automática es en silencio, o no es
+
+La opción «sola, en silencio y en bucle» pone `muted autoplay loop
+playsinline`, y el `muted` no es un detalle: sin él el `autoplay` se ignora y
+queda un vídeo parado. Ningún navegador deja que una página empiece a sonar
+sola. Para un clip corto de ambiente sirve; para un vídeo con voz, controles.
+
+En YouTube es lo mismo por otra vía: `autoplay=1&mute=1&controls=0`, más
+`playlist=<id>` — el bucle de YouTube sólo funciona con una lista, y una lista
+de un solo vídeo es el propio vídeo.
+
+### Lo que tapaba el play
+
+En la forma a sangre, el divisor de cada diseño —una ola, un arco— se monta
+sobre el final de la sección anterior con un margen negativo y `z-index: 4`.
+Sobre un vídeo eso caía **justo en la barra de controles**: el vídeo se veía
+perfectamente y no se podía reproducir. Con una foto a sangre el mismo divisor
+es decoración bonita; con un vídeo es un botón que no se puede pulsar.
+
+No lo ve ninguna auditoría de marcado ni de errores de JavaScript, así que
+`npm run audit:browser` ahora hace una prueba de impacto: pone el vídeo a la
+vista y pregunta al navegador **quién está encima** del punto donde vive la
+barra de controles. Si no es el vídeo, falla y dice qué lo tapa.
 
 ## Quién puede entrar
 

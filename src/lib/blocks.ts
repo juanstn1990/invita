@@ -655,6 +655,106 @@ const ubicacion: BlockSpec = {
   ],
 };
 
+/* ── Vídeo (bloque nuevo) ─────────────────────────────────── */
+
+/**
+ * El lienzo lleva **los dos** reproductores y el render borra el que no toca.
+ *
+ * Es a propósito: el marcado de un bloque se construye sin saber qué eligió
+ * quien edita —`build()` no recibe datos—, así que la decisión se toma en
+ * `ponerVideo()`, que sí los tiene. La alternativa era una variante por
+ * fuente, y entonces cambiar de YouTube a un archivo subido obligaría a
+ * cambiar también de variante y a perder la forma elegida.
+ */
+const lienzoVideo = `<div class="inv-video-lienzo">
+        <iframe class="inv-video-frame" src="" title="Vídeo" loading="lazy"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+        <video class="inv-video-propio" controls playsinline preload="metadata"></video>
+      </div>`;
+
+const marcoVideo = (clase: string) => `<figure class="inv-video ${clase}">
+      ${lienzoVideo}
+      <figcaption class="inv-video-pie">Pie del vídeo</figcaption>
+    </figure>`;
+
+const video: BlockSpec = {
+  type: "video",
+  label: "Vídeo",
+  icon: "▶",
+  repeatable: true,
+  fields: [
+    {
+      key: "fuente",
+      label: "De dónde sale",
+      type: "select",
+      span: 2,
+      options: [
+        { value: "youtube", label: "De YouTube" },
+        { value: "subido", label: "Un archivo que subo" },
+      ],
+    },
+    {
+      key: "youtubeUrl",
+      label: "Link de YouTube",
+      type: "url",
+      span: 2,
+      placeholder: "https://www.youtube.com/watch?v=...",
+      help: "Vale cualquier forma del link: watch, youtu.be, shorts o embed. Si trae un minuto de inicio, se respeta.",
+      showIf: { key: "fuente", value: "youtube" },
+    },
+    { key: "url", label: "El vídeo", type: "video", span: 2, showIf: { key: "fuente", value: "subido" } },
+    {
+      key: "poster",
+      label: "Imagen de portada del vídeo",
+      type: "image",
+      span: 2,
+      help: "Opcional. Sin ella, en iPhone se ve un recuadro negro hasta que se le da al play.",
+      showIf: { key: "fuente", value: "subido" },
+    },
+    {
+      key: "reproduccion",
+      label: "Cómo se reproduce",
+      type: "select",
+      span: 2,
+      options: [
+        { value: "controles", label: "Con controles, al darle al play" },
+        { value: "automatica", label: "Sola, en silencio y en bucle" },
+      ],
+      help: "La automática sólo funciona en silencio: ningún navegador deja que una página empiece a sonar sola. Para un clip corto de ambiente; para un vídeo con voz, controles.",
+    },
+    { key: "label", label: "Antetítulo", type: "text", placeholder: "Opcional" },
+    { key: "title", label: "Título", type: "text", placeholder: "Opcional" },
+    { key: "caption", label: "Pie del vídeo", type: "text", span: 2, placeholder: "Opcional" },
+    { key: "textColor", label: "Color de las letras", type: "color", span: 2 },
+  ],
+  variants: [
+    {
+      id: "marco",
+      name: "Apaisado",
+      hint: "16:9 centrado, con título y pie",
+      build: () => `${head()}
+    ${marcoVideo("inv-video-16-9")}`,
+    },
+    {
+      id: "vertical",
+      name: "Vertical",
+      hint: "9:16, para lo grabado con el celular de pie",
+      build: () => `${head()}
+    ${marcoVideo("inv-video-9-16")}`,
+    },
+    {
+      id: "completa",
+      name: "A sangre",
+      hint: "De borde a borde, como un respiro entre secciones",
+      bare: true,
+      build: () => `<div class="inv-video inv-video-completa">
+      ${lienzoVideo}
+    </div>`,
+    },
+  ],
+};
+
 /* ── Registro ─────────────────────────────────────────────── */
 
 export const BLOCKS: BlockSpec[] = [
@@ -668,6 +768,7 @@ export const BLOCKS: BlockSpec[] = [
   redes,
   paragraph,
   photo,
+  video,
   ubicacion,
 ];
 
@@ -741,6 +842,13 @@ export function blockDefaults(spec: BlockSpec): SectionData {
   }
   if (spec.type === "photo") {
     return { enabled: true, url: "", label: "", title: "", caption: "", textColor: "" };
+  }
+  if (spec.type === "video") {
+    return {
+      enabled: true, fuente: "youtube", youtubeUrl: "", url: "", poster: "",
+      reproduccion: "controles", label: "", title: "Nuestro vídeo", caption: "",
+      textColor: "",
+    };
   }
   if (spec.type === "ubicacion") {
     return {

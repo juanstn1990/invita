@@ -1,7 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { IMAGE_ACCEPT, fetchBiblioteca, uploadImages, type MediaItem } from "./upload";
+import {
+  IMAGE_ACCEPT,
+  VIDEO_ACCEPT,
+  fetchBiblioteca,
+  uploadImages,
+  type MediaItem,
+  type MediaKind,
+} from "./upload";
 import styles from "./editor.module.css";
 
 /* ── La biblioteca ────────────────────────────────────────── */
@@ -16,7 +23,7 @@ import styles from "./editor.module.css";
 function Biblioteca({
   kind, onPick, onClose,
 }: {
-  kind?: "foto" | "adorno";
+  kind?: MediaKind;
   onPick: (url: string) => void;
   onClose: () => void;
 }) {
@@ -60,7 +67,12 @@ function Biblioteca({
             title={m.name}
             onClick={() => { onPick(m.url); onClose(); }}
           >
-            <span className={styles.thumb} style={{ backgroundImage: `url("${m.url}")` }} />
+            {/* Un vídeo no se puede pintar como fondo: sale un hueco gris. */}
+            {m.mime?.startsWith("video/") ? (
+              <video className={styles.thumb} src={m.url} muted preload="metadata" />
+            ) : (
+              <span className={styles.thumb} style={{ backgroundImage: `url("${m.url}")` }} />
+            )}
             <span className={styles.biblioName}>{m.name}</span>
           </button>
         ))}
@@ -76,9 +88,11 @@ export function ImageField({
 }: {
   value: string;
   onChange: (url: string) => void;
-  /** Los adornos se catalogan aparte de las fotos del evento. */
-  kind?: "foto" | "adorno";
+  /** Los adornos se catalogan aparte de las fotos, y el vídeo aparte de todo. */
+  kind?: MediaKind;
 }) {
+  const video = kind === "video";
+  const accept = video ? VIDEO_ACCEPT : IMAGE_ACCEPT;
   const input = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [over, setOver] = useState(false);
@@ -104,7 +118,11 @@ export function ImageField({
   if (value) {
     return (
       <div className={styles.imagePicked}>
-        <span className={styles.thumbLg} style={{ backgroundImage: `url("${value}")` }} />
+        {video ? (
+          <video className={styles.thumbLg} src={value} muted controls preload="metadata" />
+        ) : (
+          <span className={styles.thumbLg} style={{ backgroundImage: `url("${value}")` }} />
+        )}
         <div className={styles.imagePickedInfo}>
           <button className="btn btn-sm" onClick={() => input.current?.click()} disabled={busy}>
             {busy ? "Subiendo…" : "Cambiar"}
@@ -119,7 +137,7 @@ export function ImageField({
         <input
           ref={input}
           type="file"
-          accept={IMAGE_ACCEPT}
+          accept={accept}
           hidden
           onChange={(e) => take(e.target.files)}
         />
@@ -160,8 +178,16 @@ export function ImageField({
         onDrop={(e) => { e.preventDefault(); setOver(false); take(e.dataTransfer.files); }}
       >
         <span className={styles.dropIcon} aria-hidden>↑</span>
-        <span>{busy ? "Subiendo…" : "Arrastra una foto o haz clic"}</span>
-        <span className={styles.dropHint}>JPG, PNG o WebP · hasta 8 MB</span>
+        <span>
+          {busy
+            ? "Subiendo…"
+            : video
+              ? "Arrastra un vídeo o haz clic"
+              : "Arrastra una foto o haz clic"}
+        </span>
+        <span className={styles.dropHint}>
+          {video ? "MP4 o WebM · hasta 64 MB" : "JPG, PNG o WebP · hasta 8 MB"}
+        </span>
       </button>
       <span className={styles.imageAlts}>
         <button className={styles.linkBtn} onClick={() => setBiblio(true)}>
@@ -175,7 +201,7 @@ export function ImageField({
       <input
         ref={input}
         type="file"
-        accept={IMAGE_ACCEPT}
+        accept={accept}
         hidden
         onChange={(e) => take(e.target.files)}
       />
