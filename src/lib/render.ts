@@ -566,6 +566,27 @@ function ponerFondo(seccion: El, d: InvitationData[string], sel: string, ctx: Ct
  * propia proporción sin que el renderer tenga que averiguar cuánto mide el
  * archivo, que es dato que aquí no hay.
  */
+/** Los efectos de entrada que se aceptan. El resto se ignora. */
+const ENTRADAS = new Set(["aparece", "sube", "crece", "gira", "desliza"]);
+/** Los de movimiento continuo. */
+const MOVIMIENTOS = new Set(["flota", "balancea", "late", "respira", "destello"]);
+
+/**
+ * De qué borde entra un adorno que "entra desde su borde".
+ *
+ * Se deduce de dónde está puesto: uno anclado arriba a la izquierda entra
+ * desde arriba y desde la izquierda, y así queda como si viniera de fuera de
+ * la sección. Preguntarlo aparte sería un campo más para decir lo que el
+ * sitio ya dice.
+ */
+function desdeDonde(sitio: string): string {
+  const y = sitio.startsWith("arriba") ? -1 : sitio.startsWith("abajo") ? 1 : 0;
+  const x = sitio.endsWith("izq") ? -1 : sitio.endsWith("der") ? 1 : 0;
+  /* En el centro no hay borde del que venir: se cae a subir. */
+  if (!x && !y) return "translateY(24px)";
+  return `translate(${x * 30}px, ${y * 30}px)`;
+}
+
 function ponerAdornos(seccion: El, d: InvitationData[string], sel: string, ctx: Ctx) {
   const items = (d.adornos as Record<string, string>[]) || [];
   if (!Array.isArray(items) || !items.length) return;
@@ -581,25 +602,47 @@ function ponerAdornos(seccion: El, d: InvitationData[string], sel: string, ctx: 
     const giro = Math.min(180, Math.max(-180, Number(it.giro) || 0));
     const encima = String(it.capa || "") === "encima";
     const espejo = String(it.espejo || "");
+    const entrada = ENTRADAS.has(String(it.entrada)) ? String(it.entrada) : "";
+    const movimiento = MOVIMIENTOS.has(String(it.movimiento)) ? String(it.movimiento) : "";
 
-    const caja = seccion.ownerDocument.createElement("div");
-    caja.setAttribute("class", `inv-adorno inv-ad-${sitio}`);
+    const doc = seccion.ownerDocument;
+    const caja = doc.createElement("div");
+    caja.setAttribute(
+      "class",
+      `inv-adorno inv-ad-${sitio}` + (entrada ? ` inv-ad-entra inv-ad-e-${entrada}` : "")
+    );
     caja.setAttribute("aria-hidden", "true");
     caja.setAttribute(
       "style",
       (sitio === "sangre" ? "" : `width:${tamano}%;`) +
-        `opacity:${opacidad};z-index:${encima ? 4 : 0}`
+        /* La opacidad elegida va en una variable porque la animación de
+           entrada tiene que terminar justo en ella, no en 1.
+
+           Y con entrada **no** se escribe `opacity` en línea: un estilo en
+           línea le gana a cualquier regla de la hoja, así que la regla que
+           deja el adorno invisible hasta que se asoma no llegaba a aplicarse
+           y entraba ya visible. Con entrada, la opacidad la manda el CSS. */
+        `--inv-ad-op:${opacidad};` +
+        (entrada ? "" : `opacity:${opacidad};`) +
+        `z-index:${encima ? 4 : 0}` +
+        /* Varios adornos en una sección entran uno detrás de otro: a la vez
+           parecen un parpadeo, escalonados parecen puestos a mano. */
+        (entrada && puestos ? `;--inv-ad-espera:${puestos * 120}ms` : "") +
+        (entrada === "desliza" ? `;--inv-ad-desde:${desdeDonde(sitio)}` : "")
     );
 
-    const img = seccion.ownerDocument.createElement("img");
-    /* El adorno mide lo que se declaró, en % del ancho de la sección. Un
-       tamaño 40 sobre un contenedor de ~780px son ~310px, y el doble en
-       retina: 800 es el escalón que le toca. */
-    setImage(img, url, false, tamano >= 70 || sitio === "sangre" ? 1600 : 800);
-    img.setAttribute("alt", "");
-    // La portada se ve al abrir; el resto puede esperar a que se llegue.
-    img.setAttribute("loading", "lazy");
-    img.setAttribute("decoding", "async");
+    /* Tres capas, y cada una con su trabajo, porque las tres quieren escribir
+       `transform` y la última en hacerlo gana:
+         .inv-adorno   la entrada, que corre una vez
+         .inv-ad-mov   el movimiento, que corre en bucle
+         .inv-ad-pieza el giro y el volteo, que son fijos
+       Antes el giro iba en la <img>; se movió aquí para dejarle sitio a lo
+       demás y para que el destello quede alineado con la pieza girada. */
+    const mov = doc.createElement("div");
+    mov.setAttribute("class", `inv-ad-mov${movimiento ? ` inv-ad-m-${movimiento}` : ""}`);
+
+    const pieza = doc.createElement("div");
+    pieza.setAttribute("class", "inv-ad-pieza");
     const t = [
       giro ? `rotate(${giro}deg)` : "",
       espejo.includes("h") ? "scaleX(-1)" : "",
@@ -607,9 +650,37 @@ function ponerAdornos(seccion: El, d: InvitationData[string], sel: string, ctx: 
     ]
       .filter(Boolean)
       .join(" ");
-    if (t) img.setAttribute("style", `transform:${t}`);
-    caja.appendChild(img);
+    if (t) pieza.setAttribute("style", `transform:${t}`);
 
+    const img = doc.createElement("img");
+    /* El adorno mide lo que se declaró, en % del ancho de la sección. Un
+       tamaño 40 sobre un contenedor de ~780px son ~310px, y el doble en
+       retina: 800 es el escalón que le toca. */
+    const ancho = tamano >= 70 || sitio === "sangre" ? 1600 : 800;
+    setImage(img, url, false, ancho);
+    img.setAttribute("alt", "");
+    // La portada se ve al abrir; el resto puede esperar a que se llegue.
+    img.setAttribute("loading", "lazy");
+    img.setAttribute("decoding", "async");
+    pieza.appendChild(img);
+
+    if (movimiento === "destello") {
+      /* La luz se recorta con la silueta del propio adorno: una filigrana
+         dorada brilla por sus trazos y no por el rectángulo que la contiene,
+         que es lo que separa esto de un flash barato. */
+      const luz = doc.createElement("span");
+      luz.setAttribute("class", "inv-ad-luz");
+      const m = propia(url) ? conAncho(url, ancho) : url;
+      luz.setAttribute("style", `--inv-ad-mask:url("${m.replace(/"/g, "%22")}")`);
+      /* La barra que cruza. Va aparte para animar `transform` y no
+         `background-position`: lo segundo repinta en cada fotograma, y con
+         ocho adornos por sección eso se nota en un teléfono. */
+      luz.appendChild(doc.createElement("i"));
+      pieza.appendChild(luz);
+    }
+
+    mov.appendChild(pieza);
+    caja.appendChild(mov);
     seccion.appendChild(caja);
     puestos += 1;
   }
@@ -1080,7 +1151,86 @@ export const INJECTED_CSS = `
    "Debajo" es 0 y "encima" es 4, con el contenido en 1. */
 .inv-fondo{position:absolute;inset:0;z-index:0;pointer-events:none}
 .inv-adorno{position:absolute;line-height:0;pointer-events:none}
+.inv-ad-mov,.inv-ad-pieza{display:block;line-height:0}
 .inv-adorno img{display:block;width:100%;height:auto}
+
+/* ── Efectos de los adornos ────────────────────────────────────
+   Tres capas anidadas y cada una escribe su propio transform, porque las
+   tres lo quieren y la ultima gana: la caja hace la entrada (una vez), la de
+   dentro el movimiento (en bucle) y la ultima el giro y el volteo (fijos).
+
+   La entrada la dispara el mismo observador de scroll que las secciones: el
+   adorno lleva .inv-ad-entra y recibe .in al asomarse. Se observa cada
+   adorno por separado y no su seccion, porque uno abajo del todo tiene que
+   esperar a que se llegue a el.
+
+   Sin JavaScript no hay .in y nunca llegaria: por eso el estado de partida
+   vive bajo .js, igual que el resto del movimiento del sitio. Sin JS el
+   adorno sale puesto y ya. */
+/* Sin JS no hay observador, no llega el .in y el adorno se quedaria
+   invisible para siempre: por eso la base es la opacidad elegida y solo
+   bajo .js se parte de cero. */
+.inv-ad-entra{opacity:var(--inv-ad-op,1)}
+.js .inv-ad-entra{opacity:0}
+.js .inv-ad-entra.in{
+  animation:var(--inv-ad-anim) .85s cubic-bezier(.2,.7,.3,1) both;
+  animation-delay:var(--inv-ad-espera,0ms)}
+.inv-ad-e-aparece{--inv-ad-anim:invAdAparece}
+.inv-ad-e-sube{--inv-ad-anim:invAdSube}
+.inv-ad-e-crece{--inv-ad-anim:invAdCrece}
+.inv-ad-e-gira{--inv-ad-anim:invAdGira}
+.inv-ad-e-desliza{--inv-ad-anim:invAdDesliza}
+
+/* Todas terminan en la opacidad que se eligio, no en 1. */
+@keyframes invAdAparece{from{opacity:0}to{opacity:var(--inv-ad-op,1)}}
+@keyframes invAdSube{from{opacity:0;transform:translateY(26px)}
+  to{opacity:var(--inv-ad-op,1);transform:none}}
+@keyframes invAdCrece{from{opacity:0;transform:scale(.72)}
+  to{opacity:var(--inv-ad-op,1);transform:none}}
+@keyframes invAdGira{from{opacity:0;transform:rotate(-14deg) scale(.82)}
+  to{opacity:var(--inv-ad-op,1);transform:none}}
+@keyframes invAdDesliza{from{opacity:0;transform:var(--inv-ad-desde,translateY(24px))}
+  to{opacity:var(--inv-ad-op,1);transform:none}}
+
+/* Lentos y largos a proposito: un adorno que se mueve rapido deja de ser
+   adorno y se vuelve lo primero que se mira. */
+.inv-ad-m-flota{animation:invAdFlota 6s ease-in-out infinite}
+.inv-ad-m-balancea{animation:invAdBalancea 7s ease-in-out infinite;
+  transform-origin:50% 12%}
+.inv-ad-m-late{animation:invAdLate 5s ease-in-out infinite}
+.inv-ad-m-respira{animation:invAdRespira 5.5s ease-in-out infinite}
+
+@keyframes invAdFlota{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+@keyframes invAdBalancea{0%,100%{transform:rotate(-2.2deg)}50%{transform:rotate(2.2deg)}}
+@keyframes invAdLate{0%,100%{transform:scale(1)}50%{transform:scale(1.045)}}
+@keyframes invAdRespira{0%,100%{opacity:1}50%{opacity:.55}}
+
+/* El destello: una barra de luz que cruza, recortada con la silueta del
+   propio adorno. La mascara es la misma imagen, asi que la luz sigue los
+   trazos de una filigrana en vez de barrer su rectangulo.
+
+   Se anima transform de la barra y no la posicion del degradado: lo
+   segundo repinta en cada fotograma, y con ocho adornos por seccion eso se
+   siente en un telefono. */
+.inv-ad-luz{position:absolute;inset:0;overflow:hidden;pointer-events:none;
+  -webkit-mask-image:var(--inv-ad-mask);mask-image:var(--inv-ad-mask);
+  -webkit-mask-size:100% 100%;mask-size:100% 100%;
+  -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
+  mix-blend-mode:overlay}
+.inv-ad-luz i{position:absolute;top:-25%;bottom:-25%;left:0;width:55%;
+  background:linear-gradient(105deg,transparent,rgba(255,255,255,.95),transparent);
+  animation:invAdDestello 4.2s ease-in-out infinite}
+@keyframes invAdDestello{
+  0%{transform:translateX(-160%)}
+  55%,100%{transform:translateX(320%)}}
+
+@media (prefers-reduced-motion:reduce){
+  .js .inv-ad-entra{opacity:var(--inv-ad-op,1)}
+  .js .inv-ad-entra.in{animation:none}
+  .inv-ad-m-flota,.inv-ad-m-balancea,.inv-ad-m-late,.inv-ad-m-respira,
+  .inv-ad-luz i{animation:none}
+  .inv-ad-luz{display:none}
+}
 
 .inv-ad-arriba-izq{top:0;left:0}
 .inv-ad-arriba{top:0;left:50%;translate:-50% 0}

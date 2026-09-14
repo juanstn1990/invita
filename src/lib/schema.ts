@@ -209,6 +209,36 @@ export const ADORNOS: ListSpec = {
       unit: "%",
       fallback: 100,
     },
+    {
+      key: "entrada",
+      label: "Cómo aparece",
+      type: "select",
+      span: 2,
+      options: [
+        { value: "", label: "De una, sin efecto" },
+        { value: "aparece", label: "Se desvanece hacia dentro" },
+        { value: "sube", label: "Sube mientras aparece" },
+        { value: "crece", label: "Crece desde pequeño" },
+        { value: "gira", label: "Entra girando" },
+        { value: "desliza", label: "Entra desde su borde" },
+      ],
+      help: "Se dispara cuando el adorno entra en pantalla, no al cargar. Si pones varios en una sección, entran uno detrás de otro.",
+    },
+    {
+      key: "movimiento",
+      label: "Movimiento",
+      type: "select",
+      span: 2,
+      options: [
+        { value: "", label: "Quieto" },
+        { value: "flota", label: "Flota suavemente" },
+        { value: "balancea", label: "Se balancea" },
+        { value: "late", label: "Late" },
+        { value: "respira", label: "Respira (aparece y se atenúa)" },
+        { value: "destello", label: "Un destello de luz lo recorre" },
+      ],
+      help: "En bucle, lento y corto: es un adorno, no un reclamo. El destello sigue la silueta del adorno, así que luce en una filigrana dorada y se nota poco en una mancha plana.",
+    },
     { key: "giro", label: "Giro", type: "range", min: -180, max: 180, step: 5, unit: "°", fallback: 0 },
     {
       key: "espejo",
@@ -224,7 +254,10 @@ export const ADORNOS: ListSpec = {
       help: "Para usar una misma esquina en los cuatro lados.",
     },
   ],
-  defaultItem: { url: "", sitio: "arriba-izq", tamano: "40", capa: "", opacidad: "100", giro: "0", espejo: "" },
+  defaultItem: {
+    url: "", sitio: "arriba-izq", tamano: "40", capa: "", opacidad: "100",
+    entrada: "", movimiento: "", giro: "0", espejo: "",
+  },
 };
 
 /* ────────────────────────────────────────────────────────────────

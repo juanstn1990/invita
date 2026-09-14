@@ -1416,6 +1416,75 @@ prueba, le manda de todo —el mismo nombre dos veces, escrito distinto, un
 cambio de idea, tres envíos simultáneos, dos familias con una Ana cada una, un
 link con dos nombres reenviado— y la borra al final.
 
+## Efectos de los adornos
+
+Cada adorno puede aparecer con un efecto y moverse con otro. Son dos campos
+independientes y se combinan.
+
+**Cómo aparece** — se dispara cuando el adorno **entra en pantalla**, no al
+cargar: se desvanece, sube, crece, entra girando, o entra desde su borde. Lo
+último deduce la dirección del sitio donde está puesto —uno anclado arriba a
+la izquierda viene de arriba y de la izquierda— en vez de pedir un campo más
+para decir lo que el sitio ya dice.
+
+Varios adornos en una misma sección entran **escalonados**, 120 ms uno tras
+otro. A la vez parecen un parpadeo; escalonados parecen puestos a mano. No
+hay campo para eso: el orden de la lista basta.
+
+**Movimiento** — en bucle, lento y largo a propósito, porque un adorno que se
+mueve rápido deja de ser adorno y pasa a ser lo primero que se mira: flota,
+se balancea, late, respira (aparece y se atenúa), o lo recorre un destello de
+luz.
+
+### El destello sigue la silueta, no el rectángulo
+
+La luz se recorta con una máscara que es **la propia imagen del adorno**, así
+que una filigrana dorada brilla por sus trazos y no por la caja que la
+contiene. Es lo que separa esto de un flash barato.
+
+Medido, no supuesto: entre fotogramas cambia el 1,3 % de los píxeles de la
+caja —y como el adorno de prueba sólo ocupa el 6 % de ella, eso es una quinta
+parte del adorno iluminándose— mientras que **el 0,00 % del vacío cambia**: la
+luz no se sale.
+
+Y lo que se anima es el `transform` de una barra dentro de la máscara, no la
+posición del degradado: lo segundo repinta en cada fotograma, y con ocho
+adornos por sección eso se siente en un teléfono.
+
+### Tres capas, porque las tres quieren el mismo `transform`
+
+```
+.inv-adorno     la entrada, que corre una vez
+  .inv-ad-mov   el movimiento, que corre en bucle
+    .inv-ad-pieza  el giro y el volteo, que son fijos
+      img + .inv-ad-luz
+```
+
+El giro iba antes en la `<img>`. Se movió a su propia capa para dejarle sitio
+a las otras dos —si compartieran elemento, la última en escribir `transform`
+borraría a las otras— y para que el destello quede alineado con la pieza ya
+girada.
+
+### La entrada no lleva JavaScript nuevo
+
+El adorno con efecto de entrada lleva la clase `.inv-ad-entra` y el
+observador que ya revelaba las secciones lo recoge: `querySelectorAll('.reveal,
+.inv-ad-entra')`. Se observa **cada adorno por separado** y no su sección,
+porque uno abajo del todo tiene que esperar a que se llegue a él aunque la
+sección lleve rato en pantalla.
+
+### El detalle que lo tenía roto
+
+El adorno entraba ya visible. La regla que lo deja invisible hasta que se
+asoma nunca llegaba a aplicarse porque **la opacidad elegida se escribía en el
+atributo `style`, y un estilo en línea le gana a cualquier regla de la hoja**.
+
+Ahora, cuando hay efecto de entrada, la opacidad no va en línea: va en
+`--inv-ad-op` y la manda el CSS, y las animaciones terminan en esa variable y
+no en 1. Sin JavaScript no llega el `.in`, así que la base es la opacidad
+elegida y sólo bajo `.js` se parte de cero — si no, el adorno se quedaría
+invisible para siempre.
+
 ## Marca de agua
 
 Tu firma encima de toda la invitación, para que un borrador no se pueda

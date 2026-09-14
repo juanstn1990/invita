@@ -658,7 +658,10 @@ footer{position:relative;padding:56px 22px;text-align:center;
       if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); }
     });
   }, { threshold: .12 });
-  document.querySelectorAll('.reveal').forEach(function (el) { io.observe(el); });
+  /* Los adornos con efecto de entrada se observan uno a uno, no con su
+     sección: un adorno abajo del todo tiene que esperar a que se llegue a
+     él, aunque la sección ya lleve rato en pantalla. */
+  document.querySelectorAll('.reveal, .inv-ad-entra').forEach(function (el) { io.observe(el); });
 
   /* Parallax de la portada y barra de progreso, en un solo rAF: dos
      escuchadores de scroll en un móvil son una sucesión de tirones. */
