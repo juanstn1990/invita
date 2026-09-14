@@ -1416,6 +1416,44 @@ prueba, le manda de todo —el mismo nombre dos veces, escrito distinto, un
 cambio de idea, tres envíos simultáneos, dos familias con una Ana cada una, un
 link con dos nombres reenviado— y la borra al final.
 
+## Plantillas propias
+
+El catálogo de los 42 sale del código (`src/lib/design/designs/`), así que no
+puede recibir uno nuevo sin desplegar. Esto es el otro catálogo: el que hace
+el organizador con su propio trabajo.
+
+En el editor, **«Guardar como plantilla»** guarda la invitación como punto de
+partida. Aparece en «Elige un diseño», arriba de los 42 —quien guardó una es
+porque quiere empezar desde ahí, y ponerla debajo de cuarenta y dos tarjetas
+sería esconderla— con su vista previa real, no un icono.
+
+### Se guarda una copia, no una referencia
+
+Si mañana se edita la invitación de la que salió, la plantilla se queda como
+estaba. Es deliberado: una plantilla que se moviera sola bajo los pies
+dejaría de servir para lo único que sirve, que es empezar igual dos veces.
+
+Y al revés: borrar la plantilla no toca las invitaciones hechas con ella.
+
+### Qué se lleva y qué no
+
+Se lleva **todo lo que vive en `data`**: el diseño, la paleta, el orden y las
+variantes de los bloques, los colores y tipografías por sección, los fondos,
+los adornos con sus efectos, la marca de agua, los metadatos de compartir, y
+también los textos y las fotos.
+
+No se lleva nada de fuera de `data` —el slug, si estaba publicada, las
+confirmaciones, los enlaces de invitado, las aperturas— porque eso es de esa
+invitación concreta y no del punto de partida. La nueva nace sin publicar y
+con su propio slug.
+
+### El nombre de la ruta
+
+`/api/mis-plantillas`, y no `/api/plantillas`, porque `/api/plantilla/[id]` ya
+existe y renderiza uno de los 42 con contenido de ejemplo. Son dos cosas
+distintas, y confundirlas en la dirección sería confundirlas en la cabeza de
+quien lea esto en seis meses.
+
 ## Efectos de los adornos
 
 Cada adorno puede aparecer con un efecto y moverse con otro. Son dos campos
@@ -1665,6 +1703,7 @@ src/app/[slug]/route.ts                 la invitación publicada
 src/app/api/invitations/                crear · guardar · publicar · borrar
 src/app/api/preview/                    render en vivo para el editor
 src/app/api/plantilla/[id]/             vista previa de un diseño con datos de ejemplo
+src/app/api/mis-plantillas/             las plantillas propias: guardar, listar, borrar, ver
 src/app/api/biblioteca/                 una variante por tarjeta, para elegir de un vistazo
 src/app/api/i/[slug]/rsvp/              confirmaciones
 src/app/g/[token]/                      panel de invitados que se comparte

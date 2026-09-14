@@ -1,11 +1,22 @@
 import Link from "next/link";
 import { TEMPLATES, KIND_LABEL, FAMILIES } from "@/lib/templates";
 import { TemplateCard } from "./TemplateCard";
+import { MisPlantillas } from "./MisPlantillas";
+import { prisma } from "@/lib/prisma";
 import { requiereSesion } from "@/lib/auth";
 import styles from "./nueva.module.css";
 
+export const dynamic = "force-dynamic";
+
 export default async function NuevaPage() {
   await requiereSesion("/nueva");
+
+  /* Las propias van primero: quien guardó una es porque quiere empezar desde
+     ahí, y ponerlas debajo de cuarenta y dos tarjetas sería esconderlas. */
+  const mias = await prisma.plantilla.findMany({
+    orderBy: { createdAt: "desc" },
+    select: { id: true, nombre: true, templateId: true },
+  });
 
   return (
     <main className={styles.page}>
@@ -22,6 +33,8 @@ export default async function NuevaPage() {
           perder nada de lo que hayas escrito.
         </p>
       </header>
+
+      <MisPlantillas inicial={mias} />
 
       {FAMILIES.map((family) => (
         <div key={family.label || "principal"}>

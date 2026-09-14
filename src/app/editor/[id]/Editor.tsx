@@ -16,6 +16,7 @@ import { readLayout, type Block } from "@/lib/blocks";
 import { BlockList } from "./BlockList";
 import { Biblioteca } from "./Biblioteca";
 import { Aperturas } from "./Aperturas";
+import { GuardarPlantilla } from "./GuardarPlantilla";
 import { SectionEditor } from "./SectionEditor";
 import { TemplateSwitcher } from "./TemplateSwitcher";
 import { PublishDialog } from "./PublishDialog";
@@ -263,6 +264,10 @@ export function Editor(props: EditorProps) {
             {save === "error" && "No se pudo guardar"}
             {save === "caducada" && "Sesión cerrada"}
           </span>
+          <GuardarPlantilla
+            id={props.id}
+            sugerido={coupleName(data) || "Mi plantilla"}
+          />
           {published && (
             <a
               className={`${styles.liveLink} mono`}

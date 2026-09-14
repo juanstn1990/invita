@@ -197,3 +197,26 @@ model Apertura {
   @@index([invitationId])
   @@index([guestLinkId])
 }
+
+/// Una invitación guardada para volver a empezar desde ella.
+///
+/// El catálogo de los 42 diseños sale del código (`src/lib/design/designs/`),
+/// así que no puede recibir uno nuevo sin desplegar. Esto es el otro
+/// catálogo: el que hace el organizador con su propio trabajo.
+///
+/// Lo que se guarda es una **copia** de los datos, no una referencia. Si
+/// después se edita la invitación de la que salió, la plantilla no cambia —y
+/// es lo que se quiere: una plantilla que se moviera sola bajo los pies
+/// dejaría de servir para empezar igual dos veces.
+model Plantilla {
+  id         String   @id @default(cuid())
+  nombre     String
+  /// El diseño base, para saber qué HTML renderizar.
+  templateId String
+  /// Copia del `data` de la invitación en el momento de guardarla.
+  data       String
+  /// De cuál salió. Sólo informativo: no es una relación, para que borrar la
+  /// invitación no se lleve la plantilla.
+  origenId   String?
+  createdAt  DateTime @default(now())
+}
