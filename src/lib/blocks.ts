@@ -353,6 +353,39 @@ const gallery: BlockSpec = {
       ${galleryItems(4)}
     </div>`,
     },
+    {
+      id: "mamposteria",
+      name: "Mampostería",
+      hint: "Alturas distintas que encajan entre sí, sin huecos",
+      build: () => `${head()}
+    <p class="gallery-text">Mensaje</p>
+    <div class="gallery-grid inv-ga-mamposteria">
+      ${galleryItems(6)}
+    </div>`,
+    },
+    {
+      id: "cinta",
+      name: "Cinta continua",
+      hint: "Se desplazan solas de lado a lado, sin tocar nada",
+      bare: true,
+      build: () => `<div class="container">${head()}
+    <p class="gallery-text">Mensaje</p></div>
+    <div class="inv-ga-cinta-marco">
+      <div class="gallery-grid inv-ga-cinta">
+        ${galleryItems(6)}
+      </div>
+    </div>`,
+    },
+    {
+      id: "collage",
+      name: "Collage",
+      hint: "Superpuestas y ladeadas, como fotos sueltas sobre una mesa",
+      build: () => `${head()}
+    <p class="gallery-text">Mensaje</p>
+    <div class="gallery-grid inv-ga-collage">
+      ${galleryItems(5)}
+    </div>`,
+    },
   ],
 };
 

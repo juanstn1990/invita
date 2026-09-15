@@ -1416,6 +1416,64 @@ prueba, le manda de todo —el mismo nombre dos veces, escrito distinto, un
 cambio de idea, tres envíos simultáneos, dos familias con una Ana cada una, un
 link con dos nombres reenviado— y la borra al final.
 
+## Galerías
+
+Trece formas. A las diez que había —cuadrícula, mosaico, tira deslizable,
+polaroid, arco, círculos, paspartú, revista, escalera, apiladas— se sumaron
+tres que la búsqueda de referencias señalaba y que no estaban:
+
+**Mampostería.** Alturas distintas que encajan entre sí, sin los huecos de una
+cuadrícula. Se hace con `columns` de CSS y no con grid: `grid-template-rows:
+masonry` sigue sin estar en los navegadores que importan.
+
+Dos detalles que la tenían rota y no se veían leyendo el CSS. `display:block`
+no es decoración: `.gallery-grid` llega en `display:grid` desde el diseño, y
+`columns` no hace nada dentro de un contenedor de grid — salían tres columnas
+de 109px en vez de dos anchas, lo contrario de una mampostería. Y `width:100%`
+tampoco: varios diseños le dan a `.gallery-item` un ancho propio, y sin eso las
+fotos dejaban calles de aire dentro de su columna.
+
+**Cinta continua.** Se desplazan solas, sin arrastrar ni pulsar nada — que en
+una invitación que se abre de pie en el bus es la diferencia entre que se vean
+las fotos y que no. Se detiene al pasar el dedo por encima.
+
+El renderer **duplica las fotos una vez** y la tira se mueve media anchura: al
+llegar al final, la segunda copia está exactamente donde estaba la primera y
+el salto no se ve. Las copias van con `aria-hidden`, porque oírlas dos veces
+sería ruido. Con una sola foto no hay cinta que valga y se queda quieta. Y se
+anima `transform`, no `scroll`: lo segundo obliga a JavaScript en cada
+fotograma.
+
+**Collage.** Superpuestas y ladeadas, como fotos sueltas sobre una mesa. El
+solape va con márgenes negativos y no con posición absoluta, así la caja sigue
+creciendo con las fotos que haya y con tres o con siete no se descuadra.
+
+### El fallo que apareció al probarlas
+
+Ninguna galería alterna mostraba las fotos del organizador. **Las diez que ya
+existían tampoco.** Sólo funcionaba «la del diseño».
+
+El marcado de una variante lo construimos nosotros y no lleva
+`data-inv-list` —ese atributo sólo existe en el esqueleto—, así que
+`applyList` no encontraba el contenedor y salía sin escribir nada: la galería
+quedaba con los huecos de ejemplo. Lo mismo el programa, los detalles y los
+regalos en cuanto se les cambiaba la forma: 19 variantes en total.
+
+El arreglo es el mismo patrón que ya usaban los campos: `CLASES_LISTA` da el
+contenedor y el elemento por clase, como respaldo del atributo.
+
+No lo veía ninguna auditoría porque todas renderizaban con la variante del
+propio diseño, que sí trae los atributos. Ahora `npm run audit:render` prueba
+**todas** las variantes de todos los bloques con lista y exige que lo escrito
+aparezca. Una variante puede no dibujar la lista a propósito —«Sólo el
+mensaje» de la mesa de regalos es texto y un botón— y a ésa no se le exige
+nada: se comprueba el marcado que sí la dibuja.
+
+El guardia tenía a su vez un agujero, y también se tapó: sin `preview`, la
+foto de la galería aparecía igual en `og:image` —que cae en la primera foto de
+la galería cuando no hay portada— y la comprobación pasaba con la galería
+vacía. Con el fallo puesto a propósito, ahora caza las 19.
+
 ## Plantillas propias
 
 El catálogo de los 42 sale del código (`src/lib/design/designs/`), así que no

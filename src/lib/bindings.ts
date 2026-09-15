@@ -228,6 +228,29 @@ function opDe(path: string, tipo: FieldType): Op[] | null {
    El mapa
    ──────────────────────────────────────────────────────────────── */
 
+/**
+ * El contenedor y el elemento de cada lista, por clase.
+ *
+ * Es el respaldo de `data-inv-list` / `data-inv-item`, y cumple el mismo papel
+ * que `CLASES` para los campos: esos atributos sólo existen en el esqueleto, y
+ * el marcado de una **variante** de bloque lo construimos nosotros, donde no
+ * hay atributos que buscar sino clases canónicas.
+ *
+ * Sin esto, `applyList` no encontraba el contenedor y salía sin escribir nada:
+ * las diez galerías alternas —cuadrícula, mosaico, polaroid, arco…— salían con
+ * los huecos de ejemplo en vez de con las fotos del organizador, y lo mismo el
+ * programa, los detalles y los regalos en cuanto se les cambiaba la forma.
+ * No lo veía ninguna auditoría porque todas renderizan con la variante del
+ * propio diseño, que sí trae los atributos.
+ */
+const CLASES_LISTA: Record<string, { container: string; item: string }> = {
+  gallery: { container: ".gallery-grid", item: ".gallery-item" },
+  events: { container: ".events-grid", item: ".event-card" },
+  guests: { container: ".guests-grid", item: ".guest-card" },
+  features: { container: ".features-grid", item: ".feature-card" },
+  gifts: { container: ".gifts-cards", item: ".gift-card" },
+};
+
 /** Las listas que se quedan con su marcador cuando están vacías. */
 const CONSERVAR_VACIA = new Set(["gallery"]);
 
@@ -258,9 +281,10 @@ function construir(): TemplateMap {
 
     if (!s.list) continue;
     const itemClases = CLASES_ITEM[s.key] || {};
+    const clasesLista = CLASES_LISTA[s.key];
     lists[s.key] = {
-      container: [`[data-inv-list="${s.key}"]`],
-      item: ["[data-inv-item]"],
+      container: [`[data-inv-list="${s.key}"]`, clasesLista?.container].filter(Boolean) as string[],
+      item: ["[data-inv-item]", clasesLista?.item].filter(Boolean) as string[],
       whenEmpty: CONSERVAR_VACIA.has(s.key) ? "keep" : "removeContainer",
       fields: Object.fromEntries(
         s.list.fields

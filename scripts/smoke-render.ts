@@ -6,6 +6,8 @@ import { mapFor } from "../src/lib/bindings";
 import { renderInvitation } from "../src/lib/render";
 import { defaultData } from "../src/lib/schema";
 import { TEMPLATES, readTemplate } from "../src/lib/templates";
+import { BLOCKS } from "../src/lib/blocks";
+import { SECTION_BY_KEY } from "../src/lib/schema";
 
 const out = path.join(process.cwd(), ".preview");
 fs.mkdirSync(out, { recursive: true });
@@ -292,6 +294,76 @@ for (const [nombre, tocar] of CASOS) {
     }
     if (!ok) botonMal++;
     console.log(`${ok ? "✓" : "✗"} al compartir · ${nombre}`);
+  }
+}
+
+/* ── Que cada variante reciba de verdad lo que se escribió ───────
+   Un fallo que estuvo callado: el marcado de una **variante** de bloque lo
+   construimos nosotros y no lleva `data-inv-list` —ese atributo sólo existe
+   en el esqueleto—, así que `applyList` no encontraba el contenedor y salía
+   sin escribir nada. Las diez galerías alternas salían con los huecos de
+   ejemplo en vez de con las fotos del organizador.
+
+   No lo veía ninguna auditoría porque todas renderizaban con la variante del
+   propio diseño, que sí trae los atributos. Así que aquí se prueban **todas**
+   las variantes de todos los bloques que tienen lista. */
+{
+  const MARCA = "/api/media/2026/09/zzzzzzzzzzzzzzzzzzzzzzzz.jpg";
+  const ejemplo: Record<string, Record<string, string>> = {
+    gallery: { url: MARCA },
+    events: { icon: "⛪", title: "MARCAeventoMARCA", time: "16:30", place: "Sitio", kind: "Tipo" },
+    features: { icon: "✦", title: "MARCAdetalleMARCA", text: "Texto" },
+    gifts: { title: "MARCAregaloMARCA", text: "Texto" },
+    guests: { name: "MARCAinvitadoMARCA", role: "Madrina" },
+  };
+
+  for (const spec of BLOCKS) {
+    const lista = spec.list || (spec.section ? SECTION_BY_KEY[spec.section]?.list : undefined);
+    if (!lista) continue;
+    const clave = spec.section || spec.type;
+    const item = ejemplo[clave];
+    /* Los invitados se vacían siempre a propósito: el nombre lo pone el
+       enlace de cada familia, no el organizador. */
+    if (!item || clave === "guests") continue;
+
+    /* La clase con la que el marcado sintetizado declara su contenedor, tal
+       como la conoce el mapa de bindings: así la regla no se desincroniza si
+       un día cambia allí. */
+    const contenedor = (mapFor(TEMPLATES[0].id).lists[clave]?.container || [])
+      .find((c) => c.startsWith("."));
+
+    const malas: string[] = [];
+    const probadas: string[] = [];
+    for (const v of spec.variants) {
+      if (!v.build) continue;
+      /* Una variante puede no dibujar la lista a propósito —"Sólo el mensaje"
+         de la mesa de regalos es texto y un botón— y entonces no hay nada que
+         exigirle. Lo que se comprueba es lo otro: que la que sí la dibuja no
+         se quede con los huecos de ejemplo. */
+      if (contenedor && !v.build().includes(contenedor.slice(1))) continue;
+      probadas.push(v.id || "(la del diseño)");
+      const d: any = defaultData();
+      const items = [item, item, item];
+      if (d[clave]) d[clave].items = items;
+      d.layout = {
+        blocks: [{ id: "x1", type: spec.type, variant: v.id, data: { enabled: true, items } }],
+      };
+      /* `preview` apaga las etiquetas Open Graph, y eso importa: sin él, la
+         foto de la galería aparecía igual en `og:image` —cae en la primera
+         foto de la galería cuando no hay portada— y la comprobación pasaba
+         aunque la galería saliera vacía. */
+      const html = renderInvitation({
+        templateHtml: readTemplate(TEMPLATES[0].id), templateId: TEMPLATES[0].id,
+        data: d, slug: "demo", preview: true,
+      });
+      const aguja = clave === "gallery" ? "zzzzzzzzzzzzzzzzzzzzzzzz" : "MARCA";
+      if (!html.includes(aguja)) malas.push(v.id || "(la del diseño)");
+    }
+    if (malas.length) botonMal++;
+    console.log(
+      `${malas.length ? "✗" : "✓"} datos en las variantes · ${spec.label.padEnd(18)}` +
+        (malas.length ? `  vacías: ${malas.join(", ")}` : `  ${probadas.length} con lista`)
+    );
   }
 }
 

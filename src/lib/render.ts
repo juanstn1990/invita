@@ -814,6 +814,29 @@ function ponerVideo(root: El, d: InvitationData[string]): boolean {
   return false;
 }
 
+/**
+ * Duplica las fotos de una cinta continua para que el bucle no se note.
+ *
+ * Las copias van con `aria-hidden`: para un lector de pantalla la galería
+ * tiene las fotos que tiene, y oírlas dos veces sería ruido.
+ */
+function duplicarCinta(root: El) {
+  const tira = root.querySelector?.(".inv-ga-cinta") as El | null;
+  if (!tira) return;
+  const fotos = Array.from(tira.children || []) as El[];
+  /* Con una sola foto no hay cinta que valga: se deja quieta, que es mejor
+     que verla cruzar la pantalla sola. */
+  if (fotos.length < 2) {
+    tira.setAttribute("class", `${tira.getAttribute("class") || ""} inv-ga-cinta-quieta`.trim());
+    return;
+  }
+  for (const f of fotos) {
+    const copia = f.cloneNode(true) as El;
+    copia.setAttribute("aria-hidden", "true");
+    tira.appendChild(copia);
+  }
+}
+
 /* ── listas repetibles ───────────────────────────────────────── */
 
 /**
@@ -1485,6 +1508,83 @@ export const INJECTED_CSS = `
 .inv-ga-apilada{display:flex;flex-direction:column;gap:14px;margin-top:26px}
 .inv-ga-apilada .gallery-item{width:100%;aspect-ratio:4/3;border-radius:var(--inv-radius);overflow:hidden}
 .inv-ga-apilada .gallery-ph{width:100%;height:100%}
+
+/* Galería · Mampostería
+   Alturas distintas que encajan entre si, sin los huecos de una cuadricula.
+   Se hace con columnas de CSS y no con grid: grid-template-rows: masonry
+   sigue sin estar en los navegadores que importan, y columns lo resuelve
+   hoy en todos.
+
+   Lo que da la altura variable es un ciclo de proporciones por posicion. Las
+   fotos que sube el organizador tienen cualquier forma, pero aqui se recortan
+   igual que en las demas galerias, asi que la variedad hay que declararla. */
+/* display:block no es decoracion: .gallery-grid viene en grid desde el CSS
+   del diseño, y columns no hace nada en un contenedor de grid. Con grid
+   activo salian tres columnas de 109px en vez de dos anchas, que es
+   justamente lo contrario de una mamposteria. */
+.inv-ga-mamposteria{display:block;columns:2;column-gap:10px;margin-top:26px}
+/* width:100% no sobra: varios diseños le dan a .gallery-item un ancho o un
+   flex-basis propio, y sin esto las fotos salian a 109px dentro de una
+   columna de 168 y la mamposteria quedaba con calles de aire. */
+.inv-ga-mamposteria .gallery-item{width:100%;break-inside:avoid;margin:0 0 10px;
+  border-radius:var(--inv-radius);overflow:hidden}
+.inv-ga-mamposteria .gallery-ph{width:100%;height:100%}
+.inv-ga-mamposteria .gallery-item:nth-child(5n+1){aspect-ratio:3/4}
+.inv-ga-mamposteria .gallery-item:nth-child(5n+2){aspect-ratio:1}
+.inv-ga-mamposteria .gallery-item:nth-child(5n+3){aspect-ratio:4/5}
+.inv-ga-mamposteria .gallery-item:nth-child(5n+4){aspect-ratio:1}
+.inv-ga-mamposteria .gallery-item:nth-child(5n+5){aspect-ratio:2/3}
+@media (min-width:720px){ .inv-ga-mamposteria{columns:3} }
+
+/* Galería · Cinta continua
+   Se desplazan solas: no hay que arrastrar ni pulsar nada, que en una
+   invitacion que se abre de pie en el bus es la diferencia entre que se vean
+   las fotos y que no.
+
+   El renderer duplica las fotos una vez (ver duplicarCinta) y la tira se
+   mueve media anchura: al llegar, la segunda copia esta exactamente donde
+   estaba la primera y el salto no se ve. Sin duplicar, el bucle pegaria un
+   tiron cada vuelta.
+
+   Se anima transform y no scroll: lo segundo obliga a JavaScript en cada
+   fotograma. */
+.inv-ga-cinta-marco{margin-top:26px;overflow:hidden;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);
+  mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
+.inv-ga-cinta{display:flex;gap:12px;width:max-content;
+  animation:invGaCinta 42s linear infinite}
+.inv-ga-cinta .gallery-item{flex:0 0 46vw;max-width:260px;aspect-ratio:4/5;
+  border-radius:var(--inv-radius);overflow:hidden}
+.inv-ga-cinta .gallery-ph{width:100%;height:100%}
+@keyframes invGaCinta{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.inv-ga-cinta-quieta{animation:none;justify-content:center;width:100%}
+/* Al pasar el dedo o el raton se detiene, para poder mirar una. */
+.inv-ga-cinta-marco:hover .inv-ga-cinta,
+.inv-ga-cinta-marco:active .inv-ga-cinta{animation-play-state:paused}
+
+/* Galería · Collage
+   Superpuestas y ladeadas, como fotos sueltas sobre una mesa. El solape va
+   con margenes negativos y no con posicion absoluta: asi la caja sigue
+   creciendo con las fotos que haya, y con tres o con siete no se descuadra. */
+.inv-ga-collage{display:flex;flex-wrap:wrap;justify-content:center;
+  align-items:flex-start;margin-top:30px;padding:0 6px}
+.inv-ga-collage .gallery-item{flex:0 0 44%;max-width:210px;aspect-ratio:4/5;
+  border-radius:3px;overflow:hidden;background:var(--inv-surface);
+  border:5px solid var(--inv-surface);
+  box-shadow:0 6px 18px rgba(0,0,0,.16)}
+.inv-ga-collage .gallery-ph{width:100%;height:100%}
+.inv-ga-collage .gallery-item:nth-child(3n+1){transform:rotate(-3deg);z-index:1}
+.inv-ga-collage .gallery-item:nth-child(3n+2){transform:rotate(2.4deg);z-index:3;
+  margin-left:-22px;margin-top:26px}
+.inv-ga-collage .gallery-item:nth-child(3n+3){transform:rotate(-1.4deg);z-index:2;
+  margin-left:-14px;margin-top:-10px}
+.inv-ga-collage .gallery-item:nth-child(n+4){margin-top:-26px}
+
+@media (prefers-reduced-motion:reduce){
+  /* Sin movimiento la cinta no se veria entera: pasa a poderse arrastrar. */
+  .inv-ga-cinta{animation:none}
+  .inv-ga-cinta-marco{overflow-x:auto;-webkit-overflow-scrolling:touch}
+}
 
 .inv-fe-tarjetas{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-top:28px}
 .inv-fe-lista{display:flex;flex-direction:column;gap:10px;margin-top:28px}
@@ -2398,6 +2498,17 @@ export function renderInvitation(opts: RenderOptions): string {
     } else if ((spec?.list || blockSpec?.list) && listBinding) {
       applyList(root, r.key, listBinding, (sectionData.items as Record<string, string>[]) || [], ctx);
     }
+
+    /* La cinta continua necesita las fotos dos veces.
+       La tira se mueve media anchura y vuelve a empezar; con una sola copia,
+       al llegar al final no hay nada detrás y el bucle pega un tirón. Con la
+       copia, la segunda mitad queda exactamente donde estaba la primera y el
+       salto no se ve.
+
+       Va aquí y no en el marcado del bloque porque las fotos las pone
+       `applyList` a partir de las que haya: duplicar la plantilla daría seis
+       huecos aunque el organizador subiera tres. */
+    if (r.block.variant === "cinta") duplicarCinta(root);
   }
 
   /* La caja de "transferencia bancaria" sin número es un recuadro vacío:
