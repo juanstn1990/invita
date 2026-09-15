@@ -1118,6 +1118,24 @@ Por eso el nombre de la cookie vive en `src/lib/sesion.ts` y no en
 bundle del middleware y el build fallaba con
 `UnhandledSchemeError: Reading from "node:crypto"`.
 
+### Un diseño retirado se dice arriba y una vez
+
+Las invitaciones hechas con un diseño que ya no está en el catálogo
+—`boda-clasica`, `blanco`, `quince-noche`— no se rompen de golpe: se rompen a
+pedazos. El autoguardado responde 400 «Diseño desconocido», la biblioteca de
+formas de un bloque responde 400 «Bloque o diseño desconocido», y cada fallo
+salía por su lado sin que nada dijera que la causa era una sola.
+
+El inicio no las lista, pero por la dirección directa el editor sí las abre, y
+entonces todo parece funcionar a medias sin motivo.
+
+Ahora el editor lo dice arriba, una vez, con el botón para cambiar de diseño
+al lado: «Este diseño ya no existe… elige otro y no pierdes nada de lo
+escrito».
+
+Y la biblioteca de formas dejó de tragarse el motivo: decía «No se pudieron
+dibujar las opciones» cuando el servidor había dicho exactamente qué pasaba.
+
 ### Un guardado que falla se dice fuerte
 
 Un fallo de guardado silencioso es lo peor que puede hacer un editor: se

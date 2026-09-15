@@ -52,9 +52,16 @@ export function Biblioteca({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ templateId, data, tipo: spec.type, blockId, enDiseno }),
     })
-      .then((r) => (r.ok ? r.json() : Promise.reject(new Error("no se pudo cargar"))))
+      /* El motivo que dé el servidor, no un "no se pudo" genérico. El caso
+         real es una invitación con un diseño retirado: ahí la API sabe
+         exactamente qué pasa y antes se perdía por el camino. */
+      .then(async (r) => {
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(j.error || `El servidor respondió ${r.status}.`);
+        return j;
+      })
       .then((j) => vivo && setOpciones(j.opciones))
-      .catch(() => vivo && setError("No se pudieron dibujar las opciones."));
+      .catch((e) => vivo && setError((e as Error).message));
     return () => {
       vivo = false;
     };

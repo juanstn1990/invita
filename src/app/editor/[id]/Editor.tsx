@@ -284,6 +284,23 @@ export function Editor(props: EditorProps) {
         </div>
       </header>
 
+      {/* Un diseño retirado no rompe el editor de golpe: lo rompe a pedazos.
+          No se puede guardar (la API responde 400), no se pueden ver las
+          formas de un bloque, y cada fallo sale por su lado sin decir que la
+          causa es una sola. Mejor decirlo arriba y una vez. */}
+      {!props.templates.some((t) => t.id === templateId) && (
+        <div className={styles.caducada} role="alert">
+          <span>
+            <strong>Este diseño ya no existe.</strong> Es de una versión
+            anterior, y mientras esté puesto no se puede guardar ni cambiar la
+            forma de los bloques. Elige otro y no pierdes nada de lo escrito.
+          </span>
+          <button className="btn btn-sm" onClick={() => setShowTemplates(true)}>
+            Elegir diseño
+          </button>
+        </div>
+      )}
+
       {save === "error" && (
         <div className={styles.caducada} role="alert">
           <span>
