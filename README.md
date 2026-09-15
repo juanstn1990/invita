@@ -109,6 +109,48 @@ incertidumbre de los 14.
 
 ## Los diseños
 
+### Grados
+
+Seis, y con criterio propio: **un grado no es una boda con birrete**. Lo que se
+celebra es un logro propio y el final de una etapa larga, no una unión ni una
+bendición, así que piden menos filigrana y más peso — más tipografía y menos
+flor. Las paletas son las de una institución: azules y verdes profundos,
+borgoña, tinta, y el dorado del cordón. Nada pastel.
+
+| Diseño | Qué lo distingue |
+| --- | --- |
+| Diploma | Enmarcado como un título colgado, centrado, sin una sola sombra |
+| Tesis | El nombre enorme a bandera y los títulos a la izquierda |
+| Cordón | Una banda cruzada sobre la foto, como la del birrete |
+| Anuario | La foto a pantalla completa y el texto encima, sin caja |
+| Pergamino | Papel envejecido, filo rasgado, galería en columna |
+| Laurel | Foto arriba y texto abajo, muy aireado |
+
+El contenido de muestra también es suyo: agradece a quien lo sostuvo en vez de
+pedir una bendición, y trae un dato que casi ninguna plantilla contempla y es
+lo primero que pregunta quien recibe una invitación de grado — **los cupos
+limitados de la ceremonia**.
+
+### Un fallo que destaparon: el marco no sabía convivir con una foto
+
+Al poner foto de portada en el primero de los seis, el nombre no se leía. No
+era del diseño nuevo: el slot `frame` deja el texto sin fondo —lo enmarca el
+trazo— y sobre una foto cualquiera la tinta del diseño es ilegible. Lo
+comprobé con `c-white`, que existe desde el principio: exactamente igual.
+
+Eran **diez diseños** —vintage, aurum-wine, nocturno, 15-hojas, 15-corona,
+c-white, g-diploma, 1-cuento, bs-bosque, bs-lunita— y cualquiera que les
+subiera una portada se quedaba con un marco precioso y un nombre invisible.
+
+Ahora `frame` hace lo mismo que `minimal` ya hacía: velo, tinta clara y el
+propio marco en blanco, todo detrás de `.con-foto`, que el renderer pone
+**sólo** cuando hay foto —sin esa guarda el texto saldría blanco sobre el
+fondo claro del diseño, que es el mismo error por el otro lado.
+
+El contraste de las 192 paletas se verifica en el build; una foto que sube el
+organizador no se puede verificar, y por eso ahí se fuerza el blanco en lugar
+de confiar en la paleta.
+
 42 diseños, y **cada uno con cuatro paletas**: 168 combinaciones.
 
 | Ocasión | Diseños |

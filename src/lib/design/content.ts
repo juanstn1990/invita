@@ -385,6 +385,116 @@ const comunion = (): Content => ({
 });
 
 /* ────────────────────────────────────────────────────────────────
+   Grado
+   ──────────────────────────────────────────────────────────────── */
+
+/**
+ * Un grado no es una boda con birrete.
+ *
+ * Lo que se celebra es un logro propio, no una unión ni una bendición, y el
+ * contenido lo dice: aquí quien invita da las gracias a quien lo sostuvo, no
+ * pide una bendición ni presenta a una pareja. El tono es de orgullo y de
+ * cierre — "lo logramos", en plural, porque nadie se gradúa solo.
+ */
+const grado = (): Content => ({
+  name: "Camila",
+  dateIso: "2027-11-26T17:00:00",
+  dateLabel: "26 · Noviembre · 2027",
+  splash: {
+    label: "Te invito a celebrar",
+    subtitle: "Mi grado",
+    cta1: "Abrir invitación",
+    cta2: "Cómo llegar",
+  },
+  hero: {
+    label: "Me gradúo",
+    sub: "Y quiero celebrarlo contigo",
+    quote: "Cinco años, muchas noches largas y una sola meta. Hoy la alcanzo.",
+    cta: "Ver la invitación",
+  },
+  countdown: {
+    label: "Ya casi",
+    title: "Faltan para el día",
+    body: "Después de tanto esperar, ya se cuenta en días.",
+  },
+  guests: {
+    label: "Con toda mi gratitud",
+    title: "Los que me sostuvieron",
+    text: "Este título no es sólo mío: es de quienes me aguantaron los exámenes, las trasnochadas y las dudas.",
+    text2: "Los espero para celebrarlo como se debe.",
+    address: "Bogotá · Colombia",
+    cards: [
+      { name: "Familia Ospina", role: "Mis papás" },
+      { name: "Abuelos Ospina", role: "Los que siempre creyeron" },
+      { name: "Daniel y Sofía", role: "Mis compañeros de estudio" },
+    ],
+  },
+  events: {
+    label: "El programa",
+    title: "Cómo será el día",
+    body: "La ceremonia en la universidad y la celebración después.",
+    items: [
+      {
+        icon: "🎓",
+        kind: "Ceremonia",
+        title: "Entrega de diplomas",
+        time: "17:00 h",
+        place: "Auditorio Principal",
+        address: "Universidad · Carrera 7 · 40-62",
+        note: "Entrada a las 16:30. Cada graduando tiene cupos limitados.",
+      },
+      {
+        icon: "🥂",
+        kind: "Celebración",
+        title: "El brindis",
+        time: "20:00 h",
+        place: "Casa Bonita",
+        address: "Calle 70 · 5-24",
+        note: "Aquí ya no hay cupos limitados: vengan todos.",
+      },
+    ],
+  },
+  confirm: {
+    ...CONFIRMA,
+    text: "Confírmame si vienes, así aparto tu puesto en el brindis.",
+    deadline: "Antes del 12 de noviembre",
+    note: "Si vienes acompañado, cuéntamelo aquí mismo.",
+  },
+  gallery: {
+    label: "Estos años",
+    title: "El camino hasta aquí",
+    text: "Del primer día de clase a la última entrega.",
+  },
+  features: {
+    label: "Información útil",
+    title: "Todo lo que necesitas saber",
+    items: [
+      { icon: "👔", title: "Código de vestimenta", text: "Formal. La ceremonia es en el auditorio y se toman fotos." },
+      { icon: "🎟️", title: "Cupos de la ceremonia", text: "La universidad da un número limitado por graduando. Escríbeme y te confirmo." },
+      { icon: "🚗", title: "Cómo llegar", text: "Hay parqueadero en el campus y la casa queda a diez minutos." },
+    ],
+  },
+  gifts: {
+    label: "Con mucho cariño",
+    title: "Si quieres regalarme algo",
+    text: "Tu compañía ya es bastante. Si insistes, aquí dejo los datos.",
+    ...gifts("mi grado"),
+    cards: [
+      { icon: "✈️", title: "Mi viaje", text: "El que me prometí cuando entregara la tesis." },
+      { icon: "💻", title: "Mis herramientas", text: "Para lo que viene ahora." },
+    ],
+  },
+  social: {
+    label: "Compártelo",
+    title: "Sube tus fotos",
+    text: "Etiquétalas con mi hashtag para que no se pierda ninguna.",
+    tag: "#CamilaSeGradua",
+    ig: "@camilaospina",
+  },
+  footer: "Con gratitud · Camila",
+});
+
+/* ────────────────────────────────────────────────────────────────
    Primer añito y baby shower
    ──────────────────────────────────────────────────────────────── */
 
@@ -608,6 +718,8 @@ export function contenido(occasion: Occasion, paletaId = ""): Content {
       return quince();
     case "comunion":
       return comunion();
+    case "grado":
+      return grado();
     case "primer-ano":
       return primerAno(paletaId);
     case "baby-shower":

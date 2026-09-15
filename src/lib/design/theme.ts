@@ -20,6 +20,7 @@ export type Occasion =
   | "boda"
   | "quince"
   | "comunion"
+  | "grado"
   | "primer-ano"
   | "baby-shower";
 

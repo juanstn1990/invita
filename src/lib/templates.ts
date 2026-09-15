@@ -50,13 +50,14 @@ export const KIND_LABEL: Record<Occasion, string> = {
   boda: "Bodas",
   quince: "Quince años",
   comunion: "Primera comunión y bautizo",
+  grado: "Grados",
   "primer-ano": "Primer añito",
   "baby-shower": "Baby shower",
 };
 
 /** La agrupación del selector de diseños. */
 export const FAMILIES: { label: string; kinds: Occasion[] }[] = [
-  { label: "", kinds: ["boda", "quince", "comunion"] },
+  { label: "", kinds: ["boda", "quince", "comunion", "grado"] },
   { label: "Infantiles", kinds: ["primer-ano", "baby-shower"] },
 ];
 

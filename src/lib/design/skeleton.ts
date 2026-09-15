@@ -71,6 +71,7 @@ const TITULO: Record<Design["occasion"], string> = {
   boda: "Nuestra boda",
   quince: "Mis quince años",
   comunion: "Mi primera comunión",
+  grado: "Mi grado",
   "primer-ano": "Mi primer añito",
   "baby-shower": "Baby shower",
 };

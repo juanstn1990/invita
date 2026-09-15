@@ -1,12 +1,13 @@
-/** El catálogo: 27 invitaciones de 18 diseños. */
+/** El catálogo de diseños, agrupado por ocasión. */
 
 import type { Design } from "../theme";
 import { BODAS } from "./bodas";
 import { COMUNION } from "./comunion";
+import { GRADO } from "./grado";
 import { INFANTILES } from "./infantiles";
 import { QUINCE } from "./quince";
 
-export const DESIGNS: Design[] = [...BODAS, ...QUINCE, ...COMUNION, ...INFANTILES];
+export const DESIGNS: Design[] = [...BODAS, ...QUINCE, ...COMUNION, ...GRADO, ...INFANTILES];
 
 export const DESIGN_BY_SLUG: Record<string, Design> = Object.fromEntries(
   DESIGNS.map((d) => [d.slug, d])

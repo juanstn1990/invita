@@ -69,6 +69,32 @@ export function presetFor(target: Target | TemplateInfo["kind"]): InvitationData
     return d;
   }
 
+  if (kind === "grado") {
+    Object.assign(d.event, {
+      type: "grado", name1: "Camila", name2: "",
+      quote: "Cinco años, muchas noches largas y una sola meta. Hoy la alcanzo.",
+    });
+    Object.assign(d.splash, { label: "Te invito a celebrar", subtitle: "Mi grado" });
+    Object.assign(d.hero, { label: "Me gradúo", subtitle: "Mi grado" });
+    Object.assign(d.guests, {
+      title: "Los que me sostuvieron",
+      text: "Este título no es sólo mío: es de quienes me aguantaron los exámenes, las trasnochadas y las dudas.",
+      textSecondary: "Gracias por acompañarme hasta aquí.",
+    });
+    d.events.items = [
+      { icon: "🎓", kind: "Ceremonia", title: "Entrega de diplomas", time: "5:00 p. m.", place: "Auditorio Principal", address: "Universidad · Carrera 7 #40-62", note: "Entrada a las 4:30. Cupos limitados por graduando.", mapUrl: "" },
+      { icon: "🥂", kind: "Celebración", title: "El brindis", time: "8:00 p. m.", place: "Casa Bonita", address: "Calle 70 #5-24", note: "Aquí no hay cupos limitados.", mapUrl: "" },
+    ];
+    d.features.items = [
+      { icon: "corbatin", title: "Dresscode", text: "Formal. La ceremonia es en el auditorio y se toman fotos." },
+      /* El cupo limitado es lo primero que pregunta quien recibe una
+         invitación de grado, y casi ninguna plantilla lo contempla. */
+      { icon: "🎟️", title: "Cupos de la ceremonia", text: "La universidad da un número limitado por graduando. Escríbeme y te confirmo." },
+      { icon: "🚗", title: "Cómo llegar", text: "Hay parqueadero en el campus y la casa queda a diez minutos." },
+    ];
+    return d;
+  }
+
   if (kind === "primer-ano") {
     Object.assign(d.event, {
       type: "primer-ano", name1: nino ? "Martín" : "Emilia", name2: "",

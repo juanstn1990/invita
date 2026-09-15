@@ -276,7 +276,29 @@ const HERO: Record<Layout["hero"], string> = {
 .hero-content{background:transparent;padding:52px 40px;
   box-shadow:0 0 0 var(--border) var(--brand),0 0 0 calc(var(--border) * 5) transparent,
     0 0 0 calc(var(--border) * 6) var(--brand)}
-.hero-content .hero-date{border-top-color:var(--brand)}`,
+.hero-content .hero-date{border-top-color:var(--brand)}
+
+/* Con foto, lo mismo que en minimal, y por la misma razón: sin fondo que lo
+   sostenga, la tinta del diseño sobre una foto cualquiera es ilegible —el
+   marco quedaba precioso y el nombre no se leía—. El velo y la tinta clara
+   van detrás de .con-foto, que el renderer pone sólo cuando hay foto: sin esa
+   guarda el texto saldría blanco sobre el fondo claro del diseño.
+
+   El contraste de las paletas se verifica en el build, pero una foto que sube
+   el organizador no se puede verificar: por eso aquí se fuerza el blanco en
+   lugar de confiar en la paleta. */
+#hero.con-foto::after{content:"";position:absolute;inset:0;z-index:2;
+  background:linear-gradient(180deg,rgba(0,0,0,.30) 0%,rgba(0,0,0,.46) 100%)}
+#hero.con-foto{--hero-ink:#fff;--hero-ink-soft:rgba(255,255,255,.86);
+  --hero-line:rgba(255,255,255,.45);--hero-brand:rgba(255,255,255,.92)}
+#hero.con-foto .hero-amp{color:#fff}
+#hero.con-foto .hero-scroll{color:#fff}
+/* El marco también: en el color de la marca se pierde sobre una foto oscura. */
+#hero.con-foto .hero-content{
+  box-shadow:0 0 0 var(--border) rgba(255,255,255,.9),
+    0 0 0 calc(var(--border) * 5) transparent,
+    0 0 0 calc(var(--border) * 6) rgba(255,255,255,.9)}
+#hero.con-foto .hero-content .hero-date{border-top-color:rgba(255,255,255,.5)}`,
 };
 
 /* ────────────────────────────────────────────────────────────────
