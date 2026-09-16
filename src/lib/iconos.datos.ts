@@ -35,6 +35,14 @@ export interface IconoDato {
 export const ICONOS: IconoDato[] = [
   { clave: "camara", nombre: "Cámara", emoji: "📸", fosforo: "camera", movimiento: "brilla" },
   { clave: "iglesia", nombre: "Iglesia", emoji: "⛪", fosforo: "church" },
+  /* Los de grado. Sin el birrete, el icono del programa salía como un
+     recuadro vacío: 🎓 no tenía equivalente y el emoji crudo no lo dibuja
+     cualquier dispositivo. */
+  { clave: "birrete", nombre: "Birrete", emoji: "🎓", fosforo: "graduation-cap", movimiento: "flota" },
+  { clave: "diploma", nombre: "Diploma", emoji: "📜", fosforo: "certificate" },
+  { clave: "entrada", nombre: "Entrada", emoji: "🎟️", fosforo: "ticket" },
+  { clave: "avion", nombre: "Avión", emoji: "✈️", fosforo: "airplane", movimiento: "flota" },
+  { clave: "portatil", nombre: "Portátil", emoji: "💻", fosforo: "laptop" },
   { clave: "anillos", nombre: "Anillos", fosforo: "infinity" },
   { clave: "brindis", nombre: "Brindis", emoji: "🍽️", fosforo: "champagne" },
   { clave: "musica", nombre: "Música", emoji: "🎶", fosforo: "music-notes", movimiento: "ondea" },

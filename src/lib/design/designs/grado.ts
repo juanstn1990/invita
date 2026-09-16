@@ -16,6 +16,7 @@ import { paleta } from "../paleta";
 import * as deco from "../deco";
 import {
   CORMORANT_INTER,
+  CORMORANT_JOST,
   DMSERIF_DMSANS,
   FRAUNCES_INTER,
   INTER_SOLO,
@@ -60,7 +61,30 @@ const CIRUELA = paleta({
   base: "#faf7fa", tinta: "#2a1f2e", marca: "#5b3566", segundo: "#a98bb5",
 });
 
-/* ── Los seis ───────────────────────────────────────────────── */
+/* ── Las oscuras, para el de gala ────────────────────────────────
+   Las cuatro parten de un fondo oscuro, no de uno claro con tinta negra. Es
+   la diferencia entre una invitación de noche y una invitación clara a la que
+   le pusieron letras oscuras, y se nota sobre todo en el teléfono: el negro
+   de verdad no deslumbra al abrirla en un auditorio a media luz. */
+
+const ONIX = paleta({
+  id: "onix", nombre: "Negro y oro",
+  base: "#0d0d10", tinta: "#f1ece1", marca: "#d0a95f", segundo: "#8c7442",
+});
+const GRAFITO = paleta({
+  id: "grafito", nombre: "Grafito y platino",
+  base: "#17181b", tinta: "#eceae5", marca: "#c9c3b4", segundo: "#7f7a70",
+});
+const VINO_HONDO = paleta({
+  id: "vino-hondo", nombre: "Vino profundo y oro",
+  base: "#2a0f17", tinta: "#f4e7da", marca: "#d3ae68", segundo: "#a4657c",
+});
+const VERDE_HONDO = paleta({
+  id: "verde-hondo", nombre: "Verde profundo y oro",
+  base: "#0f2420", tinta: "#eaf0e8", marca: "#cfae66", segundo: "#7f9d8c",
+});
+
+/* ── Los siete ──────────────────────────────────────────────── */
 
 /**
  * El diploma: doble marco de hilos, todo centrado y sin sombras.
@@ -170,4 +194,39 @@ const laurel: Design = {
   deco: { ornament: deco.hojas, splash: deco.arcos },
 };
 
-export const GRADO: Design[] = [diploma, tesis, cordon, anuario, pergamino, laurel];
+/**
+ * Ónix: el único de grado que nace oscuro.
+ *
+ * Los otros seis parten de un fondo claro y el negro, si acaso, es la tinta.
+ * Aquí el negro es el papel y el oro es la luz, que es lo que se espera de una
+ * ceremonia de noche o de una cena de gala.
+ *
+ * No es `nocturno` con otro nombre: aquel enmarca el texto con un trazo sobre
+ * la foto y éste lo apoya en un panel, con la cabecera numerada y la galería
+ * en mosaico. Comparten la idea, no la forma.
+ */
+const onix: Design = {
+  slug: "g-onix",
+  name: "Grado Ónix",
+  occasion: "grado",
+  mood: "Negro de verdad y oro: panel sobre la foto, números de sección y mosaico",
+  fontUrl: CORMORANT_JOST.url,
+  layout: { hero: "panel", head: "stacked", cards: "outline", countdown: "circles", gallery: "mosaic", divider: "none" },
+  type: { ...CORMORANT_JOST, scale: 1.34, displayWeight: 300, displayTracking: "0.05em" },
+  shape: { radius: 0, radiusSm: 0, btnRadius: 0, shadow: "none" },
+  density: "airy",
+  palettes: [ONIX, GRAFITO, VINO_HONDO, VERDE_HONDO],
+  css: (t) => `
+/* Sobre negro, un relleno sólido ensucia: las cajas quedan en hilo de oro.
+   La cuenta de regalos era la única con fondo propio y aquí sobra. */
+.gifts-account{background:transparent}
+/* Un filo de oro bajo la portada, en vez de un divisor con forma: sobre negro
+   cualquier silueta recortada se lee como un error de carga. */
+#hero{border-bottom:1px solid ${t.palette.brand}}
+/* El hilo del panel, para que el bloque de la portada no flote sin borde
+   sobre una foto oscura. */
+.hero-content{box-shadow:0 0 0 1px ${t.palette.brand}}`,
+  deco: { ornament: deco.rombo, splash: deco.aros },
+};
+
+export const GRADO: Design[] = [diploma, tesis, cordon, anuario, pergamino, laurel, onix];

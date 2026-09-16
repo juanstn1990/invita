@@ -111,7 +111,7 @@ incertidumbre de los 14.
 
 ### Grados
 
-Seis, y con criterio propio: **un grado no es una boda con birrete**. Lo que se
+Siete, y con criterio propio: **un grado no es una boda con birrete**. Lo que se
 celebra es un logro propio y el final de una etapa larga, no una unión ni una
 bendición, así que piden menos filigrana y más peso — más tipografía y menos
 flor. Las paletas son las de una institución: azules y verdes profundos,
@@ -125,6 +125,32 @@ borgoña, tinta, y el dorado del cordón. Nada pastel.
 | Anuario | La foto a pantalla completa y el texto encima, sin caja |
 | Pergamino | Papel envejecido, filo rasgado, galería en columna |
 | Laurel | Foto arriba y texto abajo, muy aireado |
+| **Ónix** | **Negro de verdad y oro**: panel sobre la foto, números de sección y mosaico |
+
+### Ónix nace oscuro, no es un claro con letras negras
+
+Los otros seis parten de un fondo claro y el negro, si acaso, es la tinta. En
+Ónix el negro es el papel y el oro es la luz. Sus **cuatro paletas son
+oscuras** —negro y oro, grafito y platino, vino profundo, verde profundo—, así
+que es el único diseño de grado cuya tarjeta se ve negra en el catálogo: hasta
+ahora había que elegir un diseño claro y cambiarle la paleta para llegar ahí.
+
+La diferencia se nota sobre todo en el teléfono: el negro de verdad no
+deslumbra al abrir la invitación en un auditorio a media luz.
+
+No es `nocturno` con otro nombre —aquel es de bodas, enmarca el texto con un
+trazo sobre la foto y éste lo apoya en un panel con hilo de oro—. Sobre negro,
+además, un relleno sólido ensucia: las cajas van en hilo, y el divisor de la
+portada es un filo recto y no una silueta recortada, que sobre negro se lee
+como un error de carga.
+
+### El birrete no existía
+
+El icono del programa salía como un recuadro vacío: 🎓 no tenía equivalente en
+el juego vendorizado y el emoji crudo no lo dibuja cualquier dispositivo —el
+mismo motivo por el que la app tiene iconos propios y no emojis. Se añadieron
+los cinco que pide un grado: birrete, diploma, entrada, avión y portátil. Son
+38 iconos en dos pesos.
 
 El contenido de muestra también es suyo: agradece a quien lo sostuvo en vez de
 pedir una bendición, y trae un dato que casi ninguna plantilla contempla y es
