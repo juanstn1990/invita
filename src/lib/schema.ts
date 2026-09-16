@@ -20,6 +20,15 @@ export type FieldType =
   | "image"
   /** Un vídeo subido. Se guarda igual que una imagen; cambia el que lo pinta. */
   | "video"
+  /**
+   * Una foto **o** un vídeo, a elección de quien edita.
+   *
+   * Lo pide el fondo de sección: un clip de cuatro segundos en bucle detrás
+   * del texto es el mismo sitio que una foto, y obligar a elegir el tipo
+   * antes de elegir el archivo sería un campo más para decir lo que el
+   * archivo ya dice.
+   */
+  | "medio"
   | "emoji"
   | "select"
   | "range"
@@ -106,19 +115,34 @@ const textColor: FieldSpec = {
 };
 
 /**
- * Imagen de fondo de una sección.
+ * Un archivo que se reproduce en vez de mostrarse.
  *
- * Es distinta de la decoración: el fondo cubre la sección entera y va detrás
+ * Se decide por la extensión y no por el `mime`, porque aquí sólo hay la URL:
+ * lo que se guarda en la invitación es una cadena, y el catálogo con el tipo
+ * real vive en otra tabla. No es una pérdida: las URLs las emite `saveImage`
+ * con la extensión que corresponde al tipo que aceptó, y una ajena que
+ * termine en `.mp4` es un `.mp4`.
+ *
+ * Vive aquí y no en `storage.ts` —que es quien manda en los formatos— porque
+ * eso abre `fs` y el editor es código de navegador.
+ */
+export const esVideoUrl = (url: string) =>
+  /\.(mp4|webm)(?:[?#]|$)/i.test(String(url || "").trim());
+
+/**
+ * Fondo de una sección: una foto o un vídeo.
+ *
+ * Es distinto de la decoración: el fondo cubre la sección entera y va detrás
  * de todo, mientras que un adorno es una pieza que se coloca donde se quiera
  * y puede ir encima del texto.
  */
 const fondoFields: FieldSpec[] = [
   {
     key: "fondoUrl",
-    label: "Imagen de fondo",
-    type: "image",
+    label: "Fondo de la sección",
+    type: "medio",
     span: 2,
-    help: "Cubre la sección entera, detrás del texto.",
+    help: "Una foto o un vídeo MP4. Cubre la sección entera, detrás del texto.",
   },
   {
     key: "fondoAjuste",
@@ -128,7 +152,7 @@ const fondoFields: FieldSpec[] = [
     options: [
       { value: "", label: "Cubrir (recorta)" },
       { value: "contener", label: "Contener (entera)" },
-      { value: "repetir", label: "Repetir en mosaico" },
+      { value: "repetir", label: "Repetir en mosaico (sólo foto)" },
     ],
   },
   {

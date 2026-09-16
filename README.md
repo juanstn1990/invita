@@ -562,12 +562,12 @@ un iframe que se actualiza mientras escribes (300 ms) y conserva el scroll.
 
 ## Fondos y adornos por sección
 
-Cada sección acepta **una imagen de fondo** y **hasta ocho adornos**, y los
-pone quien edita, no el diseño.
+Cada sección acepta **un fondo** —una foto o un vídeo— y **hasta ocho
+adornos**, y los pone quien edita, no el diseño.
 
 | | |
 | --- | --- |
-| **Imagen de fondo** | Cubre la sección entera, detrás del texto. Se elige si **cubre** (recorta), **contiene** (entera) o se **repite** en mosaico, y con qué opacidad. |
+| **Fondo** | Una foto o un **vídeo** (MP4 o WebM). Cubre la sección entera, detrás del texto. Se elige si **cubre** (recorta), **contiene** (entera) o se **repite** en mosaico —lo último, sólo una foto—, y con qué opacidad. |
 | **Adorno** | Una imagen colocada en uno de **diez sitios** —las nueve posiciones de una rejilla de 3×3, más «a sangre»—, con su **tamaño** en porcentaje del ancho, su **opacidad**, su **giro** y su **volteo**. |
 | **Capa** | Cada adorno va **debajo** o **encima** del texto. Es lo que permite un marco floral que rodea los nombres y una guirnalda que pasa por delante. |
 | **Volteo** | Horizontal, vertical o las dos. Así una sola esquina sirve para las cuatro sin subir cuatro archivos. |
@@ -581,6 +581,49 @@ posicionado se pinta **encima** de los hermanos que no lo están. En las
 secciones con `.container` no se notaba —el contenedor ya está posicionado—
 pero el pie no lo tenía y su nombre quedaba tapado por su propio adorno. Ahora
 el pie lleva `.container` como el resto, y el renderer lo sube con `z-index`.
+
+### El fondo también puede ser un vídeo
+
+El mismo campo acepta las dos cosas y lo que decide es la **extensión** de la
+URL: un `.mp4` o un `.webm` salen como `<video>`, todo lo demás sigue siendo un
+`background-image`. Se decide así, y no por el `mime`, porque lo que guarda la
+invitación es una cadena y el catálogo con el tipo real vive en otra tabla; no
+es una pérdida, porque las URLs las emite el propio almacenamiento con la
+extensión del tipo que aceptó.
+
+Tiene que ser un elemento y no un `background`, sencillamente porque no existe
+forma de meter un vídeo en un `background-image`. Del recorte y de la
+atenuación sigue encargándose la capa, así que el vídeo sólo tiene que
+llenarla, y va con `autoplay muted loop playsinline` —los cuatro juntos o
+ninguno: sin `muted` el `autoplay` lo ignora todo navegador, y sin
+`playsinline` iOS se lleva el clip a pantalla completa encima de la invitación
+en cuanto arranca—. Sin `controls`, que es un fondo y no una pieza que se mire,
+y sin `poster`: el elemento se deja transparente hasta el primer fotograma para
+que mientras carga se vea el color de la sección y no el recuadro negro que
+pinta Safari.
+
+«Repetir en mosaico» no llega a pedirse con un vídeo: un mosaico de vídeo no
+existe —`background-repeat` no alcanza a un elemento— y se atiende con lo que
+más se le parece, que es llenar la sección.
+
+**Quien pidió menos movimiento en su sistema lo ve quieto.** Es lo único del
+sitio que se mueve sin parar y que el CSS no puede detener:
+`prefers-reduced-motion` apaga animaciones y transiciones, pero un `<video>` en
+bucle no es ni lo uno ni lo otro y seguiría corriendo detrás del texto. Un
+script de cinco líneas —que sólo se emite si hay algún fondo de vídeo en la
+página— le quita el `autoplay` y el `loop` y lo para. Parado en su primer
+fotograma el fondo no desaparece: queda exactamente como la foto que habría
+puesto quien no quiso vídeo. Por eso el elemento lleva `preload="metadata"`,
+que con `autoplay` puesto no cambia nada y sin él es la diferencia entre un
+primer fotograma y una capa vacía.
+
+`npm run audit:browser` comprueba que el fondo se quede **detrás** del
+contenido de su sección. No con `elementFromPoint`, que aquí no sirve: la capa
+lleva `pointer-events: none` y el navegador la salta al buscar quién está en un
+punto, así que el clic diría que todo va bien aunque el vídeo estuviera pintado
+encima del texto. Lo que se mira es el apilamiento —que la sección esté
+posicionada y que sus hijos suban por encima de la capa—, que es justo la regla
+que una vez faltó en el pie de página.
 
 ### La biblioteca
 
@@ -933,6 +976,13 @@ galería, fondo de sección, adornos, bloques de foto, la biblioteca— y una
 lista escrita a mano se queda corta en el próximo campo que se añada. Aquí un
 falso positivo es inofensivo; un falso negativo borraría una foto en uso.
 
+La extensión de esa expresión la dictan ahora los formatos que declara
+`storage.ts`, y no un `[a-z]{3,4}` escrito a mano. El escrito a mano no
+encontraba **ni un solo `.mp4`** —el `4` no es una letra—, así que los vídeos
+en uso se contaban como material sin usar y uno que desapareciera del disco no
+salía en el aviso de las invitaciones rotas. Con `.webm` no pasaba, que son
+cuatro letras: es el tipo de fallo que sólo se ve en la mitad de los casos.
+
 ### El botón de la portada, siempre y siempre vivo
 
 Es lo único que invita a bajar: si falta, la portada es una pantalla completa
@@ -1015,6 +1065,10 @@ del mismo vocabulario de clases que los demás. Dos fuentes:
 
 Tres formas: apaisado (16:9), vertical (9:16, para lo grabado con el celular
 de pie) y a sangre, de borde a borde.
+
+Un vídeo también puede ir de **fondo de una sección**, detrás del texto y sin
+ser un bloque: eso se cuenta en «[El fondo también puede ser un
+vídeo](#el-fondo-también-puede-ser-un-vídeo)».
 
 ### El link de YouTube: cualquiera de sus formas
 

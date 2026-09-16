@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { esVideoUrl } from "@/lib/schema";
 import {
   IMAGE_ACCEPT,
   VIDEO_ACCEPT,
@@ -84,15 +85,29 @@ function Biblioteca({
 /* ── Una sola imagen (portada) ────────────────────────────── */
 
 export function ImageField({
-  value, onChange, kind,
+  value, onChange, kind, medio,
 }: {
   value: string;
   onChange: (url: string) => void;
   /** Los adornos se catalogan aparte de las fotos, y el vídeo aparte de todo. */
   kind?: MediaKind;
+  /**
+   * Vale cualquiera de los dos: foto o vídeo. Lo usa el fondo de sección.
+   *
+   * Lo subido se cataloga como siempre —el servidor manda solo los vídeos al
+   * estante de vídeo— y la biblioteca se abre sin filtrar, que es lo único
+   * que deja elegir una foto y un clip desde el mismo campo.
+   */
+  medio?: boolean;
 }) {
-  const video = kind === "video";
-  const accept = video ? VIDEO_ACCEPT : IMAGE_ACCEPT;
+  /* Si el campo acepta los dos, lo que hay dicta cómo se enseña: un vídeo no
+     se puede pintar como imagen de fondo y saldría un hueco gris. */
+  const video = medio ? esVideoUrl(value) : kind === "video";
+  const accept = medio
+    ? `${IMAGE_ACCEPT},${VIDEO_ACCEPT}`
+    : video
+      ? VIDEO_ACCEPT
+      : IMAGE_ACCEPT;
   const input = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [over, setOver] = useState(false);
@@ -146,7 +161,13 @@ export function ImageField({
   }
 
   if (biblio) {
-    return <Biblioteca kind={kind} onPick={onChange} onClose={() => setBiblio(false)} />;
+    return (
+      <Biblioteca
+        kind={medio ? undefined : kind}
+        onPick={onChange}
+        onClose={() => setBiblio(false)}
+      />
+    );
   }
 
   if (byUrl) {
@@ -181,12 +202,18 @@ export function ImageField({
         <span>
           {busy
             ? "Subiendo…"
-            : video
-              ? "Arrastra un vídeo o haz clic"
-              : "Arrastra una foto o haz clic"}
+            : medio
+              ? "Arrastra una foto o un vídeo, o haz clic"
+              : video
+                ? "Arrastra un vídeo o haz clic"
+                : "Arrastra una foto o haz clic"}
         </span>
         <span className={styles.dropHint}>
-          {video ? "MP4 o WebM · hasta 64 MB" : "JPG, PNG o WebP · hasta 8 MB"}
+          {medio
+            ? "JPG, PNG o WebP hasta 8 MB · MP4 o WebM hasta 64 MB"
+            : video
+              ? "MP4 o WebM · hasta 64 MB"
+              : "JPG, PNG o WebP · hasta 8 MB"}
         </span>
       </button>
       <span className={styles.imageAlts}>

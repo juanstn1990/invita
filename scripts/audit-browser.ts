@@ -10,6 +10,7 @@
  *     scripts — los templates traían uno que la pisaba.
  *  4. Que nada tape la barra de controles de un vídeo a sangre.
  *  5. Que la marca de agua no se coma los clics de la invitación.
+ *  6. Que el fondo de vídeo de una sección se quede detrás de su texto.
  *
  *   npm run audit:browser
  */
@@ -66,6 +67,12 @@ const ORIGEN = "https://invitacion.local";
       enabled: true, texto: "MUESTRA", disposicion: "repetida",
       tamano: "120", opacidad: "14", color: "",
     };
+    /* Un fondo de vídeo, para la comprobación 6. La capa del fondo va
+       posicionada y el contenido de la sección no siempre: ese es el fallo que
+       ya tapó un pie de página con su propio adorno, y con un <video> dentro
+       sería peor, porque un vídeo recibe clics por su cuenta. */
+    (data.gallery as any).fondoUrl = "https://ejemplo.test/fondo.webm";
+
     /* Un vídeo a sangre, para la comprobación 4. */
     (data as any).layout = {
       blocks: [
@@ -182,6 +189,44 @@ const ORIGEN = "https://invitacion.local";
       return 'el botón queda bajo ' + el.tagName.toLowerCase() + '.' + String(el.className || '');
     })()`);
 
+    /* ¿El fondo de vídeo se queda detrás del contenido de su sección?
+       No se mira con `elementFromPoint`, que aquí no sirve: la capa lleva
+       `pointer-events:none` y el navegador la salta al buscar quién está en
+       un punto, así que el clic diría que todo va bien aunque el vídeo
+       estuviera pintado encima del texto. Lo que decide es el apilamiento.
+
+       La capa está posicionada y un elemento posicionado se pinta encima de
+       los hermanos que no lo están: por eso el renderer sube el contenido de
+       la sección. Sin esa regla el fondo tapa el texto —es el mismo fallo que
+       una vez tapó el pie de página con su propio adorno—, y con un vídeo
+       opaco encima no quedaría nada que leer.
+
+       Que el archivo no llegue a decodificarse aquí (`ejemplo.test` responde
+       un pixel) da igual: un vídeo roto ocupa su sitio igual que uno que se
+       reproduce. */
+    const fondoTapa: string = await page.evaluate(`(() => {
+      var v = document.querySelector('.inv-fondo-video');
+      if (!v) return 'no se puso fondo de vídeo';
+      var capa = v.parentElement;
+      if (getComputedStyle(capa).pointerEvents !== 'none') return 'la capa recibe clics';
+
+      var sec = capa.parentElement;
+      if (getComputedStyle(sec).position === 'static') return 'la sección no está posicionada';
+
+      var z = Number(getComputedStyle(capa).zIndex) || 0;
+      // Un adorno "debajo" comparte capa con el fondo a propósito, y el orden
+      // del DOM ya lo deja encima: no es lo que se está mirando aquí.
+      var tapados = [].slice.call(sec.children).filter(function (c) {
+        if (c === capa || c.classList.contains('inv-adorno')) return false;
+        var s = getComputedStyle(c);
+        return s.position === 'static' || (Number(s.zIndex) || 0) <= z;
+      });
+      if (!tapados.length) return '';
+      var m = tapados[0];
+      return 'tapa a ' + m.tagName.toLowerCase() + '.' +
+        String(m.className || '').split(' ')[0];
+    })()`);
+
     // ¿La foto del organizador sobrevivió a los scripts del template?
     const sobrevive = await page.evaluate((url) => {
       const fondo = Array.from(document.querySelectorAll<HTMLElement>("*")).some((n) =>
@@ -197,7 +242,7 @@ const ORIGEN = "https://invitacion.local";
 
     const ok =
       !errores.length && !externas.length && sobrevive && !adornosGrandes.length &&
-      !tapado && !marcaTapa;
+      !tapado && !marcaTapa && !fondoTapa;
     if (!ok) malos++;
     console.log(
       `${ok ? "✓" : "✗"} ${tpl.id.padEnd(28)}` +
@@ -206,7 +251,8 @@ const ORIGEN = "https://invitacion.local";
         `${sobrevive ? "" : "  FOTO PISADA"}` +
         `${adornosGrandes.length ? `  adorno gigante: ${adornosGrandes[0]}` : ""}` +
         `${tapado ? `  controles del vídeo tapados por ${tapado}` : ""}` +
-        `${marcaTapa ? `  marca de agua: ${marcaTapa}` : ""}`
+        `${marcaTapa ? `  marca de agua: ${marcaTapa}` : ""}` +
+        `${fondoTapa ? `  fondo de vídeo: ${fondoTapa}` : ""}`
     );
   }
 

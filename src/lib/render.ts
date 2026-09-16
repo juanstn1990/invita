@@ -24,6 +24,7 @@ import {
   SITIOS,
   SECTIONS as SPEC,
   coupleName,
+  esVideoUrl,
   formatDateLong,
   resolvedDateLabel,
   type HeroDisposicion,
@@ -530,7 +531,47 @@ const AJUSTE: Record<string, string> = {
 };
 
 /**
- * La imagen de fondo de una sección.
+ * El fondo cuando lo que se subió es un vídeo.
+ *
+ * Tiene que ser un `<video>`: no existe forma de meter un vídeo en un
+ * `background-image`. Del recorte y la atenuación sigue encargándose la capa,
+ * así que aquí sólo hay que llenarla.
+ *
+ * Los cuatro atributos van juntos porque por separado no sirven: `autoplay`
+ * sin `muted` lo ignora todo navegador —ninguno deja que una página empiece a
+ * sonar sola— y sin `playsinline` iOS abre el reproductor a pantalla completa
+ * encima de la invitación en cuanto arranca. `loop` porque un fondo congelado
+ * en el último fotograma es una foto mal elegida.
+ *
+ * Sin `controls`, que es un fondo y no una pieza que se mire, y sin `poster`:
+ * el elemento se deja transparente hasta el primer fotograma para que
+ * mientras carga se vea el color de la sección y no el recuadro negro que
+ * pinta Safari.
+ */
+function fondoVideo(doc: Doc, url: string, modo: string): El {
+  const v = doc.createElement("video");
+  v.setAttribute("class", "inv-fondo-video");
+  /* Tal cual: el redimensionador de `/api/media` no toca el vídeo, y pedirle
+     un `?w=` sólo añadiría una URL que no cachea igual. */
+  v.setAttribute("src", url);
+  v.setAttribute("autoplay", "");
+  v.setAttribute("muted", "");
+  v.setAttribute("loop", "");
+  v.setAttribute("playsinline", "");
+  /* Con `autoplay` puesto el navegador descarga lo que necesite y esto da
+     igual; importa para quien pidió menos movimiento, a quien `FONDO_VIDEO_JS`
+     le para el vídeo: sin metadatos cargados no habría ni primer fotograma
+     que dejar quieto, y la capa quedaría vacía. */
+  v.setAttribute("preload", "metadata");
+  /* Un mosaico de vídeo no existe —`background-repeat` no alcanza a un
+     elemento—, así que "repetir" se atiende con lo que más se le parece, que
+     es llenar la sección. */
+  if (modo === "contener") v.setAttribute("style", "object-fit:contain");
+  return v;
+}
+
+/**
+ * El fondo de una sección: una foto o un vídeo.
  *
  * Va en una capa propia y no en el `background` de la sección para poder
  * atenuarla: `opacity` sobre la sección se llevaría también el texto. La capa
@@ -539,19 +580,29 @@ const AJUSTE: Record<string, string> = {
 function ponerFondo(seccion: El, d: InvitationData[string], sel: string, ctx: Ctx) {
   const url = String(d.fondoUrl || "").trim();
   if (!url) return;
-  const ajuste = AJUSTE[String(d.fondoAjuste || "")] ?? AJUSTE[""];
+  const modo = String(d.fondoAjuste || "");
   const opacidad = Math.min(100, Math.max(0, Number(d.fondoOpacidad ?? 100))) / 100;
 
   const capa = seccion.ownerDocument.createElement("div");
   capa.setAttribute("class", "inv-fondo");
   capa.setAttribute("aria-hidden", "true");
-  /* El fondo cubre la sección entera, así que va al ancho grande — salvo en
-     mosaico, donde se repite en pequeño. */
-  const anchoFondo = String(d.fondoAjuste || "") === "repetir" ? 800 : 1600;
-  capa.setAttribute(
-    "style",
-    `${fondoImagen(url, anchoFondo)}${ajuste};opacity:${opacidad}`
-  );
+
+  if (esVideoUrl(url)) {
+    /* El recorte lo hace el `object-fit` del vídeo, no la capa: aquí sólo
+       queda la atenuación. */
+    capa.setAttribute("style", `opacity:${opacidad}`);
+    capa.appendChild(fondoVideo(seccion.ownerDocument, url, modo));
+  } else {
+    const ajuste = AJUSTE[modo] ?? AJUSTE[""];
+    /* El fondo cubre la sección entera, así que va al ancho grande — salvo en
+       mosaico, donde se repite en pequeño. */
+    const anchoFondo = modo === "repetir" ? 800 : 1600;
+    capa.setAttribute(
+      "style",
+      `${fondoImagen(url, anchoFondo)}${ajuste};opacity:${opacidad}`
+    );
+  }
+
   seccion.insertBefore(capa, seccion.firstChild);
 
   /* Sin esto la capa, que está posicionada, se pinta encima del contenido de
@@ -1173,6 +1224,12 @@ export const INJECTED_CSS = `
    añaden al final de la sección, así que sin z-index todos taparían el texto.
    "Debajo" es 0 y "encima" es 4, con el contenido en 1. */
 .inv-fondo{position:absolute;inset:0;z-index:0;pointer-events:none}
+/* Un fondo de vídeo llena su capa igual que lo haría un background-size:cover.
+   Transparente y no negro: Safari pinta de negro un <video> sin poster, y
+   detrás del texto eso es un rectángulo negro donde debía estar el color de
+   la sección hasta que llega el primer fotograma. */
+.inv-fondo-video{display:block;width:100%;height:100%;object-fit:cover;
+  background:transparent}
 .inv-adorno{position:absolute;line-height:0;pointer-events:none}
 .inv-ad-mov,.inv-ad-pieza{display:block;line-height:0}
 .inv-adorno img{display:block;width:100%;height:auto}
@@ -2038,6 +2095,29 @@ const PARALLAX_JS = `
   pedir();
 })();`;
 
+/**
+ * Un fondo de vídeo, para quien pidió menos movimiento.
+ *
+ * Es lo único del sitio que se mueve sin parar y que el CSS no puede detener:
+ * `prefers-reduced-motion` apaga animaciones y transiciones, pero un `<video>`
+ * en bucle no es ni lo uno ni lo otro y sigue corriendo detrás del texto.
+ *
+ * Parado en su primer fotograma el fondo no desaparece: se queda exactamente
+ * como la foto que habría puesto quien no quiso vídeo.
+ */
+const FONDO_VIDEO_JS = `
+(function(){
+  if (!window.matchMedia || !matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  var v = document.querySelectorAll('.inv-fondo-video');
+  for (var i = 0; i < v.length; i++) {
+    /* Quitarlos además de parar: sin esto, un vídeo al que todavía no le
+       había llegado el turno de reproducirse arranca después del pause. */
+    v[i].removeAttribute('autoplay');
+    v[i].removeAttribute('loop');
+    v[i].pause();
+  }
+})();`;
+
 const HIDE_SPLASH_JS = `
 (function(){
   var s = document.getElementById('splash') || document.querySelector('.splash');
@@ -2748,6 +2828,7 @@ export function renderInvitation(opts: RenderOptions): string {
   // con marcado nuestro necesitan el suyo, que busca por [data-cd].
   if (document.querySelector("[data-cd]")) scripts.push(countdownJs(iso));
   if (document.querySelector("[data-inv-px]")) scripts.push(PARALLAX_JS);
+  if (document.querySelector(".inv-fondo-video")) scripts.push(FONDO_VIDEO_JS);
   if (scripts.length) {
     const s = document.createElement("script");
     s.textContent = scripts.join("\n");

@@ -211,6 +211,95 @@ for (const [nombre, tocar] of CASOS) {
 }
 
 
+/* ── El fondo de una sección ─────────────────────────────────────
+   El mismo campo acepta una foto y un vídeo, y lo que decide es la extensión
+   de la URL. Equivocarse ahí no se ve a medias: una foto emitida como
+   `<video>` deja la sección en blanco, y un vídeo emitido como
+   `background-image` no lo pinta ningún navegador. */
+{
+  const MP4 = "/api/media/2026/09/aaaaaaaaaaaaaaaaaaaaaaaa.mp4";
+  const JPG = "/api/media/2026/09/bbbbbbbbbbbbbbbbbbbbbbbb.jpg";
+
+  const casos: [string, Record<string, unknown>, (capa: any, html: string) => boolean][] = [
+    [
+      "una foto sigue siendo un background",
+      { fondoUrl: JPG },
+      (capa) =>
+        !capa.querySelector("video") &&
+        (capa.getAttribute("style") || "").includes("background-image"),
+    ],
+    [
+      "un mp4 sale como <video> que arranca solo",
+      { fondoUrl: MP4 },
+      (capa) => {
+        const v = capa.querySelector("video");
+        /* Los cuatro juntos o ninguno: `autoplay` sin `muted` no lo respeta
+           ningún navegador y sin `playsinline` iOS se lo lleva a pantalla
+           completa encima de la invitación. */
+        return Boolean(
+          v &&
+            v.getAttribute("src") === MP4 &&
+            ["autoplay", "muted", "loop", "playsinline"].every(
+              (a) => v.getAttribute(a) !== null
+            ) &&
+            v.getAttribute("controls") === null
+        );
+      },
+    ],
+    [
+      "un .webm ajeno también",
+      { fondoUrl: "https://ajeno.test/clip.webm?v=2" },
+      (capa) => Boolean(capa.querySelector("video")),
+    ],
+    [
+      "la opacidad la pone la capa, no el vídeo",
+      { fondoUrl: MP4, fondoOpacidad: 40 },
+      (capa) =>
+        (capa.getAttribute("style") || "").includes("opacity:0.4") &&
+        !(capa.querySelector("video")?.getAttribute("style") || "").includes("opacity"),
+    ],
+    [
+      "«contener» llega al vídeo como object-fit",
+      { fondoUrl: MP4, fondoAjuste: "contener" },
+      (capa) =>
+        (capa.querySelector("video")?.getAttribute("style") || "").includes(
+          "object-fit:contain"
+        ),
+    ],
+    [
+      "«repetir» no intenta un mosaico de vídeo",
+      { fondoUrl: MP4, fondoAjuste: "repetir" },
+      (capa) =>
+        Boolean(capa.querySelector("video")) &&
+        !(capa.getAttribute("style") || "").includes("background-repeat"),
+    ],
+    [
+      "quien pidió menos movimiento se lleva el script que lo para",
+      { fondoUrl: MP4 },
+      (_capa, html) => html.includes("prefers-reduced-motion") && html.includes("inv-fondo-video"),
+    ],
+  ];
+
+  for (const [nombre, parche, comprueba] of casos) {
+    const mal: string[] = [];
+    for (const tpl of TEMPLATES) {
+      const d: any = defaultData();
+      d.gallery = { ...(d.gallery || {}), enabled: true, ...parche };
+      const html = renderInvitation({
+        templateHtml: readTemplate(tpl.id), templateId: tpl.id, data: d, slug: "demo",
+      });
+      const capa = parseHTML(html).document.querySelector(".inv-fondo") as any;
+      if (!capa) mal.push(`${tpl.id} (sin capa)`);
+      else if (!comprueba(capa, html)) mal.push(tpl.id);
+    }
+    if (mal.length) botonMal++;
+    console.log(
+      `${mal.length ? "✗" : "✓"} fondo · ${nombre.padEnd(52)}` +
+        (mal.length ? `  ${mal.length} mal: ${mal.slice(0, 2).join(", ")}` : "")
+    );
+  }
+}
+
 /* ── Los metadatos del enlace compartido ─────────────────────────
    Un `og:` roto no se ve en la invitación ni en el navegador: se ve cuando
    alguien pega el enlace en WhatsApp, y entonces ya se compartió mal. */

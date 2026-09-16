@@ -21,7 +21,7 @@
 import fs from "fs";
 import path from "path";
 import { prisma } from "../src/lib/prisma";
-import { ROOT } from "../src/lib/storage";
+import { ALLOWED_TYPES, ALLOWED_VIDEO, ROOT } from "../src/lib/storage";
 
 const borrar = process.argv.includes("--borrar");
 
@@ -41,18 +41,30 @@ const urlDe = (f: string) => `/api/media/${path.relative(ROOT, f).split(path.sep
 
 /* ── Lo que usan las invitaciones ───────────────────────────── */
 
+/* Las extensiones salen de `storage`, que es quien decide qué se acepta, y no
+   de un `[a-z]{3,4}` escrito a mano: ése no encontraba ni un solo `.mp4` —el
+   `4` no es una letra—, así que los vídeos en uso se contaban como material
+   sin usar y uno que desapareciera del disco no salía en el aviso de las
+   invitaciones rotas. */
+const EXT = Object.values({ ...ALLOWED_TYPES, ...ALLOWED_VIDEO }).join("|");
+const RUTA_MEDIA = new RegExp(
+  `/api/media/[0-9]{4}/[0-9]{2}/[a-f0-9]{24}\\.(?:${EXT})`,
+  "g"
+);
+
 /**
  * Todas las URLs de `/api/media/` que aparecen en los datos de una
  * invitación, sin importar en qué campo.
  *
  * Se busca sobre el JSON en crudo y no campo por campo a propósito: los
- * sitios donde puede haber una imagen han crecido —portada, galería, fondo de
- * sección, adornos, bloques de foto— y una lista escrita a mano se queda corta
- * en el próximo campo que se añada. Aquí un falso positivo es inofensivo (no
- * borrar algo que sí se usa) y un falso negativo borraría una foto en uso.
+ * sitios donde puede haber una imagen o un vídeo han crecido —portada,
+ * galería, fondo de sección, adornos, bloques de foto y de vídeo— y una lista
+ * escrita a mano se queda corta en el próximo campo que se añada. Aquí un
+ * falso positivo es inofensivo (no borrar algo que sí se usa) y un falso
+ * negativo borraría una foto en uso.
  */
 const usadas = (json: string): string[] =>
-  [...json.matchAll(/\/api\/media\/[0-9]{4}\/[0-9]{2}\/[a-f0-9]{24}\.[a-z]{3,4}/g)].map((m) => m[0]);
+  [...json.matchAll(RUTA_MEDIA)].map((m) => m[0]);
 
 (async () => {
   console.log(`Carpeta: ${ROOT}\n`);
