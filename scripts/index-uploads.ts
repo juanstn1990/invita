@@ -15,10 +15,29 @@
 import fs from "fs";
 import path from "path";
 import { prisma } from "../src/lib/prisma";
-import { ALLOWED_TYPES, ROOT } from "../src/lib/storage";
+import {
+  ALLOWED_AUDIO,
+  ALLOWED_TYPES,
+  ALLOWED_VIDEO,
+  ROOT,
+  esAudio,
+  esVideo,
+} from "../src/lib/storage";
 
+/**
+ * Los tres mapas y no sólo el de imágenes.
+ *
+ * Con sólo `ALLOWED_TYPES`, un vídeo o una canción restaurados desde un
+ * respaldo quedaban en disco y fuera de la biblioteca **para siempre**: el
+ * script los saltaba con un «extensión que no servimos» que era falso —sí las
+ * servimos— y nada volvía a mirarlos. La invitación que ya los usaba seguía
+ * funcionando, porque guarda la URL; lo que se perdía era poder volver a
+ * elegirlos, que es justo para lo que existe la biblioteca.
+ */
 const MIME_POR_EXT: Record<string, string> = Object.fromEntries(
-  Object.entries(ALLOWED_TYPES).map(([mime, ext]) => [ext, mime])
+  Object.entries({ ...ALLOWED_TYPES, ...ALLOWED_VIDEO, ...ALLOWED_AUDIO }).map(
+    ([mime, ext]) => [ext, mime]
+  )
 );
 
 /** Las medidas salen de la cabecera del archivo, sin decodificarlo entero. */
@@ -80,7 +99,10 @@ function archivos(dir: string, out: string[] = []): string[] {
     const st = fs.statSync(f);
     const { width, height } = medidas(f, ext);
     /* Lo ya subido se cataloga como foto: no hay forma de saber si era un
-       adorno, y en el selector es más fácil buscar entre fotos que perderlas. */
+       adorno, y en el selector es más fácil buscar entre fotos que perderlas.
+       Vídeo y audio sí se saben por el tipo, y van a su estante — que es lo
+       que hace que el campo de la música ofrezca canciones y no fotos. */
+    const estante = esVideo(mime) ? "video" : esAudio(mime) ? "audio" : "foto";
     await prisma.media.create({
       data: {
         url,
@@ -89,7 +111,7 @@ function archivos(dir: string, out: string[] = []): string[] {
         bytes: st.size,
         width,
         height,
-        kind: "foto",
+        kind: estante,
         createdAt: st.mtime,
       },
     });

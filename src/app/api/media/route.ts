@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import {
+  ALLOWED_AUDIO,
   ALLOWED_TYPES,
   ALLOWED_VIDEO,
+  MAX_AUDIO_BYTES,
   MAX_BYTES,
   MAX_VIDEO_BYTES,
   saveImage,
@@ -10,7 +12,7 @@ import {
 import { noAutorizado } from "@/lib/auth";
 
 /** Las clases de archivo que distingue la biblioteca. */
-const KINDS = new Set(["foto", "adorno", "video"]);
+const KINDS = new Set(["foto", "adorno", "video", "audio"]);
 
 /**
  * Sube una o varias imágenes y las anota en la biblioteca.
@@ -45,23 +47,27 @@ export async function POST(request: Request) {
   const urls: string[] = [];
   for (const [i, file] of files.entries()) {
     const video = Boolean(ALLOWED_VIDEO[file.type]);
-    if (!video && !ALLOWED_TYPES[file.type]) {
+    const audio = Boolean(ALLOWED_AUDIO[file.type]);
+    if (!video && !audio && !ALLOWED_TYPES[file.type]) {
       /* Se nombra el archivo porque casi siempre es uno de varios, y sin el
-         nombre no se sabe cuál quitar. El caso típico es un MOV del iPhone. */
+         nombre no se sabe cuál quitar. El caso típico es un MOV del iPhone,
+         y en audio un WAV, que sí se reproduce pero pesa diez veces más. */
       return NextResponse.json(
         {
           error:
             `"${file.name}" no es un formato que los navegadores reproduzcan: ` +
-            `imágenes JPG, PNG, WebP, GIF o AVIF, y vídeo MP4 o WebM.`,
+            `imágenes JPG, PNG, WebP, GIF o AVIF, vídeo MP4 o WebM, ` +
+            `y audio MP3 o M4A.`,
         },
         { status: 415 }
       );
     }
 
-    const techo = video ? MAX_VIDEO_BYTES : MAX_BYTES;
+    const techo = video ? MAX_VIDEO_BYTES : audio ? MAX_AUDIO_BYTES : MAX_BYTES;
     if (file.size > techo) {
+      const cuanto = video ? "64 MB" : audio ? "12 MB" : "8 MB";
       return NextResponse.json(
-        { error: `"${file.name}" pesa más de ${video ? "64 MB" : "8 MB"}.` },
+        { error: `"${file.name}" pesa más de ${cuanto}.` },
         { status: 413 }
       );
     }
@@ -81,10 +87,10 @@ export async function POST(request: Request) {
           bytes: file.size,
           width: w || null,
           height: h || null,
-          /* Un vídeo va siempre al estante de vídeo, aunque se haya subido
-             desde el campo de una foto: es lo que hace que la biblioteca
-             pueda filtrarlo después. */
-          kind: video ? "video" : kind,
+          /* Un vídeo va siempre al estante de vídeo y una canción al de
+             audio, aunque se hayan subido desde el campo de una foto: es lo
+             que hace que la biblioteca pueda filtrarlos después. */
+          kind: video ? "video" : audio ? "audio" : kind,
         },
       })
       .catch(() => null);

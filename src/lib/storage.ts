@@ -53,8 +53,29 @@ export const ALLOWED_VIDEO: Record<string, string> = {
   "video/webm": "webm",
 };
 
+/**
+ * Audio.
+ *
+ * MP3 y M4A, que son los dos que reproduce todo navegador sin excepciones.
+ * OGG queda fuera —Safari no lo toca, y las invitaciones se abren en iPhone—
+ * y WAV también, pero por otro motivo: se reproduce en todas partes y pesa
+ * diez veces más, así que una canción de tres minutos son 30 MB que alguien
+ * descarga en datos móviles para oír un fondo.
+ *
+ * Un `.m4a` llega con dos tipos distintos según el navegador que lo suba; los
+ * dos apuntan a la misma extensión.
+ */
+export const ALLOWED_AUDIO: Record<string, string> = {
+  "audio/mpeg": "mp3",
+  "audio/mp4": "m4a",
+  "audio/x-m4a": "m4a",
+};
+
 const TYPE_BY_EXT: Record<string, string> = Object.fromEntries(
-  Object.entries({ ...ALLOWED_TYPES, ...ALLOWED_VIDEO }).map(([mime, ext]) => [ext, mime])
+  Object.entries({ ...ALLOWED_TYPES, ...ALLOWED_VIDEO, ...ALLOWED_AUDIO })
+    /* `audio/mp4` y `audio/x-m4a` comparten extensión; al invertir el mapa
+       gana el primero, que es el que anuncia el servidor. */
+    .map(([mime, ext]) => [ext, mime])
 );
 
 export const MAX_BYTES = 8 * 1024 * 1024;
@@ -69,8 +90,20 @@ export const MAX_BYTES = 8 * 1024 * 1024;
  */
 export const MAX_VIDEO_BYTES = 64 * 1024 * 1024;
 
-/** Si el archivo es vídeo, se sirve entero y por tramos; nunca se redimensiona. */
+/**
+ * Lo que se sirve por tramos y sin tocar los bytes: vídeo y audio.
+ *
+ * Los dos por la misma razón —ver `statFile`— y ninguno se redimensiona: no
+ * hay nada que redimensionar en una canción, y el vídeo se rompería.
+ */
+export const porTramos = (mime: string) =>
+  mime.startsWith("video/") || mime.startsWith("audio/");
+
+/** Si el archivo es vídeo. Se conserva porque el peso y el estante difieren. */
 export const esVideo = (mime: string) => mime.startsWith("video/");
+
+/** Si el archivo es audio: otro techo de peso y otro estante en la biblioteca. */
+export const esAudio = (mime: string) => mime.startsWith("audio/");
 
 /**
  * Los anchos que se sirven redimensionados.
@@ -82,11 +115,34 @@ export const esVideo = (mime: string) => mime.startsWith("video/");
  */
 export const ANCHOS = [400, 800, 1600];
 
-/** Sólo aceptamos rutas que nosotros mismos generamos: aaaa/mm/id.ext */
-const SAFE_PATH = /^\d{4}\/\d{2}\/[a-f0-9]{24}\.(jpg|png|webp|gif|avif|mp4|webm)$/;
+/**
+ * Cuánto se acepta de audio.
+ *
+ * Una canción de cuatro minutos a 320 kbps son 9 MB y es lo más pesado que
+ * tiene sentido en un fondo; 12 deja margen sin abrir la puerta a subir un
+ * disco. La música arranca con el primer toque y va en bucle, así que la
+ * descarga cae encima de quien ya está leyendo la invitación.
+ */
+export const MAX_AUDIO_BYTES = 12 * 1024 * 1024;
+
+/**
+ * Sólo aceptamos rutas que nosotros mismos generamos: aaaa/mm/id.ext
+ *
+ * La lista de extensiones sale de los tres mapas de arriba y no de un literal:
+ * escrita a mano se olvidaría al añadir un formato, y el síntoma sería un
+ * archivo que se sube bien y luego da 404 al pedirlo — que es justo lo que no
+ * se nota hasta que alguien abre la invitación.
+ */
+const SAFE_PATH = new RegExp(
+  `^\\d{4}/\\d{2}/[a-f0-9]{24}\\.(?:${[
+    ...new Set(
+      Object.values({ ...ALLOWED_TYPES, ...ALLOWED_VIDEO, ...ALLOWED_AUDIO })
+    ),
+  ].join("|")})$`
+);
 
 export async function saveImage(bytes: Buffer, mime: string): Promise<string> {
-  const ext = { ...ALLOWED_TYPES, ...ALLOWED_VIDEO }[mime];
+  const ext = { ...ALLOWED_TYPES, ...ALLOWED_VIDEO, ...ALLOWED_AUDIO }[mime];
   if (!ext) throw new Error("Formato no soportado.");
 
   const now = new Date();

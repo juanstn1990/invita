@@ -224,6 +224,8 @@ function Field({
         <ImageField value={v} onChange={onChange} kind={mediaKind} />
       ) : field.type === "video" ? (
         <ImageField value={v} onChange={onChange} kind="video" />
+      ) : field.type === "audio" ? (
+        <ImageField value={v} onChange={onChange} kind="audio" />
       ) : field.type === "medio" ? (
         <ImageField value={v} onChange={onChange} medio />
       ) : (

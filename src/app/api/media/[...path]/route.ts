@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import sharp from "sharp";
-import { ANCHOS, esVideo, readImage, readStream, statFile, tramo } from "@/lib/storage";
+import { ANCHOS, porTramos, readImage, readStream, statFile, tramo } from "@/lib/storage";
 
 /**
  * Sirve una imagen subida, redimensionada al ancho que se pida.
@@ -29,11 +29,11 @@ export async function GET(
 ) {
   const rel = params.path.join("/");
 
-  /* El vídeo no se lee entero a memoria ni se redimensiona: se sirve por
-     tramos, que es lo que hace que se pueda adelantar y que iOS lo
-     reproduzca. Va antes que todo lo demás para no leer 60 MB por error. */
+  /* El vídeo y el audio no se leen enteros a memoria ni se redimensionan: se
+     sirven por tramos, que es lo que hace que se puedan adelantar y que iOS
+     los reproduzca. Va antes que todo lo demás para no leer 60 MB por error. */
   const stat = await statFile(rel);
-  if (stat && esVideo(stat.mime)) return videoPorTramos(request, rel, stat);
+  if (stat && porTramos(stat.mime)) return videoPorTramos(request, rel, stat);
 
   const file = await readImage(rel);
   if (!file) return new NextResponse("No encontrada", { status: 404 });

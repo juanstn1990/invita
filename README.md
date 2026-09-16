@@ -741,9 +741,57 @@ alcanza: `uploads/` desaparece en cada deploy. Ahí hay que reimplementar
 —nada fuera de ese archivo sabe dónde están los bytes— y mover la base a un
 Postgres gestionado.
 
-## Imágenes
+## Imágenes, vídeo y música
 
-Las fotos se suben con `POST /api/media` y se sirven por `/api/media/{año}/{mes}/{id}.{ext}`.
+Todo se sube con `POST /api/media` y se sirve por
+`/api/media/{año}/{mes}/{id}.{ext}`: las fotos, el vídeo y **la música**.
+
+### La música se sube, no se enlaza
+
+El campo «Música de fondo» era una URL y eso obligaba a alojar el MP3 en otro
+sitio — el único paso del proceso que sacaba de la app. Ahora se arrastra el
+archivo como una foto.
+
+**MP3 y M4A**, que son los dos que reproduce todo navegador sin excepciones.
+OGG queda fuera porque Safari no lo toca y estas invitaciones se abren en
+iPhone. WAV también, pero por otro motivo: se reproduce en todas partes y pesa
+diez veces más, así que una canción de tres minutos serían 30 MB que alguien
+descarga en datos móviles para oír un fondo. El techo son 12 MB — cuatro
+minutos a 320 kbps son nueve, y es lo más pesado que tiene sentido.
+
+Se sirve **por tramos**, por el mismo camino que el vídeo y por la misma razón
+que se explica en «El archivo subido se sirve por tramos». La música sigue
+arrancando con el primer toque en la pantalla, que es lo único que los
+navegadores permiten.
+
+El campo conserva la clave `musicUrl` y la opción de pegar un enlace: lo
+guardado en las invitaciones de antes son direcciones y siguen valiendo.
+
+### Que no se pierda
+
+Los bytes viven donde apunte `UPLOADS_DIR`, y ahí no hay nada nuevo: el audio
+hereda el mismo sitio y el mismo `npm run backup` que las fotos.
+
+Lo que sí hacía falta arreglar es la vuelta. `npm run media:index` —el que
+reconstruye el catálogo cuando se restaura un respaldo de archivos sin el de
+la base— **sólo conocía imágenes**. Un vídeo o una canción restaurados
+quedaban en disco y fuera de la biblioteca para siempre, saltados con un
+«extensión que no servimos» que era falso. La invitación que ya los usaba
+seguía funcionando, porque guarda la URL; lo que se perdía era poder volver a
+elegirlos, que es para lo que existe la biblioteca. Ahora los cataloga y los
+manda a su estante.
+
+### El fallo silencioso que esto podía tener
+
+Un formato que la subida acepta pero que la ruta pública no entrega se sube
+bien, aparece en el editor, se guarda en la invitación — y da 404 el día que
+alguien la abre. Son dos listas en sitios distintos y nada obligaba a que
+coincidieran.
+
+`npm run audit:medios` escribe un archivo de verdad por cada formato y lo pide
+por el mismo camino que usa la ruta pública. Comprobado rompiéndolo a
+propósito: quitando el audio del filtro de rutas, los tres tipos de audio
+salen en rojo.
 
 Se guardan en `uploads/` — **fuera de `public/` a propósito**: Next no sirve
 archivos que aparecen en `public/` después de compilar, así que en producción
@@ -756,7 +804,8 @@ en desarrollo y en producción.
   EXIF para que las verticales no salgan acostadas. Si comprimir no ayuda, se
   sube el original.
 - **SVG no se acepta**: puede llevar scripts y lo serviríamos same-origin.
-  Se aceptan JPG, PNG, WebP, GIF y AVIF, hasta 8 MB.
+  Se aceptan JPG, PNG, WebP, GIF y AVIF hasta 8 MB, MP4 y WebM hasta 64, y
+  MP3 y M4A hasta 12.
 - **Rutas validadas** contra un patrón estricto, así que no hay forma de leer
   nada fuera de `uploads/`.
 - **Para pasar a R2 o S3** sólo hay que reimplementar `saveImage` y `readImage`

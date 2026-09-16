@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { esVideoUrl } from "@/lib/schema";
 import {
+  AUDIO_ACCEPT,
   IMAGE_ACCEPT,
   VIDEO_ACCEPT,
   fetchBiblioteca,
@@ -68,8 +69,12 @@ function Biblioteca({
             title={m.name}
             onClick={() => { onPick(m.url); onClose(); }}
           >
-            {/* Un vídeo no se puede pintar como fondo: sale un hueco gris. */}
-            {m.mime?.startsWith("video/") ? (
+            {/* Un vídeo no se puede pintar como fondo: sale un hueco gris. Y
+                una canción no tiene nada que enseñar, así que en su casilla va
+                el símbolo y el nombre, que es lo que sirve para reconocerla. */}
+            {m.mime?.startsWith("audio/") ? (
+              <span className={styles.thumb} data-audio="1">♪</span>
+            ) : m.mime?.startsWith("video/") ? (
               <video className={styles.thumb} src={m.url} muted preload="metadata" />
             ) : (
               <span className={styles.thumb} style={{ backgroundImage: `url("${m.url}")` }} />
@@ -102,12 +107,15 @@ export function ImageField({
 }) {
   /* Si el campo acepta los dos, lo que hay dicta cómo se enseña: un vídeo no
      se puede pintar como imagen de fondo y saldría un hueco gris. */
+  const audio = kind === "audio";
   const video = medio ? esVideoUrl(value) : kind === "video";
   const accept = medio
     ? `${IMAGE_ACCEPT},${VIDEO_ACCEPT}`
-    : video
-      ? VIDEO_ACCEPT
-      : IMAGE_ACCEPT;
+    : audio
+      ? AUDIO_ACCEPT
+      : video
+        ? VIDEO_ACCEPT
+        : IMAGE_ACCEPT;
   const input = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [over, setOver] = useState(false);
@@ -133,7 +141,11 @@ export function ImageField({
   if (value) {
     return (
       <div className={styles.imagePicked}>
-        {video ? (
+        {audio ? (
+          /* Con controles y de verdad: es la única forma de comprobar que la
+             canción subida es la que se quería antes de repartir el enlace. */
+          <audio className={styles.thumbLg} src={value} controls preload="metadata" />
+        ) : video ? (
           <video className={styles.thumbLg} src={value} muted controls preload="metadata" />
         ) : (
           <span className={styles.thumbLg} style={{ backgroundImage: `url("${value}")` }} />
@@ -204,16 +216,20 @@ export function ImageField({
             ? "Subiendo…"
             : medio
               ? "Arrastra una foto o un vídeo, o haz clic"
-              : video
-                ? "Arrastra un vídeo o haz clic"
-                : "Arrastra una foto o haz clic"}
+              : audio
+                ? "Arrastra la canción o haz clic"
+                : video
+                  ? "Arrastra un vídeo o haz clic"
+                  : "Arrastra una foto o haz clic"}
         </span>
         <span className={styles.dropHint}>
           {medio
             ? "JPG, PNG o WebP hasta 8 MB · MP4 o WebM hasta 64 MB"
-            : video
-              ? "MP4 o WebM · hasta 64 MB"
-              : "JPG, PNG o WebP · hasta 8 MB"}
+            : audio
+              ? "MP3 o M4A · hasta 12 MB"
+              : video
+                ? "MP4 o WebM · hasta 64 MB"
+                : "JPG, PNG o WebP · hasta 8 MB"}
         </span>
       </button>
       <span className={styles.imageAlts}>

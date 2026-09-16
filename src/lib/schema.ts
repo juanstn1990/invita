@@ -20,6 +20,8 @@ export type FieldType =
   | "image"
   /** Un vídeo subido. Se guarda igual que una imagen; cambia el que lo pinta. */
   | "video"
+  /** Una canción subida. Igual que el vídeo, con un reproductor de audio. */
+  | "audio"
   /**
    * Una foto **o** un vídeo, a elección de quien edita.
    *
@@ -423,11 +425,14 @@ export const SECTIONS: SectionSpec[] = [
         help: "El botón secundario abre este link en otra pestaña. Sin link, el botón no aparece: uno que no lleva a ningún sitio es peor que ninguno.",
       },
       {
+        /* La clave no cambia aunque el campo ya no sea una URL: lo guardado
+           en las invitaciones de antes son direcciones, y siguen valiendo —
+           el campo conserva el "o usar una URL" de siempre. */
         key: "musicUrl",
-        label: "Música de fondo (URL .mp3)",
-        type: "url",
+        label: "Música de fondo",
+        type: "audio",
         span: 2,
-        help: "Opcional. Si la pones, la invitación ofrece entrar con música.",
+        help: "Opcional. Suena al entrar, en bucle y con un botón para silenciarla. Ningún navegador la deja arrancar sola: empieza con el primer toque en la pantalla.",
       },
       {
         key: "introUrl",

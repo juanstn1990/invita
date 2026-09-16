@@ -15,9 +15,9 @@ const QUALITY = 0.85;
 const PASS_THROUGH = new Set(["image/gif"]);
 
 async function shrink(file: File): Promise<Blob> {
-  /* El vídeo sube tal cual: reducirlo en el navegador exigiría recodificarlo,
-     que es minutos de CPU y una pérdida de calidad que nadie pidió. */
-  if (file.type.startsWith("video/")) return file;
+  /* El vídeo y el audio suben tal cual: recodificarlos en el navegador serían
+     minutos de CPU y una pérdida de calidad que nadie pidió. */
+  if (file.type.startsWith("video/") || file.type.startsWith("audio/")) return file;
   if (PASS_THROUGH.has(file.type)) return file;
 
   let bitmap: ImageBitmap;
@@ -67,7 +67,7 @@ async function medir(blob: Blob): Promise<string> {
  * `kind` separa las fotos del evento de los adornos, que es lo que permite
  * que la biblioteca ofrezca sólo marcos cuando se está poniendo un marco.
  */
-export type MediaKind = "foto" | "adorno" | "video";
+export type MediaKind = "foto" | "adorno" | "video" | "audio";
 
 export async function uploadImages(
   files: File[],
@@ -115,3 +115,11 @@ export const IMAGE_ACCEPT = "image/jpeg,image/png,image/webp,image/gif,image/avi
 
 /** Los dos que reproducen todos los navegadores. Ver `ALLOWED_VIDEO`. */
 export const VIDEO_ACCEPT = "video/mp4,video/webm";
+
+/**
+ * Lo mismo para el audio. Ver `ALLOWED_AUDIO`.
+ *
+ * Se añade `.m4a` por extensión además del tipo: Windows no siempre le pone
+ * un `type` a ese archivo y el selector lo dejaría fuera aunque sea válido.
+ */
+export const AUDIO_ACCEPT = "audio/mpeg,audio/mp4,audio/x-m4a,.mp3,.m4a";
