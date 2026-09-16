@@ -176,6 +176,7 @@ const APARTE = new Set([
   "introUrl",
   "introSonido",
   "introAjuste",
+  "introSalida",
   // El fondo de la sección lo pone `ponerFondo` en una capa propia.
   "fondoUrl",
   "fondoAjuste",

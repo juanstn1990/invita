@@ -434,7 +434,7 @@ export const SECTIONS: SectionSpec[] = [
         label: "Vídeo de apertura",
         type: "video",
         span: 2,
-        help: "Se reproduce a pantalla completa al pulsar el botón y se desvanece al terminar. Se descarga mientras se ve el velo, así que un clip corto —cinco o diez segundos— es lo que no hace esperar a nadie.",
+        help: "Se reproduce a pantalla completa al pulsar el botón y da paso a la invitación. Se corta siempre a los 3 segundos, así que sube el trozo que quieres que se vea: lo que haya después no se llega a ver y sólo pesa.",
       },
       {
         key: "introSonido",
@@ -455,6 +455,26 @@ export const SECTIONS: SectionSpec[] = [
         options: [
           { value: "", label: "Llena la pantalla (recorta)" },
           { value: "contener", label: "Entero (con bandas)" },
+        ],
+      },
+      {
+        key: "introSalida",
+        label: "Cómo da paso a la invitación",
+        type: "select",
+        span: 2,
+        fallback: 0,
+        options: [
+          { value: "", label: "Fundido" },
+          { value: "negro", label: "Funde a negro y luego aparece" },
+          { value: "destello", label: "Destello blanco" },
+          { value: "acerca", label: "El vídeo se acerca" },
+          { value: "aleja", label: "El vídeo se aleja" },
+          { value: "sube", label: "Sube como un telón" },
+          { value: "baja", label: "Cae" },
+          { value: "cortinas", label: "Se abre en dos" },
+          { value: "circulo", label: "Se abre un círculo" },
+          { value: "barrido", label: "Barrido lateral" },
+          { value: "desenfoque", label: "Se desenfoca" },
         ],
       },
       {
@@ -962,6 +982,7 @@ export function defaultData(): InvitationData {
       introUrl: "",
       introSonido: "",
       introAjuste: "",
+      introSalida: "",
     },
     hero: {
       enabled: true,

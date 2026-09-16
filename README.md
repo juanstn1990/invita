@@ -1086,7 +1086,14 @@ mirar girar.
 ### La cortina: un vídeo antes de la invitación
 
 Un clip a pantalla completa entre el velo y la portada. Se pone en **«Vídeo de
-apertura»**, se reproduce al pulsar el botón y se desvanece al terminar.
+apertura»**, se reproduce al pulsar el botón y da paso a la invitación.
+
+**Se corta siempre a los tres segundos**, dure lo que dure el archivo. No es
+una red de seguridad, es la regla: una cortina es el rato que se tarda en
+abrir un sobre, y pasado eso quien la abrió ya quiere leer. Así que lo que se
+sube es el trozo que se quiere ver — lo que venga detrás no se llega a ver y
+sólo pesa. De paso cubre el caso en que `ended` no llega nunca, que pasa con
+archivos que traen mal escrita su duración.
 
 Va **por debajo** del velo (9998 contra 9999) y no encima, que es lo que quita
 el corte entre los dos: mientras el velo se abre, la cortina ya está detrás
@@ -1105,6 +1112,49 @@ quiere.
 Se cuelga de `enterSite`, que los 49 diseños definen en su propio script y que
 el botón llama por nombre. Envolverla —guardar la de antes y poner una nuestra
 encima— es lo que deja añadir esto sin reconstruir un solo template.
+
+#### Once maneras de dar paso
+
+| | |
+| --- | --- |
+| **Fundido** | El vídeo se disuelve sobre la invitación |
+| **Funde a negro** | Primero se va el vídeo y queda el fondo; después se va el fondo. Dos tiempos, que es el respiro de cine |
+| **Destello blanco** | Una capa blanca sube de golpe y se va despacio: lo que se quema es el corte |
+| **Se acerca** | El vídeo crece mientras se disuelve |
+| **Se aleja** | Se encoge y deja ver lo que hay detrás |
+| **Telón** | Sube entero y se lleva el vídeo con él |
+| **Cae** | El mismo telón, hacia el otro lado |
+| **Se abre en dos** | Dos mitades que se apartan |
+| **Círculo** | Se cierra sobre el centro y la invitación entra por los bordes |
+| **Barrido** | Un borde que cruza de izquierda a derecha |
+| **Desenfoque** | Pierde el foco mientras se va |
+
+Cada una es una clase y un bloque de CSS que no sabe de las demás, así que la
+doceava es escribir su regla y su nombre en el conjunto que las valida. Un
+nombre que no esté en ese conjunto cae en el fundido: más vale la salida de
+siempre que una cortina que no se sabe ir.
+
+La base no dice **nada** de cómo se va, y por eso el fundido es una clase más
+y no el caso por defecto escrito ahí: con un `opacity: 0` en la base, las
+cuatro que revelan por geometría —telón, cortinas, círculo, barrido— tendrían
+que pelearse con él para que el vídeo no se apagara mientras se mueve. Esas
+cuatro no tocan la opacidad a propósito: el vídeo se ve entero hasta el último
+momento, y lo que descubre la invitación es la forma que se abre.
+
+«Se abre en dos» es la única que no sale de una propiedad sola. Son **dos
+máscaras** sobre el mismo elemento —una anclada a la izquierda y otra a la
+derecha— encogiendo cada una hacia su lado. Con un recorte no se puede: un
+`clip-path` es una región continua, y estas son dos que se separan.
+
+La capa se retira escuchando `transitionend` y no a los tantos milisegundos,
+porque las once duran cosas distintas —el círculo tarda 1,05 s y el destello
+medio segundo— y un número fijo o corta la más larga o deja la más corta
+esperando. El reloj queda de respaldo, por si el navegador no anima la
+propiedad y no dispara nada.
+
+Quien pidió menos movimiento no pide menos vídeo: el clip sigue estando. Lo
+que se va es el movimiento, y las once se vuelven la misma — un fundido corto,
+que es cambio de luz y no de sitio.
 
 #### Lo que de verdad hay que probar aquí
 

@@ -367,6 +367,22 @@ for (const [nombre, tocar] of CASOS) {
       { introUrl: INTRO, introAjuste: "contener" }, true,
       (c) => String(c.getAttribute("class") || "").includes("inv-cortina-contener"),
     ],
+    [
+      "sin elegir salida, el fundido",
+      { introUrl: INTRO }, true,
+      (c) => String(c.getAttribute("class") || "").includes("inv-cortina-s-fundido"),
+    ],
+    [
+      "la salida elegida llega como clase",
+      { introUrl: INTRO, introSalida: "circulo" }, true,
+      (c) => String(c.getAttribute("class") || "").includes("inv-cortina-s-circulo"),
+    ],
+    /* Más vale la salida de siempre que una cortina que no se sabe ir. */
+    [
+      "una salida inventada cae en el fundido",
+      { introUrl: INTRO, introSalida: "explota" }, true,
+      (c) => String(c.getAttribute("class") || "").includes("inv-cortina-s-fundido"),
+    ],
     /* Sin velo no hay botón que pulsar, y sin gesto no hay vídeo que pueda
        sonar: una cortina ahí sería una capa negra sin forma de quitarla. */
     ["sin velo tampoco hay cortina", { introUrl: INTRO, enabled: false }, false, () => true],

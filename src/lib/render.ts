@@ -1257,21 +1257,26 @@ export const INJECTED_CSS = `
 /* ── La cortina de apertura ────────────────────────────────────
    Un vídeo a pantalla completa entre el velo y la invitación. Fondo negro
    porque es lo que hace de banda cuando el vídeo no llena la pantalla, y
-   porque desvanecerse desde el negro es lo que deja entrar el contenido en
-   vez de cruzarse con él.
+   porque es el color del que se sale en casi todas las salidas.
 
    Va por debajo del velo y no encima: mientras el velo se abre, la cortina
-   ya está detrás reproduciendo. Entre las dos no hay corte. */
-.inv-cortina{position:fixed;inset:0;z-index:9998;background:#000;
-  transition:opacity .9s ease}
+   ya está detrás reproduciendo. Entre las dos no hay corte.
+
+   La base no dice **nada** de cómo se va. Eso lo pone entera cada salida, y
+   por eso el fundido de siempre es una clase más y no el caso por defecto
+   escrito aquí: con un opacity:0 en la base, las salidas que revelan por
+   geometría —el telón que sube, el círculo que se abre— tendrían que pelearse
+   con él para que el vídeo no se apagara mientras se mueve. */
+.inv-cortina{position:fixed;inset:0;z-index:9998;background:#000}
 .inv-cortina[hidden]{display:none}
-.inv-cortina.fuera{opacity:0;pointer-events:none}
+.inv-cortina.fuera{pointer-events:none}
 .inv-cortina-video{position:absolute;inset:0;width:100%;height:100%;
   object-fit:cover;background:#000}
 .inv-cortina-contener .inv-cortina-video{object-fit:contain}
+
 /* Arriba y no abajo: abajo a la derecha vive el botón de la música, y dos
    controles en la misma esquina es uno de los dos sin pulsar. */
-.inv-cortina-saltar{position:absolute;right:16px;top:18px;z-index:2;
+.inv-cortina-saltar{position:absolute;right:16px;top:18px;z-index:3;
   padding:9px 18px;border-radius:999px;border:1px solid rgba(255,255,255,.55);
   background:rgba(0,0,0,.35);color:#fff;font:inherit;font-size:13px;
   letter-spacing:.06em;cursor:pointer;opacity:0;
@@ -1279,10 +1284,95 @@ export const INJECTED_CSS = `
 .inv-cortina.lista .inv-cortina-saltar{opacity:.85}
 .inv-cortina-saltar:hover{opacity:1}
 
+/* ── Las once salidas ──────────────────────────────────────────
+   Cada una declara su transición y su estado final, y ninguna sabe de las
+   otras. Las que revelan por geometría —telón, cortinas, círculo, barrido—
+   no tocan la opacidad a propósito: el vídeo se ve entero hasta el último
+   momento, y lo que descubre la invitación es la forma que se abre, no que
+   el vídeo se apague. */
+
+/* 1 · Fundido. El vídeo se disuelve sobre la invitación. */
+.inv-cortina-s-fundido{transition:opacity .9s ease}
+.inv-cortina-s-fundido.fuera{opacity:0}
+
+/* 2 · A negro. Primero se va el vídeo y queda el fondo; después se va el
+   fondo. Son dos tiempos y no uno, que es lo que da el respiro de cine. */
+.inv-cortina-s-negro{transition:opacity .55s ease .5s}
+.inv-cortina-s-negro .inv-cortina-video{transition:opacity .5s ease}
+.inv-cortina-s-negro.fuera{opacity:0}
+.inv-cortina-s-negro.fuera .inv-cortina-video{opacity:0}
+
+/* 3 · Destello. Una capa blanca sube de golpe y se va despacio: lo que se
+   quema es el corte, y la invitación aparece desde el blanco. */
+.inv-cortina-s-destello::after{content:"";position:absolute;inset:0;z-index:2;
+  background:#fff;opacity:0;pointer-events:none;transition:opacity .2s ease}
+.inv-cortina-s-destello{transition:opacity .55s ease .26s}
+.inv-cortina-s-destello.fuera::after{opacity:1}
+.inv-cortina-s-destello.fuera{opacity:0}
+
+/* 4 · Se acerca. El vídeo crece mientras se disuelve. */
+.inv-cortina-s-acerca{transition:opacity .8s ease .1s,
+  transform .95s cubic-bezier(.36,0,.2,1)}
+.inv-cortina-s-acerca.fuera{opacity:0;transform:scale(1.2)}
+
+/* 5 · Se aleja. Al revés: se encoge y deja ver lo que hay detrás. */
+.inv-cortina-s-aleja{transition:opacity .8s ease .1s,
+  transform .95s cubic-bezier(.36,0,.2,1)}
+.inv-cortina-s-aleja.fuera{opacity:0;transform:scale(.86)}
+
+/* 6 · Telón. Sube entero y se lleva el vídeo con él. */
+.inv-cortina-s-sube{transition:transform 1s cubic-bezier(.66,0,.28,1)}
+.inv-cortina-s-sube.fuera{transform:translateY(-100%)}
+
+/* 7 · Cae. El mismo telón, hacia el otro lado. */
+.inv-cortina-s-baja{transition:transform 1s cubic-bezier(.66,0,.28,1)}
+.inv-cortina-s-baja.fuera{transform:translateY(100%)}
+
+/* 8 · Cortinas. Dos mitades que se apartan.
+   Son dos máscaras sobre el mismo elemento —una anclada a la izquierda y otra
+   a la derecha— encogiendo cada una hacia su lado. Con una sola capa no se
+   puede: un recorte es una región continua y estas son dos que se separan. */
+.inv-cortina-s-cortinas{
+  -webkit-mask-image:linear-gradient(#000,#000),linear-gradient(#000,#000);
+  mask-image:linear-gradient(#000,#000),linear-gradient(#000,#000);
+  -webkit-mask-repeat:no-repeat,no-repeat;mask-repeat:no-repeat,no-repeat;
+  -webkit-mask-position:left center,right center;mask-position:left center,right center;
+  -webkit-mask-size:50.5% 100%,50.5% 100%;mask-size:50.5% 100%,50.5% 100%;
+  transition:-webkit-mask-size 1s cubic-bezier(.66,0,.28,1),
+    mask-size 1s cubic-bezier(.66,0,.28,1)}
+.inv-cortina-s-cortinas.fuera{-webkit-mask-size:0% 100%,0% 100%;mask-size:0% 100%,0% 100%}
+
+/* 9 · Círculo. Se cierra sobre el centro y la invitación entra por los bordes.
+   El 140% de partida es para que el círculo cubra las esquinas: un 100% deja
+   fuera las puntas de la pantalla y se verían cuatro triángulos. */
+.inv-cortina-s-circulo{clip-path:circle(140% at 50% 50%);
+  transition:clip-path 1.05s cubic-bezier(.6,0,.28,1)}
+.inv-cortina-s-circulo.fuera{clip-path:circle(0% at 50% 50%)}
+
+/* 10 · Barrido. Un borde que cruza de izquierda a derecha. */
+.inv-cortina-s-barrido{clip-path:inset(0 0 0 0);
+  transition:clip-path 1s cubic-bezier(.66,0,.28,1)}
+.inv-cortina-s-barrido.fuera{clip-path:inset(0 0 0 100%)}
+
+/* 11 · Desenfoque. Pierde el foco mientras se va, como si la vista pasara
+   del vídeo a lo que hay detrás. */
+.inv-cortina-s-desenfoque{transition:opacity .9s ease,filter .9s ease}
+.inv-cortina-s-desenfoque.fuera{opacity:0;filter:blur(24px)}
+
 /* Quien pidió menos movimiento no pide menos vídeo: lo que puso quien invita
-   sigue estando. Lo que se va es el fundido, que pasa a ser un corte. */
+   sigue estando. Lo que se va es el movimiento — nada de telones, giros,
+   recortes ni desenfoques—, y las once salidas se vuelven la misma: un
+   fundido corto, que es cambio de luz y no de sitio.
+
+   Con !important porque tiene que ganarle a once reglas que no se conocen
+   entre ellas, y es exactamente el caso para el que existe. */
 @media (prefers-reduced-motion:reduce){
-  .inv-cortina{transition:none}
+  .inv-cortina{transition:opacity .4s ease!important}
+  .inv-cortina.fuera{opacity:0!important;transform:none!important;
+    filter:none!important;clip-path:none!important;
+    -webkit-mask-image:none!important;mask-image:none!important}
+  .inv-cortina.fuera .inv-cortina-video{opacity:0}
+  .inv-cortina-s-destello.fuera::after{opacity:0}
 }
 
 /* ── Fondo y adornos por sección ───────────────────────────────
@@ -2202,6 +2292,18 @@ const FONDO_VIDEO_JS = `
 const APERTURAS = new Set(["sobre"]);
 
 /**
+ * Cómo la cortina da paso a la invitación.
+ *
+ * Cada una es una clase y un bloque de CSS que no sabe de las demás, así que
+ * añadir la doceava es escribir su regla y su nombre aquí. El fundido es una
+ * más y no el caso por defecto del CSS: ver el comentario de la base.
+ */
+const SALIDAS = new Set([
+  "fundido", "negro", "destello", "acerca", "aleja",
+  "sube", "baja", "cortinas", "circulo", "barrido", "desenfoque",
+]);
+
+/**
  * La cortina de apertura: un vídeo a pantalla completa al entrar.
  *
  * Se cuelga de `enterSite`, que definen los 49 diseños en su propio script y
@@ -2230,6 +2332,8 @@ const CORTINA_JS = `
   /* Con sonido, la música de fondo espera: dos audios a la vez no es
      ambiente, es ruido. Muda la cortina, que suene la música encima. */
   var musica = v.hasAttribute('muted') ? null : document.getElementById('inv-musica');
+  /* Lo que se ve de la cortina, como mucho. Ver el comentario de abajo. */
+  var TOPE = 3000;
   var fuera = false, reloj = null;
 
   function callar(){ if (musica && !fuera) musica.pause(); }
@@ -2241,9 +2345,16 @@ const CORTINA_JS = `
     c.classList.add('fuera');
     document.body.style.overflow = '';
     try { v.pause(); } catch (e) {}
-    /* Se esconde del todo al terminar el fundido: una capa a opacidad cero
-       sigue estando, y con ella encima no se puede tocar nada. */
-    setTimeout(function(){ c.setAttribute('hidden', ''); }, 950);
+    /* Se esconde del todo al terminar: una capa a opacidad cero sigue
+       estando, y con ella encima no se puede tocar nada. Se espera al
+       'transitionend' y no a un número fijo porque las once salidas duran
+       cosas distintas —el círculo tarda 1,05 s y el destello medio segundo—,
+       y un número fijo o corta la más larga o deja la más corta esperando.
+       El reloj es el respaldo: una transición sobre una propiedad que el
+       navegador no anime no dispara nada. */
+    var quitar = function(e){ if (!e || e.target === c) c.setAttribute('hidden', ''); };
+    c.addEventListener('transitionend', quitar);
+    setTimeout(quitar, 1600);
     if (musica) {
       musica.removeEventListener('play', callar);
       musica.play().catch(function(){});
@@ -2267,10 +2378,12 @@ const CORTINA_JS = `
     v.addEventListener('playing', function(){
       clearTimeout(reloj);
       c.classList.add('lista');
-      /* Red de seguridad por si 'ended' no llega: se le da su duración y un
-         margen, y treinta segundos cuando ni la duración se sabe. */
-      var dura = isFinite(v.duration) && v.duration > 0 ? v.duration * 1000 : 30000;
-      reloj = setTimeout(irse, dura + 1500);
+      /* Tres segundos y se corta, dure lo que dure el archivo. No es una red
+         de seguridad, es la regla: una cortina es el rato que se tarda en
+         abrir un sobre, y pasado eso quien la abrió ya quiere leer. De paso
+         cubre el caso en que 'ended' no llega nunca, que pasa con archivos
+         que traen mal escrita su duración. */
+      reloj = setTimeout(irse, TOPE);
     }, { once: true });
 
     var p = v.play();
@@ -2655,9 +2768,13 @@ export function renderInvitation(opts: RenderOptions): string {
     if (url && !preview && sectionOn("splash")) {
       const cortina = document.createElement("div");
       const contener = String(data.splash?.introAjuste || "") === "contener";
+      /* Vacío es el fundido, y un nombre que no conocemos también: más vale
+         la salida de siempre que una cortina que no se sabe ir. */
+      const pedida = String(data.splash?.introSalida || "").trim();
+      const salida = SALIDAS.has(pedida) ? pedida : "fundido";
       cortina.setAttribute(
         "class",
-        `inv-cortina${contener ? " inv-cortina-contener" : ""}`
+        `inv-cortina inv-cortina-s-${salida}${contener ? " inv-cortina-contener" : ""}`
       );
       cortina.setAttribute("hidden", "");
 
