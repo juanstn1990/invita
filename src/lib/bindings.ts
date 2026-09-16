@@ -172,6 +172,10 @@ const APARTE = new Set([
   "musicUrl",
   // Cómo se abre el velo es una clase en `#splash`, no un texto.
   "apertura",
+  // La cortina de apertura la monta `ponerCortina` en una capa propia.
+  "introUrl",
+  "introSonido",
+  "introAjuste",
   // El fondo de la sección lo pone `ponerFondo` en una capa propia.
   "fondoUrl",
   "fondoAjuste",

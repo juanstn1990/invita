@@ -430,6 +430,34 @@ export const SECTIONS: SectionSpec[] = [
         help: "Opcional. Si la pones, la invitación ofrece entrar con música.",
       },
       {
+        key: "introUrl",
+        label: "Vídeo de apertura",
+        type: "video",
+        span: 2,
+        help: "Se reproduce a pantalla completa al pulsar el botón y se desvanece al terminar. Se descarga mientras se ve el velo, así que un clip corto —cinco o diez segundos— es lo que no hace esperar a nadie.",
+      },
+      {
+        key: "introSonido",
+        label: "Sonido del vídeo",
+        type: "select",
+        fallback: 0,
+        options: [
+          { value: "", label: "En silencio" },
+          { value: "con", label: "Con sonido" },
+        ],
+        help: "Puede sonar porque ya hubo un toque en la pantalla. Si además hay música de fondo, la música espera a que el vídeo termine.",
+      },
+      {
+        key: "introAjuste",
+        label: "Cómo se ve el vídeo",
+        type: "select",
+        fallback: 0,
+        options: [
+          { value: "", label: "Llena la pantalla (recorta)" },
+          { value: "contener", label: "Entero (con bandas)" },
+        ],
+      },
+      {
         key: "apertura",
         label: "Cómo se abre",
         type: "select",
@@ -931,6 +959,9 @@ export function defaultData(): InvitationData {
       mapUrl: "",
       musicUrl: "",
       apertura: "",
+      introUrl: "",
+      introSonido: "",
+      introAjuste: "",
     },
     hero: {
       enabled: true,

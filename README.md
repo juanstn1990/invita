@@ -1055,6 +1055,88 @@ Sólo toca el texto exacto que ponía el esquema. Quien lo haya cambiado a mano
 —«Ver los detalles», «Más información»— se queda con el suyo: eso es una
 decisión de quien edita y no le corresponde a una migración.
 
+### Se abre como un sobre, no se desvanece
+
+Un fundido no es un gesto: es la ausencia de uno. Una invitación en papel se
+abre, y eso era lo único que la de pantalla se había saltado — justo en el
+momento en que quien la recibe decide qué opina, que son los tres primeros
+segundos y no la galería que hay ocho secciones más abajo.
+
+El campo **«Cómo se abre»** tiene dos opciones: la de siempre y el sobre. Por
+defecto queda la de siempre.
+
+Todo vive en la **salida**. El velo cerrado se ve exactamente igual con
+apertura y sin ella, y eso no es una limitación: es lo que deja elegirla sin
+rediseñarle la portada a nadie, y lo que hace que funcione en los 49 sin una
+línea de CSS por diseño. Lo que se añade es una clase sobre `#splash`.
+
+Gira la capa entera y no una pieza añadida. `#splash` ya es un fijo a pantalla
+completa con la decoración del diseño dentro, así que al abrirse se lleva
+consigo lo que el diseño dibujó, como la solapa de un sobre se lleva el papel
+que tiene impreso. Pasa de la vertical y `backface-visibility` lo hace
+desaparecer.
+
+El orden es lo que separa «un sobre que se abre» de «algo que gira»: la
+tarjeta sale primero y hacia arriba, y el velo empieza a girar cuando ella ya
+va de salida. Y lo que sostiene todo es un detalle que no se adivina leyendo
+el CSS: `visibility` con retardo y **sin** transición —`0s linear 1.06s`—,
+porque la regla de siempre la apaga al instante y entonces no habría nada que
+mirar girar.
+
+### La cortina: un vídeo antes de la invitación
+
+Un clip a pantalla completa entre el velo y la portada. Se pone en **«Vídeo de
+apertura»**, se reproduce al pulsar el botón y se desvanece al terminar.
+
+Va **por debajo** del velo (9998 contra 9999) y no encima, que es lo que quita
+el corte entre los dos: mientras el velo se abre, la cortina ya está detrás
+reproduciendo, así que con la apertura de sobre la solapa se levanta y lo que
+aparece es el vídeo.
+
+**Puede sonar, y eso es la mitad de la gracia.** Ningún navegador deja que una
+página empiece a sonar sola, pero pulsar el botón del velo es el gesto de
+usuario que lo permite: la cortina es el único sitio de la invitación donde un
+vídeo con audio se reproduce solo y con sonido. Una que arrancara al abrir el
+enlace sería obligatoriamente muda. Si además hay música de fondo, la música
+espera a que el vídeo termine — dos audios a la vez no es ambiente, es ruido.
+Con la cortina en silencio no espera nada: suena encima, que es lo que se
+quiere.
+
+Se cuelga de `enterSite`, que los 49 diseños definen en su propio script y que
+el botón llama por nombre. Envolverla —guardar la de antes y poner una nuestra
+encima— es lo que deja añadir esto sin reconstruir un solo template.
+
+#### Lo que de verdad hay que probar aquí
+
+No es que el vídeo se vea bonito: es que **nunca deje a nadie encerrado**. Una
+cortina que se queda puesta no es un efecto que falla, es una invitación que
+no se puede leer. Hay cuatro maneras de llegar ahí y las cuatro tienen salida:
+
+| Qué pasa | Qué la saca |
+| --- | --- |
+| El archivo no carga | El evento `error` |
+| El navegador se niega a reproducir | El rechazo de `play()` |
+| `ended` no llega nunca | Dos relojes: cinco segundos para arrancar, y su duración más un margen una vez arrancó |
+| Quien la abre no quiere verlo | El botón de saltar, que aparece solo al segundo y medio |
+
+`npm run audit:cortina` abre las cinco situaciones en el navegador y pregunta
+lo único que importa: quién ocupa el centro de la pantalla cuando debería
+estar la portada. El clip de prueba lo graba el propio navegador al empezar,
+para no dejar en el repo un binario que nadie sabe de dónde salió.
+
+En su primera ejecución cazó un fallo que el marcado no delata: el botón de la
+música es un fijo en la esquina inferior derecha con `z-index: 9998` —el mismo
+que la cortina— y, al ir después en el DOM, se pintaba encima y **se comía el
+clic del botón de saltar**, que estaba en esa misma esquina. Un vídeo que no
+se podía saltar ni teniendo el botón puesto. Ahora la música va a 9990, por
+debajo de la cortina, y saltar se fue a la esquina de arriba: dos controles en
+la misma esquina es uno de los dos sin pulsar.
+
+La cortina no se monta en la vista previa del editor —ahí se vuelve a
+renderizar a cada tecla y taparía justo lo que se está escribiendo— ni cuando
+el velo está apagado, porque sin botón no hay gesto y sin gesto no habría
+forma de quitarla.
+
 ## Vídeo
 
 Un bloque más, que se agrega donde se quiera y funciona en los 42 porque sale

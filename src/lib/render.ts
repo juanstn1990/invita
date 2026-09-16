@@ -1254,6 +1254,37 @@ export const INJECTED_CSS = `
   #splash.inv-velo-sobre.hidden .splash-modal{transform:none;transition:opacity .4s ease}
 }
 
+/* ── La cortina de apertura ────────────────────────────────────
+   Un vídeo a pantalla completa entre el velo y la invitación. Fondo negro
+   porque es lo que hace de banda cuando el vídeo no llena la pantalla, y
+   porque desvanecerse desde el negro es lo que deja entrar el contenido en
+   vez de cruzarse con él.
+
+   Va por debajo del velo y no encima: mientras el velo se abre, la cortina
+   ya está detrás reproduciendo. Entre las dos no hay corte. */
+.inv-cortina{position:fixed;inset:0;z-index:9998;background:#000;
+  transition:opacity .9s ease}
+.inv-cortina[hidden]{display:none}
+.inv-cortina.fuera{opacity:0;pointer-events:none}
+.inv-cortina-video{position:absolute;inset:0;width:100%;height:100%;
+  object-fit:cover;background:#000}
+.inv-cortina-contener .inv-cortina-video{object-fit:contain}
+/* Arriba y no abajo: abajo a la derecha vive el botón de la música, y dos
+   controles en la misma esquina es uno de los dos sin pulsar. */
+.inv-cortina-saltar{position:absolute;right:16px;top:18px;z-index:2;
+  padding:9px 18px;border-radius:999px;border:1px solid rgba(255,255,255,.55);
+  background:rgba(0,0,0,.35);color:#fff;font:inherit;font-size:13px;
+  letter-spacing:.06em;cursor:pointer;opacity:0;
+  transition:opacity .45s ease}
+.inv-cortina.lista .inv-cortina-saltar{opacity:.85}
+.inv-cortina-saltar:hover{opacity:1}
+
+/* Quien pidió menos movimiento no pide menos vídeo: lo que puso quien invita
+   sigue estando. Lo que se va es el fundido, que pasa a ser un corte. */
+@media (prefers-reduced-motion:reduce){
+  .inv-cortina{transition:none}
+}
+
 /* ── Fondo y adornos por sección ───────────────────────────────
    El fondo cubre la sección entera y va detrás; un adorno es una pieza que
    se coloca en uno de nueve sitios, con su tamaño, su giro y su capa.
@@ -2019,6 +2050,7 @@ export const RSVP_JS = `
 const musicJs = (url: string) => `
 (function(){
   var a = document.createElement('audio');
+  a.id = 'inv-musica';
   a.src = ${JSON.stringify(url)}; a.loop = true; a.preload = 'none';
   document.body.appendChild(a);
   var btn = document.getElementById('music-btn');
@@ -2026,7 +2058,11 @@ const musicJs = (url: string) => `
     btn = document.createElement('button');
     btn.id = 'music-btn';
     btn.textContent = '\\u266a';
-    btn.setAttribute('style','position:fixed;right:16px;bottom:16px;z-index:9998;width:44px;height:44px;'+
+    /* 9990 y no 9998: por encima de la invitación, por debajo del velo y de
+       la cortina de apertura. Con 9998 el botón se montaba sobre la cortina
+       y se comía el clic del botón de saltar, que estaba en su misma esquina:
+       un vídeo que no se podía saltar ni con el botón puesto. */
+    btn.setAttribute('style','position:fixed;right:16px;bottom:16px;z-index:9990;width:44px;height:44px;'+
       'border-radius:50%;border:1px solid currentColor;background:rgba(255,255,255,.85);cursor:pointer;font-size:17px');
     document.body.appendChild(btn);
   }
@@ -2164,6 +2200,87 @@ const FONDO_VIDEO_JS = `
  * y en los que vengan.
  */
 const APERTURAS = new Set(["sobre"]);
+
+/**
+ * La cortina de apertura: un vídeo a pantalla completa al entrar.
+ *
+ * Se cuelga de `enterSite`, que definen los 49 diseños en su propio script y
+ * que el botón del velo llama por nombre. Envolverla —guardar la de antes y
+ * poner una nuestra encima— es lo que deja añadir esto sin reconstruir un
+ * solo template.
+ *
+ * El pulsar del botón es lo que hace posible todo lo demás: es el gesto del
+ * usuario que los navegadores exigen para dejar sonar un vídeo. Una cortina
+ * que se reprodujera sola al abrir el enlace sería obligatoriamente muda.
+ *
+ * Lo que más importa aquí no es el efecto, es no dejar a nadie encerrado. Una
+ * cortina que se queda puesta es una invitación que no se puede leer, y hay
+ * cuatro maneras de que eso pase: que el vídeo no cargue, que el navegador se
+ * niegue a reproducirlo, que `ended` no llegue nunca —pasa con archivos de
+ * duración mal escrita— o que quien la abre sencillamente no quiera verlo.
+ * Las cuatro tienen salida: `error`, el rechazo de `play()`, dos relojes y el
+ * botón de saltar. Ante la duda, la cortina se va.
+ */
+const CORTINA_JS = `
+(function(){
+  var c = document.querySelector('.inv-cortina');
+  if (!c) return;
+  var v = c.querySelector('.inv-cortina-video');
+  var saltar = c.querySelector('.inv-cortina-saltar');
+  /* Con sonido, la música de fondo espera: dos audios a la vez no es
+     ambiente, es ruido. Muda la cortina, que suene la música encima. */
+  var musica = v.hasAttribute('muted') ? null : document.getElementById('inv-musica');
+  var fuera = false, reloj = null;
+
+  function callar(){ if (musica && !fuera) musica.pause(); }
+
+  function irse(){
+    if (fuera) return;
+    fuera = true;
+    clearTimeout(reloj);
+    c.classList.add('fuera');
+    document.body.style.overflow = '';
+    try { v.pause(); } catch (e) {}
+    /* Se esconde del todo al terminar el fundido: una capa a opacidad cero
+       sigue estando, y con ella encima no se puede tocar nada. */
+    setTimeout(function(){ c.setAttribute('hidden', ''); }, 950);
+    if (musica) {
+      musica.removeEventListener('play', callar);
+      musica.play().catch(function(){});
+    }
+  }
+
+  var previo = window.enterSite;
+  window.enterSite = function(){
+    if (typeof previo === 'function') previo();
+    /* La de antes devuelve el scroll al soltar el velo; con cortina todavía
+       no toca, que lo que hay debajo aún no se ha de mirar. */
+    document.body.style.overflow = 'hidden';
+    /* La música arranca con el primer clic de la página, que es justo éste, y
+       lo hace después de este manejador: por eso no basta con pararla ahora,
+       hay que volver a pararla cuando lo intente. */
+    if (musica) { musica.pause(); musica.addEventListener('play', callar); }
+
+    c.removeAttribute('hidden');
+    /* Si en cinco segundos no ha empezado a verse nada, no va a empezar. */
+    reloj = setTimeout(irse, 5000);
+    v.addEventListener('playing', function(){
+      clearTimeout(reloj);
+      c.classList.add('lista');
+      /* Red de seguridad por si 'ended' no llega: se le da su duración y un
+         margen, y treinta segundos cuando ni la duración se sabe. */
+      var dura = isFinite(v.duration) && v.duration > 0 ? v.duration * 1000 : 30000;
+      reloj = setTimeout(irse, dura + 1500);
+    }, { once: true });
+
+    var p = v.play();
+    if (p && p.catch) p.catch(irse);
+  };
+
+  v.addEventListener('ended', irse);
+  v.addEventListener('error', irse);
+  saltar.addEventListener('click', irse);
+})();`;
 
 const HIDE_SPLASH_JS = `
 (function(){
@@ -2521,6 +2638,52 @@ export function renderInvitation(opts: RenderOptions): string {
         "class",
         `${velo.getAttribute("class") || ""} inv-velo-${apertura}`.trim()
       );
+    }
+  }
+
+  /* 3 · quinquies · La cortina de apertura.
+     Va antes que nada en el cuerpo y por debajo del velo (9998 contra 9999),
+     así que mientras el velo se abre la cortina ya está detrás reproduciendo:
+     con la apertura de sobre, la solapa se levanta y lo que aparece es el
+     vídeo, no un salto de una cosa a otra.
+
+     No se monta en la vista previa del editor: ahí se vuelve a renderizar a
+     cada tecla, y una cortina que arranca de cero cada 900 ms tapa justo lo
+     que se está editando. */
+  {
+    const url = String(data.splash?.introUrl || "").trim();
+    if (url && !preview && sectionOn("splash")) {
+      const cortina = document.createElement("div");
+      const contener = String(data.splash?.introAjuste || "") === "contener";
+      cortina.setAttribute(
+        "class",
+        `inv-cortina${contener ? " inv-cortina-contener" : ""}`
+      );
+      cortina.setAttribute("hidden", "");
+
+      const v = document.createElement("video");
+      v.setAttribute("class", "inv-cortina-video");
+      v.setAttribute("src", url);
+      v.setAttribute("playsinline", "");
+      /* Se descarga mientras se mira el velo, que es el único rato que hay:
+         al pulsar el botón ya tiene que estar listo para arrancar. */
+      v.setAttribute("preload", "auto");
+      /* Sin sonido elegido va callado, y callado puede sonar la música de
+         fondo encima sin que se peleen. */
+      if (String(data.splash?.introSonido || "") !== "con") v.setAttribute("muted", "");
+      cortina.appendChild(v);
+
+      /* Saltar no es una opción de diseño, es la salida de emergencia: un
+         vídeo de veinte segundos que no se puede saltar es una puerta
+         cerrada. Aparece sola al segundo y medio para no competir con el
+         primer plano. */
+      const saltar = document.createElement("button");
+      saltar.setAttribute("class", "inv-cortina-saltar");
+      saltar.setAttribute("type", "button");
+      saltar.textContent = "Saltar";
+      cortina.appendChild(saltar);
+
+      document.body.insertBefore(cortina, document.body.firstChild);
     }
   }
 
@@ -2892,6 +3055,9 @@ export function renderInvitation(opts: RenderOptions): string {
   if (document.querySelector("[data-cd]")) scripts.push(countdownJs(iso));
   if (document.querySelector("[data-inv-px]")) scripts.push(PARALLAX_JS);
   if (document.querySelector(".inv-fondo-video")) scripts.push(FONDO_VIDEO_JS);
+  /* Después de la música: la cortina la busca por su id para hacerla esperar,
+     y para encontrarla tiene que estar ya creada. */
+  if (document.querySelector(".inv-cortina")) scripts.push(CORTINA_JS);
   if (scripts.length) {
     const s = document.createElement("script");
     s.textContent = scripts.join("\n");

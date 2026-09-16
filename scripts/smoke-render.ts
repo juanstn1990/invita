@@ -335,6 +335,82 @@ for (const [nombre, tocar] of CASOS) {
   }
 }
 
+/* ── La cortina de apertura ──────────────────────────────────────
+   Que se vaya siempre lo prueba `audit:cortina` en el navegador, que es donde
+   se puede. Aquí se mira lo otro: que se monte cuando toca, que no se monte
+   cuando no, y que lo que se eligió llegue al marcado. */
+{
+  const INTRO = "/api/media/2026/09/aaaaaaaaaaaaaaaaaaaaaaaa.mp4";
+
+  const casos: [string, any, boolean, (c: any) => boolean][] = [
+    ["sin vídeo no hay cortina", {}, false, () => true],
+    [
+      "con vídeo se monta escondida, con su botón de saltar",
+      { introUrl: INTRO }, true,
+      (c) =>
+        c.hasAttribute("hidden") &&
+        c.querySelector("video")?.getAttribute("src") === INTRO &&
+        Boolean(c.querySelector(".inv-cortina-saltar")),
+    ],
+    [
+      "en silencio por defecto",
+      { introUrl: INTRO }, true,
+      (c) => c.querySelector("video")?.getAttribute("muted") !== null,
+    ],
+    [
+      "con sonido se le quita el muted",
+      { introUrl: INTRO, introSonido: "con" }, true,
+      (c) => c.querySelector("video")?.getAttribute("muted") === null,
+    ],
+    [
+      "«entero» llega como clase",
+      { introUrl: INTRO, introAjuste: "contener" }, true,
+      (c) => String(c.getAttribute("class") || "").includes("inv-cortina-contener"),
+    ],
+    /* Sin velo no hay botón que pulsar, y sin gesto no hay vídeo que pueda
+       sonar: una cortina ahí sería una capa negra sin forma de quitarla. */
+    ["sin velo tampoco hay cortina", { introUrl: INTRO, enabled: false }, false, () => true],
+  ];
+
+  for (const [nombre, parche, esperada, comprueba] of casos) {
+    const mal: string[] = [];
+    for (const tpl of TEMPLATES) {
+      const d: any = defaultData();
+      d.splash = { ...d.splash, ...parche };
+      const { document } = parseHTML(
+        renderInvitation({
+          templateHtml: readTemplate(tpl.id), templateId: tpl.id, data: d, slug: "demo",
+        })
+      );
+      const c = document.querySelector(".inv-cortina") as any;
+      if (!esperada) { if (c) mal.push(`${tpl.id} (sobra)`); continue; }
+      if (!c) mal.push(`${tpl.id} (falta)`);
+      else if (!comprueba(c)) mal.push(tpl.id);
+    }
+    if (mal.length) botonMal++;
+    console.log(
+      `${mal.length ? "✗" : "✓"} cortina · ${nombre.padEnd(44)}` +
+        (mal.length ? `  ${mal.length} mal: ${mal.slice(0, 2).join(", ")}` : "")
+    );
+  }
+
+  /* En el editor se vuelve a renderizar a cada tecla: una cortina que arranca
+     de cero cada 900 ms taparía justo lo que se está escribiendo. */
+  {
+    const d: any = defaultData();
+    d.splash.introUrl = INTRO;
+    const html = renderInvitation({
+      templateHtml: readTemplate(TEMPLATES[0].id), templateId: TEMPLATES[0].id,
+      data: d, slug: "demo", preview: true,
+    });
+    /* Se mira el marcado y no el texto: el CSS de la cortina se inyecta
+       siempre, así que buscar la clase en crudo la encuentra igual. */
+    const ok = !parseHTML(html).document.querySelector(".inv-cortina");
+    if (!ok) botonMal++;
+    console.log(`${ok ? "✓" : "✗"} cortina · en la vista previa del editor no se monta`);
+  }
+}
+
 /* ── Los metadatos del enlace compartido ─────────────────────────
    Un `og:` roto no se ve en la invitación ni en el navegador: se ve cuando
    alguien pega el enlace en WhatsApp, y entonces ya se compartió mal. */
