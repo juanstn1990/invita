@@ -1216,6 +1216,44 @@ export const INJECTED_CSS = `
 @keyframes invIcoFlota{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
 @keyframes invIcoOndea{0%,100%{transform:rotate(0)}50%{transform:rotate(4deg)}}
 
+/* ── La apertura del velo ──────────────────────────────────────
+   El velo se iba con un fundido, y un fundido no es un gesto: es la ausencia
+   de uno. Una invitación en papel se abre, y eso es lo único que la de
+   pantalla se había saltado.
+
+   Todo vive en la **salida**. El velo cerrado se ve exactamente igual con
+   apertura y sin ella, que es lo que deja elegirla sin rediseñar la portada
+   de nadie — y lo que hace que funcione en los 49 sin una línea por diseño.
+
+   Gira la capa entera y no una pieza añadida: #splash ya es un fijo a
+   pantalla completa con la decoración del diseño dentro, así que al abrirse
+   se lleva consigo lo que el diseño dibujó, como la solapa de un sobre se
+   lleva el papel que tiene impreso.
+
+   El orden importa y es lo que separa "un sobre que se abre" de "algo que
+   gira": la tarjeta sale primero y hacia arriba, y el velo empieza a girar
+   cuando ella ya va de salida. Al revés se ve una sola cosa dando vueltas.
+
+   visibility con retardo y sin transición —0s linear— es lo que sostiene
+   todo: la regla de siempre la apaga al instante, y entonces no habría nada
+   que mirar girar. */
+#splash.inv-velo-sobre{transform-origin:50% 0;backface-visibility:hidden;
+  transition:transform .92s cubic-bezier(.5,.02,.3,1) .14s,
+    opacity .3s ease .76s,
+    visibility 0s linear 1.06s}
+#splash.inv-velo-sobre.hidden{transform:perspective(1600px) rotateX(-104deg);
+  opacity:0}
+#splash.inv-velo-sobre.hidden .splash-modal{transform:translateY(-46px) scale(.975);
+  opacity:0;transition:transform .5s cubic-bezier(.32,.78,.3,1),opacity .44s ease .06s}
+
+/* Quien pidió menos movimiento no ve girar nada: el velo se va como se iba,
+   con el fundido de siempre. */
+@media (prefers-reduced-motion:reduce){
+  #splash.inv-velo-sobre{transition:opacity .7s ease,visibility .7s ease}
+  #splash.inv-velo-sobre.hidden{transform:none}
+  #splash.inv-velo-sobre.hidden .splash-modal{transform:none;transition:opacity .4s ease}
+}
+
 /* ── Fondo y adornos por sección ───────────────────────────────
    El fondo cubre la sección entera y va detrás; un adorno es una pieza que
    se coloca en uno de nueve sitios, con su tamaño, su giro y su capa.
@@ -2118,6 +2156,15 @@ const FONDO_VIDEO_JS = `
   }
 })();`;
 
+/**
+ * Las aperturas del velo que se aceptan. Lo que no esté aquí se ignora.
+ *
+ * Cada una es una clase `inv-velo-…` sobre `#splash` y una regla en el CSS
+ * inyectado; no hay marcado nuevo, así que funcionan igual en los 49 diseños
+ * y en los que vengan.
+ */
+const APERTURAS = new Set(["sobre"]);
+
 const HIDE_SPLASH_JS = `
 (function(){
   var s = document.getElementById('splash') || document.querySelector('.splash');
@@ -2459,6 +2506,22 @@ export function renderInvitation(opts: RenderOptions): string {
     const btn = document.querySelector(".splash-btn-mapa") as El | null;
     const link = String(data.splash?.mapUrl || "").trim();
     if (btn && !/^https?:\/\//i.test(link)) ocultar(btn);
+  }
+
+  /* 3 · quater · Cómo se abre el velo.
+     Es una clase sobre `#splash` y nada más: toda la animación vive en el
+     CSS inyectado, que llega a los 49 diseños por igual. El velo **cerrado**
+     no cambia, y eso es a propósito — lo que se elige aquí es la salida, no
+     una portada distinta. */
+  {
+    const velo = document.querySelector("#splash") as El | null;
+    const apertura = String(data.splash?.apertura || "").trim();
+    if (velo && APERTURAS.has(apertura)) {
+      velo.setAttribute(
+        "class",
+        `${velo.getAttribute("class") || ""} inv-velo-${apertura}`.trim()
+      );
+    }
   }
 
   /* 3a · Los adornos de la portada ya no se tocan.

@@ -300,6 +300,41 @@ for (const [nombre, tocar] of CASOS) {
   }
 }
 
+/* ── Cómo se abre el velo ────────────────────────────────────────
+   Es una clase y nada más, pero si no llega no hay forma de notarlo mirando
+   la invitación quieta: el velo cerrado se ve igual con apertura y sin ella,
+   y la diferencia sólo existe en el segundo en que se sale. */
+{
+  const casos: [string, string, string | null][] = [
+    ["sin elegir nada, el velo de siempre", "", null],
+    ["el sobre", "sobre", "inv-velo-sobre"],
+    ["un valor inventado se ignora", "cortinas-doradas", null],
+  ];
+
+  for (const [nombre, valor, clase] of casos) {
+    const mal: string[] = [];
+    for (const tpl of TEMPLATES) {
+      const d: any = defaultData();
+      d.splash.apertura = valor;
+      const { document } = parseHTML(
+        renderInvitation({
+          templateHtml: readTemplate(tpl.id), templateId: tpl.id, data: d, slug: "demo",
+        })
+      );
+      const velo = document.querySelector("#splash") as any;
+      if (!velo) { mal.push(`${tpl.id} (sin velo)`); continue; }
+      const clases = String(velo.getAttribute("class") || "");
+      const tiene = /\binv-velo-/.test(clases);
+      if (clase ? !clases.includes(clase) : tiene) mal.push(`${tpl.id} ("${clases}")`);
+    }
+    if (mal.length) botonMal++;
+    console.log(
+      `${mal.length ? "✗" : "✓"} apertura · ${nombre.padEnd(36)}` +
+        (mal.length ? `  ${mal.length} mal: ${mal.slice(0, 2).join(", ")}` : "")
+    );
+  }
+}
+
 /* ── Los metadatos del enlace compartido ─────────────────────────
    Un `og:` roto no se ve en la invitación ni en el navegador: se ve cuando
    alguien pega el enlace en WhatsApp, y entonces ya se compartió mal. */

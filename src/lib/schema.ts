@@ -429,6 +429,18 @@ export const SECTIONS: SectionSpec[] = [
         span: 2,
         help: "Opcional. Si la pones, la invitación ofrece entrar con música.",
       },
+      {
+        key: "apertura",
+        label: "Cómo se abre",
+        type: "select",
+        span: 2,
+        fallback: 0,
+        options: [
+          { value: "", label: "Se funde (la de siempre)" },
+          { value: "sobre", label: "Como un sobre que se abre" },
+        ],
+        help: "Lo que pasa al pulsar el botón. El velo cerrado se ve igual en los dos casos.",
+      },
       textColor,
     ],
   },
@@ -918,6 +930,7 @@ export function defaultData(): InvitationData {
       ctaSecondary: "Cómo llegar",
       mapUrl: "",
       musicUrl: "",
+      apertura: "",
     },
     hero: {
       enabled: true,

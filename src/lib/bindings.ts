@@ -170,6 +170,8 @@ const APARTE = new Set([
   // La paleta no escribe texto: sustituye variables CSS.
   "paleta",
   "musicUrl",
+  // Cómo se abre el velo es una clase en `#splash`, no un texto.
+  "apertura",
   // El fondo de la sección lo pone `ponerFondo` en una capa propia.
   "fondoUrl",
   "fondoAjuste",
