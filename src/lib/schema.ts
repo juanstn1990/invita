@@ -503,6 +503,43 @@ export const SECTIONS: SectionSpec[] = [
       { key: "subtitle", label: "Subtítulo", type: "text", placeholder: "Nuestra Boda" },
       { key: "cta", label: "Texto del botón", type: "text", placeholder: "Descubrir más" },
 
+      /* ── La portada de acta ──────────────────────────────────
+         Los seis de abajo sólo los dibuja el diseño «Bendición», cuya portada
+         es la invitación impresa entera en vez de una foto con los nombres
+         encima. En los demás diseños el marcado existe —el esqueleto es uno
+         solo— pero los campos van vacíos, y un campo vacío no deja hueco:
+         el renderer borra su elemento.
+
+         Se dejan aquí y no en una sección propia porque son la portada: una
+         sección «Padres» aparte se ordenaría con las demás y podría quedar
+         entre la galería y los regalos, que no es donde va. */
+      {
+        key: "nombresCompletos",
+        label: "Nombres completos",
+        type: "text",
+        span: 2,
+        placeholder: "Jhon Jarles Roa Garzón  †  Dahiana Insuasti Grajales",
+        help: "Bajo los nombres grandes. El símbolo del medio se escribe aquí, así que puede ser una cruz, un anillo o lo que se quiera.",
+      },
+      {
+        key: "bendicion",
+        label: "Bendición",
+        type: "textarea",
+        span: 2,
+        placeholder: "Con la bendición de Dios\ny nuestros padres",
+        help: "Cada salto de línea se respeta.",
+      },
+      { key: "padresA", label: "Título de la primera columna", type: "text", placeholder: "Padres del novio" },
+      { key: "padresANombres", label: "Nombres", type: "textarea", placeholder: "Uno por línea" },
+      { key: "padresB", label: "Título de la segunda columna", type: "text", placeholder: "Padres de la novia" },
+      { key: "padresBNombres", label: "Nombres", type: "textarea", placeholder: "Uno por línea" },
+      {
+        key: "cierre",
+        label: "Línea de cierre",
+        type: "textarea",
+        span: 2,
+        placeholder: "Queremos compartir con ustedes este día\ntan especial y esperado, nuestra boda.",
+      },
       {
         key: "panelOpacity",
         label: "Opacidad del contenedor",
@@ -988,6 +1025,14 @@ export function defaultData(): InvitationData {
     hero: {
       enabled: true,
       textColor: "",
+      /* Vacíos: sólo la portada de acta los dibuja, y sólo si se llenan. */
+      nombresCompletos: "",
+      bendicion: "",
+      padresA: "",
+      padresANombres: "",
+      padresB: "",
+      padresBNombres: "",
+      cierre: "",
       label: "Te invitamos a nuestra",
       subtitle: "Nuestra Boda",
       cta: "Descubrir más",

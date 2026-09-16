@@ -196,7 +196,8 @@ export interface Layout {
     | "minimal" /** Sin panel: el texto directo sobre la foto, con velo. */
     | "band" /** Banda de lado a lado a media altura. */
     | "split" /** Foto arriba, texto abajo sobre el fondo del diseño. */
-    | "frame"; /** Doble marco de hilos, texto centrado dentro. */
+    | "frame" /** Doble marco de hilos, texto centrado dentro. */
+    | "acta"; /** Sin foto: la invitación impresa entera, en tipografía. */
   /** El antetítulo y el título de cada sección. */
   head:
     | "center" /** Centrado, antetítulo en versalitas encima. */

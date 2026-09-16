@@ -51,7 +51,9 @@ const escritos: string[] = [];
 
 for (const d of DESIGNS) {
   const id = templateId(d.slug);
-  const html = page(d, piel(d), contenido(d.occasion, d.palettes[0].id));
+  /* El slot de la portada decide parte del contenido de muestra: la de acta
+     dibuja los padres y la bendición, y las demás no los traen. */
+  const html = page(d, piel(d), contenido(d.occasion, d.palettes[0].id, d.layout.hero));
   fs.writeFileSync(path.join(OUT, `${id}.html`), html);
   escritos.push(`${id}.html`);
   bytes += html.length;

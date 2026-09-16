@@ -119,6 +119,23 @@ a{color:inherit}
   text-transform:var(--caps);color:var(--hero-ink-soft)}
 .hero-date{margin-top:20px;padding-top:18px;border-top:var(--border) solid var(--hero-line);
   font-size:var(--fs-body);letter-spacing:.14em}
+/* Las piezas de la portada de acta.
+   Existen en los 50 porque el esqueleto es uno solo, pero sólo se ven donde
+   hay texto: el renderer borra el elemento de un campo vacío. Neutras aquí y
+   compuestas en su slot, como todo lo demás.
+
+   La regla pre-line es lo que hace que un salto de línea escrito en el
+   editor sea un salto de línea en la invitación, sin pasar por HTML: quien
+   escribe dos nombres en dos renglones los ve en dos renglones. */
+.hero-nombres,.hero-bendicion,.hero-cierre,.hero-padres-nom{white-space:pre-line}
+.hero-padres{display:flex;justify-content:center;gap:0}
+.hero-padres-col{padding:0 22px}
+.hero-padres-col + .hero-padres-col{border-left:var(--border) solid var(--hero-line)}
+/* Sin ningún párrafo dentro no hay columna, y sin columnas no hay bloque: si
+   no, quedaría un filete vertical suelto en medio de la portada. */
+.hero-padres:not(:has(p)){display:none}
+.hero-padres-col:not(:has(p)){display:none}
+
 .hero-quote{margin-top:16px;font-size:var(--fs-small);
   font-style:var(--quote-style);color:var(--hero-ink-soft)}
 .hero-btn{display:inline-block;margin-top:26px;padding:13px 28px;
@@ -470,6 +487,23 @@ footer{position:relative;padding:56px 22px;text-align:center;
     <p class="hero-label" data-inv="hero.label">Estamos esperando</p>
     <h1 class="hero-name" data-inv="event.names">Emilia</h1>
     <p class="hero-sub" data-inv="hero.subtitle">Y queremos celebrarlo contigo</p>
+    <p class="hero-nombres" data-inv="hero.nombresCompletos"></p>
+    <p class="hero-bendicion" data-inv="hero.bendicion"></p>
+    <!-- Los padres, en dos columnas con un filete al medio. El envoltorio se
+         esconde solo cuando no queda ningún párrafo dentro: el renderer borra
+         los campos vacíos y aquí quedarían dos columnas de nada con su filete
+         en medio. -->
+    <div class="hero-padres">
+      <div class="hero-padres-col">
+        <p class="hero-padres-tit" data-inv="hero.padresA"></p>
+        <p class="hero-padres-nom" data-inv="hero.padresANombres"></p>
+      </div>
+      <div class="hero-padres-col">
+        <p class="hero-padres-tit" data-inv="hero.padresB"></p>
+        <p class="hero-padres-nom" data-inv="hero.padresBNombres"></p>
+      </div>
+    </div>
+    <p class="hero-cierre" data-inv="hero.cierre"></p>
     <p class="hero-date" data-inv="event.dateLabel">12 · Junio · 2027</p>
     <p class="hero-quote" data-inv="event.quote">Todavía no ha llegado y ya es lo que más queremos.</p>
     <a class="hero-btn" href="#countdown" data-inv="hero.cta">Ver la invitación</a>

@@ -124,6 +124,23 @@ export function page(d: Design, t: Theme, c: Content): string {
     <p class="hero-label" data-inv="hero.label">${e(c.hero.label)}</p>
     <h1 class="hero-name" data-inv="event.names">${nombres(c, "hero-amp")}</h1>
     <p class="hero-sub" data-inv="hero.subtitle">${e(c.hero.sub)}</p>
+    <p class="hero-nombres" data-inv="hero.nombresCompletos">${e(c.hero.nombresCompletos || "")}</p>
+    <p class="hero-bendicion" data-inv="hero.bendicion">${e(c.hero.bendicion || "")}</p>
+    <!-- Los padres, en dos columnas con un filete al medio. El envoltorio se
+         esconde solo cuando no queda ningún párrafo dentro: el renderer borra
+         los campos vacíos y aquí quedarían dos columnas de nada con su filete
+         en medio. -->
+    <div class="hero-padres">
+      <div class="hero-padres-col">
+        <p class="hero-padres-tit" data-inv="hero.padresA">${e(c.hero.padresA || "")}</p>
+        <p class="hero-padres-nom" data-inv="hero.padresANombres">${e(c.hero.padresANombres || "")}</p>
+      </div>
+      <div class="hero-padres-col">
+        <p class="hero-padres-tit" data-inv="hero.padresB">${e(c.hero.padresB || "")}</p>
+        <p class="hero-padres-nom" data-inv="hero.padresBNombres">${e(c.hero.padresBNombres || "")}</p>
+      </div>
+    </div>
+    <p class="hero-cierre" data-inv="hero.cierre">${e(c.hero.cierre || "")}</p>
     <p class="hero-date" data-inv="event.dateLabel">${e(c.dateLabel)}</p>
     <p class="hero-quote" data-inv="event.quote">${e(c.hero.quote)}</p>
     <a class="hero-btn" href="#countdown" data-inv="hero.cta">${e(c.hero.cta)}</a>

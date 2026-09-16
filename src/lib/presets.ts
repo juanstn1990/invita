@@ -6,20 +6,49 @@
  */
 
 import { defaultData, type InvitationData } from "./schema";
+import { DESIGN_BY_SLUG } from "./design/designs";
 import type { TemplateInfo } from "./templates";
 
 /**
  * Lo que el preset necesita saber del diseño: su ocasión y, en los
  * infantiles, la paleta — que es donde quedó la elección de niña o niño.
+ *
+ * Y el diseño, cuando se sabe: la portada de acta pide un contenido que las
+ * otras no tienen —los padres, la bendición— y sin él la muestra sale con
+ * media portada vacía.
  */
-type Target = Pick<TemplateInfo, "kind"> & { paleta?: string };
+type Target = Pick<TemplateInfo, "kind"> & { paleta?: string; design?: string };
+
+/**
+ * El texto que sólo tiene sentido en la portada de acta.
+ *
+ * Es el mismo que hornea el template, y por el mismo motivo está aquí y no en
+ * el contenido de boda: puesto ahí, las trece portadas de boda saldrían con
+ * los padres encima.
+ */
+const ACTA = {
+  label: "Un amor tan grande merece ser celebrado",
+  nombresCompletos: "Andrés Felipe Roa Garzón  †  Valentina Insuasti Grajales",
+  bendicion: "Con la bendición de Dios\ny nuestros padres",
+  padresA: "Padres del novio",
+  padresANombres: "Luis Sabino Roa\nMaría Jesús Garzón",
+  padresB: "Padres de la novia",
+  padresBNombres: "Mauro Antonio Insuasti Rodas\nAdriana Grajales Pérez",
+  cierre: "Queremos compartir con ustedes este día\ntan especial y esperado, nuestra boda.",
+};
 
 export function presetFor(target: Target | TemplateInfo["kind"]): InvitationData {
-  const { kind, paleta } =
-    typeof target === "string" ? { kind: target, paleta: undefined } : target;
+  const { kind, paleta, design } =
+    typeof target === "string"
+      ? { kind: target, paleta: undefined, design: undefined }
+      : target;
   /* Las paletas frías son las que antes eran la versión de niño. */
   const nino = ["azul", "cielo", "pizarra", "petroleo", "indigo"].includes(paleta || "");
   const d = defaultData();
+
+  if (design && DESIGN_BY_SLUG[design]?.layout.hero === "acta") {
+    Object.assign(d.hero, ACTA);
+  }
 
   if (kind === "quince") {
     Object.assign(d.event, {

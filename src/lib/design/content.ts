@@ -9,7 +9,7 @@
  * "Martín" y "faltan para conocer**lo**", la de niña "Emilia" y "conocer**la**".
  */
 
-import type { Occasion } from "./theme";
+import type { Layout, Occasion } from "./theme";
 
 export interface Content {
   name: string;
@@ -18,7 +18,23 @@ export interface Content {
   dateIso: string;
   dateLabel: string;
   splash: { label: string; subtitle: string; cta1: string; cta2: string };
-  hero: { label: string; sub: string; quote: string; cta: string };
+  hero: {
+    label: string; sub: string; quote: string; cta: string;
+    /**
+     * Lo que sólo dibuja la portada de acta: los nombres completos, la
+     * bendición, los padres de cada lado y la línea de cierre.
+     *
+     * En los demás diseños van vacíos, y un campo vacío no deja hueco — el
+     * renderer borra su elemento. El marcado sí está en los 49, porque el
+     * esqueleto es uno solo y el contrato dice que todo campo del esquema
+     * tiene su `data-inv` en todos.
+     */
+    nombresCompletos?: string;
+    bendicion?: string;
+    padresA?: string; padresANombres?: string;
+    padresB?: string; padresBNombres?: string;
+    cierre?: string;
+  };
   countdown: { label: string; title: string; body: string };
   guests: {
     label: string;
@@ -710,7 +726,38 @@ const babyShower = (paletaId: string): Content => {
    Elegir
    ──────────────────────────────────────────────────────────────── */
 
-export function contenido(occasion: Occasion, paletaId = ""): Content {
+/**
+ * El texto de muestra de la portada de acta.
+ *
+ * Va aparte y no en el contenido de boda porque **cambiaría los dieciséis
+ * diseños de boda a la vez**: los campos existen en los 49, y si el contenido
+ * de la ocasión los trajera llenos, todas las portadas de boda saldrían con
+ * los padres y la bendición encima. Sólo el slot que sabe dibujarlos los pide.
+ */
+const ACTA = {
+  label: "Un amor tan grande merece ser celebrado",
+  nombresCompletos: "Jhon Jarles Roa Garzón  †  Dahiana Insuasti Grajales",
+  bendicion: "Con la bendición de Dios\ny nuestros padres",
+  padresA: "Padres del novio",
+  padresANombres: "Luis Sabino Roa\nMaría Jesús Garzón",
+  padresB: "Padres de la novia",
+  padresBNombres: "Mauro Antonio Insuasti Rodas\nAdriana Grajales Perez",
+  cierre: "Queremos compartir con ustedes este día\ntan especial y esperado, nuestra boda.",
+};
+
+export function contenido(
+  occasion: Occasion,
+  paletaId = "",
+  hero?: Layout["hero"]
+): Content {
+  const c = base(occasion, paletaId);
+  /* Sólo la portada de acta dibuja esto; en el resto los campos existen y
+     están vacíos, que es lo que hace que no se vean. */
+  if (hero === "acta") Object.assign(c.hero, ACTA);
+  return c;
+}
+
+function base(occasion: Occasion, paletaId: string): Content {
   switch (occasion) {
     case "boda":
       return boda();

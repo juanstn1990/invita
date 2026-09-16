@@ -209,6 +209,23 @@ const HERO_BASE = `
   text-transform:var(--caps);color:var(--hero-ink-soft)}
 .hero-date{margin-top:20px;padding-top:18px;border-top:var(--border) solid var(--hero-line);
   font-size:var(--fs-body);letter-spacing:.14em}
+/* Las piezas de la portada de acta.
+   Existen en los 50 porque el esqueleto es uno solo, pero sólo se ven donde
+   hay texto: el renderer borra el elemento de un campo vacío. Neutras aquí y
+   compuestas en su slot, como todo lo demás.
+
+   La regla pre-line es lo que hace que un salto de línea escrito en el
+   editor sea un salto de línea en la invitación, sin pasar por HTML: quien
+   escribe dos nombres en dos renglones los ve en dos renglones. */
+.hero-nombres,.hero-bendicion,.hero-cierre,.hero-padres-nom{white-space:pre-line}
+.hero-padres{display:flex;justify-content:center;gap:0}
+.hero-padres-col{padding:0 22px}
+.hero-padres-col + .hero-padres-col{border-left:var(--border) solid var(--hero-line)}
+/* Sin ningún párrafo dentro no hay columna, y sin columnas no hay bloque: si
+   no, quedaría un filete vertical suelto en medio de la portada. */
+.hero-padres:not(:has(p)){display:none}
+.hero-padres-col:not(:has(p)){display:none}
+
 .hero-quote{margin-top:16px;font-size:var(--fs-small);
   font-style:var(--quote-style);color:var(--hero-ink-soft)}
 .hero-btn{display:inline-block;margin-top:26px;padding:13px 28px;
@@ -270,6 +287,78 @@ const HERO: Record<Layout["hero"], string> = {
    y aquí, a diferencia de los otros slots, el texto no tiene panel que lo
    despegue del fondo. */
 #hero .deco{top:0;bottom:auto;height:54svh}`,
+
+  acta: `
+/* La invitación impresa, entera y en tipografía. Es el único slot sin foto:
+   lo que sostiene la portada es el texto, así que no hay panel, ni velo, ni
+   marco — sólo aire y jerarquía.
+
+   Y es el único que se lee de arriba abajo como un documento y no como una
+   cabecera, de ahí que no ocupe una pantalla justa: si el contenido pide más,
+   crece. Forzarlo a 100svh dejaría los padres fuera en un móvil pequeño. */
+#hero{min-height:auto;padding:clamp(56px,11svh,104px) 22px clamp(48px,9svh,88px);
+  background:var(--bg)}
+.hero-content{width:min(560px,100%);background:transparent;box-shadow:none;
+  padding:0}
+.hero-label{font-size:var(--fs-micro);letter-spacing:.16em;color:var(--hero-ink)}
+/* Los nombres son la firma de la invitación: caligrafía, grandes y con aire
+   por debajo. El interlineado va holgado porque los trazos de Great Vibes
+   suben y bajan mucho más que una serifa y con 1 se tocan entre renglones. */
+.hero-name{margin:18px 0 6px;font-family:'Great Vibes',cursive;
+  font-size:clamp(46px,13.5vw,78px);line-height:1.18;font-weight:400;
+  color:var(--hero-ink)}
+/* El ampersand deja de ser un renglón aparte: en caligrafía es parte de la
+   firma y va en la misma línea que los nombres. */
+/* En caligrafía el ampersand es parte de la firma y va en la misma línea que
+   los nombres, no en un renglón aparte. Con aire a los lados: pegado, los
+   trazos de una letra y otra se tocan y se lee "JuanEMaría". */
+.hero-amp{display:inline;margin:0 .16em;font-size:1em;color:var(--hero-ink);
+  font-style:normal}
+.hero-nombres{margin-top:18px;font-size:var(--fs-small);color:var(--hero-ink);
+  letter-spacing:.01em}
+.hero-bendicion{margin-top:26px;font-size:var(--fs-small);letter-spacing:.09em;
+  text-transform:uppercase;line-height:1.75;color:var(--hero-ink)}
+/* Las dos columnas se aprietan todo lo que se puede antes de partir nombres.
+   En la participación de papel caben en un renglón; en 390 px de móvil no, y
+   entre partir un nombre y apilar las columnas gana apretar: el filete del
+   medio es lo que dice "estos de un lado, estos del otro", y apilándolas se
+   pierde justo eso. */
+.hero-padres{margin-top:34px;align-items:start}
+.hero-padres-col{padding:0 13px;max-width:50%}
+.hero-padres-tit{font-size:var(--fs-micro);letter-spacing:.02em;
+  font-weight:500;color:var(--hero-ink);text-wrap:balance}
+.hero-padres-nom{margin-top:7px;font-size:var(--fs-micro);line-height:1.8;
+  color:var(--hero-brand);text-wrap:balance}
+.hero-cierre{margin-top:38px;font-size:var(--fs-small);letter-spacing:.09em;
+  text-transform:uppercase;line-height:1.8;color:var(--hero-ink)}
+/* La fecha pierde su filete: en un documento, una raya más es una raya de
+   más. La separa el aire, como a todo lo demás. */
+.hero-date{margin-top:34px;border-top:0;padding-top:0;letter-spacing:.12em}
+.hero-sub{display:none}
+.hero-quote{margin-top:18px}
+.hero-btn{margin-top:32px}
+/* Sin foto no hay nada que mirar debajo del pliegue, así que la flecha
+   sobra: la portada termina donde termina el texto. */
+.hero-scroll{display:none}
+
+/* Y con foto.
+   Este diseño no la necesita, pero el campo sigue estando y alguien la va a
+   subir — y entonces toda esta tinta oscura cae sobre una fotografía. Es
+   exactamente el fallo que ya costó diez diseños: el marco quedaba precioso y
+   el nombre no se leía.
+
+   El velo es más denso que en los otros slots porque aquí no hay una línea de
+   texto, hay una participación entera: el ojo tiene que recorrer diez
+   renglones sobre la foto, no leer dos nombres. Y va detrás de .con-foto, que
+   el renderer pone sólo cuando hay foto: sin esa guarda el texto saldría
+   blanco sobre el blanco del diseño, que es el mismo error por el otro lado. */
+#hero.con-foto{min-height:100svh;display:grid;place-items:center}
+#hero.con-foto::after{content:"";position:absolute;inset:0;z-index:2;
+  background:linear-gradient(180deg,rgba(0,0,0,.46) 0%,rgba(0,0,0,.58) 100%)}
+#hero.con-foto{--hero-ink:#fff;--hero-ink-soft:rgba(255,255,255,.86);
+  --hero-line:rgba(255,255,255,.4);--hero-brand:rgba(255,255,255,.82)}
+#hero.con-foto .hero-padres-col + .hero-padres-col{
+  border-left-color:var(--hero-line)}`,
 
   frame: `
 /* Doble marco de hilos. El texto no lleva fondo: lo enmarca el trazo. */

@@ -32,6 +32,25 @@ export const CORMORANT_INTER: Pareja = {
   url: gfont("family=Cormorant+Garamond:wght@300;400;500&family=Inter:wght@300;400;500"),
 };
 
+/**
+ * La misma pareja con una caligrafía para los nombres.
+ *
+ * Es la única de las nueve que trae tres familias, y el motivo es que una
+ * caligrafía **no puede ser la letra de los títulos**: a tamaño de antetítulo
+ * y en versalitas no se lee. Así que Great Vibes entra sólo donde tiene
+ * sentido —los nombres de la portada, que se leen como una firma— y el resto
+ * del diseño sigue siendo la serifa de siempre. Lo coloca el CSS propio del
+ * diseño, no el sistema de slots.
+ */
+export const CORMORANT_INTER_CALIGRAFIA: Pareja = {
+  display: "'Cormorant Garamond',Georgia,serif",
+  body: "'Inter',system-ui,sans-serif",
+  url: gfont(
+    "family=Cormorant+Garamond:wght@300;400;500" +
+      "&family=Inter:wght@300;400;500&family=Great+Vibes"
+  ),
+};
+
 /** Serifa de contraste alto. Tiene presencia en tamaños grandes. */
 export const PLAYFAIR_KARLA: Pareja = {
   display: "'Playfair Display',Georgia,serif",

@@ -9,31 +9,31 @@
 <title>Juan &amp; María · Nuestra boda</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Inter:wght@300;400;500&family=Great+Vibes&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#f5f7fa; --bg-alt:#e6e8ec; --card:#fbfbfd;
-  --ink:#1c2634; --muted:#616871; --line:#d7dade;
-  --brand:#2c5075; --brand-2:#8ea6c0;
-  --accent:#2c5075; --on-accent:#ffffff;
-  --footer-bg:#1c2634; --footer-ink:#e6e8ec;
+  --bg:#ffffff; --bg-alt:#efefee; --card:#ffffff;
+  --ink:#17150f; --muted:#666561; --line:#dfdedd;
+  --brand:#55503f; --brand-2:#a89880;
+  --accent:#17150f; --on-accent:#ffffff;
+  --footer-bg:#17150f; --footer-ink:#efefee;
 
-  --display:'Fraunces',Georgia,serif; --sans:'Inter',system-ui,sans-serif;
-  --display-weight:400;
-  --display-leading:1.04;
-  --display-tracking:-0.025em;
+  --display:'Cormorant Garamond',Georgia,serif; --sans:'Inter',system-ui,sans-serif;
+  --display-weight:300;
+  --display-leading:1.1;
+  --display-tracking:0.02em;
   --tracking:0.2em;
   --caps:uppercase;
   --quote-style:italic;
 
-  --fs-micro:10px;
-  --fs-small:11.9px;
+  --fs-micro:11.1px;
+  --fs-small:12.7px;
   --fs-body:16px;
-  --fs-lead:19.1px;
-  --fs-h3:clamp(21.4px,4.4vw,27.1px);
-  --fs-h2:clamp(28.7px,7vw,51.6px);
-  --fs-display:clamp(51.6px,13vw,92.6px);
-  --fs-number:clamp(25.6px,6.4vw,38.5px);
+  --fs-lead:18.4px;
+  --fs-h3:clamp(20.2px,4.4vw,24.3px);
+  --fs-h2:clamp(25.4px,7vw,40.3px);
+  --fs-display:clamp(40.3px,13vw,64px);
+  --fs-number:clamp(23.2px,6.4vw,32px);
 
   --radius:0px; --radius-sm:0px;
   --btn-radius:0px;
@@ -43,24 +43,24 @@
   --pad-y:88px; --pad-y-alt:108px;
   --gap:22px;
 
-  --panel-rgb:251,251,253;
+  --panel-rgb:255,255,255;
   --panel-alpha:0.88;
-  --hero-bg:linear-gradient(165deg,#e6e8ec 0%,#f5f7fa 55%,#e1e7ed 130%);
-  --splash-bg:linear-gradient(165deg,#e6e8ec 0%,#f5f7fa 55%,#e1e7ed 130%);
-  --hero-ink:#1c2634;
-  --hero-ink-soft:#616871;
-  --hero-line:#d7dade;
-  --hero-brand:#2c5075;
-  --hero-accent:#2c5075;
+  --hero-bg:linear-gradient(165deg,#efefee 0%,#ffffff 55%,#e5e2dc 130%);
+  --splash-bg:linear-gradient(165deg,#efefee 0%,#ffffff 55%,#e5e2dc 130%);
+  --hero-ink:#17150f;
+  --hero-ink-soft:#666561;
+  --hero-line:#dfdedd;
+  --hero-brand:#55503f;
+  --hero-accent:#17150f;
   --hero-on-accent:#ffffff;
 
   /* Los componentes que inyecta el renderer. Mismos valores, otro prefijo. */
-  --inv-accent:#2c5075; --inv-on-accent:#ffffff;
-  --inv-ink:#1c2634; --inv-surface:#fbfbfd;
-  --inv-field-bg:#fbfbfd; --inv-field-ink:#1c2634; --inv-field-border:#d7dade;
-  --inv-focus:rgba(44,80,117,0.24);
+  --inv-accent:#17150f; --inv-on-accent:#ffffff;
+  --inv-ink:#17150f; --inv-surface:#ffffff;
+  --inv-field-bg:#ffffff; --inv-field-ink:#17150f; --inv-field-border:#dfdedd;
+  --inv-focus:rgba(23,21,15,0.24);
   --inv-radius:0px; --inv-btn-radius:0px;
-  --inv-font-ui:'Inter',system-ui,sans-serif; --inv-font-title:'Fraunces',Georgia,serif;
+  --inv-font-ui:'Inter',system-ui,sans-serif; --inv-font-title:'Cormorant Garamond',Georgia,serif;
   --inv-tracking:0.2em; --inv-caps:uppercase;
 }
 
@@ -332,47 +332,91 @@ footer{position:relative;padding:56px 22px;text-align:center;
   .confetti i,.balloon{animation:none}
 }
 
-/* Sin panel: el texto va directo sobre la foto y lo sostiene un velo.
-   El velo y el texto claro van detrás de `.con-foto`, que pone el renderer
-   sólo cuando hay foto de portada. Sin esa guarda el texto salía blanco
-   sobre el fondo claro del diseño, es decir invisible, hasta que alguien
-   subía una imagen. */
-.hero-content{background:transparent;box-shadow:none;width:min(560px,100%)}
+/* La invitación impresa, entera y en tipografía. Es el único slot sin foto:
+   lo que sostiene la portada es el texto, así que no hay panel, ni velo, ni
+   marco — sólo aire y jerarquía.
+
+   Y es el único que se lee de arriba abajo como un documento y no como una
+   cabecera, de ahí que no ocupe una pantalla justa: si el contenido pide más,
+   crece. Forzarlo a 100svh dejaría los padres fuera en un móvil pequeño. */
+#hero{min-height:auto;padding:clamp(56px,11svh,104px) 22px clamp(48px,9svh,88px);
+  background:var(--bg)}
+.hero-content{width:min(560px,100%);background:transparent;box-shadow:none;
+  padding:0}
+.hero-label{font-size:var(--fs-micro);letter-spacing:.16em;color:var(--hero-ink)}
+/* Los nombres son la firma de la invitación: caligrafía, grandes y con aire
+   por debajo. El interlineado va holgado porque los trazos de Great Vibes
+   suben y bajan mucho más que una serifa y con 1 se tocan entre renglones. */
+.hero-name{margin:18px 0 6px;font-family:'Great Vibes',cursive;
+  font-size:clamp(46px,13.5vw,78px);line-height:1.18;font-weight:400;
+  color:var(--hero-ink)}
+/* El ampersand deja de ser un renglón aparte: en caligrafía es parte de la
+   firma y va en la misma línea que los nombres. */
+/* En caligrafía el ampersand es parte de la firma y va en la misma línea que
+   los nombres, no en un renglón aparte. Con aire a los lados: pegado, los
+   trazos de una letra y otra se tocan y se lee "JuanEMaría". */
+.hero-amp{display:inline;margin:0 .16em;font-size:1em;color:var(--hero-ink);
+  font-style:normal}
+.hero-nombres{margin-top:18px;font-size:var(--fs-small);color:var(--hero-ink);
+  letter-spacing:.01em}
+.hero-bendicion{margin-top:26px;font-size:var(--fs-small);letter-spacing:.09em;
+  text-transform:uppercase;line-height:1.75;color:var(--hero-ink)}
+/* Las dos columnas se aprietan todo lo que se puede antes de partir nombres.
+   En la participación de papel caben en un renglón; en 390 px de móvil no, y
+   entre partir un nombre y apilar las columnas gana apretar: el filete del
+   medio es lo que dice "estos de un lado, estos del otro", y apilándolas se
+   pierde justo eso. */
+.hero-padres{margin-top:34px;align-items:start}
+.hero-padres-col{padding:0 13px;max-width:50%}
+.hero-padres-tit{font-size:var(--fs-micro);letter-spacing:.02em;
+  font-weight:500;color:var(--hero-ink);text-wrap:balance}
+.hero-padres-nom{margin-top:7px;font-size:var(--fs-micro);line-height:1.8;
+  color:var(--hero-brand);text-wrap:balance}
+.hero-cierre{margin-top:38px;font-size:var(--fs-small);letter-spacing:.09em;
+  text-transform:uppercase;line-height:1.8;color:var(--hero-ink)}
+/* La fecha pierde su filete: en un documento, una raya más es una raya de
+   más. La separa el aire, como a todo lo demás. */
+.hero-date{margin-top:34px;border-top:0;padding-top:0;letter-spacing:.12em}
+.hero-sub{display:none}
+.hero-quote{margin-top:18px}
+.hero-btn{margin-top:32px}
+/* Sin foto no hay nada que mirar debajo del pliegue, así que la flecha
+   sobra: la portada termina donde termina el texto. */
+.hero-scroll{display:none}
+
+/* Y con foto.
+   Este diseño no la necesita, pero el campo sigue estando y alguien la va a
+   subir — y entonces toda esta tinta oscura cae sobre una fotografía. Es
+   exactamente el fallo que ya costó diez diseños: el marco quedaba precioso y
+   el nombre no se leía.
+
+   El velo es más denso que en los otros slots porque aquí no hay una línea de
+   texto, hay una participación entera: el ojo tiene que recorrer diez
+   renglones sobre la foto, no leer dos nombres. Y va detrás de .con-foto, que
+   el renderer pone sólo cuando hay foto: sin esa guarda el texto saldría
+   blanco sobre el blanco del diseño, que es el mismo error por el otro lado. */
+#hero.con-foto{min-height:100svh;display:grid;place-items:center}
 #hero.con-foto::after{content:"";position:absolute;inset:0;z-index:2;
-  background:linear-gradient(180deg,rgba(0,0,0,.12) 0%,rgba(0,0,0,.52) 100%)}
-#hero.con-foto{--hero-ink:#fff;--hero-ink-soft:rgba(255,255,255,.84);
-  --hero-line:rgba(255,255,255,.4)}
-#hero.con-foto{--hero-brand:rgba(255,255,255,.86)}
-#hero.con-foto .hero-amp{color:#fff}
-#hero.con-foto .hero-scroll{color:#fff}
+  background:linear-gradient(180deg,rgba(0,0,0,.46) 0%,rgba(0,0,0,.58) 100%)}
+#hero.con-foto{--hero-ink:#fff;--hero-ink-soft:rgba(255,255,255,.86);
+  --hero-line:rgba(255,255,255,.4);--hero-brand:rgba(255,255,255,.82)}
+#hero.con-foto .hero-padres-col + .hero-padres-col{
+  border-left-color:var(--hero-line)}
 
-/* El único alineado a la izquierda. Con el filete a la altura del antetítulo,
-   que es lo que evita que el bloque quede flotando. */
-/* Todo el texto de la sección, no sólo el título: las bajadas viven en una
-   clase por sección (.guests-text, .gifts-text, .confirmation-text…) y si no
-   se nombran se quedan centradas en medio de un diseño alineado. */
-:is(.section-label,.section-title,.section-body,.guests-text,.guests-address,
-  .gallery-text,.gifts-text,.gifts-note,.confirmation-text,
-  .confirmation-deadline,.social-sub){text-align:left;margin-left:0}
-.section-label{display:flex;align-items:center;gap:14px}
-.section-label::after{content:"";flex:1;height:var(--border);background:var(--line)}
-.ornament{place-items:start;margin-left:0}
-#social .container{text-align:left}
-.gifts-account{margin-left:0}
-.event-card,.feature-card,.gift-card,.guest-card{text-align:left}
-.guest-avatar{margin-left:0}
+/* Filete a los dos lados del título: el clásico de invitación, hecho con
+   flex en vez de pseudo-elementos posicionados, así se adapta al texto. */
+.section-title{display:flex;align-items:center;justify-content:center;gap:18px}
+.section-title::before,.section-title::after{content:"";width:min(64px,12vw);
+  height:var(--border);background:var(--line)}
 
-/* Todo en un renglón, para cuando la sección debe pesar poco. */
-.countdown-grid{max-width:520px;gap:clamp(10px,3vw,22px)}
-.countdown-ring{padding:0}
-.ring-inner{display:flex;align-items:baseline;justify-content:center;gap:5px}
-.ring-number{font-size:var(--fs-h3)}
-.ring-label{margin-top:0;font-size:var(--fs-micro)}
+/* Sin caja, separados por filetes. El número es la pieza. */
+.countdown-grid{gap:0}
+.countdown-ring{padding:6px 0;border-left:var(--border) solid var(--line)}
+.countdown-ring:first-child{border-left:0}
+.ring-number{font-size:var(--fs-h2)}
 
-/* La primera de cada seis ocupa el doble: rompe la retícula sin desordenarla. */
-.gallery-grid{grid-template-columns:repeat(3,1fr);grid-auto-rows:1fr}
+.gallery-grid{grid-template-columns:repeat(3,1fr)}
 .gallery-item{aspect-ratio:1}
-.gallery-item:nth-child(6n+1){grid-column:span 2;grid-row:span 2;aspect-ratio:auto}
 
 /* Sin caja: sólo un filete arriba. Es lo que necesitan los diseños que no
    quieren ninguna superficie flotando. */
@@ -458,26 +502,30 @@ footer{position:relative;padding:56px 22px;text-align:center;
   <div class="hero-bg" data-inv="hero.backgroundUrl"></div>
   
   <div class="hero-content">
-    <p class="hero-label" data-inv="hero.label">Nos casamos</p>
+    <p class="hero-label" data-inv="hero.label">Un amor tan grande merece ser celebrado</p>
     <h1 class="hero-name" data-inv="event.names">Juan<span class="hero-amp">&amp;</span>María</h1>
     <p class="hero-sub" data-inv="hero.subtitle">Y queremos celebrarlo contigo</p>
-    <p class="hero-nombres" data-inv="hero.nombresCompletos"></p>
-    <p class="hero-bendicion" data-inv="hero.bendicion"></p>
+    <p class="hero-nombres" data-inv="hero.nombresCompletos">Jhon Jarles Roa Garzón  †  Dahiana Insuasti Grajales</p>
+    <p class="hero-bendicion" data-inv="hero.bendicion">Con la bendición de Dios
+y nuestros padres</p>
     <!-- Los padres, en dos columnas con un filete al medio. El envoltorio se
          esconde solo cuando no queda ningún párrafo dentro: el renderer borra
          los campos vacíos y aquí quedarían dos columnas de nada con su filete
          en medio. -->
     <div class="hero-padres">
       <div class="hero-padres-col">
-        <p class="hero-padres-tit" data-inv="hero.padresA"></p>
-        <p class="hero-padres-nom" data-inv="hero.padresANombres"></p>
+        <p class="hero-padres-tit" data-inv="hero.padresA">Padres del novio</p>
+        <p class="hero-padres-nom" data-inv="hero.padresANombres">Luis Sabino Roa
+María Jesús Garzón</p>
       </div>
       <div class="hero-padres-col">
-        <p class="hero-padres-tit" data-inv="hero.padresB"></p>
-        <p class="hero-padres-nom" data-inv="hero.padresBNombres"></p>
+        <p class="hero-padres-tit" data-inv="hero.padresB">Padres de la novia</p>
+        <p class="hero-padres-nom" data-inv="hero.padresBNombres">Mauro Antonio Insuasti Rodas
+Adriana Grajales Perez</p>
       </div>
     </div>
-    <p class="hero-cierre" data-inv="hero.cierre"></p>
+    <p class="hero-cierre" data-inv="hero.cierre">Queremos compartir con ustedes este día
+tan especial y esperado, nuestra boda.</p>
     <p class="hero-date" data-inv="event.dateLabel">15 · Noviembre · 2027</p>
     <p class="hero-quote" data-inv="event.quote">El amor no se mira: se vive juntos mirando en la misma dirección.</p>
     <a class="hero-btn" href="#countdown" data-inv="hero.cta">Ver la invitación</a>
@@ -493,7 +541,7 @@ footer{position:relative;padding:56px 22px;text-align:center;
 <section id="countdown" class="reveal" data-inv-section="countdown">
   <div class="container">
     <p class="section-label" data-inv="countdown.label">El gran día</p>
-    <h2 class="section-title" data-inv="countdown.title">Falta muy poco</h2><div class="ornament"><span class="orn-solo" style="background:#2c5075"></span></div>
+    <h2 class="section-title" data-inv="countdown.title">Falta muy poco</h2><div class="ornament"><span class="orn-solo" style="background:#55503f"></span></div>
     <p class="section-body" data-inv="countdown.text">Estamos contando los días para verte allí.</p>
     <div class="countdown-grid">
       <div class="countdown-ring"><div class="ring-inner"><span class="ring-number" data-cd="days">--</span><span class="ring-label">Días</span></div></div>
@@ -507,7 +555,7 @@ footer{position:relative;padding:56px 22px;text-align:center;
 <section id="guests" class="reveal alt" data-inv-section="guests">
   <div class="container">
     <p class="section-label" data-inv="guests.label">Con todo nuestro amor</p>
-    <h2 class="section-title" data-inv="guests.title">Queridos invitados</h2><div class="ornament"><span class="orn-solo" style="background:#2c5075"></span></div>
+    <h2 class="section-title" data-inv="guests.title">Queridos invitados</h2><div class="ornament"><span class="orn-solo" style="background:#55503f"></span></div>
     <p class="guests-text" data-inv="guests.text">Queremos compartir con ustedes el día más importante de nuestras vidas. Su presencia lo hará inolvidable.</p>
     <p class="guests-text" data-inv="guests.textSecondary">Los esperamos con los brazos abiertos.</p>
     <p class="guests-address" data-inv="guests.address">Bogotá · Colombia</p>
@@ -534,7 +582,7 @@ footer{position:relative;padding:56px 22px;text-align:center;
 <section id="events" class="reveal" data-inv-section="events">
   <div class="container">
     <p class="section-label" data-inv="events.label">El programa</p>
-    <h2 class="section-title" data-inv="events.title">Cómo será el día</h2><div class="ornament"><span class="orn-solo" style="background:#2c5075"></span></div>
+    <h2 class="section-title" data-inv="events.title">Cómo será el día</h2><div class="ornament"><span class="orn-solo" style="background:#55503f"></span></div>
     <p class="section-body" data-inv="events.text">Dos momentos y el mismo día. Aquí los detalles de cada uno.</p>
     <div class="events-grid" data-inv-list="events">
       <article class="event-card" data-inv-item>
@@ -562,7 +610,7 @@ footer{position:relative;padding:56px 22px;text-align:center;
 <section id="confirmation" class="reveal alt" data-inv-section="confirm">
   <div class="container">
     <p class="section-label" data-inv="confirm.label">¿Nos acompañas?</p>
-    <h2 class="section-title" data-inv="confirm.title">Confirma tu asistencia</h2><div class="ornament"><span class="orn-solo" style="background:#2c5075"></span></div>
+    <h2 class="section-title" data-inv="confirm.title">Confirma tu asistencia</h2><div class="ornament"><span class="orn-solo" style="background:#55503f"></span></div>
     <p class="confirmation-text" data-inv="confirm.text">Por favor confirma tu asistencia. Nos ayudará a planear el mejor día posible para todos.</p>
     <p class="confirmation-deadline" data-inv="confirm.deadlineText">Antes del 15 de octubre</p>
     <p class="confirmation-text" data-inv="confirm.note">Si vienes con alguien, cuéntanos aquí mismo.</p>
@@ -583,7 +631,7 @@ footer{position:relative;padding:56px 22px;text-align:center;
 <section id="gallery" class="reveal" data-inv-section="gallery">
   <div class="container">
     <p class="section-label" data-inv="gallery.label">Nuestra historia</p>
-    <h2 class="section-title" data-inv="gallery.title">Momentos juntos</h2><div class="ornament"><span class="orn-solo" style="background:#2c5075"></span></div>
+    <h2 class="section-title" data-inv="gallery.title">Momentos juntos</h2><div class="ornament"><span class="orn-solo" style="background:#55503f"></span></div>
     <p class="gallery-text" data-inv="gallery.text">Unas cuantas fotos de lo que nos trajo hasta aquí.</p>
     <div class="gallery-grid" data-inv-list="gallery">
       <div class="gallery-item" data-inv-item><div class="gallery-ph" data-inv="gallery.items.url"><span class="gallery-ph-text">Foto 1</span></div></div>
@@ -599,7 +647,7 @@ footer{position:relative;padding:56px 22px;text-align:center;
 <section id="features" class="reveal alt" data-inv-section="features">
   <div class="container">
     <p class="section-label" data-inv="features.label">Información útil</p>
-    <h2 class="section-title" data-inv="features.title">Todo lo que necesitas saber</h2><div class="ornament"><span class="orn-solo" style="background:#2c5075"></span></div>
+    <h2 class="section-title" data-inv="features.title">Todo lo que necesitas saber</h2><div class="ornament"><span class="orn-solo" style="background:#55503f"></span></div>
     <div class="features-grid" data-inv-list="features">
       <div class="feature-card" data-inv-item>
         <span class="feature-icon" data-inv="features.items.icon">👗</span>
@@ -623,7 +671,7 @@ footer{position:relative;padding:56px 22px;text-align:center;
 <section id="gifts" class="reveal" data-inv-section="gifts">
   <div class="container">
     <p class="section-label" data-inv="gifts.label">Con mucho cariño</p>
-    <h2 class="section-title" data-inv="gifts.title">Mesa de regalos</h2><div class="ornament"><span class="orn-solo" style="background:#2c5075"></span></div>
+    <h2 class="section-title" data-inv="gifts.title">Mesa de regalos</h2><div class="ornament"><span class="orn-solo" style="background:#55503f"></span></div>
     <p class="gifts-text" data-inv="gifts.text">Su presencia es nuestro mejor regalo. Si desean acompañarnos con un detalle, aquí dejamos los datos.</p>
     <div class="gifts-account">
       <p class="gifts-bank" data-inv="gifts.bankLabel">Transferencia</p>
@@ -651,7 +699,7 @@ footer{position:relative;padding:56px 22px;text-align:center;
 <section id="social" class="reveal alt" data-inv-section="social">
   <div class="container">
     <p class="section-label" data-inv="social.label">Compártelo</p>
-    <h2 class="section-title" data-inv="social.title">Sube tus fotos</h2><div class="ornament"><span class="orn-solo" style="background:#2c5075"></span></div>
+    <h2 class="section-title" data-inv="social.title">Sube tus fotos</h2><div class="ornament"><span class="orn-solo" style="background:#55503f"></span></div>
     <p class="social-sub" data-inv="social.text">Etiquétalas con nuestro hashtag para que no se pierda ninguna.</p>
     <span class="social-hashtag" data-inv="social.hashtag">#JuanYMaria2027</span>
     <a class="social-ig" href="#" data-inv="social.instagram">@juanymaria</a>

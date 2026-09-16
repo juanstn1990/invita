@@ -109,6 +109,57 @@ incertidumbre de los 14.
 
 ## Los diseños
 
+### Bendición: la participación impresa, sin foto
+
+Los otros doce de boda abren con una fotografía y los nombres encima. Éste
+abre con lo que se imprime en una participación de papel: antetítulo, los
+nombres en **caligrafía**, los nombres completos, la bendición, los padres de
+cada lado en dos columnas y la línea de cierre. No es un diseño sin foto por
+falta — es uno donde **el texto es la portada**, que es lo que pide quien
+quiere la invitación de toda la vida y no una postal.
+
+Blanco de verdad y no hueso: la paleta de salida es tinta sobre blanco puro,
+que es el papel de una participación. Las otras tres —niebla, oro, humo—
+cambian la tinta sin tocar el planteamiento. La foto de portada no desaparece:
+quien suba una la verá, porque el campo sigue estando. Simplemente no hace
+falta para que el diseño esté completo, que es lo contrario de los otros doce.
+
+Trae tres cosas que el sistema no tenía:
+
+**Un slot de portada nuevo, `acta`.** Es el único sin foto, así que no hay
+panel, ni velo, ni marco: lo que sostiene la portada es el texto. Y es el
+único que no ocupa una pantalla justa — se lee de arriba abajo como un
+documento, y forzarlo a `100svh` dejaría los padres fuera en un móvil pequeño.
+
+**Una pareja tipográfica con tres familias**, la única de las nueve. Una
+caligrafía no puede ser la letra de los títulos: a tamaño de antetítulo y en
+versalitas no se lee. Así que Great Vibes entra sólo donde tiene sentido —los
+nombres, que se leen como una firma— y el resto sigue siendo la serifa de
+siempre. En ese slot el ampersand deja de ser un renglón aparte y vuelve a la
+línea de los nombres, porque en caligrafía es parte de la firma; con aire a
+los lados, que pegado se lee «JuanEMaría».
+
+**Siete campos nuevos en la portada**: nombres completos, bendición, el título
+y los nombres de cada columna de padres, y la línea de cierre. Los saltos de
+línea que se escriban se respetan —`white-space: pre-line`, sin pasar por
+HTML—, así que dos nombres en dos renglones salen en dos renglones.
+
+Están en los 50 diseños, porque el esqueleto es uno solo y el contrato dice
+que todo campo del esquema tiene su `data-inv` en todos. En los otros 49 van
+**vacíos**, y un campo vacío no deja hueco: el renderer borra su elemento. El
+bloque de los padres se esconde solo cuando no le queda ningún párrafo dentro
+—`:not(:has(p))`—, que si no quedarían dos columnas de nada con su filete en
+medio.
+
+Por eso el texto de muestra vive aparte y no en el contenido de la ocasión:
+puesto ahí, **las trece portadas de boda saldrían con los padres encima**.
+Sólo el slot que sabe dibujarlos lo pide, y tanto el build como la vista previa
+lo miran antes de rellenar.
+
+En papel las dos columnas caben en un renglón; en 390 px de móvil no. Entre
+partir un nombre y apilar las columnas gana apretar: el filete del medio es lo
+que dice «estos de un lado, estos del otro», y apilándolas se pierde justo eso.
+
 ### Grados
 
 Siete, y con criterio propio: **un grado no es una boda con birrete**. Lo que se
@@ -1067,7 +1118,7 @@ defecto queda la de siempre.
 
 Todo vive en la **salida**. El velo cerrado se ve exactamente igual con
 apertura y sin ella, y eso no es una limitación: es lo que deja elegirla sin
-rediseñarle la portada a nadie, y lo que hace que funcione en los 49 sin una
+rediseñarle la portada a nadie, y lo que hace que funcione en los 50 sin una
 línea de CSS por diseño. Lo que se añade es una clase sobre `#splash`.
 
 Gira la capa entera y no una pieza añadida. `#splash` ya es un fijo a pantalla
@@ -1113,7 +1164,7 @@ espera a que el vídeo termine — dos audios a la vez no es ambiente, es ruido.
 Con la cortina en silencio no espera nada: suena encima, que es lo que se
 quiere.
 
-Se cuelga de `enterSite`, que los 49 diseños definen en su propio script y que
+Se cuelga de `enterSite`, que los 50 diseños definen en su propio script y que
 el botón llama por nombre. Envolverla —guardar la de antes y poner una nuestra
 encima— es lo que deja añadir esto sin reconstruir un solo template.
 

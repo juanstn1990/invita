@@ -18,6 +18,7 @@ import { paleta } from "../paleta";
 import * as deco from "../deco";
 import {
   CORMORANT_INTER,
+  CORMORANT_INTER_CALIGRAFIA,
   CORMORANT_JOST,
   DMSERIF_DMSANS,
   FRAUNCES_INTER,
@@ -297,7 +298,39 @@ const gala: Design = {
   deco: { ornament: deco.rombo, hero: deco.rayos },
 };
 
+/**
+ * La invitación impresa, tal cual, sin foto de portada.
+ *
+ * Los otros doce de boda abren con una fotografía y los nombres encima. Éste
+ * abre con lo que se imprime en una participación de papel: el antetítulo,
+ * los nombres en caligrafía, los nombres completos, la bendición, los padres
+ * de cada lado en dos columnas y la línea de cierre. No es un diseño sin foto
+ * por falta, es uno donde **el texto es la portada** — y es lo que pide quien
+ * quiere la invitación de toda la vida y no una postal.
+ *
+ * Blanco de verdad y no hueso: la paleta de salida es la de tinta sobre
+ * blanco puro, que es el papel de una participación. Las otras tres cambian
+ * la tinta sin tocar el planteamiento.
+ *
+ * La foto de portada no desaparece: quien suba una la verá, porque el campo
+ * sigue estando. Simplemente no hace falta para que el diseño esté completo,
+ * que es lo contrario de los otros doce.
+ */
+const bendicion: Design = {
+  slug: "bendicion",
+  name: "Bendición",
+  occasion: "boda",
+  mood: "Sin foto: la participación impresa entera, con los padres en dos columnas",
+  fontUrl: CORMORANT_INTER_CALIGRAFIA.url,
+  layout: { hero: "acta", head: "rule", cards: "rule", countdown: "type", gallery: "grid", divider: "none" },
+  type: { ...CORMORANT_INTER_CALIGRAFIA, scale: 1.26, displayWeight: 300, displayTracking: "0.02em" },
+  shape: { radius: 0, radiusSm: 0, btnRadius: 0, shadow: "none" },
+  density: "airy",
+  palettes: [TINTA, NIEBLA, ORO, HUMO],
+  deco: { ornament: deco.filete },
+};
+
 export const BODAS: Design[] = [
   vintage, white, marsala, aurum, ivory, editorial, nocturno, campestre,
-  capilla, bruma, jardin, gala,
+  capilla, bruma, jardin, gala, bendicion,
 ];
