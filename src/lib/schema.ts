@@ -434,7 +434,7 @@ export const SECTIONS: SectionSpec[] = [
         label: "Vídeo de apertura",
         type: "video",
         span: 2,
-        help: "Se reproduce a pantalla completa al pulsar el botón y da paso a la invitación. Se corta siempre a los 3 segundos, así que sube el trozo que quieres que se vea: lo que haya después no se llega a ver y sólo pesa.",
+        help: "Se reproduce a pantalla completa al pulsar el botón y da paso a la invitación. Se corta siempre a los 5 segundos, así que sube el trozo que quieres que se vea: lo que haya después no se llega a ver y sólo pesa.",
       },
       {
         key: "introSonido",
@@ -502,6 +502,7 @@ export const SECTIONS: SectionSpec[] = [
       { key: "label", label: "Antetítulo", type: "text", placeholder: "Te invitamos a nuestra" },
       { key: "subtitle", label: "Subtítulo", type: "text", placeholder: "Nuestra Boda" },
       { key: "cta", label: "Texto del botón", type: "text", placeholder: "Descubrir más" },
+
       {
         key: "panelOpacity",
         label: "Opacidad del contenedor",

@@ -1088,12 +1088,16 @@ mirar girar.
 Un clip a pantalla completa entre el velo y la portada. Se pone en **«Vídeo de
 apertura»**, se reproduce al pulsar el botón y da paso a la invitación.
 
-**Se corta siempre a los tres segundos**, dure lo que dure el archivo. No es
+**Se corta siempre a los cinco segundos**, dure lo que dure el archivo. No es
 una red de seguridad, es la regla: una cortina es el rato que se tarda en
 abrir un sobre, y pasado eso quien la abrió ya quiere leer. Así que lo que se
 sube es el trozo que se quiere ver — lo que venga detrás no se llega a ver y
 sólo pesa. De paso cubre el caso en que `ended` no llega nunca, que pasa con
 archivos que traen mal escrita su duración.
+
+El vídeo llena la pantalla —recortando lo que sobre— salvo que se elija
+«entero», que le pone bandas y es lo que quiere un clip apaisado visto en un
+móvil de pie.
 
 Va **por debajo** del velo (9998 contra 9999) y no encima, que es lo que quita
 el corte entre los dos: mientras el velo se abre, la cortina ya está detrás
@@ -1129,6 +1133,12 @@ encima— es lo que deja añadir esto sin reconstruir un solo template.
 | **Barrido** | Un borde que cruza de izquierda a derecha |
 | **Desenfoque** | Pierde el foco mientras se va |
 
+Las once duran **dos segundos** y ese número sale de una sola variable CSS.
+Las que van en dos tiempos —a negro, destello— reparten ese total en
+fracciones, así que cambiarlo las mueve a todas a la vez y ninguna se queda
+descolgada; el guion lee esa misma variable para saber cuándo retirar la capa,
+de modo que no hay un segundo sitio que actualizar.
+
 Cada una es una clase y un bloque de CSS que no sabe de las demás, así que la
 doceava es escribir su regla y su nombre en el conjunto que las valida. Un
 nombre que no esté en ese conjunto cae en el fundido: más vale la salida de
@@ -1147,10 +1157,10 @@ derecha— encogiendo cada una hacia su lado. Con un recorte no se puede: un
 `clip-path` es una región continua, y estas son dos que se separan.
 
 La capa se retira escuchando `transitionend` y no a los tantos milisegundos,
-porque las once duran cosas distintas —el círculo tarda 1,05 s y el destello
-medio segundo— y un número fijo o corta la más larga o deja la más corta
-esperando. El reloj queda de respaldo, por si el navegador no anima la
-propiedad y no dispara nada.
+porque las once acaban en momentos distintos dentro de esos dos segundos y un
+número fijo o corta a una o deja a otra esperando. El reloj queda de respaldo
+—y sale de la misma variable—, por si el navegador no anima la propiedad y no
+dispara nada.
 
 Quien pidió menos movimiento no pide menos vídeo: el clip sigue estando. Lo
 que se va es el movimiento, y las once se vuelven la misma — un fundido corto,

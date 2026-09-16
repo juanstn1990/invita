@@ -77,11 +77,13 @@ type Caso = {
 };
 
 /** El tope que aplica el renderer. Si cambia allí, cambia aquí. */
-const TOPE = 3000;
+const TOPE = 5000;
+/** Lo que dura la salida, que es lo que hay que esperar de más. */
+const SALIDA = 2000;
 
 const CASOS: Caso[] = [
   { nombre: "se reproduce y se va sola al terminar", musicaDurante: true },
-  { nombre: "un vídeo largo se corta a los 3 segundos", largo: true, musicaDurante: true },
+  { nombre: "un vídeo largo se corta a los 5 segundos", largo: true, musicaDurante: true },
   { nombre: "con sonido, la música de fondo espera", sonido: true, musicaDurante: false },
   { nombre: "se puede saltar", saltar: true, musicaDurante: true },
   { nombre: "el archivo no existe", roto: "404", musicaDurante: true },
@@ -95,7 +97,7 @@ const SALIDAS = ["", "negro", "destello", "acerca", "aleja", "sube", "baja",
 (async () => {
   const b = await chromium.launch({ args: ["--no-sandbox", "--disable-dev-shm-usage"] });
   const CORTO = await clip(b, 1.6);
-  const LARGO = await clip(b, 6);
+  const LARGO = await clip(b, 8);
   const MUSICA = musica();
   const tpl = TEMPLATES[0];
   let malos = 0;
@@ -179,7 +181,7 @@ const SALIDAS = ["", "negro", "destello", "acerca", "aleja", "sube", "baja",
 
     /* Y lo único que de verdad importa: que pasado el vídeo no quede nada
        encima de la invitación. Se pregunta quién ocupa el centro. */
-    await page.waitForTimeout(4200);
+    await page.waitForTimeout(TOPE + SALIDA + 1200);
     const despues: any = await page.evaluate(`(() => {
       var c = document.querySelector('.inv-cortina');
       var m = document.getElementById('inv-musica');
@@ -238,7 +240,9 @@ const SALIDAS = ["", "negro", "destello", "acerca", "aleja", "sube", "baja",
     await page.goto(`${ORIGEN}/`, { waitUntil: "networkidle" });
     await page.waitForTimeout(300);
     await page.click(".splash-btn-primary");
-    await page.waitForTimeout(4500);
+    /* El clip corto acaba solo antes del tope, así que aquí basta con lo que
+       dura él más la salida entera. */
+    await page.waitForTimeout(2000 + SALIDA + 1500);
 
     const r: any = await page.evaluate(`(() => {
       var c = document.querySelector('.inv-cortina');

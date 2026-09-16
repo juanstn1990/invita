@@ -1289,43 +1289,56 @@ export const INJECTED_CSS = `
    otras. Las que revelan por geometría —telón, cortinas, círculo, barrido—
    no tocan la opacidad a propósito: el vídeo se ve entero hasta el último
    momento, y lo que descubre la invitación es la forma que se abre, no que
-   el vídeo se apague. */
+   el vídeo se apague.
+
+   Todas duran lo mismo, y lo que dura sale de una sola variable. Las que van
+   en dos tiempos —a negro, destello— reparten ese total en fracciones, así
+   que cambiar el número de arriba las mueve a todas a la vez y ninguna se
+   queda descolgada. El guion lee esa misma variable para saber cuándo
+   retirar la capa: si se toca aquí, no hay un segundo sitio que actualizar. */
+.inv-cortina{--inv-cortina-dur:2s}
 
 /* 1 · Fundido. El vídeo se disuelve sobre la invitación. */
-.inv-cortina-s-fundido{transition:opacity .9s ease}
+.inv-cortina-s-fundido{transition:opacity var(--inv-cortina-dur) ease}
 .inv-cortina-s-fundido.fuera{opacity:0}
 
 /* 2 · A negro. Primero se va el vídeo y queda el fondo; después se va el
    fondo. Son dos tiempos y no uno, que es lo que da el respiro de cine. */
-.inv-cortina-s-negro{transition:opacity .55s ease .5s}
-.inv-cortina-s-negro .inv-cortina-video{transition:opacity .5s ease}
+.inv-cortina-s-negro{transition:opacity calc(var(--inv-cortina-dur) * .45) ease
+  calc(var(--inv-cortina-dur) * .55)}
+.inv-cortina-s-negro .inv-cortina-video{
+  transition:opacity calc(var(--inv-cortina-dur) * .5) ease}
 .inv-cortina-s-negro.fuera{opacity:0}
 .inv-cortina-s-negro.fuera .inv-cortina-video{opacity:0}
 
 /* 3 · Destello. Una capa blanca sube de golpe y se va despacio: lo que se
    quema es el corte, y la invitación aparece desde el blanco. */
 .inv-cortina-s-destello::after{content:"";position:absolute;inset:0;z-index:2;
-  background:#fff;opacity:0;pointer-events:none;transition:opacity .2s ease}
-.inv-cortina-s-destello{transition:opacity .55s ease .26s}
+  background:#fff;opacity:0;pointer-events:none;
+  transition:opacity calc(var(--inv-cortina-dur) * .18) ease}
+.inv-cortina-s-destello{transition:opacity calc(var(--inv-cortina-dur) * .75) ease
+  calc(var(--inv-cortina-dur) * .25)}
 .inv-cortina-s-destello.fuera::after{opacity:1}
 .inv-cortina-s-destello.fuera{opacity:0}
 
 /* 4 · Se acerca. El vídeo crece mientras se disuelve. */
-.inv-cortina-s-acerca{transition:opacity .8s ease .1s,
-  transform .95s cubic-bezier(.36,0,.2,1)}
+.inv-cortina-s-acerca{transition:
+  opacity calc(var(--inv-cortina-dur) * .85) ease calc(var(--inv-cortina-dur) * .15),
+  transform var(--inv-cortina-dur) cubic-bezier(.36,0,.2,1)}
 .inv-cortina-s-acerca.fuera{opacity:0;transform:scale(1.2)}
 
 /* 5 · Se aleja. Al revés: se encoge y deja ver lo que hay detrás. */
-.inv-cortina-s-aleja{transition:opacity .8s ease .1s,
-  transform .95s cubic-bezier(.36,0,.2,1)}
+.inv-cortina-s-aleja{transition:
+  opacity calc(var(--inv-cortina-dur) * .85) ease calc(var(--inv-cortina-dur) * .15),
+  transform var(--inv-cortina-dur) cubic-bezier(.36,0,.2,1)}
 .inv-cortina-s-aleja.fuera{opacity:0;transform:scale(.86)}
 
 /* 6 · Telón. Sube entero y se lleva el vídeo con él. */
-.inv-cortina-s-sube{transition:transform 1s cubic-bezier(.66,0,.28,1)}
+.inv-cortina-s-sube{transition:transform var(--inv-cortina-dur) cubic-bezier(.66,0,.28,1)}
 .inv-cortina-s-sube.fuera{transform:translateY(-100%)}
 
 /* 7 · Cae. El mismo telón, hacia el otro lado. */
-.inv-cortina-s-baja{transition:transform 1s cubic-bezier(.66,0,.28,1)}
+.inv-cortina-s-baja{transition:transform var(--inv-cortina-dur) cubic-bezier(.66,0,.28,1)}
 .inv-cortina-s-baja.fuera{transform:translateY(100%)}
 
 /* 8 · Cortinas. Dos mitades que se apartan.
@@ -1338,25 +1351,26 @@ export const INJECTED_CSS = `
   -webkit-mask-repeat:no-repeat,no-repeat;mask-repeat:no-repeat,no-repeat;
   -webkit-mask-position:left center,right center;mask-position:left center,right center;
   -webkit-mask-size:50.5% 100%,50.5% 100%;mask-size:50.5% 100%,50.5% 100%;
-  transition:-webkit-mask-size 1s cubic-bezier(.66,0,.28,1),
-    mask-size 1s cubic-bezier(.66,0,.28,1)}
+  transition:-webkit-mask-size var(--inv-cortina-dur) cubic-bezier(.66,0,.28,1),
+    mask-size var(--inv-cortina-dur) cubic-bezier(.66,0,.28,1)}
 .inv-cortina-s-cortinas.fuera{-webkit-mask-size:0% 100%,0% 100%;mask-size:0% 100%,0% 100%}
 
 /* 9 · Círculo. Se cierra sobre el centro y la invitación entra por los bordes.
    El 140% de partida es para que el círculo cubra las esquinas: un 100% deja
    fuera las puntas de la pantalla y se verían cuatro triángulos. */
 .inv-cortina-s-circulo{clip-path:circle(140% at 50% 50%);
-  transition:clip-path 1.05s cubic-bezier(.6,0,.28,1)}
+  transition:clip-path var(--inv-cortina-dur) cubic-bezier(.6,0,.28,1)}
 .inv-cortina-s-circulo.fuera{clip-path:circle(0% at 50% 50%)}
 
 /* 10 · Barrido. Un borde que cruza de izquierda a derecha. */
 .inv-cortina-s-barrido{clip-path:inset(0 0 0 0);
-  transition:clip-path 1s cubic-bezier(.66,0,.28,1)}
+  transition:clip-path var(--inv-cortina-dur) cubic-bezier(.66,0,.28,1)}
 .inv-cortina-s-barrido.fuera{clip-path:inset(0 0 0 100%)}
 
 /* 11 · Desenfoque. Pierde el foco mientras se va, como si la vista pasara
    del vídeo a lo que hay detrás. */
-.inv-cortina-s-desenfoque{transition:opacity .9s ease,filter .9s ease}
+.inv-cortina-s-desenfoque{transition:opacity var(--inv-cortina-dur) ease,
+  filter var(--inv-cortina-dur) ease}
 .inv-cortina-s-desenfoque.fuera{opacity:0;filter:blur(24px)}
 
 /* Quien pidió menos movimiento no pide menos vídeo: lo que puso quien invita
@@ -2333,7 +2347,7 @@ const CORTINA_JS = `
      ambiente, es ruido. Muda la cortina, que suene la música encima. */
   var musica = v.hasAttribute('muted') ? null : document.getElementById('inv-musica');
   /* Lo que se ve de la cortina, como mucho. Ver el comentario de abajo. */
-  var TOPE = 3000;
+  var TOPE = 5000;
   var fuera = false, reloj = null;
 
   function callar(){ if (musica && !fuera) musica.pause(); }
@@ -2354,7 +2368,12 @@ const CORTINA_JS = `
        navegador no anime no dispara nada. */
     var quitar = function(e){ if (!e || e.target === c) c.setAttribute('hidden', ''); };
     c.addEventListener('transitionend', quitar);
-    setTimeout(quitar, 1600);
+    /* El respaldo sale de la misma variable que usa el CSS, no de un número
+       escrito aquí: así cambiar lo que dura el efecto es tocar un sitio y no
+       dos, y no hay forma de que el reloj se quede corto y retire la capa a
+       media transición. */
+    var dur = parseFloat(getComputedStyle(c).getPropertyValue('--inv-cortina-dur')) || 2;
+    setTimeout(quitar, dur * 1000 + 700);
     if (musica) {
       musica.removeEventListener('play', callar);
       musica.play().catch(function(){});
@@ -2378,8 +2397,8 @@ const CORTINA_JS = `
     v.addEventListener('playing', function(){
       clearTimeout(reloj);
       c.classList.add('lista');
-      /* Tres segundos y se corta, dure lo que dure el archivo. No es una red
-         de seguridad, es la regla: una cortina es el rato que se tarda en
+      /* Cinco segundos y se corta, dure lo que dure el archivo. No es una
+         red de seguridad, es la regla: una cortina es el rato que se tarda en
          abrir un sobre, y pasado eso quien la abrió ya quiere leer. De paso
          cubre el caso en que 'ended' no llega nunca, que pasa con archivos
          que traen mal escrita su duración. */
