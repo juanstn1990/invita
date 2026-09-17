@@ -480,6 +480,21 @@ export function Editor(props: EditorProps) {
                     pegar el enlace. Van después del pie porque se deciden
                     cuando ya está todo lo demás. */}
                 {(() => {
+                  const pt = SECTIONS.find((s) => s.key === "particulas")!;
+                  return (
+                    <SectionEditor
+                      spec={pt}
+                      data={data.particulas || {}}
+                      support={support}
+                      inTemplate
+                      open={open === "particulas"}
+                      onToggleOpen={() => setOpen(open === "particulas" ? null : "particulas")}
+                      onChange={(patch) => patchSection("particulas", patch)}
+                    />
+                  );
+                })()}
+
+                {(() => {
                   const marca = SECTIONS.find((s) => s.key === "marca")!;
                   return (
                     <SectionEditor

@@ -404,6 +404,58 @@ de cada grupo de seis ocupa el doble — en vez de la cuadrícula 3×2 de los
 demás. Sin fotos, cada casilla conserva su marcador, así que la invitación
 nunca se ve rota.
 
+## Partículas sobre toda la invitación
+
+Una capa que cae, sube o flota sobre la página entera. Doce clases:
+
+| Caen | Suben | Flotan |
+| --- | --- | --- |
+| Pétalos · Hojas · Nieve · Confeti · Corazones · Notas musicales | Burbujas · Globos | Mariposas · Luciérnagas · Destellos · Estrellas |
+
+Con **cantidad**, **ritmo**, **tamaño**, **opacidad** y **color** — vacío toma
+el color de marca del diseño, así encaja en los 50 sin elegir nada. Con una
+basta: dos a la vez no es una invitación animada, es una pantalla inquieta.
+
+### Por qué no tsParticles
+
+Se evaluó. La conclusión es que **una librería de partículas trae el motor, no
+las mariposas**: sus formas nativas son puntos, líneas y polígonos, y para
+pétalos u hojas hay que darle las imágenes igual. Lo que se ahorraría es la
+física — y aquí la física son dos `@keyframes`.
+
+En contra pesan dos reglas del proyecto. Ninguna invitación publicada le pide
+un archivo a un tercero, y hay una auditoría que falla si lo hace. Y el peso
+importa hasta el punto de que las fuentes se piden peso por peso: el build
+slim de tsParticles son ~25–30 kB comprimidos sobre una invitación que entera
+pesa unos 45. Casi el doble, por decoración.
+
+Así que las formas se dibujan aquí. Nueve salen del juego de iconos que ya
+está vendorizado; las otras tres son geometría — un pétalo es una hoja con los
+dos extremos en punta, una burbuja es un círculo con un brillo descentrado, y
+una mariposa son dos pares de alas que baten.
+
+### Tres cosas que no se ven en el resultado
+
+**`pointer-events: none`.** No es un detalle de estilo: la capa cubre la
+pantalla entera, y sin eso la invitación deja de responder — no se puede ni
+entrar por el velo. Es exactamente el fallo que ya tuvo la marca de agua.
+
+**El reparto es estable, no aleatorio.** El HTML se genera en el servidor y se
+vuelve a generar en cada vista previa; con `Math.random` la misma invitación
+saldría distinta cada vez, las capturas y las pruebas no podrían comparar
+nada, y **cada tecla en el editor movería todos los pétalos de sitio**.
+Esparcido, pero siempre el mismo esparcido — y hay una prueba que renderiza
+dos veces el mismo dato y compara.
+
+**Con menos movimiento no se quedan quietas: se quitan.** Una lluvia de
+pétalos congelada a media pantalla no es una invitación más sobria, es una
+invitación rota.
+
+La mariposa bate agrupando cada lado —el ala de arriba y la de abajo juntas—,
+porque batiendo por separado se lee como cuatro aletas. Y el par de arriba es
+bastante mayor que el de abajo: es lo que distingue una mariposa de un brote
+de dos hojas, que es exactamente en lo que se quedó el primer intento.
+
 ## Animar un texto suelto
 
 La aparición de cada sección entra **en bloque**. Esto es por campo: el

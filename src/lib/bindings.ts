@@ -177,6 +177,11 @@ const APARTE = new Set([
   "introSonido",
   "introAjuste",
   "introSalida",
+  /* La capa de partículas la monta `ponerParticulas`; sus campos no escriben
+     texto en ningún sitio del marcado. */
+  "tipo",
+  "cantidad",
+  "velocidad",
   // El fondo de la sección lo pone `ponerFondo` en una capa propia.
   "fondoUrl",
   "fondoAjuste",

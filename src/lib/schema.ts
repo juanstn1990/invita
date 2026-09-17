@@ -192,6 +192,39 @@ export const SITIOS: { value: string; label: string }[] = [
 ];
 
 /**
+ * Las partículas que pueden caer sobre toda la invitación.
+ *
+ * Se dibujan con lo que ya hay —el juego de iconos vendorizado y geometría—
+ * y no con una librería: tsParticles y compañía traen el motor, no las
+ * mariposas; las formas hay que dárselas igual. Y este proyecto no le pide
+ * un archivo a nadie, hay una auditoría que falla si una invitación contacta
+ * un dominio externo. Una capa propia son unos pocos kB sobre una invitación
+ * que entera pesa cuarenta y cinco.
+ *
+ * `movimiento` es lo único que necesita el CSS para saber qué animación
+ * ponerle: si cae de arriba, si sube desde abajo o si flota en su sitio.
+ */
+export const TIPOS_PARTICULA: { value: string; label: string; movimiento: "cae" | "sube" | "flota" }[] = [
+  { value: "", label: "Ninguna", movimiento: "cae" },
+  { value: "petalos", label: "Pétalos", movimiento: "cae" },
+  { value: "hojas", label: "Hojas", movimiento: "cae" },
+  { value: "nieve", label: "Nieve", movimiento: "cae" },
+  { value: "confeti", label: "Confeti", movimiento: "cae" },
+  { value: "corazones", label: "Corazones", movimiento: "cae" },
+  { value: "notas", label: "Notas musicales", movimiento: "cae" },
+  { value: "burbujas", label: "Burbujas", movimiento: "sube" },
+  { value: "globos", label: "Globos", movimiento: "sube" },
+  { value: "mariposas", label: "Mariposas", movimiento: "flota" },
+  { value: "luciernagas", label: "Luciérnagas", movimiento: "flota" },
+  { value: "destellos", label: "Destellos", movimiento: "flota" },
+  { value: "estrellas", label: "Estrellas", movimiento: "flota" },
+];
+
+export const PARTICULA_POR_TIPO = Object.fromEntries(
+  TIPOS_PARTICULA.filter((t) => t.value).map((t) => [t.value, t])
+);
+
+/**
  * Las animaciones que puede llevar **un texto suelto**.
  *
  * Distinto de la aparición de la sección, que ya existía y entra en bloque:
@@ -944,6 +977,74 @@ export const SECTIONS: SectionSpec[] = [
   },
 
   {
+    key: "particulas",
+    label: "Partículas",
+    icon: "✽",
+    optional: true,
+    hint:
+      "Una capa que cae, sube o flota sobre toda la invitación. Con una basta: " +
+      "dos a la vez no es una invitación animada, es una pantalla inquieta.",
+    fields: [
+      {
+        key: "tipo",
+        label: "Qué cae",
+        type: "select",
+        span: 2,
+        fallback: 0,
+        options: TIPOS_PARTICULA,
+      },
+      {
+        key: "cantidad",
+        label: "Cuántas",
+        type: "range",
+        min: 6,
+        max: 60,
+        step: 1,
+        fallback: 18,
+        help: "Más de treinta en un móvil se nota en la batería y tapa el texto.",
+      },
+      {
+        key: "velocidad",
+        label: "Ritmo",
+        type: "select",
+        fallback: 1,
+        options: [
+          { value: "lento", label: "Lento" },
+          { value: "", label: "Normal" },
+          { value: "rapido", label: "Rápido" },
+        ],
+      },
+      {
+        key: "tamano",
+        label: "Tamaño",
+        type: "range",
+        min: 8,
+        max: 48,
+        step: 1,
+        unit: "px",
+        fallback: 20,
+      },
+      {
+        key: "opacidad",
+        label: "Opacidad",
+        type: "range",
+        min: 10,
+        max: 100,
+        step: 5,
+        unit: "%",
+        fallback: 70,
+      },
+      {
+        key: "color",
+        label: "Color",
+        type: "color",
+        span: 2,
+        help: "Vacío = el color de marca del diseño, así encaja en los 50 sin elegir nada.",
+      },
+    ],
+  },
+
+  {
     key: "compartir",
     label: "Al compartir el enlace",
     icon: "◇",
@@ -1009,7 +1110,10 @@ export const SECTIONS: SectionSpec[] = [
  * z-index 3 desde siempre.
  */
 for (const spec of SECTIONS) {
-  if (spec.key === "event" || spec.key === "compartir" || spec.key === "marca") continue;
+  if (
+    spec.key === "event" || spec.key === "compartir" ||
+    spec.key === "marca" || spec.key === "particulas"
+  ) continue;
   spec.adornos = true;
   spec.fondo = true;
   spec.fields = [...spec.fields, ...fondoFields];
@@ -1109,6 +1213,15 @@ export function defaultData(): InvitationData {
       imagen: "",
       titulo: "",
       texto: "",
+    },
+    particulas: {
+      enabled: true,
+      tipo: "",
+      cantidad: "18",
+      velocidad: "",
+      tamano: "20",
+      opacidad: "70",
+      color: "",
     },
     splash: {
       enabled: true,

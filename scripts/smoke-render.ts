@@ -335,6 +335,99 @@ for (const [nombre, tocar] of CASOS) {
   }
 }
 
+/* ── La capa de partículas ───────────────────────────────────────
+   Cubre la pantalla entera, así que lo que hay que vigilar no es que se vea
+   bonita: es que no se coma los clics. Sin `pointer-events:none` la
+   invitación deja de responder y no se puede ni entrar por el velo — el mismo
+   fallo que ya tuvo la marca de agua. */
+{
+  const casos: [string, Record<string, unknown>, (c: any, doc: any) => boolean][] = [
+    ["sin elegir tipo no hay capa", { enabled: true, tipo: "" }, (_c, doc) => !doc.querySelector(".inv-particulas")],
+    ["apagada tampoco", { enabled: false, tipo: "petalos" }, (_c, doc) => !doc.querySelector(".inv-particulas")],
+    ["un tipo inventado se ignora", { enabled: true, tipo: "dragones" }, (_c, doc) => !doc.querySelector(".inv-particulas")],
+    [
+      "los pétalos caen",
+      { enabled: true, tipo: "petalos", cantidad: "20" },
+      (c) => String(c.getAttribute("class")).includes("inv-pt-cae") && c.children.length === 20,
+    ],
+    [
+      "las burbujas suben",
+      { enabled: true, tipo: "burbujas" },
+      (c) => String(c.getAttribute("class")).includes("inv-pt-sube"),
+    ],
+    [
+      "las mariposas flotan, y con sus alas",
+      { enabled: true, tipo: "mariposas" },
+      (c) => String(c.getAttribute("class")).includes("inv-pt-flota") &&
+        c.querySelectorAll(".inv-pt-ala").length > 0,
+    ],
+    [
+      "la cantidad se recorta a lo razonable",
+      { enabled: true, tipo: "nieve", cantidad: "900" },
+      (c) => c.children.length === 60,
+    ],
+    /* Cada pieza con su propio retardo y duración: sin eso las sesenta caen
+       en formación, que se lee como una persiana y no como una nevada. */
+    [
+      "cada pieza cae a su aire",
+      { enabled: true, tipo: "nieve", cantidad: "12" },
+      (c) => {
+        const estilos = Array.from(c.children).map((i: any) => i.getAttribute("style"));
+        return new Set(estilos).size === estilos.length;
+      },
+    ],
+    /* Y el mismo dato tiene que dar siempre el mismo marcado: si no, cada
+       tecla en el editor movería todos los pétalos de sitio. */
+    [
+      "el mismo dato da siempre el mismo dibujo",
+      { enabled: true, tipo: "hojas", cantidad: "15" },
+      (c) => String(c.children[0].getAttribute("style")).includes("left:"),
+    ],
+  ];
+
+  for (const [nombre, particulas, comprueba] of casos) {
+    const mal: string[] = [];
+    for (const tpl of TEMPLATES) {
+      const d: any = defaultData();
+      d.particulas = { ...d.particulas, ...particulas };
+      const { document } = parseHTML(
+        renderInvitation({
+          templateHtml: readTemplate(tpl.id), templateId: tpl.id, data: d, slug: "demo",
+        })
+      );
+      const c = document.querySelector(".inv-particulas") as any;
+      try {
+        if (!comprueba(c, document)) mal.push(tpl.id);
+      } catch {
+        mal.push(`${tpl.id} (excepción)`);
+      }
+    }
+    if (mal.length) botonMal++;
+    console.log(
+      `${mal.length ? "✗" : "✓"} partículas · ${nombre.padEnd(42)}` +
+        (mal.length ? `  ${mal.length} mal: ${mal.slice(0, 2).join(", ")}` : "")
+    );
+  }
+
+  /* Estable entre renders: el mismo dato, dos veces, el mismo HTML. */
+  {
+    const uno = (n: number) => {
+      const d: any = defaultData();
+      d.particulas = { enabled: true, tipo: "petalos", cantidad: String(n) };
+      const { document } = parseHTML(
+        renderInvitation({
+          templateHtml: readTemplate(TEMPLATES[0].id), templateId: TEMPLATES[0].id,
+          data: d, slug: "demo",
+        })
+      );
+      return (document.querySelector(".inv-particulas") as any).innerHTML;
+    };
+    const ok = uno(14) === uno(14);
+    if (!ok) botonMal++;
+    console.log(`${ok ? "✓" : "✗"} partículas · dos renders del mismo dato salen idénticos`);
+  }
+}
+
 /* ── La portada acepta fondo y párrafo ───────────────────────────
    La portada estuvo fuera del fondo mientras el argumento fue "ese sitio ya
    lo ocupa su foto". Con el fondo aceptando vídeo dejó de valer, y lo que hay

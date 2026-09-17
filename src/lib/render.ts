@@ -25,6 +25,7 @@ import {
   SECTIONS as SPEC,
   ANIMACIONES,
   ANIM_POR_PARTES,
+  PARTICULA_POR_TIPO,
   coupleName,
   esVideoUrl,
   formatDateLong,
@@ -270,6 +271,145 @@ function pickEveryOutermost(root: El, sel: string[]): El[] {
     }
   }
   return all.filter((el) => !all.some((other) => other !== el && other.contains(el)));
+}
+
+/* ── partículas sobre toda la invitación ─────────────────────── */
+
+/**
+ * El dibujo de cada clase de partícula.
+ *
+ * Se dibujan aquí y no se piden a una librería, por dos razones que son del
+ * proyecto y no del gusto: nada en una invitación publicada le pide un
+ * archivo a un tercero —hay una auditoría que falla si lo hace— y el peso
+ * importa hasta el punto de que las fuentes se piden peso por peso. Una
+ * librería de partículas trae el motor, no las mariposas: las formas hay que
+ * dárselas igual, así que lo que se ahorraría es la física, y aquí la física
+ * son dos `@keyframes`.
+ *
+ * Nueve salen del juego de iconos que ya está vendorizado. Las otras tres
+ * —pétalo, mariposa y burbuja— son geometría: un pétalo es una hoja con los
+ * dos extremos en punta, una mariposa son dos alas que baten, y una burbuja
+ * es un círculo con un brillo descentrado.
+ */
+const FORMA_PARTICULA: Record<string, (color: string, peso: Peso) => string> = {
+  petalos: (c) =>
+    `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">` +
+    `<path d="M12 2c5 4 7 8 7 11a7 7 0 0 1-14 0c0-3 2-7 7-11z" fill="${c}"/>` +
+    `<path d="M12 5c0 6 0 10 0 15" stroke="rgba(255,255,255,.35)" stroke-width="1"/></svg>`,
+  /* Dos pares de alas que baten. El aleteo lo pone el CSS sobre cada mitad —
+     es la única parte de todo esto que una librería tampoco resolvería, porque
+     lo que falta ahí es el dibujo, no la física.
+
+     Cada lado va agrupado con su ala de arriba y la de abajo: batiendo por
+     separado se leería como cuatro aletas y no como una mariposa. Y el par de
+     arriba es bastante mayor que el de abajo, que es lo que distingue una
+     mariposa de un brote de dos hojas. */
+  mariposas: (c) =>
+    `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">` +
+    `<g class="inv-pt-ala inv-pt-ala-i" fill="${c}">` +
+      `<path d="M11.4 11.2C8.6 2.9 1.2 2.2 1.2 7.6c0 4.2 5 6.4 10.2 4.6z"/>` +
+      `<path d="M11.4 13C9 19.9 3.3 21 3.3 16.7c0-3 3.9-4.6 8.1-4z" opacity=".78"/>` +
+    `</g>` +
+    `<g class="inv-pt-ala inv-pt-ala-d" fill="${c}">` +
+      `<path d="M12.6 11.2C15.4 2.9 22.8 2.2 22.8 7.6c0 4.2-5 6.4-10.2 4.6z"/>` +
+      `<path d="M12.6 13C15 19.9 20.7 21 20.7 16.7c0-3-3.9-4.6-8.1-4z" opacity=".78"/>` +
+    `</g>` +
+    `<path d="M12 7.6v9" stroke="${c}" stroke-width="1.5" stroke-linecap="round"/>` +
+    `<path d="M12 7.6c-.6-1.5-1.8-2.4-3-2.8M12 7.6c.6-1.5 1.8-2.4 3-2.8" ` +
+      `stroke="${c}" stroke-width=".9" stroke-linecap="round"/></svg>`,
+  burbujas: (c) =>
+    `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">` +
+    `<circle cx="12" cy="12" r="9" fill="${c}" opacity=".28"/>` +
+    `<circle cx="12" cy="12" r="9" stroke="${c}" stroke-width="1.1"/>` +
+    `<circle cx="8.5" cy="8.5" r="2.2" fill="#fff" opacity=".55"/></svg>`,
+  nieve: (c) =>
+    `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="6" fill="${c}"/></svg>`,
+  confeti: (c) =>
+    `<svg viewBox="0 0 24 24" aria-hidden="true">` +
+    `<rect x="8" y="3" width="8" height="18" rx="2" fill="${c}"/></svg>`,
+  luciernagas: (c) =>
+    `<svg viewBox="0 0 24 24" aria-hidden="true">` +
+    `<circle cx="12" cy="12" r="4" fill="${c}"/>` +
+    `<circle cx="12" cy="12" r="9" fill="${c}" opacity=".22"/></svg>`,
+  /* Los iconos se pintan con `currentColor`, así que el color se lo pone la
+     pieza que los envuelve y no hace falta pasárselo. */
+  hojas: (_c, p) => iconoHtml("hoja", p),
+  corazones: (_c, p) => iconoHtml("corazon", p),
+  estrellas: (_c, p) => iconoHtml("estrella", p),
+  destellos: (_c, p) => iconoHtml("brillo", p),
+  globos: (_c, p) => iconoHtml("globo", p),
+  notas: (_c, p) => iconoHtml("musica", p),
+};
+
+/**
+ * Un número estable entre 0 y 1 a partir de dos enteros.
+ *
+ * Estable y no aleatorio a propósito: el HTML se genera en el servidor y se
+ * vuelve a generar en cada vista previa, así que con `Math.random` la misma
+ * invitación saldría distinta cada vez — las capturas y las pruebas de
+ * marcado no podrían comparar nada, y cada tecla en el editor movería todos
+ * los pétalos de sitio. Esparcido, pero siempre el mismo esparcido.
+ */
+function disperso(i: number, sal: number): number {
+  const n = Math.sin(i * 12.9898 + sal * 78.233) * 43758.5453;
+  return n - Math.floor(n);
+}
+
+/**
+ * La capa de partículas, fija sobre toda la invitación.
+ *
+ * `pointer-events:none` no es un detalle de estilo: es una capa que cubre la
+ * pantalla entera, y sin eso la invitación deja de responder — no se puede
+ * ni entrar por el velo. Es exactamente el fallo que la marca de agua ya tuvo
+ * y que su auditoría vigila desde entonces.
+ */
+function ponerParticulas(document: Doc, data: InvitationData) {
+  const d = data.particulas || {};
+  if (d.enabled === false) return;
+
+  const tipo = String(d.tipo || "").trim();
+  const forma = FORMA_PARTICULA[tipo];
+  const spec = PARTICULA_POR_TIPO[tipo];
+  if (!forma || !spec) return;
+
+  const cuantas = Math.min(60, Math.max(6, Number(d.cantidad) || 18));
+  const tamano = Math.min(48, Math.max(8, Number(d.tamano) || 20));
+  const opacidad = Math.min(100, Math.max(10, Number(d.opacidad ?? 70))) / 100;
+  const color = HEX.test(String(d.color || "").trim())
+    ? String(d.color).trim()
+    : "var(--brand, currentColor)";
+  const ritmo = ["lento", "rapido"].includes(String(d.velocidad))
+    ? String(d.velocidad)
+    : "";
+
+  const capa = document.createElement("div");
+  capa.setAttribute("class", `inv-particulas inv-pt-${spec.movimiento}`);
+  capa.setAttribute("data-tipo", tipo);
+  capa.setAttribute("aria-hidden", "true");
+  capa.setAttribute("style", `--inv-pt-op:${opacidad}`);
+  if (ritmo) capa.setAttribute("data-ritmo", ritmo);
+
+  const piezas: string[] = [];
+  for (let i = 0; i < cuantas; i++) {
+    /* Cuatro números por pieza: dónde empieza, cuánto tarda, cuándo arranca y
+       cuánto mide. Sin el desfase, las sesenta caerían en formación. */
+    const x = (disperso(i, 1) * 100).toFixed(1);
+    const dur = (7 + disperso(i, 2) * 9).toFixed(1);
+    const espera = (disperso(i, 3) * -16).toFixed(1);
+    const escala = (0.62 + disperso(i, 4) * 0.76).toFixed(2);
+    const giro = Math.round(disperso(i, 5) * 360);
+    const deriva = (disperso(i, 6) * 60 - 30).toFixed(0);
+    piezas.push(
+      `<i style="left:${x}%;width:${tamano}px;height:${tamano}px;color:${color};` +
+        `animation-duration:${dur}s;animation-delay:${espera}s;` +
+        `--inv-pt-escala:${escala};--inv-pt-giro:${giro}deg;` +
+        `--inv-pt-deriva:${deriva}px;--inv-pt-y:${(disperso(i, 7) * 100).toFixed(1)}%">` +
+        forma(color, "light") +
+        `</i>`
+    );
+  }
+  capa.innerHTML = piezas.join("");
+  document.body.appendChild(capa);
 }
 
 /* ── animación de un texto suelto ────────────────────────────── */
@@ -1350,6 +1490,68 @@ export const INJECTED_CSS = `
   #splash.inv-velo-sobre{transition:opacity .7s ease,visibility .7s ease}
   #splash.inv-velo-sobre.hidden{transform:none}
   #splash.inv-velo-sobre.hidden .splash-modal{transform:none;transition:opacity .4s ease}
+}
+
+/* ── Partículas sobre toda la invitación ───────────────────────
+   Una capa fija sobre la página entera: lo que se quiere es que los pétalos
+   caigan sobre la invitación, no que empiecen de cero en cada sección.
+
+   pointer-events:none no es un detalle de estilo. Es una capa que cubre la
+   pantalla completa, y sin eso la invitación deja de responder — no se puede
+   ni entrar por el velo. Es exactamente el fallo que ya tuvo la marca de
+   agua, y la razón de que su auditoría lo vigile desde entonces.
+
+   Tres movimientos y no doce: lo que cae, lo que sube y lo que flota. La
+   diferencia entre un pétalo y un copo no está en la animación, está en el
+   dibujo — y eso ya lo resuelve el SVG de cada uno. */
+.inv-particulas{position:fixed;inset:0;z-index:9997;pointer-events:none;
+  overflow:hidden;opacity:var(--inv-pt-op,.7)}
+.inv-particulas i{position:absolute;display:block;line-height:0;
+  animation-iteration-count:infinite;animation-timing-function:linear;
+  transform:scale(var(--inv-pt-escala,1))}
+.inv-particulas i svg{width:100%;height:100%;display:block}
+
+/* Sin JavaScript no hay nada que esperar: las partículas son CSS y corren
+   solas. Pero sí hay algo que evitar — que arranquen todas a la vez —, y de
+   eso se encarga el retardo negativo de cada pieza: empiezan con la
+   animación ya empezada, en un punto distinto cada una. */
+.inv-pt-cae i{top:0;animation-name:invPtCae}
+.inv-pt-sube i{bottom:0;animation-name:invPtSube}
+/* Lo que flota no recorre la pantalla: se queda donde nace y se mueve poco.
+   Por eso necesita su propia coordenada vertical, que el renderer reparte. */
+.inv-pt-flota i{top:var(--inv-pt-y,50%);animation-name:invPtFlota;
+  animation-timing-function:ease-in-out}
+
+@keyframes invPtCae{
+  0%{transform:translate3d(0,-12vh,0) rotate(0) scale(var(--inv-pt-escala,1))}
+  100%{transform:translate3d(var(--inv-pt-deriva,0),112vh,0)
+    rotate(var(--inv-pt-giro,180deg)) scale(var(--inv-pt-escala,1))}}
+@keyframes invPtSube{
+  0%{transform:translate3d(0,12vh,0) rotate(0) scale(var(--inv-pt-escala,1))}
+  100%{transform:translate3d(var(--inv-pt-deriva,0),-112vh,0)
+    rotate(var(--inv-pt-giro,180deg)) scale(var(--inv-pt-escala,1))}}
+@keyframes invPtFlota{
+  0%,100%{transform:translate3d(0,0,0) scale(var(--inv-pt-escala,1));opacity:.55}
+  50%{transform:translate3d(var(--inv-pt-deriva,0),-26px,0)
+    scale(calc(var(--inv-pt-escala,1) * 1.12));opacity:1}}
+
+/* El ritmo multiplica lo que ya trae cada pieza, así que la dispersión se
+   conserva: lento no es "todas a la misma velocidad, despacio". */
+.inv-particulas[data-ritmo="lento"] i{animation-duration:22s!important}
+.inv-particulas[data-ritmo="rapido"] i{animation-duration:5s!important}
+
+/* El aleteo de la mariposa. Es lo único que no sale de mover la pieza entera:
+   cada ala se encoge sobre el eje del cuerpo, que es lo que lee el ojo como
+   un batir y no como un balanceo. */
+.inv-pt-ala{transform-origin:12px 12px;animation:invPtAla .42s ease-in-out infinite}
+.inv-pt-ala-d{animation-delay:.02s}
+@keyframes invPtAla{0%,100%{transform:scaleX(1)}50%{transform:scaleX(.42)}}
+
+/* Quien pidió menos movimiento no ve caer nada. No se quedan quietas: se
+   quitan. Una lluvia de pétalos congelada a media pantalla no es una
+   invitación más sobria, es una invitación rota. */
+@media (prefers-reduced-motion:reduce){
+  .inv-particulas{display:none}
 }
 
 /* ── Animación de un texto suelto ──────────────────────────────
@@ -3409,6 +3611,11 @@ export function renderInvitation(opts: RenderOptions): string {
     tarjeta.setAttribute("content", imagen ? "summary_large_image" : "summary");
     document.head.appendChild(tarjeta);
   }
+
+  /* 5 ante · Las partículas, sobre toda la invitación.
+     Una capa fija y no una por sección: lo que se quiere es que los pétalos
+     caigan **sobre la página**, no que empiecen de cero en cada bloque. */
+  ponerParticulas(document, data);
 
   /* 5 bis · La marca de agua, encima de todo.
      Su razón de ser es que un borrador no se pueda repartir como si fuera el
