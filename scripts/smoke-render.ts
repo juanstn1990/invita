@@ -658,6 +658,68 @@ for (const [nombre, tocar] of CASOS) {
   }
 }
 
+/* ── Color por campo ─────────────────────────────────────────────
+   La sección ya tenía el suyo, que pinta todo lo que hay dentro. Éste es un
+   escalón más abajo y tiene que **ganarle**: si no, elegir el color de un
+   título no haría nada visible y nadie sabría por qué. */
+{
+  const render = (gallery: Record<string, unknown>, events?: Record<string, unknown>) => {
+    const d: any = defaultData();
+    d.gallery = { ...d.gallery, enabled: true, label: "Recuerdos", title: "La galería", ...gallery };
+    if (events) d.events = { ...d.events, ...events };
+    return renderInvitation({
+      templateHtml: readTemplate(TEMPLATES[0].id), templateId: TEMPLATES[0].id,
+      data: d, slug: "demo",
+    });
+  };
+  /** Las reglas de color que se inyectaron, en orden. */
+  const reglas = (html: string) =>
+    [...html.matchAll(/([^{}\n]+)\{color:(#[0-9a-fA-F]{3,6}) !important\}/g)]
+      .map((m) => [m[1].trim(), m[2].toLowerCase()] as [string, string]);
+
+  const casos: [string, () => boolean][] = [
+    ["sin color elegido no se inyecta nada", () => reglas(render({})).length === 0],
+    [
+      "el color de un campo llega",
+      () => reglas(render({ colors: { title: "#00aa44" } })).some(([, c]) => c === "#00aa44"),
+    ],
+    /* El de la sección apunta a `sel *`; el del campo, al selector concreto.
+       Más específico, y además se emite después. */
+    [
+      "y va después del de la sección",
+      () => {
+        const rs = reglas(render({ textColor: "#ff0000", colors: { title: "#00aa44" } }));
+        const sec = rs.findIndex(([, c]) => c === "#ff0000");
+        const campo = rs.findIndex(([, c]) => c === "#00aa44");
+        return sec > -1 && campo > sec;
+      },
+    ],
+    [
+      "un color inválido se ignora",
+      () => reglas(render({ colors: { title: "rojo" } })).length === 0,
+    ],
+    [
+      "los campos de una lista comparten el suyo",
+      () => reglas(render({}, { colors: { "items.title": "#0055ff" } })).some(([, c]) => c === "#0055ff"),
+    ],
+    /* Y que no se pise con la tipografía, que viaja por el mismo camino. */
+    [
+      "convive con la tipografía del mismo campo",
+      () => {
+        const h = render({ colors: { title: "#00aa44" }, fonts: { title: "playfair" } });
+        return reglas(h).some(([, c]) => c === "#00aa44") && h.includes("font-family:");
+      },
+    ],
+  ];
+
+  for (const [nombre, comprueba] of casos) {
+    let ok = false;
+    try { ok = comprueba(); } catch { ok = false; }
+    if (!ok) botonMal++;
+    console.log(`${ok ? "✓" : "✗"} color · ${nombre}`);
+  }
+}
+
 /* ── Animación por texto ─────────────────────────────────────────
    Dos de las familias reparten el texto en trozos, y ahí hay un fallo que el
    marcado no delata a simple vista: si se reparte **antes** de escribir el

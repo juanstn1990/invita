@@ -399,6 +399,28 @@
 }
 .animPicker:hover, .animPicker:focus { color: inherit; }
 
+/* El color de un campo: un cuadradito al lado del de la letra.
+   La cruz sólo aparece cuando hay color propio, porque un <input type=color>
+   no se puede vaciar y sin ella elegir uno sería irreversible. */
+.colorWrap { position: relative; flex: none; line-height: 0; }
+.colorSwatch {
+  width: 32px; height: 32px; padding: 2px;
+  border: 1px solid var(--line, #e7e2d9);
+  border-radius: 8px; background: transparent; cursor: pointer;
+}
+.colorSwatch[data-puesto] { border-color: var(--ink, #2e2a26); }
+.colorSwatch::-webkit-color-swatch { border: none; border-radius: 5px; }
+.colorSwatch::-moz-color-swatch { border: none; border-radius: 5px; }
+.colorClear {
+  position: absolute; top: -6px; right: -6px;
+  width: 16px; height: 16px; padding: 0;
+  display: grid; place-items: center;
+  font-size: 9px; line-height: 1;
+  border: 1px solid var(--line, #e7e2d9); border-radius: 50%;
+  background: var(--card, #fff); color: var(--muted, #7d746a); cursor: pointer;
+}
+.colorClear:hover { color: var(--ink, #2e2a26); }
+
 .fontWrap { position: relative; flex: none; }
 
 .fontBtn {

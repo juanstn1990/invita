@@ -233,11 +233,20 @@ const HEX = /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i;
  * el mismo al que hay que cambiarle la letra. Lleva `!important` por la misma
  * razón que el color — varios diseños usan selectores más específicos.
  */
+/**
+ * Las reglas de un campo, con la declaración que se le pase.
+ *
+ * Empezó resolviendo sólo tipografías y ahora sirve también para el color:
+ * lo difícil aquí nunca fue la propiedad, era **encontrar a quién se le
+ * aplica** — un campo puede escribirse en varios sitios a la vez y sus
+ * selectores dependen del diseño. Eso es lo que no había que duplicar.
+ */
 function fontRules(
   scopeSel: string | undefined,
   root: El,
   ops: Op[],
-  fontCss: string,
+  /** La declaración completa, sin llaves: `font-family:X` o `color:Y`. */
+  declaracion: string,
   /** A qué equivale `:self` en este ámbito (la sección, o la ficha de lista). */
   selfSel = scopeSel
 ): string[] {
@@ -256,7 +265,7 @@ function fontRules(
       .map((sel) => (sel === ":self" ? selfSel : [scopeSel, sel].filter(Boolean).join(" ")))
       .filter((x): x is string => !!x);
 
-    if (sels.length) out.push(`${sels.join(",")}{font-family:${fontCss} !important}`);
+    if (sels.length) out.push(`${sels.join(",")}{${declaracion} !important}`);
   }
   return out;
 }
@@ -3150,7 +3159,7 @@ export function renderInvitation(opts: RenderOptions): string {
       const path = `${spec.key}.${field.key}`;
       const ops = map.fields[FONT_ALIAS[path] || path];
       if (!ops) continue;
-      const reglas = fontRules(scopeSel, root, ops, font.css);
+      const reglas = fontRules(scopeSel, root, ops, `font-family:${font.css}`);
       if (reglas.length) {
         fontCss.push(...reglas);
         fontIds.add(font.id);
@@ -3172,13 +3181,68 @@ export function renderInvitation(opts: RenderOptions): string {
     for (const f of spec.list!.fields) {
       const font = FONT_BY_ID[elegidas[`items.${f.key}`] || ""];
       if (!font) continue;
-      const reglas = fontRules(scopeSel, ficha, lb.fields[f.key] || [], font.css, fichaSel);
+      const reglas = fontRules(
+        scopeSel, ficha, lb.fields[f.key] || [], `font-family:${font.css}`, fichaSel
+      );
       if (reglas.length) {
         fontCss.push(...reglas);
         fontIds.add(font.id);
       }
     }
   };
+  /**
+   * El color de cada texto, por campo.
+   *
+   * La sección ya tenía uno —`textColor`, que pinta todo lo suyo— y esto es
+   * el mismo mecanismo un escalón más abajo: el antetítulo en dorado y el
+   * título en tinta, dentro de la misma sección.
+   *
+   * Gana al de la sección sin pelear por el orden: aquél apunta a
+   * `${sel} *`, éste al selector concreto del campo, que es más específico.
+   * Y se emite después, así que también gana en un empate.
+   *
+   * No excluye botones ni enlaces como hace el de la sección: allí la regla
+   * barre todo lo que hay dentro y había que proteger su contraste; aquí se
+   * señaló **este** campo, y si el campo es el texto de un botón, es que se
+   * quería el texto de ese botón.
+   */
+  const collectColors = (
+    spec: (typeof SPEC)[number],
+    scopeSel: string | undefined,
+    root: El,
+    section: InvitationData[string]
+  ) => {
+    const elegidos = (section?.colors || {}) as Record<string, string>;
+
+    for (const field of spec.fields) {
+      const color = String(elegidos[field.key] || "").trim();
+      if (!HEX.test(color)) continue;
+      const path = `${spec.key}.${field.key}`;
+      const ops = map.fields[FONT_ALIAS[path] || path];
+      if (!ops) continue;
+      colorCss.push(...fontRules(scopeSel, root, ops, `color:${color}`));
+    }
+
+    /* Los campos de las listas: el color se comparte entre las fichas, igual
+       que la tipografía. Un color por invitado no significaría nada. */
+    const lb = spec.list ? map.lists[spec.key] : undefined;
+    if (!lb) return;
+    const container = pick(root, lb.container);
+    const ficha = container ? pick(container, lb.item) : null;
+    if (!ficha) return;
+    const fichaSel = [scopeSel, pickWithSel(container!, lb.item)?.[1]]
+      .filter(Boolean)
+      .join(" ");
+
+    for (const f of spec.list!.fields) {
+      const color = String(elegidos[`items.${f.key}`] || "").trim();
+      if (!HEX.test(color)) continue;
+      colorCss.push(
+        ...fontRules(scopeSel, ficha, lb.fields[f.key] || [], `color:${color}`, fichaSel)
+      );
+    }
+  };
+
   /**
    * La animación de cada texto.
    *
@@ -3566,6 +3630,7 @@ export function renderInvitation(opts: RenderOptions): string {
     if (r.block.type === "video" && !ponerVideo(root, sectionData)) continue;
 
     if (spec) collectFonts(spec, sectionSel, root, sectionData);
+    if (spec) collectColors(spec, sectionSel, root, sectionData);
     const calculados = deriveSection(r.key, sectionData);
 
     for (const field of campos) {

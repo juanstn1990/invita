@@ -48,6 +48,22 @@ export function SectionEditor({
       : undefined;
 
   /**
+   * El color de un texto, por el mismo camino que su tipografía.
+   *
+   * La sección ya tiene el suyo, que pinta todo lo que hay dentro; esto deja
+   * el antetítulo en dorado y el título en tinta sin salir de la sección.
+   * Vacío = el que mande arriba, así que no hay que "quitarlo": se borra.
+   */
+  const colores = (data.colors || {}) as Record<string, string>;
+  const colorFor = (key: string) =>
+    supports(`${spec.key}.${key}@font`)
+      ? {
+          hex: colores[key] || "",
+          set: (hex: string) => onChange({ colors: { ...colores, [key]: hex } }),
+        }
+      : undefined;
+
+  /**
    * La animación de un texto, por el mismo camino que su tipografía.
    *
    * Se ofrece donde se ofrece la letra: si el campo no tiene un binding que
@@ -118,6 +134,11 @@ export function SectionEditor({
                 field={field}
                 value={data[field.key]}
                 font={fontFor(field.key)}
+                color={
+                  field.type === "text" || field.type === "textarea"
+                    ? colorFor(field.key)
+                    : undefined
+                }
                 anim={animFor(field)}
                 onChange={(v) => onChange({ [field.key]: v })}
               />
@@ -138,6 +159,15 @@ export function SectionEditor({
                       id: fonts[`items.${key}`] || "",
                       set: (id) => onChange({ fonts: { ...fonts, [`items.${key}`]: id } }),
                       shared: true,
+                    }
+                  : undefined
+              }
+              colorFor={(key) =>
+                supports(`${spec.key}.items.${key}@font`)
+                  ? {
+                      hex: colores[`items.${key}`] || "",
+                      set: (hex) =>
+                        onChange({ colors: { ...colores, [`items.${key}`]: hex } }),
                     }
                   : undefined
               }
@@ -201,13 +231,15 @@ function IconoField({ value, onChange }: { value: string; onChange: (v: string) 
 }
 
 function Field({
-  field, value, onChange, font, anim, mediaKind,
+  field, value, onChange, font, color, anim, mediaKind,
 }: {
   field: FieldSpec;
   value: unknown;
   onChange: (v: string) => void;
   /** Presente sólo si el diseño permite cambiarle la letra a este campo. */
   font?: { id: string; set: (id: string) => void; shared?: boolean };
+  /** Lo mismo para el color. Vacío = el de la sección. */
+  color?: { hex: string; set: (hex: string) => void };
   /** Lo mismo para la animación. Ver `ANIMACIONES`. */
   anim?: { id: string; set: (id: string) => void };
   /** Con qué clase se cataloga lo que se suba desde este campo. */
@@ -269,9 +301,34 @@ function Field({
     <div className={styles.field} data-span={field.span ?? 1}>
       <label className="field-label">{field.label}</label>
 
-      {font ? (
+      {font || color ? (
         <div className={styles.withFont} data-tall={field.type === "textarea"}>
-          <FontPicker value={font.id} onChange={font.set} shared={font.shared} />
+          {font && <FontPicker value={font.id} onChange={font.set} shared={font.shared} />}
+          {color && (
+            /* Un cuadradito con el color puesto. El nativo no deja vaciarse,
+               así que la cruz de al lado es la única forma de volver al color
+               de la sección — sin ella, elegir uno sería irreversible. */
+            <span className={styles.colorWrap}>
+              <input
+                type="color"
+                className={styles.colorSwatch}
+                value={color.hex || "#000000"}
+                onChange={(e) => color.set(e.target.value)}
+                title={color.hex ? `Color propio: ${color.hex}` : "Color de este texto"}
+                data-puesto={color.hex ? "1" : undefined}
+              />
+              {color.hex && (
+                <button
+                  type="button"
+                  className={styles.colorClear}
+                  onClick={() => color.set("")}
+                  title="Volver al color de la sección"
+                >
+                  ✕
+                </button>
+              )}
+            </span>
+          )}
           <div className={styles.withFontBody}>{control}</div>
         </div>
       ) : (
@@ -394,7 +451,7 @@ function RangeField({
  * adornos, que son otra lista sobre la misma sección.
  */
 function ListEditor({
-  list, items, onChange, fields, fontFor, mediaKind,
+  list, items, onChange, fields, fontFor, colorFor, mediaKind,
 }: {
   list: ListSpec;
   items: Record<string, string>[];
@@ -407,6 +464,8 @@ function ListEditor({
    * tipografía por invitado no tendría sentido.
    */
   fontFor?: (fieldKey: string) => { id: string; set: (id: string) => void; shared: boolean } | undefined;
+  /** Y su color, compartido entre las fichas por el mismo motivo. */
+  colorFor?: (fieldKey: string) => { hex: string; set: (hex: string) => void } | undefined;
   /** Con qué clase se catalogan las imágenes de esta lista. */
   mediaKind?: "foto" | "adorno";
 }) {
@@ -487,6 +546,11 @@ function ListEditor({
                 field={field}
                 value={item[field.key]}
                 font={fontFor?.(field.key)}
+                color={
+                  field.type === "text" || field.type === "textarea"
+                    ? colorFor?.(field.key)
+                    : undefined
+                }
                 mediaKind={mediaKind}
                 onChange={(v) =>
                   onChange(items.map((it, j) => (j === i ? { ...it, [field.key]: v } : it)))

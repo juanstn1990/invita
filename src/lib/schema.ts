@@ -1248,6 +1248,8 @@ export type SectionData = Record<string, unknown> & {
   fonts?: Record<string, string>;
   /** Animación elegida por campo: { title: "letras", … }. Ver `ANIMACIONES`. */
   anim?: Record<string, string>;
+  /** Color elegido por campo: { title: "#8a7248", … }. Gana al de la sección. */
+  colors?: Record<string, string>;
 };
 
 /**

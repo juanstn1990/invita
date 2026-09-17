@@ -506,6 +506,38 @@ porque batiendo por separado se lee como cuatro aletas. Y el par de arriba es
 bastante mayor que el de abajo: es lo que distingue una mariposa de un brote
 de dos hojas, que es exactamente en lo que se quedó el primer intento.
 
+## Letra y color, texto por texto
+
+La tipografía ya se elegía por campo. Ahora el **color** también: el
+antetítulo en dorado y el título en tinta, dentro de la misma sección.
+
+Los dos van por el mismo camino —lo elegido vive en la sección, se busca el
+binding del campo y se aplica sobre lo que encuentre—, y por eso comparten la
+función que resuelve los selectores. Eso es lo que no había que duplicar: lo
+difícil aquí nunca fue la propiedad, era **encontrar a quién se le aplica**,
+porque un campo puede escribirse en varios sitios a la vez y sus selectores
+dependen del diseño.
+
+El color de sección sigue existiendo y pinta todo lo suyo; el de campo le
+gana sin pelear por el orden, porque aquél apunta a `sel *` y éste al selector
+concreto. Y se emite después, así que también gana en un empate. Hay una
+prueba que exige exactamente eso: si no ganara, elegir el color de un título
+no haría nada visible y nadie sabría por qué.
+
+A diferencia del de sección, el de campo **no excluye botones ni enlaces**.
+Allí la regla barre todo lo que hay dentro y había que proteger su contraste;
+aquí se señaló *ese* campo, y si el campo es el texto de un botón, es que se
+quería el texto de ese botón.
+
+En las listas —las fichas del programa, los detalles— el color se comparte
+entre las fichas, igual que la letra: un color por invitado no significaría
+nada.
+
+En el editor es un cuadradito junto al de la tipografía, con una cruz para
+volver al color de la sección. La cruz no es un adorno: un `<input
+type="color">` no se puede vaciar, así que sin ella elegir un color sería
+irreversible.
+
 ## Animar un texto suelto
 
 La aparición de cada sección entra **en bloque**. Esto es por campo: el
