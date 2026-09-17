@@ -672,6 +672,14 @@ for (const [nombre, tocar] of CASOS) {
       data: d, slug: "demo",
     });
   };
+  /** Las reglas de alineación que se inyectaron. */
+  const alineadas = (html: string) =>
+    [...html.matchAll(/([^{}\n]+)\{text-align:([a-z]+) !important\}/g)]
+      .map((m) => [m[1].trim(), m[2]] as [string, string])
+      /* La del marcado sintetizado, que centra todo, no cuenta: es del
+         diseño y está siempre. */
+      .filter(([sel]) => !sel.startsWith(".inv-block :is("));
+
   /** Las reglas de color que se inyectaron, en orden. */
   const reglas = (html: string) =>
     [...html.matchAll(/([^{}\n]+)\{color:(#[0-9a-fA-F]{3,6}) !important\}/g)]
@@ -717,6 +725,64 @@ for (const [nombre, tocar] of CASOS) {
     try { ok = comprueba(); } catch { ok = false; }
     if (!ok) botonMal++;
     console.log(`${ok ? "✓" : "✗"} color · ${nombre}`);
+  }
+
+  /* ── Y la alineación, por el mismo camino ── */
+  const conBloque = (align: Record<string, string>) => {
+    const d: any = defaultData();
+    d.layout = {
+      blocks: [{
+        id: "p1", type: "paragraph", variant: "simple",
+        data: { enabled: true, text: "Un párrafo.", align },
+      }],
+    };
+    return renderInvitation({
+      templateHtml: readTemplate(TEMPLATES[0].id), templateId: TEMPLATES[0].id,
+      data: d, slug: "demo",
+    });
+  };
+
+  const deAlineacion: [string, () => boolean][] = [
+    ["sin elegir no se inyecta nada", () => alineadas(render({})).length === 0],
+    [
+      "izquierda, derecha y justificado llegan",
+      () => ["izq", "der", "justificado"].every((v, i) =>
+        alineadas(render({ align: { title: v } }))
+          .some(([, css]) => css === ["left", "right", "justify"][i])),
+    ],
+    ["un valor inventado se ignora", () => alineadas(render({ align: { title: "diagonal" } })).length === 0],
+    /* Lo que de verdad podía no llegar: el marcado de un bloque agregado
+       centra todo con !important. */
+    [
+      "llega a un bloque agregado, que centra con !important",
+      () => alineadas(conBloque({ text: "izq" })).some(
+        ([sel, css]) => sel.includes("#inv-p1") && css === "left"
+      ),
+    ],
+    [
+      "y la letra y el color también llegan ahí",
+      () => {
+        const d: any = defaultData();
+        d.layout = {
+          blocks: [{
+            id: "p2", type: "paragraph", variant: "simple",
+            data: { enabled: true, text: "Un párrafo.", colors: { text: "#00aa44" }, fonts: { text: "playfair" } },
+          }],
+        };
+        const h = renderInvitation({
+          templateHtml: readTemplate(TEMPLATES[0].id), templateId: TEMPLATES[0].id,
+          data: d, slug: "demo",
+        });
+        return /#inv-p2[^{}]*\{color:#00aa44/.test(h) && /#inv-p2[^{}]*\{font-family:/.test(h);
+      },
+    ],
+  ];
+
+  for (const [nombre, comprueba] of deAlineacion) {
+    let ok = false;
+    try { ok = comprueba(); } catch { ok = false; }
+    if (!ok) botonMal++;
+    console.log(`${ok ? "✓" : "✗"} alineación · ${nombre}`);
   }
 }
 

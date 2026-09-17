@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import type { FieldSpec, ListSpec, SectionData, SectionSpec } from "@/lib/schema";
-import { ADORNOS, ANIMACIONES } from "@/lib/schema";
+import { ADORNOS, ALINEACIONES, ANIMACIONES } from "@/lib/schema";
 import type { TemplateSupport } from "@/lib/support";
 import { ICONOS, ICONO_POR_CLAVE, ICONO_POR_EMOJI, iconoHtml } from "@/lib/iconos";
 import { FontPicker } from "./FontPicker";
@@ -60,6 +60,22 @@ export function SectionEditor({
       ? {
           hex: colores[key] || "",
           set: (hex: string) => onChange({ colors: { ...colores, [key]: hex } }),
+        }
+      : undefined;
+
+  /**
+   * La alineación de un texto. Mismo camino que su letra y su color.
+   *
+   * Vacío es la del diseño, que casi siempre es centrado; volver a pulsar la
+   * que está puesta la quita, y ésa es la única forma de volver — sin ella,
+   * alinear una vez sería irreversible.
+   */
+  const alineaciones = (data.align || {}) as Record<string, string>;
+  const alignFor = (key: string) =>
+    supports(`${spec.key}.${key}@font`)
+      ? {
+          valor: alineaciones[key] || "",
+          set: (v: string) => onChange({ align: { ...alineaciones, [key]: v } }),
         }
       : undefined;
 
@@ -139,6 +155,11 @@ export function SectionEditor({
                     ? colorFor(field.key)
                     : undefined
                 }
+                align={
+                  field.type === "text" || field.type === "textarea"
+                    ? alignFor(field.key)
+                    : undefined
+                }
                 anim={animFor(field)}
                 onChange={(v) => onChange({ [field.key]: v })}
               />
@@ -168,6 +189,15 @@ export function SectionEditor({
                       hex: colores[`items.${key}`] || "",
                       set: (hex) =>
                         onChange({ colors: { ...colores, [`items.${key}`]: hex } }),
+                    }
+                  : undefined
+              }
+              alignFor={(key) =>
+                supports(`${spec.key}.items.${key}@font`)
+                  ? {
+                      valor: alineaciones[`items.${key}`] || "",
+                      set: (v) =>
+                        onChange({ align: { ...alineaciones, [`items.${key}`]: v } }),
                     }
                   : undefined
               }
@@ -231,7 +261,7 @@ function IconoField({ value, onChange }: { value: string; onChange: (v: string) 
 }
 
 function Field({
-  field, value, onChange, font, color, anim, mediaKind,
+  field, value, onChange, font, color, align, anim, mediaKind,
 }: {
   field: FieldSpec;
   value: unknown;
@@ -240,6 +270,8 @@ function Field({
   font?: { id: string; set: (id: string) => void; shared?: boolean };
   /** Lo mismo para el color. Vacío = el de la sección. */
   color?: { hex: string; set: (hex: string) => void };
+  /** Y para la alineación. Vacío = la del diseño. */
+  align?: { valor: string; set: (v: string) => void };
   /** Lo mismo para la animación. Ver `ANIMACIONES`. */
   anim?: { id: string; set: (id: string) => void };
   /** Con qué clase se cataloga lo que se suba desde este campo. */
@@ -333,6 +365,26 @@ function Field({
         </div>
       ) : (
         control
+      )}
+
+      {align && (
+        /* Cuatro botoncitos y no un desplegable: la alineación se reconoce por
+           su icono de un vistazo, y en un desplegable habría que abrirlo para
+           saber cuál está puesta. */
+        <div className={styles.alignRow} role="group" aria-label="Alineación">
+          {ALINEACIONES.map((a) => (
+            <button
+              key={a.value}
+              type="button"
+              className={styles.alignBtn}
+              data-activa={align.valor === a.value ? "1" : undefined}
+              title={align.valor === a.value ? `${a.label} — pulsa para quitarla` : a.label}
+              onClick={() => align.set(align.valor === a.value ? "" : a.value)}
+            >
+              {a.icono}
+            </button>
+          ))}
+        </div>
       )}
 
       {anim && (
@@ -451,7 +503,7 @@ function RangeField({
  * adornos, que son otra lista sobre la misma sección.
  */
 function ListEditor({
-  list, items, onChange, fields, fontFor, colorFor, mediaKind,
+  list, items, onChange, fields, fontFor, colorFor, alignFor, mediaKind,
 }: {
   list: ListSpec;
   items: Record<string, string>[];
@@ -466,6 +518,8 @@ function ListEditor({
   fontFor?: (fieldKey: string) => { id: string; set: (id: string) => void; shared: boolean } | undefined;
   /** Y su color, compartido entre las fichas por el mismo motivo. */
   colorFor?: (fieldKey: string) => { hex: string; set: (hex: string) => void } | undefined;
+  /** Y su alineación. */
+  alignFor?: (fieldKey: string) => { valor: string; set: (v: string) => void } | undefined;
   /** Con qué clase se catalogan las imágenes de esta lista. */
   mediaKind?: "foto" | "adorno";
 }) {
@@ -549,6 +603,11 @@ function ListEditor({
                 color={
                   field.type === "text" || field.type === "textarea"
                     ? colorFor?.(field.key)
+                    : undefined
+                }
+                align={
+                  field.type === "text" || field.type === "textarea"
+                    ? alignFor?.(field.key)
                     : undefined
                 }
                 mediaKind={mediaKind}

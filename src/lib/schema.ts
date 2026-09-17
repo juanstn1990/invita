@@ -259,6 +259,28 @@ export const PARTICULA_POR_TIPO = Object.fromEntries(
 );
 
 /**
+ * Cómo se alinea un texto suelto.
+ *
+ * Vacío es "la del diseño", que casi siempre es centrado: eso es lo que hace
+ * que el control no cambie nada hasta tocarlo, y que un diseño que alinea a
+ * la izquierda a propósito —Editorial— siga haciéndolo.
+ */
+export const ALINEACIONES: { value: string; label: string; icono: string }[] = [
+  { value: "izq", label: "A la izquierda", icono: "⇤" },
+  { value: "centro", label: "Centrado", icono: "↔" },
+  { value: "der", label: "A la derecha", icono: "⇥" },
+  { value: "justificado", label: "Justificado", icono: "≡" },
+];
+
+/** Del valor guardado a lo que entiende el CSS. */
+export const CSS_ALINEACION: Record<string, string> = {
+  izq: "left",
+  centro: "center",
+  der: "right",
+  justificado: "justify",
+};
+
+/**
  * Las animaciones que puede llevar **un texto suelto**.
  *
  * Distinto de la aparición de la sección, que ya existía y entra en bloque:
@@ -1250,6 +1272,8 @@ export type SectionData = Record<string, unknown> & {
   anim?: Record<string, string>;
   /** Color elegido por campo: { title: "#8a7248", … }. Gana al de la sección. */
   colors?: Record<string, string>;
+  /** Alineación elegida por campo: { title: "izq", … }. Ver `ALINEACIONES`. */
+  align?: Record<string, string>;
 };
 
 /**

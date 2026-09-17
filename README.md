@@ -506,10 +506,11 @@ porque batiendo por separado se lee como cuatro aletas. Y el par de arriba es
 bastante mayor que el de abajo: es lo que distingue una mariposa de un brote
 de dos hojas, que es exactamente en lo que se quedó el primer intento.
 
-## Letra y color, texto por texto
+## Letra, color y alineación, texto por texto
 
-La tipografía ya se elegía por campo. Ahora el **color** también: el
-antetítulo en dorado y el título en tinta, dentro de la misma sección.
+La tipografía ya se elegía por campo. Ahora el **color** y la **alineación**
+también: el antetítulo en dorado y centrado, el título en tinta y a la
+izquierda, dentro de la misma sección.
 
 Los dos van por el mismo camino —lo elegido vive en la sección, se busca el
 binding del campo y se aplica sobre lo que encuentre—, y por eso comparten la
@@ -533,10 +534,28 @@ En las listas —las fichas del programa, los detalles— el color se comparte
 entre las fichas, igual que la letra: un color por invitado no significaría
 nada.
 
-En el editor es un cuadradito junto al de la tipografía, con una cruz para
-volver al color de la sección. La cruz no es un adorno: un `<input
+En el editor, el color es un cuadradito junto al de la tipografía, con una
+cruz para volver al de la sección. La cruz no es un adorno: un `<input
 type="color">` no se puede vaciar, así que sin ella elegir un color sería
-irreversible.
+irreversible. La alineación son cuatro botoncitos —izquierda, centro, derecha,
+justificado—; se reconoce por el icono de un vistazo, y pulsar la que está
+puesta la quita, que es la única forma de volver a la del diseño.
+
+### El agujero que esto destapó
+
+Los bloques agregados —Párrafo, Foto, Vídeo, Ubicación— **no tenían nada de
+esto**, y no por la alineación: por la letra, desde que existe. No son
+secciones del esquema, así que su `SectionSpec` no existe y el renderer
+resolvía todo detrás de un `if (spec)` que se los saltaba entero. El editor
+ofrecía elegirle la tipografía a un párrafo y no pasaba nada — un control que
+no puede hacer nada, que es justo lo que este proyecto ya había retirado en
+otro sitio por el mismo motivo.
+
+Sus campos sí están en el mapa de bindings, bajo el tipo (`paragraph.text`).
+Bastaba con armar un spec equivalente del bloque, y ahora la letra, el color,
+la alineación y la animación llegan a los dos por el mismo camino. Hay una
+prueba que lo exige en un párrafo, que además es el sitio más difícil: el
+marcado sintetizado centra todo con `!important`.
 
 ## Animar un texto suelto
 

@@ -421,6 +421,26 @@
 }
 .colorClear:hover { color: var(--ink, #2e2a26); }
 
+/* La alineación: cuatro botoncitos bajo el campo. Se reconoce por el icono
+   de un vistazo, y en un desplegable habría que abrirlo para saber cuál está
+   puesta. */
+.alignRow { display: flex; gap: 3px; margin-top: 6px; }
+.alignBtn {
+  width: 30px; height: 26px; padding: 0;
+  display: grid; place-items: center;
+  font-size: 13px; line-height: 1;
+  color: var(--muted, #7d746a);
+  background: transparent;
+  border: 1px solid var(--line, #e7e2d9);
+  border-radius: 6px; cursor: pointer;
+}
+.alignBtn:hover { color: var(--ink, #2e2a26); }
+.alignBtn[data-activa] {
+  color: var(--on-accent, #fff);
+  background: var(--ink, #2e2a26);
+  border-color: var(--ink, #2e2a26);
+}
+
 .fontWrap { position: relative; flex: none; }
 
 .fontBtn {

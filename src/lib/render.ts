@@ -25,6 +25,7 @@ import {
   SECTIONS as SPEC,
   ANIMACIONES,
   ANIM_POR_PARTES,
+  CSS_ALINEACION,
   PARTICULA_POR_TIPO,
   coupleName,
   esVideoUrl,
@@ -3191,7 +3192,7 @@ export function renderInvitation(opts: RenderOptions): string {
     }
   };
   /**
-   * El color de cada texto, por campo.
+   * El color y la alineación de cada texto, por campo.
    *
    * La sección ya tenía uno —`textColor`, que pinta todo lo suyo— y esto es
    * el mismo mecanismo un escalón más abajo: el antetítulo en dorado y el
@@ -3205,6 +3206,10 @@ export function renderInvitation(opts: RenderOptions): string {
    * barre todo lo que hay dentro y había que proteger su contraste; aquí se
    * señaló **este** campo, y si el campo es el texto de un botón, es que se
    * quería el texto de ese botón.
+   *
+   * Las dos en la misma pasada porque las dos son lo mismo visto de lejos:
+   * una declaración CSS sobre los selectores de un campo. Separarlas serían
+   * dos funciones idénticas salvo por una línea.
    */
   const collectColors = (
     spec: (typeof SPEC)[number],
@@ -3212,19 +3217,30 @@ export function renderInvitation(opts: RenderOptions): string {
     root: El,
     section: InvitationData[string]
   ) => {
-    const elegidos = (section?.colors || {}) as Record<string, string>;
+    const colores = (section?.colors || {}) as Record<string, string>;
+    const alineaciones = (section?.align || {}) as Record<string, string>;
+
+    /** Lo que hay que escribir para un campo: puede ser ninguna o las dos. */
+    const declara = (clave: string): string[] => {
+      const out: string[] = [];
+      const color = String(colores[clave] || "").trim();
+      if (HEX.test(color)) out.push(`color:${color}`);
+      const al = CSS_ALINEACION[String(alineaciones[clave] || "").trim()];
+      if (al) out.push(`text-align:${al}`);
+      return out;
+    };
 
     for (const field of spec.fields) {
-      const color = String(elegidos[field.key] || "").trim();
-      if (!HEX.test(color)) continue;
+      const decls = declara(field.key);
+      if (!decls.length) continue;
       const path = `${spec.key}.${field.key}`;
       const ops = map.fields[FONT_ALIAS[path] || path];
       if (!ops) continue;
-      colorCss.push(...fontRules(scopeSel, root, ops, `color:${color}`));
+      for (const d of decls) colorCss.push(...fontRules(scopeSel, root, ops, d));
     }
 
-    /* Los campos de las listas: el color se comparte entre las fichas, igual
-       que la tipografía. Un color por invitado no significaría nada. */
+    /* Los campos de las listas: se comparten entre las fichas, igual que la
+       tipografía. Un color por invitado no significaría nada. */
     const lb = spec.list ? map.lists[spec.key] : undefined;
     if (!lb) return;
     const container = pick(root, lb.container);
@@ -3235,11 +3251,9 @@ export function renderInvitation(opts: RenderOptions): string {
       .join(" ");
 
     for (const f of spec.list!.fields) {
-      const color = String(elegidos[`items.${f.key}`] || "").trim();
-      if (!HEX.test(color)) continue;
-      colorCss.push(
-        ...fontRules(scopeSel, ficha, lb.fields[f.key] || [], `color:${color}`, fichaSel)
-      );
+      for (const d of declara(`items.${f.key}`)) {
+        colorCss.push(...fontRules(scopeSel, ficha, lb.fields[f.key] || [], d, fichaSel));
+      }
     }
   };
 
@@ -3629,8 +3643,23 @@ export function renderInvitation(opts: RenderOptions): string {
        que escribirle dentro. */
     if (r.block.type === "video" && !ponerVideo(root, sectionData)) continue;
 
-    if (spec) collectFonts(spec, sectionSel, root, sectionData);
-    if (spec) collectColors(spec, sectionSel, root, sectionData);
+    /* La letra, el color y la alineación de cada campo.
+
+       Los bloques agregados —Párrafo, Foto, Vídeo, Ubicación— no tienen
+       `SectionSpec`: su vocabulario de campos lo declara el bloque, y sus
+       bindings viven en el mapa bajo el tipo (`paragraph.text`). Con un
+       `if (spec)` se los saltaba enteros, así que el editor ofrecía elegirle
+       la letra a un párrafo y no pasaba nada. Armando un spec equivalente del
+       bloque, llegan a los dos por el mismo camino. */
+    const estilable = (spec ||
+      (blockSpec
+        ? { key: r.key, fields: blockSpec.fields, list: blockSpec.list }
+        : undefined)) as typeof spec | undefined;
+
+    if (estilable) {
+      collectFonts(estilable, sectionSel, root, sectionData);
+      collectColors(estilable, sectionSel, root, sectionData);
+    }
     const calculados = deriveSection(r.key, sectionData);
 
     for (const field of campos) {
@@ -3662,7 +3691,7 @@ export function renderInvitation(opts: RenderOptions): string {
        texto de ejemplo del diseño — que además la escritura posterior borra
        junto con los trozos. La letra sí se puede elegir antes, porque es una
        regla CSS y no le importa qué diga el elemento. */
-    if (spec) collectAnims(spec, root, sectionData);
+    if (estilable) collectAnims(estilable, root, sectionData);
 
     /* La cinta continua necesita las fotos dos veces.
        La tira se mueve media anchura y vuelve a empezar; con una sola copia,
