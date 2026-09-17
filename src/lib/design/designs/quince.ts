@@ -73,6 +73,69 @@ const ROSA = paleta({
   base: "#fff8f9", tinta: "#40272f", marca: "#a4566a", segundo: "#e6b0bd",
 });
 
+/* ────────────────────────────────────────────────────────────────
+   Un color por color
+
+   Las de arriba se pensaron como combinaciones —"burdeos y oro", "turquesa y
+   arena"— y son las que dan carácter. Éstas responden a otra pregunta, que es
+   la que de verdad hace quien organiza unos quince: "lo quiero **morado**".
+
+   Sólo hay que elegir cuatro colores; el resto lo deriva `paleta()` y el
+   build verifica los pares. Cada una está pensada en el tono que le pega a la
+   ocasión: los oscuros son profundos, no apagados, y los claros tienen la
+   tinta bastante más oscura que el fondo — con un pastel sobre otro pastel no
+   se lee nada.
+   ──────────────────────────────────────────────────────────────── */
+
+const AMARILLO = paleta({
+  id: "amarillo", nombre: "Amarillo y oro",
+  base: "#fffdf2", tinta: "#332b0d", marca: "#a8820f", segundo: "#e8c34a",
+});
+const ROJO = paleta({
+  id: "rojo", nombre: "Rojo profundo",
+  base: "#2a0a0c", tinta: "#fbe9e9", marca: "#e5757a", segundo: "#c9a15a",
+});
+const MORADO = paleta({
+  id: "morado", nombre: "Morado profundo",
+  base: "#220f2e", tinta: "#f2e8f8", marca: "#c39ae0", segundo: "#d8b06a",
+});
+const VIOLETA = paleta({
+  id: "violeta", nombre: "Violeta",
+  base: "#faf7ff", tinta: "#291a3f", marca: "#6a3fa8", segundo: "#b79ae0",
+});
+const AZUL_BEBE = paleta({
+  id: "azul-bebe", nombre: "Azul bebé",
+  base: "#f7fbff", tinta: "#1b2c3f", marca: "#4d7ea8", segundo: "#bcd8ec",
+});
+const AZUL_CLARO = paleta({
+  id: "azul-claro", nombre: "Azul claro",
+  base: "#f3f9fd", tinta: "#10333f", marca: "#1d6fa5", segundo: "#8fc4e4",
+});
+const NEGRO = paleta({
+  id: "negro", nombre: "Negro y plata",
+  base: "#0d0d0f", tinta: "#f0f0f2", marca: "#c9c9cf", segundo: "#8a8a94",
+});
+const CAFE = paleta({
+  id: "cafe", nombre: "Café y caramelo",
+  base: "#241a14", tinta: "#f5ece4", marca: "#d0a06a", segundo: "#a8785a",
+});
+const NARANJA = paleta({
+  id: "naranja", nombre: "Naranja y arena",
+  base: "#fffaf5", tinta: "#3d2415", marca: "#c2612a", segundo: "#f0b98a",
+});
+const GRIS = paleta({
+  id: "gris", nombre: "Gris y plata",
+  base: "#f7f7f8", tinta: "#26262b", marca: "#5f6068", segundo: "#b9bac2",
+});
+const MENTA = paleta({
+  id: "menta", nombre: "Menta",
+  base: "#f5fdf9", tinta: "#173029", marca: "#2f7d63", segundo: "#a3d9c0",
+});
+const TERRACOTA = paleta({
+  id: "terracota", nombre: "Terracota",
+  base: "#fdf6f2", tinta: "#3c231a", marca: "#a9532f", segundo: "#dda283",
+});
+
 /* ── Los cinco de siempre ───────────────────────────────────── */
 
 const blanco: Design = {
@@ -98,9 +161,34 @@ const burdeos: Design = {
   layout: { hero: "minimal", head: "stacked", cards: "flat", countdown: "tiles", gallery: "mosaic", divider: "none" },
   type: { ...DMSERIF_DMSANS, scale: 1.33, displayTracking: "-0.01em" },
   shape: { radius: 6, radiusSm: 6, shadow: "none" },
-  palettes: [BURDEOS, MEDIANOCHE, ESMERALDA, FUCSIA],
+  /*
+   * Burdeos lleva el catálogo de color entero.
+   *
+   * Los demás diseños ofrecen cuatro paletas escogidas para su carácter, y
+   * eso está bien cuando quien elige viene por el diseño. Aquí viene por otro
+   * sitio: unos quince se piensan **en un color** —"los quiero morados"— y
+   * obligar a recorrer nueve diseños buscando quién trae morado es preguntar
+   * al revés.
+   *
+   * Las cuatro de siempre van primero: son las que el diseño usaba y la
+   * primera es la que se hornea en el template.
+   */
+  palettes: [
+    BURDEOS, MEDIANOCHE, ESMERALDA, FUCSIA,
+    ROJO, ROSA, MORADO, VIOLETA, LILA,
+    AZUL_BEBE, AZUL_CLARO, TURQUESA,
+    HOJAS, MENTA, AMARILLO, NARANJA, CORAL, TERRACOTA,
+    CAFE, NEGRO, GRIS, CHAMPAN, PERLA,
+  ],
   css: () => `
-.gifts-account{background:transparent}`,
+.gifts-account{background:transparent}
+
+/* Los segundos, en el color secundario de la paleta.
+   Son el único número que se mueve, y con los cuatro del mismo color el ojo
+   no sabe dónde mirar: teñirlos separa "lo que cambia" de "lo que falta". Sale
+   de la paleta y no de un color escrito, así que las veintitrés lo traen
+   resuelto y ninguna queda desafinada. */
+[data-cd="secs"]{color:var(--brand-2-ink)}`,
   deco: { ornament: deco.rombo, hero: deco.rayos },
 };
 

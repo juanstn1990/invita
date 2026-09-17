@@ -52,6 +52,14 @@ export interface Palette {
   brand: string;
   /** Segundo color de marca, para degradados y adornos. Sin texto. */
   brand2: string;
+  /**
+   * El secundario, empujado hasta que se lee como texto.
+   *
+   * `brand2` es decorativo y no está medido contra nada: sobre una paleta
+   * clara es un pastel que como texto no llega. Éste es la misma familia de
+   * color con 4.5 garantizado, para teñir un dato sin salirse de la paleta.
+   */
+  brand2Ink: string;
   /** Color de acción: botones rellenos y enlaces. */
   accent: string;
   /** Texto sobre `accent`. El par se verifica en el build. */

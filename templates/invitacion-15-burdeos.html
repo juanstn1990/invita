@@ -14,7 +14,7 @@
 :root{
   --bg:#2d0713; --bg-alt:#3a1621; --card:#42202b;
   --ink:#f6e7ea; --muted:#b29ba1; --line:#593842;
-  --brand:#e0b371; --brand-2:#b1607c;
+  --brand:#e0b371; --brand-2:#b1607c; --brand-2-ink:#c18096;
   --accent:#e0b371; --on-accent:#2d0713;
   --footer-bg:#1b040b; --footer-ink:#e0b371;
 
@@ -430,7 +430,14 @@ section.alt .event-card,section.alt .feature-card,section.alt .gift-card,section
   .hero-content{padding:34px 22px}
   .splash-modal{padding:34px 22px}
 }
-.gifts-account{background:transparent}</style>
+.gifts-account{background:transparent}
+
+/* Los segundos, en el color secundario de la paleta.
+   Son el único número que se mueve, y con los cuatro del mismo color el ojo
+   no sabe dónde mirar: teñirlos separa "lo que cambia" de "lo que falta". Sale
+   de la paleta y no de un color escrito, así que las veintitrés lo traen
+   resuelto y ninguna queda desafinada. */
+[data-cd="secs"]{color:var(--brand-2-ink)}</style>
 </head>
 <body>
 

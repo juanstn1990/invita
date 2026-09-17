@@ -115,6 +115,23 @@ export interface Decisiones {
   hero?: "suave" | "profundo" | "plano";
 }
 
+/**
+ * Cuánto se separan dos colores, a ojo.
+ *
+ * Distancia euclídea en RGB. No es perceptualmente exacta —para eso haría
+ * falta Lab— pero para responder "¿se ven como el mismo color?" sobra, y no
+ * arrastra una conversión de espacio de color entera por una comparación.
+ */
+function distanciaRgb(a: string, b: string): number {
+  const c = (h: string) => {
+    const n = parseInt(h.slice(1), 16);
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  };
+  const [r1, g1, b1] = c(a);
+  const [r2, g2, b2] = c(b);
+  return Math.sqrt((r1 - r2) ** 2 + (g1 - g2) ** 2 + (b1 - b2) ** 2);
+}
+
 export function paleta(d: Decisiones): Palette {
   const oscura = esOscura(d.base);
   const bg = d.base;
@@ -160,6 +177,26 @@ export function paleta(d: Decisiones): Palette {
      paleta muy plana —un crema sobre otro crema— el 14% no alcanzaba. */
   const line = ajustar(mezclar(bg, ink, oscura ? 0.22 : 0.14), [bg], 1.3);
   const brand2 = d.segundo ?? mezclar(brand, bg, 0.4);
+  /*
+   * Un color de la paleta para destacar **un** dato: legible y distinto del
+   * de marca.
+   *
+   * `brand2` es decorativo —filetes, degradados— y no está medido contra
+   * nada, así que sobre una paleta clara es un pastel que como texto no se
+   * lee. Pero empujarlo hasta que se lea tiene un efecto secundario que sólo
+   * se ve midiéndolo: en una paleta clara lo arrastra hacia el mismo oscuro
+   * que la marca, y acaban siendo el mismo color. Medido sobre las 23 de
+   * Burdeos, 14 quedaban a menos de 60 de distancia — legibles y, para el
+   * ojo, idénticas. Un color "distinto" que no se distingue no sirve de nada.
+   *
+   * Así que cuando el ajuste los junta, se cae a la tinta: siempre legible,
+   * siempre de la paleta, y siempre lejos de un color de marca — que es
+   * exactamente lo que se pedía. Se pierde el matiz de color y se gana lo
+   * único que importa aquí, que es que se note cuál es.
+   */
+  const brand2Ajustado = ajustar(brand2, fondos, 4.5);
+  const brand2Ink =
+    distanciaRgb(brand2Ajustado, brand) >= 60 ? brand2Ajustado : ink;
 
   const footerBg = oscura ? oscurecer(bg, 0.4) : ink;
   const footerInk = ajustar(oscura ? brand : bgAlt, [footerBg], 4.5);
@@ -226,7 +263,7 @@ export function paleta(d: Decisiones): Palette {
   return {
     id: d.id,
     nombre: d.nombre,
-    bg, bgAlt, card, ink, muted, line, brand, brand2, accent, onAccent,
+    bg, bgAlt, card, ink, muted, line, brand, brand2, brand2Ink, accent, onAccent,
     footerBg, footerInk,
     panelAlpha: oscura ? 0.7 : 0.88,
     heroBg, splashBg: heroBg, heroBase, heroInk,

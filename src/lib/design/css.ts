@@ -72,7 +72,7 @@ function variables(t: Theme): string {
 :root{
   --bg:${p.bg}; --bg-alt:${p.bgAlt}; --card:${p.card};
   --ink:${p.ink}; --muted:${p.muted}; --line:${p.line};
-  --brand:${p.brand}; --brand-2:${p.brand2};
+  --brand:${p.brand}; --brand-2:${p.brand2}; --brand-2-ink:${p.brand2Ink};
   --accent:${p.accent}; --on-accent:${p.onAccent};
   --footer-bg:${p.footerBg}; --footer-ink:${p.footerInk};
 

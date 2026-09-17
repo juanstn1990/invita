@@ -75,6 +75,13 @@ const PARES: {
   { nombre: "texto secundario sobre el fondo alterno", frente: (t) => t.palette.muted, fondo: (t) => t.palette.bgAlt, min: 4.5 },
   { nombre: "texto secundario sobre la tarjeta", frente: (t) => t.palette.muted, fondo: (t) => t.palette.card, min: 4.5 },
   // El antetítulo es pequeño y en versalitas: es el que más se rompía.
+  /* El secundario **como texto**. Su versión decorativa no se mide —no lleva
+     texto encima— pero ésta sí: existe justo para teñir un dato, y un dato
+     que no se lee no es un dato. */
+  { nombre: "secundario como texto sobre el fondo", frente: (t) => t.palette.brand2Ink, fondo: (t) => t.palette.bg, min: 4.5 },
+  { nombre: "secundario como texto sobre el fondo alterno", frente: (t) => t.palette.brand2Ink, fondo: (t) => t.palette.bgAlt, min: 4.5 },
+  { nombre: "secundario como texto sobre la tarjeta", frente: (t) => t.palette.brand2Ink, fondo: (t) => t.palette.card, min: 4.5 },
+
   { nombre: "antetítulo (marca) sobre el fondo", frente: (t) => t.palette.brand, fondo: (t) => t.palette.bg, min: 4.5 },
   { nombre: "antetítulo (marca) sobre el fondo alterno", frente: (t) => t.palette.brand, fondo: (t) => t.palette.bgAlt, min: 4.5 },
   { nombre: "marca sobre la tarjeta", frente: (t) => t.palette.brand, fondo: (t) => t.palette.card, min: 4.5 },

@@ -160,6 +160,51 @@ En papel las dos columnas caben en un renglón; en 390 px de móvil no. Entre
 partir un nombre y apilar las columnas gana apretar: el filete del medio es lo
 que dice «estos de un lado, estos del otro», y apilándolas se pierde justo eso.
 
+### Quince Burdeos lleva el catálogo de color entero
+
+Los demás diseños ofrecen cuatro paletas escogidas para su carácter, y eso
+está bien cuando quien elige viene por el diseño. Unos quince se piensan al
+revés: **en un color** —«los quiero morados»—, y obligar a recorrer nueve
+diseños buscando cuál trae morado es preguntar al contrario de como se decide.
+
+Burdeos trae **23**: las cuatro de siempre primero, y después una por color —
+rojo, rosa, morado, violeta, lila, azul bebé, azul claro, turquesa, verde,
+menta, amarillo, naranja, coral, terracota, café, negro, gris, champán y
+perla. Sólo hay que elegir cuatro colores por paleta; el resto lo deriva
+`paleta()` y el build verifica los pares: **219 combinaciones** contra las 200
+de antes.
+
+#### Los segundos van en otro color
+
+Son el único número que se mueve, y con los cuatro del mismo color el ojo no
+sabe dónde mirar: teñirlos separa «lo que cambia» de «lo que falta».
+
+El color sale de la paleta y no de un valor escrito, así que las 23 lo traen
+resuelto. Pero elegir cuál costó dos intentos, y los dos fallos son la parte
+que merece contarse.
+
+El primero fue usar `--brand-2`, el secundario. Es **decorativo** —filetes,
+degradados— y no está medido contra nada, así que sobre una paleta clara es un
+pastel que como texto no se lee.
+
+El segundo fue empujarlo hasta que contrastara. Funcionó, y creó el problema
+contrario: en una paleta clara el ajuste lo arrastra hacia el mismo oscuro que
+el color de marca, y acaban siendo el mismo color. **Medido sobre las 23, 14
+quedaban a menos de 60 de distancia RGB** — legibles y, para el ojo,
+idénticas. Un color «distinto» que no se distingue no sirve de nada.
+
+Lo que hay ahora es un token de paleta, `--brand-2-ink`, que significa «un
+color para destacar un dato: legible y distinto del de marca». Se ajusta el
+secundario, y si el ajuste lo junta con la marca se cae a la tinta — siempre
+legible, siempre de la paleta y siempre lejos de un color de marca. Se pierde
+el matiz y se gana lo único que importaba, que es que se note cuál es. El
+build verifica los tres pares nuevos como cualquier otro.
+
+Y la comprobación también tuvo que arreglarse: la primera versión sólo miraba
+que los dos colores fueran **distintos**, y siete unidades de diferencia pasan
+esa prueba siendo el mismo color a la vista. Ahora mide la separación y exige
+60.
+
 ### Grados
 
 Siete, y con criterio propio: **un grado no es una boda con birrete**. Lo que se
