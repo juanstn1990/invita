@@ -939,19 +939,46 @@ function ponerAdornos(
       .join(" ");
     if (t) pieza.setAttribute("style", `transform:${t}`);
 
-    const img = doc.createElement("img");
     /* El adorno mide lo que se declaró, en % del ancho de la sección. Un
        tamaño 40 sobre un contenedor de ~780px son ~310px, y el doble en
        retina: 800 es el escalón que le toca. */
     const ancho = tamano >= 70 || sitio === "sangre" ? 1600 : 800;
-    setImage(img, url, false, ancho);
-    img.setAttribute("alt", "");
-    // La portada se ve al abrir; el resto puede esperar a que se llegue.
-    img.setAttribute("loading", "lazy");
-    img.setAttribute("decoding", "async");
-    pieza.appendChild(img);
+    const esVideo = esVideoUrl(url);
 
-    if (movimiento === "destello") {
+    if (esVideo) {
+      /* Un adorno puede ser un clip: una llama que arde en una esquina, unos
+         pétalos cayendo en un rincón. Va mudo, en bucle y sin controles —es
+         decoración, no una pieza que se mire—, y con los mismos cuatro
+         atributos que el fondo de vídeo, por las mismas razones: sin `muted`
+         ningún navegador lo arranca y sin `playsinline` iOS se lo lleva a
+         pantalla completa.
+
+         `preload="metadata"` y no más: puede haber ocho por sección, y
+         descargarlos todos de golpe sería peor que no tenerlos. */
+      const v = doc.createElement("video");
+      v.setAttribute("src", url);
+      v.setAttribute("autoplay", "");
+      v.setAttribute("muted", "");
+      v.setAttribute("loop", "");
+      v.setAttribute("playsinline", "");
+      v.setAttribute("preload", "metadata");
+      v.setAttribute("aria-hidden", "true");
+      pieza.appendChild(v);
+    } else {
+      const img = doc.createElement("img");
+      setImage(img, url, false, ancho);
+      img.setAttribute("alt", "");
+      // La portada se ve al abrir; el resto puede esperar a que se llegue.
+      img.setAttribute("loading", "lazy");
+      img.setAttribute("decoding", "async");
+      pieza.appendChild(img);
+    }
+
+    /* El destello se recorta con la silueta del adorno, y una silueta es una
+       máscara CSS: un vídeo no puede serla. Con uno, el efecto se salta en vez
+       de dibujar una barra de luz sobre un rectángulo, que es lo que saldría
+       y es justo el flash barato que este efecto existe para evitar. */
+    if (movimiento === "destello" && !esVideo) {
       /* La luz se recorta con la silueta del propio adorno: una filigrana
          dorada brilla por sus trazos y no por el rectángulo que la contiene,
          que es lo que separa esto de un flash barato. */
@@ -1492,6 +1519,25 @@ export const INJECTED_CSS = `
   #splash.inv-velo-sobre.hidden .splash-modal{transform:none;transition:opacity .4s ease}
 }
 
+/* ── El fondo de toda la invitación ────────────────────────────
+   Una capa fija detrás del contenido. z-index -1 y no 0: así queda por
+   encima del fondo del body —que sigue ahí de respaldo mientras la imagen
+   carga— y por debajo de todo lo que se lee, sin entrar en la pelea de
+   capas del velo, la cortina y las partículas.
+
+   Fija y no del alto de la página: no hay que medir dónde empieza y acaba el
+   bloque de secciones que la lleva, la imagen no se repite entre una y otra,
+   y en iOS funciona — que es donde background-attachment: fixed no. */
+.inv-fondo-global{position:fixed;inset:0;z-index:-1;pointer-events:none;
+  overflow:hidden}
+.inv-fg-medio{position:absolute;inset:0}
+.inv-fg-medio video{position:absolute;inset:0;width:100%;height:100%;
+  object-fit:cover;background:transparent}
+/* El velo es del color de fondo del diseño, no un gris: sobre una foto que
+   sube quien edita, la tinta del diseño deja de leerse, y el contraste de las
+   paletas se verifica en el build pero una fotografía cualquiera no. */
+.inv-fg-velo{position:absolute;inset:0;background:var(--bg)}
+
 /* ── Partículas sobre toda la invitación ───────────────────────
    Una capa fija sobre la página entera: lo que se quiere es que los pétalos
    caigan sobre la invitación, no que empiecen de cero en cada sección.
@@ -1788,7 +1834,7 @@ export const INJECTED_CSS = `
   background:transparent}
 .inv-adorno{position:absolute;line-height:0;pointer-events:none}
 .inv-ad-mov,.inv-ad-pieza{display:block;line-height:0}
-.inv-adorno img{display:block;width:100%;height:auto}
+.inv-adorno img,.inv-adorno video{display:block;width:100%;height:auto}
 
 /* ── Efectos de los adornos ────────────────────────────────────
    Tres capas anidadas y cada una escribe su propio transform, porque las
@@ -1883,7 +1929,7 @@ export const INJECTED_CSS = `
 .inv-ad-libre{left:var(--inv-ad-x,50%);top:var(--inv-ad-y,50%);translate:-50% -50%}
 /* A sangre: cubre la sección y recorta lo que sobre. */
 .inv-ad-sangre{inset:0}
-.inv-ad-sangre img{width:100%;height:100%;object-fit:cover}
+.inv-ad-sangre img,.inv-ad-sangre video{width:100%;height:100%;object-fit:cover}
 
 /* El adorno bajo el título de cada sección. Lo elige el diseño en su deco. */
 .inv-orn{width:100%;height:100%;fill:currentColor}
@@ -3610,6 +3656,81 @@ export function renderInvitation(opts: RenderOptions): string {
     tarjeta.setAttribute("name", "twitter:card");
     tarjeta.setAttribute("content", imagen ? "summary_large_image" : "summary");
     document.head.appendChild(tarjeta);
+  }
+
+  /* 5 previo · El fondo de toda la invitación.
+     Una sola imagen detrás de todas las secciones, que no se corta entre una
+     y otra. Va en una capa **fija**: así no se repite sección a sección ni
+     hay que medir dónde empieza y acaba el bloque de secciones que la lleva —
+     la invitación se desplaza por encima y la imagen se ve entera y continua.
+
+     Las secciones que la llevan se vuelven transparentes, y ahí está el
+     motivo de que esto viva aquí y no en una función suelta: los selectores
+     salen de las secciones **realmente resueltas**, no de una lista de ids
+     escrita a mano. Un bloque de párrafo que alguien agregue mañana sale como
+     `#inv-<id>` y entra solo; con ids fijos se habría quedado fuera, que es
+     justo lo que se pidió que no pasara.
+
+     Fuera quedan la portada, las redes y el pie —cada una tiene lo suyo— y el
+     velo, que va encima de todo y con su propio fondo. */
+  {
+    const g = data.fondoGlobal || {};
+    const url = String(g.url || "").trim();
+
+    if (g.enabled !== false && url) {
+      const SIN_FONDO_GLOBAL = new Set(["splash", "hero", "social", "footer"]);
+      const llevan = [...fijos, ...resueltos]
+        .filter((r) => !SIN_FONDO_GLOBAL.has(r.key) && r.sel)
+        .map((r) => r.sel);
+
+      if (llevan.length) {
+        /* Sin esto, la mitad de las secciones alterna su color de fondo y
+           tapa la imagen justo en una de cada dos. */
+        extraCss.push(`${llevan.join(",")}{background:transparent}`);
+      }
+
+      const modo = String(g.ajuste || "");
+      const opacidad = Math.min(100, Math.max(5, Number(g.opacidad ?? 100))) / 100;
+      const velo = Math.min(90, Math.max(0, Number(g.velo ?? 45))) / 100;
+
+      const capa = document.createElement("div");
+      capa.setAttribute("class", "inv-fondo-global");
+      capa.setAttribute("aria-hidden", "true");
+
+      const medio = document.createElement("div");
+      medio.setAttribute("class", "inv-fg-medio");
+      medio.setAttribute("style", `opacity:${opacidad}`);
+      if (esVideoUrl(url)) {
+        const v = document.createElement("video");
+        v.setAttribute("src", url);
+        v.setAttribute("autoplay", "");
+        v.setAttribute("muted", "");
+        v.setAttribute("loop", "");
+        v.setAttribute("playsinline", "");
+        v.setAttribute("preload", "metadata");
+        if (modo === "contener") v.setAttribute("style", "object-fit:contain");
+        medio.appendChild(v);
+      } else {
+        const ajuste = AJUSTE[modo] ?? AJUSTE[""];
+        medio.setAttribute(
+          "style",
+          `${fondoImagen(url, modo === "repetir" ? 800 : 1600)}${ajuste};opacity:${opacidad}`
+        );
+      }
+      capa.appendChild(medio);
+
+      /* El velo va **en la capa** y no como un filtro sobre la imagen: así es
+         del color de fondo del diseño y no un gris genérico, y sube o baja
+         sin tocar la opacidad de la foto. */
+      if (velo > 0) {
+        const v = document.createElement("i");
+        v.setAttribute("class", "inv-fg-velo");
+        v.setAttribute("style", `opacity:${velo}`);
+        capa.appendChild(v);
+      }
+
+      document.body.appendChild(capa);
+    }
   }
 
   /* 5 ante · Las partículas, sobre toda la invitación.

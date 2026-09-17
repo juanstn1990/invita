@@ -404,6 +404,36 @@ de cada grupo de seis ocupa el doble — en vez de la cuadrícula 3×2 de los
 demás. Sin fotos, cada casilla conserva su marcador, así que la invitación
 nunca se ve rota.
 
+## Un fondo para toda la invitación
+
+Una sola imagen —o un vídeo— detrás de **todas** las secciones, sin cortarse
+entre una y otra. La portada, las redes y el pie se quedan con el suyo.
+
+Va en una capa **fija**, y eso resuelve tres cosas de una vez: la imagen no se
+repite sección a sección, no hay que medir dónde empieza y acaba el bloque de
+secciones que la lleva, y funciona en iOS — que es donde
+`background-attachment: fixed` no. La invitación se desplaza por encima y la
+imagen se ve entera y continua.
+
+Trae un **velo** del color de fondo del diseño, y no es decoración: sobre una
+fotografía cualquiera la tinta deja de leerse. El contraste de las paletas se
+verifica en el build, pero una foto que sube quien edita no se puede
+verificar, y aquí el problema aparecería en **todas** las secciones a la vez —
+es el mismo que ya costó diez diseños en la portada.
+
+### Por qué la lista de secciones no está escrita
+
+Las que llevan el fondo se vuelven transparentes, y sus selectores salen de
+las secciones que el renderer **resolvió de verdad**, no de una lista de ids.
+Un bloque de párrafo que se agregue mañana sale como `#inv-<id>` y entra solo;
+con ids fijos se habría quedado fuera. Por eso esto vive dentro de
+`renderInvitation`, donde esa lista existe, y no en una función suelta.
+
+Las tres excepciones ya tenían con qué taparla: la portada pinta `--hero-bg`
+—que en los 50 es un degradado, así que va en `background-image` y deja el
+color transparente—, el pie pinta `--footer-bg`, y la sección de redes es
+`.alt` en los 50. Comprobado en los 50, no en uno.
+
 ## Partículas sobre toda la invitación
 
 Una capa que cae, sube o flota sobre la página entera. Doce clases:
@@ -738,7 +768,7 @@ texto, con su propia letra y su propia animación.
 | | |
 | --- | --- |
 | **Fondo** | Una foto o un **vídeo** (MP4 o WebM). Cubre la sección entera, detrás del texto. Se elige si **cubre** (recorta), **contiene** (entera) o se **repite** en mosaico —lo último, sólo una foto—, y con qué opacidad. |
-| **Adorno** | Una imagen colocada en uno de **once sitios** —las nueve posiciones de una rejilla de 3×3, «a sangre», y **libre**—, con su **tamaño** en porcentaje del ancho, su **opacidad**, su **giro** y su **volteo**. |
+| **Adorno** | Una imagen, un **GIF o WebP animado** o un **vídeo**, colocado en uno de **once sitios** —las nueve posiciones de una rejilla de 3×3, «a sangre», y **libre**—, con su **tamaño** en porcentaje del ancho, su **opacidad**, su **giro** y su **volteo**. |
 | **Capa** | Cada adorno va **debajo** o **encima** del texto. Es lo que permite un marco floral que rodea los nombres y una guirnalda que pasa por delante. |
 | **Volteo** | Horizontal, vertical o las dos. Así una sola esquina sirve para las cuatro sin subir cuatro archivos. |
 

@@ -182,6 +182,9 @@ const APARTE = new Set([
   "tipo",
   "cantidad",
   "velocidad",
+  /* El fondo global lo monta `ponerFondoGlobal` en una capa fija propia. */
+  "ajuste",
+  "velo",
   // El fondo de la sección lo pone `ponerFondo` en una capa propia.
   "fondoUrl",
   "fondoAjuste",

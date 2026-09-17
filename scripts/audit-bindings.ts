@@ -98,7 +98,8 @@ for (const tpl of TEMPLATES) {
        debe tener, un `data-inv-section` que buscar. */
     if (
       s.key === "event" || s.key === "compartir" ||
-      s.key === "marca" || s.key === "particulas"
+      s.key === "marca" || s.key === "particulas" ||
+      s.key === "fondoGlobal"
     ) continue;
     if (!document.querySelector(`[data-inv-section="${s.key}"]`)) {
       lineas.push(`  ✗ SECCIÓN ${s.key}`);

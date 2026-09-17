@@ -335,6 +335,98 @@ for (const [nombre, tocar] of CASOS) {
   }
 }
 
+/* ── El fondo de toda la invitación ──────────────────────────────
+   Una sola imagen detrás de todas las secciones. Lo que hay que vigilar no es
+   que se vea: es **quién se vuelve transparente**. La lista de secciones que
+   la llevan se calcula de las que el renderer resolvió de verdad, así que un
+   bloque agregado después tiene que entrar solo — y las tres excepciones no,
+   pase lo que pase con el orden. */
+{
+  const IMG = "/api/media/2026/09/bbbbbbbbbbbbbbbbbbbbbbbb.jpg";
+  const MP4 = "/api/media/2026/09/aaaaaaaaaaaaaaaaaaaaaaaa.mp4";
+
+  /** Los selectores que el renderer declaró transparentes. */
+  const transparentes = (html: string): string[] => {
+    const m = html.match(/([^{}]+)\{background:transparent\}/);
+    return m ? m[1].split(",").map((x) => x.trim()) : [];
+  };
+
+  const hayCapa = (html: string) =>
+    Boolean(parseHTML(html).document.querySelector(".inv-fondo-global"));
+
+  const render = (fondoGlobal: Record<string, unknown>, extra?: (d: any) => void) => {
+    const d: any = defaultData();
+    d.fondoGlobal = { ...d.fondoGlobal, ...fondoGlobal };
+    extra?.(d);
+    return renderInvitation({
+      templateHtml: readTemplate(TEMPLATES[0].id), templateId: TEMPLATES[0].id,
+      data: d, slug: "demo",
+    });
+  };
+
+  const casos: [string, () => boolean][] = [
+    /* Se mira el marcado y no el texto crudo: el CSS de la capa se inyecta
+       siempre, así que buscar la clase en el HTML la encuentra igual. */
+    ["sin imagen no hay capa", () => !hayCapa(render({ enabled: true, url: "" }))],
+    ["apagado tampoco", () => !hayCapa(render({ enabled: false, url: IMG }))],
+    [
+      "con imagen hay capa y velo",
+      () => {
+        const doc = parseHTML(render({ enabled: true, url: IMG, velo: "45" })).document;
+        return Boolean(doc.querySelector(".inv-fondo-global")) &&
+          Boolean(doc.querySelector(".inv-fg-velo"));
+      },
+    ],
+    [
+      "con el velo a cero no hay velo",
+      () => !parseHTML(render({ enabled: true, url: IMG, velo: "0" })).document
+        .querySelector(".inv-fg-velo"),
+    ],
+    [
+      "acepta vídeo",
+      () => Boolean(parseHTML(render({ enabled: true, url: MP4 })).document.querySelector(".inv-fg-medio video")),
+    ],
+    /* Las tres que se quedan con lo suyo. Y el velo: va encima de todo y con
+       su propio fondo, así que tampoco. */
+    [
+      "la portada, las redes y el pie se quedan fuera",
+      () => {
+        const sels = transparentes(render({ enabled: true, url: IMG })).join(" ");
+        return !/hero|social|splash|footer/.test(sels);
+      },
+    ],
+    [
+      "las demás secciones entran",
+      () => {
+        const sels = transparentes(render({ enabled: true, url: IMG }));
+        /* Por atributo y no por id: así se resuelven las secciones del
+           esqueleto. Los bloques sintetizados sí llevan id propio. */
+        return sels.includes('[data-inv-section="countdown"]') &&
+          sels.includes('[data-inv-section="gallery"]');
+      },
+    ],
+    /* Lo que se pidió explícitamente: una sección nueva la forma también. */
+    [
+      "un bloque agregado después entra solo",
+      () => {
+        const h = render({ enabled: true, url: IMG }, (d) => {
+          d.layout = {
+            blocks: [{ id: "p9", type: "paragraph", variant: "simple", data: { enabled: true, text: "Hola." } }],
+          };
+        });
+        return transparentes(h).includes("#inv-p9");
+      },
+    ],
+  ];
+
+  for (const [nombre, comprueba] of casos) {
+    let ok = false;
+    try { ok = comprueba(); } catch { ok = false; }
+    if (!ok) botonMal++;
+    console.log(`${ok ? "✓" : "✗"} fondo global · ${nombre}`);
+  }
+}
+
 /* ── La capa de partículas ───────────────────────────────────────
    Cubre la pantalla entera, así que lo que hay que vigilar no es que se vea
    bonita: es que no se coma los clics. Sin `pointer-events:none` la
@@ -632,6 +724,29 @@ for (const [nombre, tocar] of CASOS) {
     /* El borde del que entra se deduce del sitio, y en libre de los números:
        puesto arriba a la izquierda tiene que entrar desde arriba y desde la
        izquierda, no caer al "sube" del centro. */
+    /* Un adorno puede ser un clip. El destello se recorta con la silueta del
+       adorno —una máscara CSS— y un vídeo no puede serla, así que ahí el
+       efecto se salta en vez de dibujar una barra de luz sobre un
+       rectángulo, que es el flash barato que ese efecto evita. */
+    [
+      "un vídeo sale como <video> mudo y en bucle",
+      { ...base, url: "/api/media/2026/09/aaaaaaaaaaaaaaaaaaaaaaaa.mp4" },
+      (a) => {
+        const v = a.querySelector("video");
+        return Boolean(v) && !a.querySelector("img") &&
+          ["autoplay", "muted", "loop", "playsinline"].every((x) => v.getAttribute(x) !== null);
+      },
+    ],
+    [
+      "y con destello no dibuja la barra de luz",
+      { ...base, url: "/api/media/2026/09/aaaaaaaaaaaaaaaaaaaaaaaa.mp4", movimiento: "destello" },
+      (a) => !a.querySelector(".inv-ad-luz"),
+    ],
+    [
+      "una imagen con destello sí la dibuja",
+      { ...base, movimiento: "destello" },
+      (a) => Boolean(a.querySelector(".inv-ad-luz")),
+    ],
     [
       "«desliza» deduce el borde de las coordenadas",
       { ...base, sitio: "libre", x: "10", y: "10", entrada: "desliza" },

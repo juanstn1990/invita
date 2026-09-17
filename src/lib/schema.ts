@@ -276,7 +276,13 @@ export const ADORNOS: ListSpec = {
   min: 0,
   max: 8,
   fields: [
-    { key: "url", label: "Imagen", type: "image", span: 2 },
+    {
+      key: "url",
+      label: "Imagen o vídeo",
+      type: "medio",
+      span: 2,
+      help: "Un PNG con fondo transparente es lo que mejor queda. Un GIF o un WebP animado se ven animados, y un MP4 se reproduce mudo y en bucle.",
+    },
     { key: "sitio", label: "Dónde", type: "select", options: SITIOS, fallback: 0 },
     /*
      * Las coordenadas del sitio «libre».
@@ -977,6 +983,67 @@ export const SECTIONS: SectionSpec[] = [
   },
 
   {
+    key: "fondoGlobal",
+    label: "Fondo de toda la invitación",
+    icon: "▤",
+    optional: true,
+    hint:
+      "Una sola imagen detrás de todas las secciones, sin cortarse entre " +
+      "una y otra. La portada, las redes y el pie se quedan con el suyo.",
+    fields: [
+      {
+        key: "url",
+        label: "Imagen o vídeo",
+        type: "medio",
+        span: 2,
+        help: "Se queda quieta mientras la invitación se desplaza por encima, así que se ve entera y continua en vez de repetirse sección a sección.",
+      },
+      {
+        key: "ajuste",
+        label: "Cómo se ajusta",
+        type: "select",
+        fallback: 0,
+        options: [
+          { value: "", label: "Cubrir (recorta)" },
+          { value: "contener", label: "Contener (entera)" },
+          { value: "repetir", label: "Repetir en mosaico (sólo foto)" },
+        ],
+      },
+      {
+        key: "opacidad",
+        label: "Opacidad",
+        type: "range",
+        min: 5,
+        max: 100,
+        step: 5,
+        unit: "%",
+        fallback: 100,
+      },
+      {
+        /*
+         * Un velo entre la imagen y el texto.
+         *
+         * No es un adorno: sobre una fotografía cualquiera, la tinta del
+         * diseño deja de leerse, y el contraste de las paletas se verifica en
+         * el build pero una foto que sube quien edita no se puede verificar.
+         * Es el mismo problema que ya costó diez diseños en la portada, y
+         * aquí aparece en **todas** las secciones a la vez.
+         */
+        key: "velo",
+        label: "Velo sobre la imagen",
+        type: "range",
+        min: 0,
+        max: 90,
+        step: 5,
+        unit: "%",
+        fallback: 45,
+        span: 2,
+        help: "Del color de fondo del diseño. Súbelo hasta que el texto se lea cómodo: una foto con detalle pide más velo que una textura.",
+      },
+    ],
+  },
+
+  {
     key: "particulas",
     label: "Partículas",
     icon: "✽",
@@ -1112,7 +1179,8 @@ export const SECTIONS: SectionSpec[] = [
 for (const spec of SECTIONS) {
   if (
     spec.key === "event" || spec.key === "compartir" ||
-    spec.key === "marca" || spec.key === "particulas"
+    spec.key === "marca" || spec.key === "particulas" ||
+    spec.key === "fondoGlobal"
   ) continue;
   spec.adornos = true;
   spec.fondo = true;
@@ -1213,6 +1281,13 @@ export function defaultData(): InvitationData {
       imagen: "",
       titulo: "",
       texto: "",
+    },
+    fondoGlobal: {
+      enabled: true,
+      url: "",
+      ajuste: "",
+      opacidad: "100",
+      velo: "45",
     },
     particulas: {
       enabled: true,

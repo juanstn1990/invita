@@ -56,9 +56,23 @@ export async function GET(
       headers: { ...cabeceras, "Content-Type": mime, "Content-Length": String(bytes.length) },
     });
 
-  /* Un GIF puede estar animado y redimensionarlo se quedaría con el primer
-     fotograma, así que se sirve tal cual. */
-  if (!ancho || file.mime === "image/gif") return cuerpo(file.bytes, file.mime);
+  if (!ancho) return cuerpo(file.bytes, file.mime);
+
+  /* Una imagen animada se sirve tal cual: redimensionarla se quedaría con el
+     primer fotograma.
+     
+     Se pregunta por los fotogramas y no por el formato. Antes la regla era
+     "si es GIF", y dejaba fuera a los otros dos que también se animan: un
+     WebP animado y un APNG entraban al redimensionador y salían congelados.
+     No daban error ni se veían rotos — se veían quietos, que es peor, porque
+     nadie sabe que hay algo que arreglar. */
+  try {
+    const { pages } = await sharp(file.bytes, { failOn: "none" }).metadata();
+    if ((pages || 1) > 1) return cuerpo(file.bytes, file.mime);
+  } catch {
+    /* Si sharp no sabe leerla, tampoco va a saber redimensionarla: tal cual. */
+    return cuerpo(file.bytes, file.mime);
+  }
 
   const webp = (request.headers.get("accept") || "").includes("image/webp");
 

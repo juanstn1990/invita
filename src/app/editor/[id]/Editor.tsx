@@ -480,6 +480,21 @@ export function Editor(props: EditorProps) {
                     pegar el enlace. Van después del pie porque se deciden
                     cuando ya está todo lo demás. */}
                 {(() => {
+                  const fg = SECTIONS.find((s) => s.key === "fondoGlobal")!;
+                  return (
+                    <SectionEditor
+                      spec={fg}
+                      data={data.fondoGlobal || {}}
+                      support={support}
+                      inTemplate
+                      open={open === "fondoGlobal"}
+                      onToggleOpen={() => setOpen(open === "fondoGlobal" ? null : "fondoGlobal")}
+                      onChange={(patch) => patchSection("fondoGlobal", patch)}
+                    />
+                  );
+                })()}
+
+                {(() => {
                   const pt = SECTIONS.find((s) => s.key === "particulas")!;
                   return (
                     <SectionEditor
