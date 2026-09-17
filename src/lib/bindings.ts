@@ -303,6 +303,10 @@ function construir(): TemplateMap {
       whenEmpty: CONSERVAR_VACIA.has(s.key) ? "keep" : "removeContainer",
       fields: Object.fromEntries(
         s.list.fields
+          /* El fondo de una ficha no se escribe con una operación: lo pinta
+             `ponerFondoFichas` sobre la tarjeta ya clonada. Sin esta guarda,
+             el mapa pediría un `data-inv` que no existe en ningún diseño. */
+          .filter((f) => f.key !== "fondo" && f.key !== "fondoVelo")
           .map((f) => {
             const sel = [
               `[data-inv="${s.key}.items.${f.key}"]`,

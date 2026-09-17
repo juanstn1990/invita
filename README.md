@@ -404,6 +404,26 @@ de cada grupo de seis ocupa el doble — en vez de la cuadrícula 3×2 de los
 demás. Sin fotos, cada casilla conserva su marcador, así que la invitación
 nunca se ve rota.
 
+## Cada ficha con su propio fondo
+
+Las tarjetas del **programa** y las de **información útil** pueden llevar cada
+una su imagen detrás, con su velo. Es por ficha y no por sección: una con
+fondo no se lo pega a sus vecinas, y hay una prueba que lo exige — es lo que
+pasaría si esto se resolviera con una regla sobre la lista.
+
+Imagen y no vídeo, a propósito. Un programa puede tener ocho fichas, y ocho
+vídeos reproduciéndose a la vez en un teléfono no es una invitación bonita, es
+un teléfono caliente. Donde sí cabe un vídeo es en el fondo de la sección
+entera, que es uno.
+
+El velo va en un `::before` y del color de la propia tarjeta, no de un gris:
+sobre una foto cualquiera la tinta deja de leerse, y el texto es lo único que
+la ficha tiene que decir. Los hijos se posicionan para pintarse por encima —
+un elemento posicionado va después de un `::before` absoluto que lo precede en
+el orden, así que no hace falta repartir `z-index`. Y `overflow: hidden`,
+porque la tarjeta suele tener esquinas redondeadas y una foto a sangre se
+saldría por ellas, que es de lo que más se nota.
+
 ## Un fondo para toda la invitación
 
 Una sola imagen —o un vídeo— detrás de **todas** las secciones, sin cortarse

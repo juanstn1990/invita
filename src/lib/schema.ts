@@ -117,6 +117,40 @@ const textColor: FieldSpec = {
 };
 
 /**
+ * El fondo propio de una ficha: una tarjeta del programa, una de información.
+ *
+ * Imagen y no vídeo a propósito. Un programa puede tener ocho fichas, y ocho
+ * vídeos reproduciéndose a la vez en un teléfono no es una invitación bonita,
+ * es un teléfono caliente. Donde sí cabe un vídeo es en el fondo de la
+ * sección entera, que es uno.
+ *
+ * El velo va del color de la propia tarjeta, no de un gris: sobre una foto
+ * cualquiera la tinta deja de leerse, y aquí el texto es lo único que la
+ * ficha tiene que decir.
+ */
+const fichaFondoFields: FieldSpec[] = [
+  {
+    key: "fondo",
+    label: "Fondo de la ficha",
+    type: "image",
+    span: 2,
+    help: "Opcional. Cada ficha puede llevar el suyo.",
+  },
+  {
+    key: "fondoVelo",
+    label: "Velo sobre el fondo",
+    type: "range",
+    min: 0,
+    max: 90,
+    step: 5,
+    unit: "%",
+    fallback: 45,
+    span: 2,
+    help: "Súbelo hasta que el texto se lea cómodo.",
+  },
+];
+
+/**
  * Un archivo que se reproduce en vez de mostrarse.
  *
  * Se decide por la extensión y no por el `mime`, porque aquí sólo hay la URL:
@@ -1176,6 +1210,18 @@ export const SECTIONS: SectionSpec[] = [
  * no. El texto queda por encima de las dos: `.hero-content` va posicionado en
  * z-index 3 desde siempre.
  */
+/*
+ * Las tarjetas del programa y las de información llevan su propio fondo.
+ *
+ * Aquí y no en la declaración de cada lista por el mismo motivo que el fondo
+ * de sección: son dos sitios y bastaría olvidarse en uno para que nadie
+ * entienda por qué en esa tarjeta no se puede.
+ */
+for (const clave of ["events", "features"]) {
+  const spec = SECTIONS.find((s) => s.key === clave);
+  if (spec?.list) spec.list.fields = [...spec.list.fields, ...fichaFondoFields];
+}
+
 for (const spec of SECTIONS) {
   if (
     spec.key === "event" || spec.key === "compartir" ||

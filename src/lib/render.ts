@@ -1230,6 +1230,7 @@ function applyList(
 
   current.forEach((el, i) => {
     const item = deriveItem(key, items[i]);
+    ponerFondoFicha(el, items[i]);
     for (const [field, ops] of Object.entries(binding.fields)) {
       // Lo guardado es un emoji o la clave de un icono; lo que se pinta es el
       // dibujo. `iconoHtml` escapa lo que no reconoce, así que nunca entra
@@ -1241,6 +1242,35 @@ function applyList(
       for (const op of ops) applyOp(el, op, valor, ctx);
     }
   });
+}
+
+/**
+ * El fondo propio de una ficha.
+ *
+ * Va sobre la tarjeta ya clonada y no con una operación del mapa, porque no
+ * escribe texto en ningún sitio: pinta la caja. El velo es un pseudoelemento
+ * —no se puede poner en línea— así que la imagen y su opacidad viajan en dos
+ * variables y la regla vive en el CSS inyectado.
+ *
+ * `overflow:hidden` porque la tarjeta suele tener esquinas redondeadas y una
+ * foto a sangre se saldría por ellas, que es de lo que más se nota.
+ */
+function ponerFondoFicha(ficha: El, datos?: Record<string, string>) {
+  const url = String(datos?.fondo || "").trim();
+  if (!url || !ficha?.setAttribute) return;
+
+  const velo = Math.min(90, Math.max(0, Number(datos?.fondoVelo ?? 45))) / 100;
+  ficha.setAttribute(
+    "class",
+    `${ficha.getAttribute("class") || ""} inv-ficha-fondo`.trim()
+  );
+  const previo = ficha.getAttribute("style") || "";
+  const sep = previo && !previo.trim().endsWith(";") ? ";" : "";
+  ficha.setAttribute(
+    "style",
+    `${previo}${sep}--inv-ff-img:url('${conAncho(url, 800).replace(/'/g, "%27")}');` +
+      `--inv-ff-velo:${velo}`
+  );
 }
 
 /* ── cuenta atrás ────────────────────────────────────────────── */
@@ -1518,6 +1548,21 @@ export const INJECTED_CSS = `
   #splash.inv-velo-sobre.hidden{transform:none}
   #splash.inv-velo-sobre.hidden .splash-modal{transform:none;transition:opacity .4s ease}
 }
+
+/* ── El fondo propio de una ficha ──────────────────────────────
+   Una tarjeta del programa o de información con su propia imagen detrás.
+
+   El velo va en un ::before y no en un filtro sobre la imagen: así es del
+   color de la propia tarjeta —no un gris genérico— y sube o baja sin tocar
+   la foto. Y los hijos se posicionan para que se pinten por encima: un
+   elemento posicionado se pinta después de un ::before absoluto que va antes
+   en el orden, que es justo lo que hace falta y sin repartir z-index. */
+.inv-ficha-fondo{position:relative;overflow:hidden;
+  background-image:var(--inv-ff-img);background-size:cover;
+  background-position:center;background-repeat:no-repeat}
+.inv-ficha-fondo::before{content:"";position:absolute;inset:0;
+  background:var(--card);opacity:var(--inv-ff-velo,.45);pointer-events:none}
+.inv-ficha-fondo > *{position:relative}
 
 /* ── El fondo de toda la invitación ────────────────────────────
    Una capa fija detrás del contenido. z-index -1 y no 0: así queda por

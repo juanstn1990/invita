@@ -335,6 +335,72 @@ for (const [nombre, tocar] of CASOS) {
   }
 }
 
+/* ── El fondo propio de cada ficha ───────────────────────────────
+   Es por ficha y no por sección, así que lo que hay que comprobar es que una
+   con fondo no se lo pegue a sus vecinas — que es lo que pasaría si esto se
+   resolviera con una regla de CSS sobre la lista. */
+{
+  const IMG = "/api/media/2026/09/bbbbbbbbbbbbbbbbbbbbbbbb.jpg";
+
+  const render = (toca: (d: any) => void) => {
+    const d: any = defaultData();
+    d.events.items = [
+      { icon: "⛪", title: "Ceremonia", time: "16:30" },
+      { icon: "🥂", title: "Fiesta", time: "19:00" },
+    ];
+    d.features.items = [{ icon: "✨", title: "Uno", text: "a" }, { icon: "✨", title: "Dos", text: "b" }];
+    toca(d);
+    return parseHTML(
+      renderInvitation({
+        templateHtml: readTemplate(TEMPLATES[0].id), templateId: TEMPLATES[0].id,
+        data: d, slug: "demo",
+      })
+    ).document;
+  };
+
+  const casos: [string, (d: any) => void, (doc: any) => boolean][] = [
+    ["sin fondo ninguna ficha lo lleva", () => {}, (doc) => !doc.querySelector(".inv-ficha-fondo")],
+    [
+      "sólo la ficha que lo tiene",
+      (d) => { d.events.items[0].fondo = IMG; },
+      (doc) => doc.querySelectorAll(".event-card.inv-ficha-fondo").length === 1 &&
+        doc.querySelectorAll(".event-card").length === 2,
+    ],
+    [
+      "la imagen y el velo viajan en variables",
+      (d) => { d.events.items[0].fondo = IMG; d.events.items[0].fondoVelo = "30"; },
+      (doc) => {
+        const st = String(doc.querySelector(".inv-ficha-fondo")?.getAttribute("style") || "");
+        return st.includes("--inv-ff-img:url(") && st.includes("--inv-ff-velo:0.3");
+      },
+    ],
+    [
+      "sin velo elegido, el de por defecto",
+      (d) => { d.events.items[0].fondo = IMG; },
+      (doc) => String(doc.querySelector(".inv-ficha-fondo")?.getAttribute("style")).includes("--inv-ff-velo:0.45"),
+    ],
+    [
+      "las de información útil también",
+      (d) => { d.features.items[1].fondo = IMG; },
+      (doc) => doc.querySelectorAll(".feature-card.inv-ficha-fondo").length === 1,
+    ],
+    /* Las dos listas son independientes: poner fondo en el programa no puede
+       pintar las de información. */
+    [
+      "una lista no contagia a la otra",
+      (d) => { d.events.items[0].fondo = IMG; },
+      (doc) => doc.querySelectorAll(".feature-card.inv-ficha-fondo").length === 0,
+    ],
+  ];
+
+  for (const [nombre, toca, comprueba] of casos) {
+    let ok = false;
+    try { ok = comprueba(render(toca)); } catch { ok = false; }
+    if (!ok) botonMal++;
+    console.log(`${ok ? "✓" : "✗"} ficha · ${nombre}`);
+  }
+}
+
 /* ── El fondo de toda la invitación ──────────────────────────────
    Una sola imagen detrás de todas las secciones. Lo que hay que vigilar no es
    que se vea: es **quién se vuelve transparente**. La lista de secciones que
