@@ -617,6 +617,25 @@ export const SECTIONS: SectionSpec[] = [
         span: 2,
         placeholder: "Queremos compartir con ustedes este día\ntan especial y esperado, nuestra boda.",
       },
+      /*
+       * Un párrafo libre en la portada.
+       *
+       * La portada tenía antetítulo, subtítulo y frase, y los tres son
+       * renglones: sitios para una línea, no para contar algo. Esto es el
+       * hueco para escribir de verdad — y como cualquier texto, puede llevar
+       * su propia animación y su propia letra.
+       *
+       * Respeta los saltos de línea, igual que los campos de la portada de
+       * acta, para no obligar a meter HTML por un campo de texto.
+       */
+      {
+        key: "parrafo",
+        label: "Párrafo",
+        type: "textarea",
+        span: 2,
+        placeholder: "Opcional. Lo que quieras contar antes de que se baje a los detalles.",
+        help: "Cada salto de línea se respeta.",
+      },
       {
         key: "panelOpacity",
         label: "Opacidad del contenedor",
@@ -979,16 +998,21 @@ export const SECTIONS: SectionSpec[] = [
  *
  * `event` queda fuera porque no es una sección que se dibuje —son los datos
  * del evento—, y `compartir` porque tampoco: son las etiquetas Open Graph del
- * `<head>`, y un fondo o un adorno ahí no tendrían dónde pintarse. La portada
- * queda fuera del fondo porque ese sitio ya lo ocupa su foto.
+ * `<head>`, y un fondo o un adorno ahí no tendrían dónde pintarse.
+ *
+ * La portada estuvo fuera del fondo mientras el argumento fue "ese sitio ya
+ * lo ocupa su foto". Dejó de valer cuando el fondo pasó a aceptar vídeo: una
+ * portada con un clip detrás de los nombres es justo lo que no se podía
+ * hacer, y no hay dos fondos peleándose — la capa del fondo va detrás de la
+ * foto, así que la foto sigue mandando cuando la hay y el fondo se ve cuando
+ * no. El texto queda por encima de las dos: `.hero-content` va posicionado en
+ * z-index 3 desde siempre.
  */
 for (const spec of SECTIONS) {
   if (spec.key === "event" || spec.key === "compartir" || spec.key === "marca") continue;
   spec.adornos = true;
-  if (spec.key !== "hero") {
-    spec.fondo = true;
-    spec.fields = [...spec.fields, ...fondoFields];
-  }
+  spec.fondo = true;
+  spec.fields = [...spec.fields, ...fondoFields];
 }
 
 export const SECTION_BY_KEY: Record<string, SectionSpec> = Object.fromEntries(
@@ -1112,6 +1136,7 @@ export function defaultData(): InvitationData {
       padresB: "",
       padresBNombres: "",
       cierre: "",
+      parrafo: "",
       label: "Te invitamos a nuestra",
       subtitle: "Nuestra Boda",
       cta: "Descubrir más",

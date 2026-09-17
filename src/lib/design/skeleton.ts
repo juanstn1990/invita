@@ -141,6 +141,7 @@ export function page(d: Design, t: Theme, c: Content): string {
       </div>
     </div>
     <p class="hero-cierre" data-inv="hero.cierre">${e(c.hero.cierre || "")}</p>
+    <p class="hero-parrafo" data-inv="hero.parrafo"></p>
     <p class="hero-date" data-inv="event.dateLabel">${e(c.dateLabel)}</p>
     <p class="hero-quote" data-inv="event.quote">${e(c.hero.quote)}</p>
     <a class="hero-btn" href="#countdown" data-inv="hero.cta">${e(c.hero.cta)}</a>

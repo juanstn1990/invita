@@ -670,7 +670,18 @@ un iframe que se actualiza mientras escribes (300 ms) y conserva el scroll.
 ## Fondos y adornos por sección
 
 Cada sección acepta **un fondo** —una foto o un vídeo— y **hasta ocho
-adornos**, y los pone quien edita, no el diseño.
+adornos**, y los pone quien edita, no el diseño. **La portada también**: estuvo
+fuera mientras el argumento fue «ese sitio ya lo ocupa su foto», y dejó de
+valer cuando el fondo pasó a aceptar vídeo — una portada con un clip detrás de
+los nombres es justo lo que no se podía hacer. No hay dos fondos peleándose:
+la capa del fondo va **antes que la foto** en el marcado, así que la foto manda
+cuando la hay y el fondo se ve cuando no, y el texto queda sobre las dos porque
+`.hero-content` va posicionado en `z-index: 3` desde siempre.
+
+La portada tiene además un **párrafo**. Antetítulo, subtítulo y frase son
+renglones —sitios para una línea, no para contar algo—; esto es el hueco para
+escribir de verdad, con sus saltos de línea respetados y, como cualquier
+texto, con su propia letra y su propia animación.
 
 | | |
 | --- | --- |

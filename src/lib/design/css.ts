@@ -217,7 +217,13 @@ const HERO_BASE = `
    La regla pre-line es lo que hace que un salto de línea escrito en el
    editor sea un salto de línea en la invitación, sin pasar por HTML: quien
    escribe dos nombres en dos renglones los ve en dos renglones. */
-.hero-nombres,.hero-bendicion,.hero-cierre,.hero-padres-nom{white-space:pre-line}
+.hero-nombres,.hero-bendicion,.hero-cierre,.hero-padres-nom,
+.hero-parrafo{white-space:pre-line}
+/* El párrafo de la portada: un sitio para escribir, no un renglón más. Va con
+   la tinta suave de la portada y algo más de interlineado, que es lo que pide
+   un texto de varias líneas frente a un subtítulo de una. */
+.hero-parrafo{margin-top:18px;font-size:var(--fs-small);line-height:1.75;
+  color:var(--hero-ink-soft)}
 .hero-padres{display:flex;justify-content:center;gap:0}
 .hero-padres-col{padding:0 22px}
 .hero-padres-col + .hero-padres-col{border-left:var(--border) solid var(--hero-line)}

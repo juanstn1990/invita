@@ -335,6 +335,78 @@ for (const [nombre, tocar] of CASOS) {
   }
 }
 
+/* ── La portada acepta fondo y párrafo ───────────────────────────
+   La portada estuvo fuera del fondo mientras el argumento fue "ese sitio ya
+   lo ocupa su foto". Con el fondo aceptando vídeo dejó de valer, y lo que hay
+   que comprobar es que las dos capas convivan en el orden correcto: el fondo
+   detrás, la foto encima, y el texto sobre las dos. */
+{
+  const MP4 = "/api/media/2026/09/aaaaaaaaaaaaaaaaaaaaaaaa.mp4";
+  const JPG = "/api/media/2026/09/bbbbbbbbbbbbbbbbbbbbbbbb.jpg";
+
+  const casos: [string, Record<string, unknown>, (hero: any) => boolean][] = [
+    [
+      "sin fondo la portada no cambia",
+      {},
+      (h) => !h.querySelector(".inv-fondo"),
+    ],
+    [
+      "acepta fondo de foto",
+      { fondoUrl: JPG },
+      (h) => Boolean(h.querySelector(".inv-fondo")) && !h.querySelector(".inv-fondo video"),
+    ],
+    [
+      "y fondo de vídeo",
+      { fondoUrl: MP4 },
+      (h) => Boolean(h.querySelector(".inv-fondo video")),
+    ],
+    /* El orden es lo único que decide cuál se ve: la capa del fondo va antes
+       que la foto en el DOM, así que la foto manda cuando la hay. */
+    [
+      "el fondo va detrás de la foto de portada",
+      { fondoUrl: MP4, backgroundUrl: JPG },
+      (h) => {
+        const fondo = h.querySelector(".inv-fondo");
+        const foto = h.querySelector(".hero-bg");
+        if (!fondo || !foto) return false;
+        const hijos = Array.from(h.children) as any[];
+        return hijos.indexOf(fondo) < hijos.indexOf(foto);
+      },
+    ],
+    [
+      "el párrafo conserva sus saltos de línea",
+      { parrafo: "Una línea.\nY otra." },
+      (h) => (h.querySelector(".hero-parrafo")?.textContent || "").includes("\n"),
+    ],
+    [
+      "sin párrafo no queda un hueco",
+      {},
+      (h) => !h.querySelector(".hero-parrafo"),
+    ],
+  ];
+
+  for (const [nombre, hero, comprueba] of casos) {
+    const mal: string[] = [];
+    for (const tpl of TEMPLATES) {
+      const d: any = defaultData();
+      d.hero = { ...d.hero, ...hero };
+      const { document } = parseHTML(
+        renderInvitation({
+          templateHtml: readTemplate(tpl.id), templateId: tpl.id, data: d, slug: "demo",
+        })
+      );
+      const h = document.querySelector("#hero") as any;
+      if (!h) mal.push(`${tpl.id} (sin portada)`);
+      else if (!comprueba(h)) mal.push(tpl.id);
+    }
+    if (mal.length) botonMal++;
+    console.log(
+      `${mal.length ? "✗" : "✓"} portada · ${nombre.padEnd(44)}` +
+        (mal.length ? `  ${mal.length} mal: ${mal.slice(0, 2).join(", ")}` : "")
+    );
+  }
+}
+
 /* ── Animación por texto ─────────────────────────────────────────
    Dos de las familias reparten el texto en trozos, y ahí hay un fallo que el
    marcado no delata a simple vista: si se reparte **antes** de escribir el
