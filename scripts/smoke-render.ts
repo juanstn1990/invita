@@ -867,6 +867,27 @@ for (const [nombre, tocar] of CASOS) {
     ],
   ];
 
+  /* ── El tamaño ── */
+  const zooms = (html: string) =>
+    [...html.matchAll(/([^{}\n]+)\{zoom:([\d.]+) !important\}/g)].map((m) => Number(m[2]));
+
+  const deTamano: [string, () => boolean][] = [
+    ["sin tocarlo no se inyecta nada", () => zooms(render({})).length === 0],
+    ["al 100% tampoco", () => zooms(render({ size: { title: "100" } })).length === 0],
+    ["al 160% sale como zoom 1.6", () => zooms(render({ size: { title: "160" } }))[0] === 1.6],
+    ["al 70% también", () => zooms(render({ size: { title: "70" } }))[0] === 0.7],
+    /* Un tamaño absurdo se recorta en vez de romper la maquetación. */
+    ["un 9000% se recorta a 300", () => zooms(render({ size: { title: "9000" } }))[0] === 3],
+    ["y un valor que no es número se ignora", () => zooms(render({ size: { title: "grande" } })).length === 0],
+  ];
+
+  for (const [nombre, comprueba] of deTamano) {
+    let ok = false;
+    try { ok = comprueba(); } catch { ok = false; }
+    if (!ok) botonMal++;
+    console.log(`${ok ? "✓" : "✗"} tamaño · ${nombre}`);
+  }
+
   for (const [nombre, comprueba] of deAlineacion) {
     let ok = false;
     try { ok = comprueba(); } catch { ok = false; }

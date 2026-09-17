@@ -80,6 +80,23 @@ export function SectionEditor({
       : undefined;
 
   /**
+   * El tamaño de un texto, en % de lo que le dio el diseño.
+   *
+   * 100 es "como viene", y por eso el control parte de ahí y no de un número
+   * absoluto: la escala de cada diseño es suya, y pedir píxeles obligaría a
+   * saber cuánto medía antes para no romperla.
+   */
+  const tamanos = (data.size || {}) as Record<string, string>;
+  const sizeFor = (key: string) =>
+    supports(`${spec.key}.${key}@font`)
+      ? {
+          pct: Number(tamanos[key]) || 100,
+          set: (v: number) =>
+            onChange({ size: { ...tamanos, [key]: v === 100 ? "" : String(v) } }),
+        }
+      : undefined;
+
+  /**
    * La animación de un texto, por el mismo camino que su tipografía.
    *
    * Se ofrece donde se ofrece la letra: si el campo no tiene un binding que
@@ -158,6 +175,11 @@ export function SectionEditor({
                 align={
                   field.type === "text" || field.type === "textarea"
                     ? alignFor(field.key)
+                    : undefined
+                }
+                size={
+                  field.type === "text" || field.type === "textarea"
+                    ? sizeFor(field.key)
                     : undefined
                 }
                 anim={animFor(field)}
@@ -261,7 +283,7 @@ function IconoField({ value, onChange }: { value: string; onChange: (v: string) 
 }
 
 function Field({
-  field, value, onChange, font, color, align, anim, mediaKind,
+  field, value, onChange, font, color, align, size, anim, mediaKind,
 }: {
   field: FieldSpec;
   value: unknown;
@@ -272,6 +294,8 @@ function Field({
   color?: { hex: string; set: (hex: string) => void };
   /** Y para la alineación. Vacío = la del diseño. */
   align?: { valor: string; set: (v: string) => void };
+  /** Y el tamaño, en % de lo que le dio el diseño. 100 = sin tocar. */
+  size?: { pct: number; set: (v: number) => void };
   /** Lo mismo para la animación. Ver `ANIMACIONES`. */
   anim?: { id: string; set: (id: string) => void };
   /** Con qué clase se cataloga lo que se suba desde este campo. */
@@ -365,6 +389,38 @@ function Field({
         </div>
       ) : (
         control
+      )}
+
+      {size && (
+        <div className={styles.sizeRow}>
+          <button
+            type="button"
+            className={styles.sizeBtn}
+            title="Más pequeño"
+            onClick={() => size.set(Math.max(50, size.pct - 10))}
+          >
+            −
+          </button>
+          {/* El número es también el botón de volver: sin él, tocar el tamaño
+              una vez obligaría a acertar el 100 a base de clics. */}
+          <button
+            type="button"
+            className={styles.sizeVal}
+            data-tocado={size.pct !== 100 ? "1" : undefined}
+            title={size.pct === 100 ? "Tamaño del diseño" : "Volver al tamaño del diseño"}
+            onClick={() => size.set(100)}
+          >
+            {size.pct}%
+          </button>
+          <button
+            type="button"
+            className={styles.sizeBtn}
+            title="Más grande"
+            onClick={() => size.set(Math.min(300, size.pct + 10))}
+          >
+            +
+          </button>
+        </div>
       )}
 
       {align && (

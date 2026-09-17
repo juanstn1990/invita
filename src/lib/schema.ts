@@ -1294,6 +1294,8 @@ export type SectionData = Record<string, unknown> & {
   colors?: Record<string, string>;
   /** Alineación elegida por campo: { title: "izq", … }. Ver `ALINEACIONES`. */
   align?: Record<string, string>;
+  /** Tamaño por campo, en % de lo que el diseño le dio: { title: "130" }. */
+  size?: Record<string, string>;
 };
 
 /**

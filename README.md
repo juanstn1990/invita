@@ -574,10 +574,10 @@ porque batiendo por separado se lee como cuatro aletas. Y el par de arriba es
 bastante mayor que el de abajo: es lo que distingue una mariposa de un brote
 de dos hojas, que es exactamente en lo que se quedó el primer intento.
 
-## Letra, color y alineación, texto por texto
+## Letra, color, alineación y tamaño, texto por texto
 
-La tipografía ya se elegía por campo. Ahora el **color** y la **alineación**
-también: el antetítulo en dorado y centrado, el título en tinta y a la
+La tipografía ya se elegía por campo. Ahora el **color**, la **alineación** y
+el **tamaño** también: el antetítulo en dorado y centrado, el título en tinta y a la
 izquierda, dentro de la misma sección.
 
 Los dos van por el mismo camino —lo elegido vive en la sección, se busca el
@@ -615,6 +615,45 @@ type="color">` no se puede vaciar, así que sin ella elegir un color sería
 irreversible. La alineación son cuatro botoncitos —izquierda, centro, derecha,
 justificado—; se reconoce por el icono de un vistazo, y pulsar la que está
 puesta la quita, que es la única forma de volver a la del diseño.
+
+### El tamaño no se puede pedir con `font-size`
+
+Lo que hace falta es «un 30% más que ahora», y en CSS no hay forma de
+referirse al tamaño propio de un elemento: `1em` dentro de un `font-size` mide
+contra el **padre**, así que un título de 48 px sobre un cuerpo de 16 se
+encogería a 19 en vez de crecer. La otra salida sería redeclarar el tamaño con
+el token de la escala que use cada elemento, y eso obliga a saber qué token
+usa cada clase en cada uno de los 50 diseños.
+
+Se usa `zoom`, que escala lo que haya salido sin saber qué era. Y a diferencia
+de `transform: scale` mueve la caja: el texto crecido **empuja** lo de abajo en
+vez de montarse encima. Medido, un título de 32 px al 160% pasa a 104 —más de
+1,6× porque al crecer también parte en dos líneas, que es lo que tiene que
+pasar— y la sección crece de 516 a 593.
+
+El control va de 50% a 300%, y el número del medio es también el botón para
+volver al tamaño del diseño: sin él habría que acertar el 100 a base de clics.
+
+## Cincuenta y tres tipografías
+
+Eran diecisiete, y sobre todo faltaban **caligráficas**: había tres para la
+categoría que más se pide en una invitación. Ahora son trece —Alex Brush,
+Pinyon Script, Tangerine, Sacramento, Allura, Italianno, Petit Formal Script,
+Yellowtail, Cookie, Marck Script y las tres de antes— y el catálogo llega a 53
+en seis grupos.
+
+Dos grupos nuevos, y la razón es que mezclarlos con los de al lado engaña:
+
+**Manuscritas** no es lo mismo que caligráficas. Éstas imitan una mano
+corriente y no una pluma; para unos quince o un cumpleaños dicen otra cosa, y
+en una boda formal desentonan.
+
+**De titular** tienen mucha personalidad y ninguna paciencia para un párrafo.
+Van aparte para que nadie ponga un texto largo en ellas sin darse cuenta.
+
+Se siguen pidiendo con los pesos justos, y una invitación que no cambie nada
+no carga ni un byte extra. Las muestras del editor piden las 53 familias de
+una vez, pero sin peso y sólo la primera vez que alguien abre un selector.
 
 ### El agujero que esto destapó
 

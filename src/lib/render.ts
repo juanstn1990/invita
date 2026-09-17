@@ -3261,6 +3261,7 @@ export function renderInvitation(opts: RenderOptions): string {
   ) => {
     const colores = (section?.colors || {}) as Record<string, string>;
     const alineaciones = (section?.align || {}) as Record<string, string>;
+    const tamanos = (section?.size || {}) as Record<string, string>;
 
     /** Lo que hay que escribir para un campo: puede ser ninguna o las dos. */
     const declara = (clave: string): string[] => {
@@ -3269,6 +3270,26 @@ export function renderInvitation(opts: RenderOptions): string {
       if (HEX.test(color)) out.push(`color:${color}`);
       const al = CSS_ALINEACION[String(alineaciones[clave] || "").trim()];
       if (al) out.push(`text-align:${al}`);
+
+      /*
+       * El tamaño, como porcentaje de lo que el diseño le dio.
+       *
+       * Con `font-size` no se puede: lo que haría falta es "un 30% más que
+       * ahora", y en CSS no hay forma de referirse al tamaño propio de un
+       * elemento — `1em` dentro de un `font-size` mide contra el **padre**,
+       * así que un título de 48px sobre un cuerpo de 16 se encogería a 19 en
+       * vez de crecer. La otra salida sería redeclarar el tamaño con el token
+       * de la escala que use cada elemento, y eso obliga a saber qué token
+       * usa cada clase en cada uno de los 50 diseños.
+       *
+       * `zoom` escala lo que haya salido, sin saber qué era, y a diferencia
+       * de `transform: scale` mueve la caja: el texto crecido empuja lo de
+       * abajo en vez de montarse encima.
+       */
+      const pct = Number(tamanos[clave]);
+      if (isFinite(pct) && pct > 0 && pct !== 100) {
+        out.push(`zoom:${Math.min(300, Math.max(50, pct)) / 100}`);
+      }
       return out;
     };
 
