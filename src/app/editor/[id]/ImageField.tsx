@@ -118,6 +118,9 @@ export function ImageField({
         : IMAGE_ACCEPT;
   const input = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
+  /* Reducir un vídeo va en tiempo real, así que puede tardar lo que dura el
+     clip. Sin un número ahí, parece que se colgó. */
+  const [pct, setPct] = useState(0);
   const [over, setOver] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [byUrl, setByUrl] = useState(false);
@@ -127,16 +130,21 @@ export function ImageField({
     const list = files ? Array.from(files).slice(0, 1) : [];
     if (!list.length) return;
     setBusy(true);
+    setPct(0);
     setError(null);
     try {
-      const [url] = await uploadImages(list, kind);
+      const [url] = await uploadImages(list, kind, setPct);
       onChange(url);
     } catch (e) {
       setError((e as Error).message);
     } finally {
       setBusy(false);
+      setPct(0);
     }
   }
+
+  /** Lo que se enseña mientras trabaja. */
+  const trabajando = pct > 0 ? `Reduciendo el vídeo… ${pct}%` : "Subiendo…";
 
   if (value) {
     return (
@@ -152,7 +160,7 @@ export function ImageField({
         )}
         <div className={styles.imagePickedInfo}>
           <button className="btn btn-sm" onClick={() => input.current?.click()} disabled={busy}>
-            {busy ? "Subiendo…" : "Cambiar"}
+            {busy ? trabajando : "Cambiar"}
           </button>
           <button className="btn btn-sm btn-ghost" onClick={() => setBiblio(true)}>
             Biblioteca
@@ -213,7 +221,7 @@ export function ImageField({
         <span className={styles.dropIcon} aria-hidden>↑</span>
         <span>
           {busy
-            ? "Subiendo…"
+            ? trabajando
             : medio
               ? "Arrastra una foto o un vídeo, o haz clic"
               : audio

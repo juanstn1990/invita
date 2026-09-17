@@ -1011,6 +1011,50 @@ Postgres gestionado.
 Todo se sube con `POST /api/media` y se sirve por
 `/api/media/{año}/{mes}/{id}.{ext}`: las fotos, el vídeo y **la música**.
 
+### El vídeo se reduce antes de subir
+
+Un teléfono graba a 1080p o a 4K, y una invitación se abre en 390 px de ancho.
+El archivo que se sube pesa diez veces lo que hace falta, y quien la recibe
+suele estar en datos móviles: ése es el número que decide si espera o cierra.
+
+Se reduce **en el navegador**, igual que las fotos y por las mismas razones:
+sin meter un transcodificador de 80 MB en la imagen de Docker, sin cola de
+trabajos y sin CPU del servidor por cada subida. La máquina que ya tiene el
+archivo lo reduce antes de mandarlo.
+
+El método es reproducirlo sobre un lienzo más pequeño y grabar el lienzo: se
+baja a **1280 px de lado mayor** y **1,5 Mbps**, que a 720p sigue siendo
+calidad de sobra para un clip de ambiente detrás de unos nombres. El peso va
+con el cuadrado del lado, así que ahí está casi toda la rebaja — **medido, un
+1080p de 3,71 MB baja a 0,59: un 84% menos**.
+
+Tiene una limitación que conviene decir de frente: **va en tiempo real**, así
+que un clip de diez segundos tarda diez segundos. Por eso el campo enseña el
+porcentaje mientras trabaja en vez de quedarse callado. Para lo que se sube
+aquí —la cortina se corta a los cinco segundos— es un precio razonable.
+
+Ante cualquier duda, el original: si el navegador no sabe grabar WebM
+(Safari), si el archivo no se puede leer, o si lo recodificado sale **más
+grande** que lo que entró, sube lo que entró. Un clip que ya venía ligero no
+se toca, porque recodificarlo sólo quitaría calidad.
+
+Dos cosas que sólo se supieron probándolo:
+
+**El audio sobrevive.** El vídeo se reproduce en silencio mientras se
+comprime, porque si no sonaría en la oreja de quien está editando, y había que
+comprobar que silenciar la reproducción no se lleva por delante la pista
+capturada. No se la lleva — pero eso no se puede saber leyendo el código.
+
+**Una duración desconocida no es motivo para no comprimir.** Un WebM grabado
+por el propio navegador no trae la duración en la cabecera y llega como
+`Infinity`; la primera versión lo tomaba por archivo ilegible y lo subía tal
+cual, que es justo uno de los que más falta hace reducir. Sin duración se
+pierde el porcentaje, no la rebaja: el final lo marca `ended` igual.
+
+`npm run audit:comprimir` mide las cinco cosas con clips grabados en la propia
+página, y transpila `upload.ts` con esbuild para meterlo en el navegador — así
+lo que se prueba es el código que se publica y no una reimplementación.
+
 ### La música se sube, no se enlaza
 
 El campo «Música de fondo» era una URL y eso obligaba a alojar el MP3 en otro
