@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import type { FieldSpec, ListSpec, SectionData, SectionSpec } from "@/lib/schema";
-import { ADORNOS } from "@/lib/schema";
+import { ADORNOS, ANIMACIONES } from "@/lib/schema";
 import type { TemplateSupport } from "@/lib/support";
 import { ICONOS, ICONO_POR_CLAVE, ICONO_POR_EMOJI, iconoHtml } from "@/lib/iconos";
 import { FontPicker } from "./FontPicker";
@@ -44,6 +44,24 @@ export function SectionEditor({
       ? {
           id: fonts[key] || "",
           set: (id: string) => onChange({ fonts: { ...fonts, [key]: id } }),
+        }
+      : undefined;
+
+  /**
+   * La animación de un texto, por el mismo camino que su tipografía.
+   *
+   * Se ofrece donde se ofrece la letra: si el campo no tiene un binding que
+   * escriba en el marcado, no hay nada que animar — y un control que no puede
+   * hacer nada es peor que ninguno. Sólo en texto libre: animar un color o un
+   * deslizador no significa nada.
+   */
+  const anim = (data.anim || {}) as Record<string, string>;
+  const animFor = (f: FieldSpec) =>
+    (f.type === "text" || f.type === "textarea") &&
+    supports(`${spec.key}.${f.key}@font`)
+      ? {
+          id: anim[f.key] || "",
+          set: (id: string) => onChange({ anim: { ...anim, [f.key]: id } }),
         }
       : undefined;
 
@@ -100,6 +118,7 @@ export function SectionEditor({
                 field={field}
                 value={data[field.key]}
                 font={fontFor(field.key)}
+                anim={animFor(field)}
                 onChange={(v) => onChange({ [field.key]: v })}
               />
             ))}
@@ -182,13 +201,15 @@ function IconoField({ value, onChange }: { value: string; onChange: (v: string) 
 }
 
 function Field({
-  field, value, onChange, font, mediaKind,
+  field, value, onChange, font, anim, mediaKind,
 }: {
   field: FieldSpec;
   value: unknown;
   onChange: (v: string) => void;
   /** Presente sólo si el diseño permite cambiarle la letra a este campo. */
   font?: { id: string; set: (id: string) => void; shared?: boolean };
+  /** Lo mismo para la animación. Ver `ANIMACIONES`. */
+  anim?: { id: string; set: (id: string) => void };
   /** Con qué clase se cataloga lo que se suba desde este campo. */
   mediaKind?: "foto" | "adorno";
 }) {
@@ -255,6 +276,21 @@ function Field({
         </div>
       ) : (
         control
+      )}
+
+      {anim && (
+        <select
+          className={styles.animPicker}
+          value={anim.id}
+          onChange={(e) => anim.set(e.target.value)}
+          title="Cómo se anima este texto"
+        >
+          {ANIMACIONES.map((a) => (
+            <option key={a.value} value={a.value}>
+              {a.value ? `✦ ${a.label}` : a.label}
+            </option>
+          ))}
+        </select>
       )}
 
       {field.help && <p className="field-help">{field.help}</p>}

@@ -192,6 +192,43 @@ export const SITIOS: { value: string; label: string }[] = [
 ];
 
 /**
+ * Las animaciones que puede llevar **un texto suelto**.
+ *
+ * Distinto de la aparición de la sección, que ya existía y entra en bloque:
+ * esto es por campo, así que el antetítulo puede fundirse mientras el título
+ * se escribe letra a letra. Se guarda en `anim` de cada sección, igual que la
+ * tipografía se guarda en `fonts` — mismo sitio, misma forma, misma manera de
+ * llegar al renderer.
+ *
+ * Las tres primeras familias son entradas: corren una vez, cuando el texto se
+ * asoma. Las últimas son de bucle y hay que usarlas con cuidado — tres cosas
+ * latiendo a la vez en una pantalla no es una invitación animada, es una
+ * pantalla inquieta.
+ */
+export const ANIMACIONES: { value: string; label: string }[] = [
+  { value: "", label: "Sin animación" },
+  { value: "aparece", label: "Se funde" },
+  { value: "sube", label: "Sube al aparecer" },
+  { value: "baja", label: "Cae al aparecer" },
+  { value: "izquierda", label: "Entra por la izquierda" },
+  { value: "derecha", label: "Entra por la derecha" },
+  { value: "crece", label: "Crece desde pequeño" },
+  { value: "gira", label: "Entra girando" },
+  { value: "letras", label: "Letra a letra" },
+  { value: "palabras", label: "Palabra a palabra" },
+  { value: "maquina", label: "Máquina de escribir" },
+  { value: "late", label: "Late, en bucle" },
+  { value: "flota", label: "Flota, en bucle" },
+  { value: "brilla", label: "Brilla, en bucle" },
+];
+
+/** Las que reparten el texto en trozos y lo animan uno a uno. */
+export const ANIM_POR_PARTES = new Set(["letras", "palabras", "maquina"]);
+
+/** Las que corren sin parar. Las demás entran una vez y se quedan quietas. */
+export const ANIM_EN_BUCLE = new Set(["late", "flota", "brilla"]);
+
+/**
  * Los adornos de una sección: imágenes que el organizador coloca donde
  * quiera, del tamaño que quiera, delante o detrás del texto.
  *
@@ -967,6 +1004,8 @@ export type SectionData = Record<string, unknown> & {
   items?: Record<string, string>[];
   /** Tipografía elegida por campo: { title: "playfair", … }. */
   fonts?: Record<string, string>;
+  /** Animación elegida por campo: { title: "letras", … }. Ver `ANIMACIONES`. */
+  anim?: Record<string, string>;
 };
 
 /**

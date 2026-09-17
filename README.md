@@ -404,6 +404,62 @@ de cada grupo de seis ocupa el doble — en vez de la cuadrícula 3×2 de los
 demás. Sin fotos, cada casilla conserva su marcador, así que la invitación
 nunca se ve rota.
 
+## Animar un texto suelto
+
+La aparición de cada sección entra **en bloque**. Esto es por campo: el
+antetítulo puede fundirse mientras el título se escribe letra a letra.
+
+Se elige con un selector bajo cada campo de texto, y se guarda en `anim` de la
+sección — mismo sitio y misma forma que la tipografía, que ya se elegía por
+campo. Trece opciones en tres familias:
+
+| | |
+| --- | --- |
+| **De una pieza** | Se funde · Sube · Cae · Entra por la izquierda o la derecha · Crece · Entra girando |
+| **Por partes** | Letra a letra · Palabra a palabra · Máquina de escribir |
+| **En bucle** | Late · Flota · Brilla |
+
+Las de bucle piden cuidado: tres cosas latiendo a la vez no es una invitación
+animada, es una pantalla inquieta.
+
+Cada texto se observa **por su cuenta** y no por su sección — uno abajo del
+todo tiene que esperar a que se llegue a él, aunque su sección lleve rato en
+pantalla—, y el observador vive en el renderer y no en el esqueleto: el del
+esqueleto busca `.reveal` con una lista escrita dentro de cada uno de los 50
+templates, así que sumarse a ella obligaría a regenerarlos todos y dejaría
+fuera a los diseños que vengan.
+
+Varios textos animados en una sección entran **uno detrás de otro**: cada uno
+lleva su turno y el retardo sale de ahí. A la vez parecen un parpadeo;
+escalonados parecen escritos.
+
+### Repartir un texto en letras
+
+Las tres de «por partes» envuelven cada trozo en un `<span>` con su índice, y
+eso trae dos cosas que no se ven en el resultado.
+
+La primera es **cuándo**. Repartir tiene que pasar *después* de escribir el
+campo. Al principio lo puse junto a las tipografías, que es donde parecía que
+tocaba, y estaba mal: se repartía el texto de ejemplo del diseño, y la
+escritura posterior lo borraba junto con los trozos. Quedaba un marcado
+perfectamente válido diciendo otra cosa. La letra sí se puede elegir antes,
+porque es una regla CSS y no le importa qué diga el elemento. Por eso la
+prueba compara contra **lo que se escribió** y no contra que haya trozos.
+
+La segunda es **qué no se puede repartir**. Los nombres de la pareja traen
+dentro el `<span>` del ampersand, y varios campos llevan un `<strong>` puesto
+por el diseño; vaciar el elemento para rellenarlo de letras se llevaría ese
+marcado por delante. Así que sólo se reparte lo que es texto y nada más, y lo
+que no se puede cae a «se funde» — quien lo eligió quería movimiento, y
+dejarlo quieto sería peor que darle otro.
+
+Y el elemento se queda con la frase entera en `aria-label`, con cada trozo en
+`aria-hidden`: sin eso un lector de pantalla leería la frase **letra por
+letra**, que es exactamente lo contrario de lo que se quería.
+
+Quien pidió menos movimiento lo ve todo puesto y quieto: ni entradas, ni
+bucles, ni letras sueltas.
+
 ## Bloques: orden y variantes
 
 La invitación es una **lista ordenada de bloques**. Cada bloque tiene un tipo

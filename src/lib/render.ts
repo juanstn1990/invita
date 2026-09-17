@@ -23,6 +23,8 @@ import {
   SECTION_BY_KEY,
   SITIOS,
   SECTIONS as SPEC,
+  ANIMACIONES,
+  ANIM_POR_PARTES,
   coupleName,
   esVideoUrl,
   formatDateLong,
@@ -268,6 +270,74 @@ function pickEveryOutermost(root: El, sel: string[]): El[] {
     }
   }
   return all.filter((el) => !all.some((other) => other !== el && other.contains(el)));
+}
+
+/* ── animación de un texto suelto ────────────────────────────── */
+
+/** Lo que el esquema declara. Un valor que no esté aquí no se aplica. */
+const ANIM_VALIDA = new Set(ANIMACIONES.map((a) => a.value).filter(Boolean));
+
+/**
+ * Reparte un texto en letras o en palabras, cada trozo con su turno.
+ *
+ * Devuelve `false` si el elemento no se puede repartir, y eso pasa más de lo
+ * que parece: los nombres de la pareja traen dentro el `<span>` del
+ * ampersand, y varios campos llevan un `<strong>` o un `<br>` puestos por el
+ * diseño. Vaciar el elemento para rellenarlo de letras se llevaría por
+ * delante ese marcado, así que sólo se reparte lo que es texto y nada más.
+ *
+ * El elemento se queda con el texto entero en `aria-label` y cada trozo va
+ * con `aria-hidden`: sin eso, un lector de pantalla leería la frase letra por
+ * letra, que es exactamente lo contrario de lo que se quería.
+ */
+function repartirTexto(el: El, modo: string): boolean {
+  if (el.children?.length) return false;
+  const texto = String(el.textContent || "");
+  if (!texto.trim()) return false;
+
+  const doc = el.ownerDocument;
+  el.setAttribute("aria-label", texto);
+  el.textContent = "";
+
+  /* Por palabras se parte conservando los espacios, que van fuera de los
+     trozos: metidos dentro, un espacio animado hace saltar la línea. */
+  const trozos =
+    modo === "palabras" ? texto.split(/(\s+)/) : Array.from(texto);
+
+  let i = 0;
+  for (const t of trozos) {
+    if (!t) continue;
+    if (/^\s+$/.test(t)) {
+      el.appendChild(doc.createTextNode(t));
+      continue;
+    }
+    const span = doc.createElement("span");
+    span.setAttribute("class", "inv-anim-parte");
+    span.setAttribute("aria-hidden", "true");
+    span.setAttribute("style", `--inv-anim-i:${i++}`);
+    span.textContent = t;
+    el.appendChild(span);
+  }
+  return true;
+}
+
+/**
+ * Marca un texto para que se anime al asomarse.
+ *
+ * El turno es lo que hace que varios textos animados en la misma sección
+ * entren uno detrás de otro en vez de todos a la vez.
+ */
+function animarTexto(el: El, valor: string, turno: number): boolean {
+  if (!el || el.getAttribute("data-inv-anim")) return false;
+  if (ANIM_POR_PARTES.has(valor) && !repartirTexto(el, valor)) {
+    /* No se pudo repartir —lleva marcado dentro—: en vez de no animar nada,
+       se cae a la entrada más parecida, que es que el bloque entero aparezca.
+       Quien lo eligió quería movimiento; dejarlo quieto sería peor. */
+    valor = "aparece";
+  }
+  el.setAttribute("data-inv-anim", valor);
+  if (turno) el.setAttribute("style", `${el.getAttribute("style") || ""};--inv-anim-turno:${turno}`.replace(/^;/, ""));
+  return true;
 }
 
 /* ── nombres de la pareja ────────────────────────────────────── */
@@ -1280,6 +1350,89 @@ export const INJECTED_CSS = `
   #splash.inv-velo-sobre{transition:opacity .7s ease,visibility .7s ease}
   #splash.inv-velo-sobre.hidden{transform:none}
   #splash.inv-velo-sobre.hidden .splash-modal{transform:none;transition:opacity .4s ease}
+}
+
+/* ── Animación de un texto suelto ──────────────────────────────
+   Distinto de la aparición de la sección, que entra en bloque: esto es por
+   campo, así que el antetítulo puede fundirse mientras el título se escribe
+   letra a letra.
+
+   Todo cuelga de .js y de .in, igual que el resto del movimiento del sitio:
+   sin JavaScript no llega el .in, así que el estado de partida —invisible,
+   desplazado— vive bajo .js y sin él el texto sale puesto y ya. Es la misma
+   guarda que ya salvó la invitación una vez, cuando un fallo de guion la
+   dejaba en blanco.
+
+   El turno lo pone el renderer y hace que varios textos animados en una
+   sección entren uno detrás de otro; el índice de cada letra lo pone también
+   él, y los dos se suman en el retardo. */
+[data-inv-anim]{--inv-anim-turno:0}
+.js [data-inv-anim]{animation-fill-mode:both;animation-play-state:paused}
+.js [data-inv-anim].in{animation-play-state:running}
+
+/* Las que entran de una pieza. */
+.js [data-inv-anim="aparece"]{animation:invTxAparece .9s ease
+  calc(var(--inv-anim-turno) * 140ms)}
+.js [data-inv-anim="sube"]{animation:invTxSube .9s cubic-bezier(.2,.7,.3,1)
+  calc(var(--inv-anim-turno) * 140ms)}
+.js [data-inv-anim="baja"]{animation:invTxBaja .9s cubic-bezier(.2,.7,.3,1)
+  calc(var(--inv-anim-turno) * 140ms)}
+.js [data-inv-anim="izquierda"]{animation:invTxIzq .9s cubic-bezier(.2,.7,.3,1)
+  calc(var(--inv-anim-turno) * 140ms)}
+.js [data-inv-anim="derecha"]{animation:invTxDer .9s cubic-bezier(.2,.7,.3,1)
+  calc(var(--inv-anim-turno) * 140ms)}
+.js [data-inv-anim="crece"]{animation:invTxCrece .85s cubic-bezier(.2,.8,.3,1)
+  calc(var(--inv-anim-turno) * 140ms)}
+.js [data-inv-anim="gira"]{animation:invTxGira .95s cubic-bezier(.2,.8,.3,1)
+  calc(var(--inv-anim-turno) * 140ms)}
+
+@keyframes invTxAparece{from{opacity:0}to{opacity:1}}
+@keyframes invTxSube{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+@keyframes invTxBaja{from{opacity:0;transform:translateY(-22px)}to{opacity:1;transform:none}}
+@keyframes invTxIzq{from{opacity:0;transform:translateX(-26px)}to{opacity:1;transform:none}}
+@keyframes invTxDer{from{opacity:0;transform:translateX(26px)}to{opacity:1;transform:none}}
+@keyframes invTxCrece{from{opacity:0;transform:scale(.82)}to{opacity:1;transform:none}}
+@keyframes invTxGira{from{opacity:0;transform:rotate(-8deg) scale(.88)}
+  to{opacity:1;transform:none}}
+
+/* Las que entran por partes.
+   El contenedor no se anima —si no, animaría dos veces— y cada trozo sale a
+   su ritmo. inline-block es imprescindible: un transform no le hace nada
+   a un elemento en línea, así que sin esto las letras subirían cero. */
+.inv-anim-parte{display:inline-block}
+.js [data-inv-anim="letras"],.js [data-inv-anim="palabras"],
+.js [data-inv-anim="maquina"]{animation:none}
+.js :is([data-inv-anim="letras"],[data-inv-anim="palabras"]) .inv-anim-parte{
+  opacity:0;transform:translateY(14px)}
+.js :is([data-inv-anim="letras"],[data-inv-anim="palabras"]).in .inv-anim-parte{
+  animation:invTxParte .55s cubic-bezier(.2,.7,.3,1) both;
+  animation-delay:calc(var(--inv-anim-turno) * 140ms + var(--inv-anim-i) * 45ms)}
+@keyframes invTxParte{from{opacity:0;transform:translateY(14px)}
+  to{opacity:1;transform:none}}
+
+/* La máquina de escribir es lo mismo con el trozo apareciendo de golpe: sin
+   fundido ni desplazamiento, que es lo que hace que se lea como tecleado. Y
+   más lento entre letra y letra, porque escribir lleva su tiempo. */
+.js [data-inv-anim="maquina"] .inv-anim-parte{opacity:0}
+.js [data-inv-anim="maquina"].in .inv-anim-parte{
+  animation:invTxTecla .01s steps(1,end) both;
+  animation-delay:calc(var(--inv-anim-turno) * 140ms + var(--inv-anim-i) * 62ms)}
+@keyframes invTxTecla{to{opacity:1}}
+
+/* Las de bucle. No esperan al turno: lo que hacen es no parar. */
+.js [data-inv-anim="late"].in{animation:invTxLate 2.4s ease-in-out infinite}
+.js [data-inv-anim="flota"].in{animation:invTxFlota 4s ease-in-out infinite}
+.js [data-inv-anim="brilla"].in{animation:invTxBrilla 3.2s ease-in-out infinite}
+@keyframes invTxLate{0%,100%{transform:scale(1)}48%{transform:scale(1.045)}}
+@keyframes invTxFlota{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes invTxBrilla{0%,100%{opacity:1}50%{opacity:.62}}
+
+/* Quien pidió menos movimiento lo ve todo puesto y quieto: ni entradas, ni
+   bucles, ni letras sueltas. Con !important porque tiene que ganarle a trece
+   reglas que no se conocen entre ellas. */
+@media (prefers-reduced-motion:reduce){
+  .js [data-inv-anim],.js [data-inv-anim] .inv-anim-parte{
+    animation:none!important;opacity:1!important;transform:none!important}
 }
 
 /* ── La cortina de apertura ────────────────────────────────────
@@ -2538,6 +2691,45 @@ const ADORNO_ARRASTRE_JS = `
   }
 })();`;
 
+/**
+ * Dispara la animación de cada texto cuando se asoma.
+ *
+ * Observador propio y no el del esqueleto: aquél busca `.reveal` y
+ * `.inv-ad-entra` con una lista escrita dentro de cada uno de los 50
+ * templates, así que sumarse a ella obligaría a regenerarlos todos y dejaría
+ * fuera a los diseños que vengan. Éste vive en el renderer y llega a todos
+ * por igual.
+ *
+ * Cada texto se observa por su cuenta y no por su sección: uno abajo del todo
+ * tiene que esperar a que se llegue a él, aunque su sección lleve rato en
+ * pantalla. Es la misma razón por la que los adornos se observan sueltos.
+ *
+ * Sin `IntersectionObserver` se pone todo de una: más vale la invitación
+ * entera visible que un texto que nunca aparece.
+ */
+const TEXTO_ANIM_JS = `
+(function(){
+  var textos = [].slice.call(document.querySelectorAll('[data-inv-anim]'));
+  if (!textos.length) return;
+
+  if (!window.IntersectionObserver) {
+    for (var i = 0; i < textos.length; i++) textos[i].classList.add('in');
+    return;
+  }
+
+  var obs = new IntersectionObserver(function(items){
+    for (var i = 0; i < items.length; i++) {
+      if (!items[i].isIntersecting) continue;
+      items[i].target.classList.add('in');
+      /* Una entrada corre una vez; las de bucle ya no necesitan al
+         observador tampoco, porque la clase se queda puesta. */
+      obs.unobserve(items[i].target);
+    }
+  }, { threshold: .18 });
+
+  for (var j = 0; j < textos.length; j++) obs.observe(textos[j]);
+})();`;
+
 const HIDE_SPLASH_JS = `
 (function(){
   var s = document.getElementById('splash') || document.querySelector('.splash');
@@ -2694,6 +2886,46 @@ export function renderInvitation(opts: RenderOptions): string {
       }
     }
   };
+  /**
+   * La animación de cada texto.
+   *
+   * Va por el mismo camino que la tipografía —lo elegido vive en la sección,
+   * se busca el binding del campo y se aplica sobre lo que encuentre— pero
+   * acaba en atributos del elemento y no en reglas CSS, porque dos de las
+   * familias necesitan tocar el contenido: repartir el texto en letras o en
+   * palabras no se puede pedir con un selector.
+   *
+   * Los que se animan llevan además un turno, así que varios textos animados
+   * en una sección entran **uno detrás de otro**. A la vez parecen un
+   * parpadeo; escalonados parecen escritos.
+   */
+  const collectAnims = (
+    spec: (typeof SPEC)[number],
+    root: El,
+    section: InvitationData[string]
+  ) => {
+    const elegidas = (section?.anim || {}) as Record<string, string>;
+    let turno = 0;
+    for (const field of spec.fields) {
+      const valor = String(elegidas[field.key] || "");
+      if (!valor || !ANIM_VALIDA.has(valor)) continue;
+      /* Sólo texto: animar un campo de color o un deslizador no significa
+         nada, y su binding ni siquiera escribe texto. */
+      if (field.type !== "text" && field.type !== "textarea") continue;
+
+      const path = `${spec.key}.${field.key}`;
+      const ops = map.fields[FONT_ALIAS[path] || path];
+      if (!ops) continue;
+
+      for (const op of ops) {
+        if (!fontableOp(op)) continue;
+        for (const el of op.all ? pickEveryOutermost(root, op.sel) : pickAll(root, op.sel)) {
+          if (animarTexto(el, valor, turno)) turno++;
+        }
+      }
+    }
+  };
+
   const ctx: Ctx = {
     name1: String(data.event?.name1 || "").trim(),
     name2: String(data.event?.name2 || "").trim(),
@@ -3041,7 +3273,6 @@ export function renderInvitation(opts: RenderOptions): string {
     if (r.block.type === "video" && !ponerVideo(root, sectionData)) continue;
 
     if (spec) collectFonts(spec, sectionSel, root, sectionData);
-
     const calculados = deriveSection(r.key, sectionData);
 
     for (const field of campos) {
@@ -3065,6 +3296,15 @@ export function renderInvitation(opts: RenderOptions): string {
     } else if ((spec?.list || blockSpec?.list) && listBinding) {
       applyList(root, r.key, listBinding, (sectionData.items as Record<string, string>[]) || [], ctx);
     }
+
+    /* La animación de cada texto, **después** de escribirlos.
+       Antes iba junto a las tipografías, que es donde parecía que tocaba, y
+       estaba mal por una razón que sólo se ve probándolo: dos de las familias
+       reparten el texto en letras, y repartir antes de escribir reparte el
+       texto de ejemplo del diseño — que además la escritura posterior borra
+       junto con los trozos. La letra sí se puede elegir antes, porque es una
+       regla CSS y no le importa qué diga el elemento. */
+    if (spec) collectAnims(spec, root, sectionData);
 
     /* La cinta continua necesita las fotos dos veces.
        La tira se mueve media anchura y vuelve a empezar; con una sola copia,
@@ -3316,6 +3556,7 @@ export function renderInvitation(opts: RenderOptions): string {
   if (document.querySelector("[data-cd]")) scripts.push(countdownJs(iso));
   if (document.querySelector("[data-inv-px]")) scripts.push(PARALLAX_JS);
   if (document.querySelector(".inv-fondo-video")) scripts.push(FONDO_VIDEO_JS);
+  if (document.querySelector("[data-inv-anim]")) scripts.push(TEXTO_ANIM_JS);
   /* Después de la música: la cortina la busca por su id para hacerla esperar,
      y para encontrarla tiene que estar ya creada. */
   if (document.querySelector(".inv-cortina")) scripts.push(CORTINA_JS);

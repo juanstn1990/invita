@@ -335,6 +335,98 @@ for (const [nombre, tocar] of CASOS) {
   }
 }
 
+/* ── Animación por texto ─────────────────────────────────────────
+   Dos de las familias reparten el texto en trozos, y ahí hay un fallo que el
+   marcado no delata a simple vista: si se reparte **antes** de escribir el
+   campo, lo que se parte es el texto de ejemplo del diseño. Queda un marcado
+   perfectamente válido diciendo otra cosa. Por eso se comprueba contra lo que
+   se escribió, no contra que haya trozos. */
+{
+  const TITULO = "Momentos de los dos";
+
+  const casos: [string, Record<string, string>, (t: any, doc: any) => boolean][] = [
+    [
+      "sin elegir nada no se marca nada",
+      {},
+      (_t, doc) => !doc.querySelector("[data-inv-anim]"),
+    ],
+    [
+      "una entrada simple sólo marca",
+      { title: "sube" },
+      (t) => t?.getAttribute("data-inv-anim") === "sube" &&
+        !t.querySelector(".inv-anim-parte"),
+    ],
+    [
+      "letra a letra parte lo escrito, no el ejemplo del diseño",
+      { title: "letras" },
+      (t) => {
+        const partes = Array.from(t?.querySelectorAll(".inv-anim-parte") || []) as any[];
+        const letras = TITULO.replace(/\s/g, "");
+        return partes.length === letras.length &&
+          partes.map((p) => p.textContent).join("") === letras;
+      },
+    ],
+    [
+      "palabra a palabra son las palabras que hay",
+      { title: "palabras" },
+      (t) => (t?.querySelectorAll(".inv-anim-parte") || []).length === TITULO.split(/\s+/).length,
+    ],
+    /* Sin esto un lector de pantalla leería la frase letra por letra, que es
+       exactamente lo contrario de lo que se quería. */
+    [
+      "el texto entero queda legible para un lector de pantalla",
+      { title: "letras" },
+      (t) => t?.getAttribute("aria-label") === TITULO &&
+        Array.from(t.querySelectorAll(".inv-anim-parte")).every(
+          (p: any) => p.getAttribute("aria-hidden") === "true"
+        ),
+    ],
+    [
+      "un valor inventado se ignora",
+      { title: "explota" },
+      (_t, doc) => !doc.querySelector("#gallery [data-inv-anim]"),
+    ],
+    /* El turno es lo que hace que dos textos animados entren uno detrás de
+       otro en vez de a la vez. */
+    /* Se mira el **segundo** marcado, no el primero: el turno cero no escribe
+       nada, que es justo lo que hace que la regla por defecto valga. */
+    [
+      "el segundo texto animado espera su turno",
+      { label: "aparece", title: "sube" },
+      (_t, doc) => {
+        const todos = Array.from(doc.querySelectorAll("#gallery [data-inv-anim]")) as any[];
+        return todos.length === 2 &&
+          !String(todos[0].getAttribute("style") || "").includes("--inv-anim-turno") &&
+          String(todos[1].getAttribute("style") || "").includes("--inv-anim-turno:1");
+      },
+    ],
+  ];
+
+  for (const [nombre, anim, comprueba] of casos) {
+    const mal: string[] = [];
+    for (const tpl of TEMPLATES) {
+      const d: any = defaultData();
+      d.gallery = { ...d.gallery, enabled: true, label: "Recuerdos", title: TITULO, anim };
+      const { document } = parseHTML(
+        renderInvitation({
+          templateHtml: readTemplate(tpl.id), templateId: tpl.id, data: d, slug: "demo",
+        })
+      );
+      const t = document.querySelector("#gallery [data-inv-anim]") as any;
+      try {
+        if (!comprueba(t, document)) mal.push(tpl.id);
+      } catch {
+        mal.push(`${tpl.id} (excepción)`);
+      }
+    }
+    if (mal.length) botonMal++;
+    console.log(
+      `${mal.length ? "✗" : "✓"} anim · ${nombre.padEnd(52)}` +
+        (mal.length ? `  ${mal.length} mal: ${mal.slice(0, 2).join(", ")}` : "")
+    );
+  }
+}
+
 /* ── Adornos con sitio libre ─────────────────────────────────────
    El sitio libre se apoya en dos variables CSS. Que lleguen bien no se ve
    mirando la invitación: un adorno colocado mal sigue siendo un adorno. */
