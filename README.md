@@ -404,6 +404,29 @@ de cada grupo de seis ocupa el doble — en vez de la cuadrícula 3×2 de los
 demás. Sin fotos, cada casilla conserva su marcador, así que la invitación
 nunca se ve rota.
 
+## Colores sólidos: sección, ficha y botones
+
+Tres sitios donde se puede pintar sin subir nada.
+
+**El fondo de una sección** acepta un color sólido además de la imagen. Va
+antes que el campo de la imagen a propósito: es lo que más se pide y lo más
+barato —cero bytes—, y quien sólo quiere «esta sección en verde» no debería
+pasar por un campo de subir foto para llegar. Con imagen puesta, el color
+queda **debajo**: es el papel sobre el que se apoya una foto con
+transparencia o una que no llega a cubrir.
+
+**Cada ficha** del programa y de información también, con su transparencia. Y
+ahí hay una decisión que no se ve: la transparencia va **dentro del color**,
+como `rgba`, y no en un `opacity` sobre la tarjeta — sobre la caja se llevaría
+también el texto, y en un pseudoelemento quedaría encima de la imagen en vez
+de debajo, porque los dos pseudos se pintan sobre el `background-image`.
+
+**Los botones**, para toda la invitación. Uno y no uno por sección: un botón
+que cambia de color según dónde esté no se lee como el mismo botón. Y no se
+persiguen sus clases una a una — se reescriben `--accent` y `--on-accent`, que
+es de donde salen todos: el de la portada, el de confirmar, el del mapa y los
+del velo.
+
 ## Cada ficha con su propio fondo
 
 Las tarjetas del **programa** y las de **información útil** pueden llevar cada
@@ -518,6 +541,13 @@ función que resuelve los selectores. Eso es lo que no había que duplicar: lo
 difícil aquí nunca fue la propiedad, era **encontrar a quién se le aplica**,
 porque un campo puede escribirse en varios sitios a la vez y sus selectores
 dependen del diseño.
+
+Los datos del evento —los nombres, la fecha, la frase— no tienen sección
+propia: se escriben en la portada, el velo y el pie a la vez. La tipografía ya
+se recogía con el documento entero por ámbito, pero el color y la alineación
+no, así que **elegirle un color a la frase no hacía nada mientras cambiarle la
+letra sí**. Un control que funciona a medias es peor que uno que no está,
+porque nadie sabe cuál de las dos mitades falló.
 
 El color de sección sigue existiendo y pinta todo lo suyo; el de campo le
 gana sin pelear por el orden, porque aquél apunta a `sel *` y éste al selector

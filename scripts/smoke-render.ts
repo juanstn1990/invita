@@ -335,6 +335,95 @@ for (const [nombre, tocar] of CASOS) {
   }
 }
 
+/* ── Colores sólidos ─────────────────────────────────────────────
+   Tres sitios donde se puede pintar sin subir nada: el fondo de una sección,
+   el de una ficha y los botones. El de los botones es el que más podía
+   fallar: no se persigue clase por clase, se reescriben las variables de las
+   que salen todos. */
+{
+  const render = (toca: (d: any) => void) => {
+    const d: any = defaultData();
+    d.events.items = [{ icon: "⛪", title: "Uno" }, { icon: "🥂", title: "Dos" }];
+    toca(d);
+    const html = renderInvitation({
+      templateHtml: readTemplate(TEMPLATES[0].id), templateId: TEMPLATES[0].id,
+      data: d, slug: "demo",
+    });
+    return { html, doc: parseHTML(html).document };
+  };
+
+  const casos: [string, (d: any) => void, (r: any) => boolean][] = [
+    [
+      "una sección con sólo color, sin imagen",
+      (d) => { d.gallery = { ...d.gallery, fondoColor: "#00aa44" }; },
+      ({ doc }) => {
+        const capa = doc.querySelector("#gallery > .inv-fondo") as any;
+        const st = String(capa?.getAttribute("style") || "");
+        return st.includes("background:#00aa44") && !st.includes("background-image");
+      },
+    ],
+    [
+      "y con imagen, el color queda debajo",
+      (d) => {
+        d.gallery = {
+          ...d.gallery, fondoColor: "#00aa44",
+          fondoUrl: "/api/media/2026/09/bbbbbbbbbbbbbbbbbbbbbbbb.jpg",
+        };
+      },
+      ({ doc }) => {
+        const st = String((doc.querySelector("#gallery > .inv-fondo") as any)?.getAttribute("style") || "");
+        /* `background-color` y `background-image` en la misma capa: el
+           navegador pinta el color debajo. */
+        return st.includes("background-color:#00aa44") && st.includes("background-image");
+      },
+    ],
+    [
+      "un color inválido no pinta nada",
+      (d) => { d.gallery = { ...d.gallery, fondoColor: "verde" }; },
+      ({ doc }) => !doc.querySelector("#gallery > .inv-fondo"),
+    ],
+    /* La transparencia va dentro del color y no en un `opacity` sobre la
+       caja, que se llevaría también el texto de la ficha. */
+    [
+      "la ficha lleva su color con la transparencia dentro",
+      (d) => { d.events.items[0] = { ...d.events.items[0], fondoColor: "#aa0066", fondoOpacidad: "50" }; },
+      ({ doc }) => {
+        const st = String((doc.querySelector(".inv-ficha-fondo") as any)?.getAttribute("style") || "");
+        return st.includes("--inv-ff-color:rgba(170,0,102,0.5)") && !st.includes("opacity:");
+      },
+    ],
+    [
+      "y sin imagen se apaga el velo, para que el color se vea tal cual",
+      (d) => { d.events.items[0] = { ...d.events.items[0], fondoColor: "#aa0066" }; },
+      ({ doc }) => String((doc.querySelector(".inv-ficha-fondo") as any)?.getAttribute("style")).includes("--inv-ff-velo:0"),
+    ],
+    [
+      "sólo la ficha que lo tiene",
+      (d) => { d.events.items[0] = { ...d.events.items[0], fondoColor: "#aa0066" }; },
+      ({ doc }) => doc.querySelectorAll(".event-card.inv-ficha-fondo").length === 1,
+    ],
+    /* Los botones salen todos de `--accent`: se reescribe esa y no sus clases. */
+    [
+      "el color de los botones reescribe el acento",
+      (d) => { d.event = { ...d.event, btnColor: "#0055ff", btnInk: "#ffee00" }; },
+      ({ html }) => /:root\{[^}]*--accent:#0055ff/.test(html) &&
+        /--on-accent:#ffee00/.test(html),
+    ],
+    [
+      "y sin elegirlo no se toca la paleta",
+      () => {},
+      ({ html }) => !/:root\{--accent:#/.test(html.replace(/--accent:[^;]*;--hero/g, "")),
+    ],
+  ];
+
+  for (const [nombre, toca, comprueba] of casos) {
+    let ok = false;
+    try { ok = comprueba(render(toca)); } catch { ok = false; }
+    if (!ok) botonMal++;
+    console.log(`${ok ? "✓" : "✗"} sólido · ${nombre}`);
+  }
+}
+
 /* ── El fondo propio de cada ficha ───────────────────────────────
    Es por ficha y no por sección, así que lo que hay que comprobar es que una
    con fondo no se lo pegue a sus vecinas — que es lo que pasaría si esto se

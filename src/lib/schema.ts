@@ -536,6 +536,26 @@ export const SECTIONS: SectionSpec[] = [
         help: "Déjalo vacío si la invitación es de una sola persona (quince, cumpleaños).",
       },
       {
+        /*
+         * El color de los botones, para toda la invitación.
+         *
+         * Uno y no uno por sección: un botón que cambia de color según dónde
+         * esté no se lee como el mismo botón. Reescribe `--accent` y
+         * `--on-accent`, que es de donde salen todos —el de la portada, el de
+         * confirmar, el del mapa, los del velo— sin tocar ninguno uno a uno.
+         */
+        key: "btnColor",
+        label: "Color de los botones",
+        type: "color",
+        help: "Vacío = el acento de la paleta.",
+      },
+      {
+        key: "btnInk",
+        label: "Color de su texto",
+        type: "color",
+        help: "Las letras dentro del botón. Vacío = el que trae la paleta.",
+      },
+      {
         key: "paleta",
         label: "Paleta de colores",
         type: "select",

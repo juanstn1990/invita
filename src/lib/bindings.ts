@@ -186,6 +186,9 @@ const APARTE = new Set([
   "ajuste",
   "velo",
   // El fondo de la sección lo pone `ponerFondo` en una capa propia.
+  "fondoColor",
+  "btnColor",
+  "btnInk",
   "fondoUrl",
   "fondoAjuste",
   "fondoOpacidad",

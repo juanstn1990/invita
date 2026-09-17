@@ -14,6 +14,7 @@ import { FONT_BY_ID, googleHref } from "./fonts";
 import { pesoIconos } from "./design/designs";
 import { ANCHOS } from "./storage";
 import { variablesDePaleta } from "./design/css";
+import { alpha } from "./design/theme";
 import { piel } from "./design/theme";
 import { iconoHtml, type Peso } from "./iconos";
 import { FONT_ALIAS, fontableOp } from "./support";
@@ -799,7 +800,8 @@ function fondoVideo(doc: Doc, url: string, modo: string): El {
  */
 function ponerFondo(seccion: El, d: InvitationData[string], sel: string, ctx: Ctx) {
   const url = String(d.fondoUrl || "").trim();
-  if (!url) return;
+  const color = String(d.fondoColor || "").trim();
+  if (!url && !HEX.test(color)) return;
   const modo = String(d.fondoAjuste || "");
   const opacidad = Math.min(100, Math.max(0, Number(d.fondoOpacidad ?? 100))) / 100;
 
@@ -807,10 +809,29 @@ function ponerFondo(seccion: El, d: InvitationData[string], sel: string, ctx: Ct
   capa.setAttribute("class", "inv-fondo");
   capa.setAttribute("aria-hidden", "true");
 
+  /* Sólo color: la capa entera se pinta de él y ya. Es lo más barato que
+     puede pedirse —cero bytes— y lo que más se pide. */
+  if (!url) {
+    capa.setAttribute("style", `background:${color};opacity:${opacidad}`);
+    seccion.insertBefore(capa, seccion.firstChild);
+    ctx.css.push(
+      `${sel}{position:relative}`,
+      `${sel}>.container{position:relative;z-index:1}`
+    );
+    return;
+  }
+
+  /* Con imagen, el color va **debajo**: es el papel sobre el que se apoya una
+     foto con transparencia o una que no llega a cubrir. Va en la capa y la
+     imagen encima, en su propio hijo, para que la opacidad las atenúe a las
+     dos juntas y no se vea el color a través de la foto. */
+  if (HEX.test(color)) capa.setAttribute("data-color", color);
+
+  const base = HEX.test(color) ? `background-color:${color};` : "";
   if (esVideoUrl(url)) {
     /* El recorte lo hace el `object-fit` del vídeo, no la capa: aquí sólo
        queda la atenuación. */
-    capa.setAttribute("style", `opacity:${opacidad}`);
+    capa.setAttribute("style", `${base}opacity:${opacidad}`);
     capa.appendChild(fondoVideo(seccion.ownerDocument, url, modo));
   } else {
     const ajuste = AJUSTE[modo] ?? AJUSTE[""];
@@ -819,7 +840,7 @@ function ponerFondo(seccion: El, d: InvitationData[string], sel: string, ctx: Ct
     const anchoFondo = modo === "repetir" ? 800 : 1600;
     capa.setAttribute(
       "style",
-      `${fondoImagen(url, anchoFondo)}${ajuste};opacity:${opacidad}`
+      `${base}${fondoImagen(url, anchoFondo)}${ajuste};opacity:${opacidad}`
     );
   }
 
@@ -1266,21 +1287,36 @@ function applyList(
  * foto a sangre se saldría por ellas, que es de lo que más se nota.
  */
 function ponerFondoFicha(ficha: El, datos?: Record<string, string>) {
+  if (!ficha?.setAttribute) return;
   const url = String(datos?.fondo || "").trim();
-  if (!url || !ficha?.setAttribute) return;
+  const color = String(datos?.fondoColor || "").trim();
+  const conColor = HEX.test(color);
+  if (!url && !conColor) return;
 
   const velo = Math.min(90, Math.max(0, Number(datos?.fondoVelo ?? 45))) / 100;
+  const opacidad = Math.min(100, Math.max(5, Number(datos?.fondoOpacidad ?? 100))) / 100;
+
   ficha.setAttribute(
     "class",
     `${ficha.getAttribute("class") || ""} inv-ficha-fondo`.trim()
   );
+
   const previo = ficha.getAttribute("style") || "";
   const sep = previo && !previo.trim().endsWith(";") ? ";" : "";
-  ficha.setAttribute(
-    "style",
-    `${previo}${sep}--inv-ff-img:url('${conAncho(url, 800).replace(/'/g, "%27")}');` +
-      `--inv-ff-velo:${velo}`
-  );
+  const partes: string[] = [];
+  if (url) {
+    partes.push(`--inv-ff-img:url('${conAncho(url, 800).replace(/'/g, "%27")}')`);
+    partes.push(`--inv-ff-velo:${velo}`);
+  } else {
+    /* Sin imagen no hay nada que velar: el velo se apaga para que el color
+       elegido se vea tal cual y no mezclado con el de la tarjeta. */
+    partes.push("--inv-ff-velo:0");
+  }
+  /* La transparencia va dentro del color y no en un `opacity`: sobre la caja
+     se llevaría también el texto, y en un pseudoelemento quedaría encima de
+     la imagen en vez de debajo. */
+  if (conColor) partes.push(`--inv-ff-color:${alpha(color, opacidad)}`);
+  ficha.setAttribute("style", `${previo}${sep}${partes.join(";")}`);
 }
 
 /* ── cuenta atrás ────────────────────────────────────────────── */
@@ -1568,8 +1604,14 @@ export const INJECTED_CSS = `
    elemento posicionado se pinta después de un ::before absoluto que va antes
    en el orden, que es justo lo que hace falta y sin repartir z-index. */
 .inv-ficha-fondo{position:relative;overflow:hidden;
+  background-color:var(--inv-ff-color,transparent);
   background-image:var(--inv-ff-img);background-size:cover;
   background-position:center;background-repeat:no-repeat}
+/* El color sólido va en el background-color de la tarjeta, con su
+   transparencia metida dentro del propio color. Un pseudoelemento no vale:
+   los dos pseudos se pintan **encima** del background-image, así que el color
+   taparía la imagen en vez de quedar debajo. Y bajar el opacity de la caja se
+   llevaría también el texto. */
 .inv-ficha-fondo::before{content:"";position:absolute;inset:0;
   background:var(--card);opacity:var(--inv-ff-velo,.45);pointer-events:none}
 .inv-ficha-fondo > *{position:relative}
@@ -3351,8 +3393,20 @@ export function renderInvitation(opts: RenderOptions): string {
     for (const op of map.fields[key] || []) applyOp(document.body, op, derived[key] ?? "", ctx);
   }
 
+  /* Los datos del evento —los nombres, la fecha, la frase— no tienen sección
+     propia: se escriben en la portada, el velo y el pie a la vez, así que su
+     ámbito es el documento entero.
+
+     La tipografía ya se recogía aquí; el color y la alineación no, y por eso
+     elegirle un color a la frase no hacía nada mientras que cambiarle la
+     letra sí. Un control que funciona a medias es peor que uno que no está,
+     porque nadie sabe cuál de las dos mitades falló. */
   const eventSpec = SPEC.find((sp) => sp.key === "event");
-  if (eventSpec) collectFonts(eventSpec, "body", document.body, data.event);
+  if (eventSpec) {
+    collectFonts(eventSpec, "body", document.body, data.event);
+    collectColors(eventSpec, "body", document.body, data.event);
+    collectAnims(eventSpec, document.body, data.event);
+  }
 
   /* 3 · Bloques: resolver, sintetizar los que usan variante propia, ordenar */
 
@@ -4002,7 +4056,26 @@ export function renderInvitation(opts: RenderOptions): string {
 
   const style = document.createElement("style");
   // El color elegido va después de todo, para poder ganarle al velo de la foto.
-  style.textContent = [paletaCss, INJECTED_CSS, ...extraCss, ...fontCss, ...colorCss].join("\n");
+  /* El color de los botones, si se eligió.
+     Reescribe las dos variables de las que salen todos —el de la portada, el
+     de confirmar, el del mapa, los del velo— en vez de perseguir sus clases
+     una a una. Va después de la paleta, que es quien las define, y antes del
+     resto: así se puede seguir apuntando a un botón concreto por su campo. */
+  const botonCss = (() => {
+    const fondo = String(data.event?.btnColor || "").trim();
+    const tinta = String(data.event?.btnInk || "").trim();
+    const decls = [
+      HEX.test(fondo) ? `--accent:${fondo};--hero-accent:${fondo};--inv-accent:${fondo}` : "",
+      HEX.test(tinta)
+        ? `--on-accent:${tinta};--hero-on-accent:${tinta};--inv-on-accent:${tinta}`
+        : "",
+    ].filter(Boolean);
+    return decls.length ? `:root{${decls.join(";")}}` : "";
+  })();
+
+  style.textContent = [paletaCss, botonCss, INJECTED_CSS, ...extraCss, ...fontCss, ...colorCss]
+    .filter(Boolean)
+    .join("\n");
 
   const href = googleHref([...fontIds]);
   if (href) {
