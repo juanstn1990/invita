@@ -185,6 +185,10 @@ export const SITIOS: { value: string; label: string }[] = [
   { value: "abajo", label: "Abajo al centro" },
   { value: "abajo-der", label: "Abajo a la derecha" },
   { value: "sangre", label: "A sangre (cubre la sección)" },
+  /* Va al final a propósito: los nueve anclajes son la vía rápida para lo
+     normal —una esquina, el centro— y bajar a dos números es lo que se elige
+     cuando ninguno de los nueve sirve. */
+  { value: "libre", label: "Libre: yo pongo dónde" },
 ];
 
 /**
@@ -204,6 +208,35 @@ export const ADORNOS: ListSpec = {
   fields: [
     { key: "url", label: "Imagen", type: "image", span: 2 },
     { key: "sitio", label: "Dónde", type: "select", options: SITIOS, fallback: 0 },
+    /*
+     * Las coordenadas del sitio «libre».
+     *
+     * En porcentaje de la sección y no en píxeles, y eso no es una
+     * preferencia: la sección mide distinto en un iPhone SE que en un
+     * escritorio, así que un adorno colocado en píxeles sobre una pantalla
+     * aparece en otro sitio en la de quien recibe la invitación. El
+     * porcentaje mantiene la proporción.
+     *
+     * Marcan el **centro** de la pieza, no su esquina, que es como se piensa
+     * al colocar algo: "esto va en el medio del borde de arriba" son 50 y 0,
+     * y no hay que restar medio adorno de cabeza.
+     */
+    {
+      key: "x",
+      label: "Horizontal",
+      type: "range",
+      min: 0, max: 100, step: 1, unit: "%",
+      fallback: 50,
+      showIf: { key: "sitio", value: "libre" },
+    },
+    {
+      key: "y",
+      label: "Vertical",
+      type: "range",
+      min: 0, max: 100, step: 1, unit: "%",
+      fallback: 50,
+      showIf: { key: "sitio", value: "libre" },
+    },
     {
       key: "tamano",
       label: "Tamaño",
@@ -283,6 +316,8 @@ export const ADORNOS: ListSpec = {
   defaultItem: {
     url: "", sitio: "arriba-izq", tamano: "40", capa: "", opacidad: "100",
     entrada: "", movimiento: "", giro: "0", espejo: "",
+    /* Al centro, que es de donde se parte al arrastrarlo a otro sitio. */
+    x: "50", y: "50",
   },
 };
 

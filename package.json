@@ -27,7 +27,8 @@
     "audit:aperturas": "tsx scripts/audit-aperturas.ts",
     "audit:vistas": "tsx scripts/audit-vistas.ts",
     "audit:cortina": "tsx scripts/audit-cortina.ts",
-    "audit:medios": "tsx scripts/audit-medios.ts"
+    "audit:medios": "tsx scripts/audit-medios.ts",
+    "audit:adornos": "tsx scripts/audit-adornos.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.20.0",

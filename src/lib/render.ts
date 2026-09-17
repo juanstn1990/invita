@@ -630,20 +630,35 @@ const MOVIMIENTOS = new Set(["flota", "balancea", "late", "respira", "destello"]
  * la sección. Preguntarlo aparte sería un campo más para decir lo que el
  * sitio ya dice.
  */
-function desdeDonde(sitio: string): string {
-  const y = sitio.startsWith("arriba") ? -1 : sitio.startsWith("abajo") ? 1 : 0;
-  const x = sitio.endsWith("izq") ? -1 : sitio.endsWith("der") ? 1 : 0;
+function desdeDonde(sitio: string, cx = 50, cy = 50): string {
+  /* Un adorno libre no tiene un anclaje del que deducirlo, así que el borde
+     sale de dónde está puesto: lo que queda en el tercio de arriba entra
+     desde arriba, y lo mismo a los lados. Es la misma idea que con los
+     anclajes —el sitio ya lo dice— aplicada a un número en vez de a un
+     nombre. */
+  const y = sitio === "libre"
+    ? (cy < 34 ? -1 : cy > 66 ? 1 : 0)
+    : sitio.startsWith("arriba") ? -1 : sitio.startsWith("abajo") ? 1 : 0;
+  const x = sitio === "libre"
+    ? (cx < 34 ? -1 : cx > 66 ? 1 : 0)
+    : sitio.endsWith("izq") ? -1 : sitio.endsWith("der") ? 1 : 0;
   /* En el centro no hay borde del que venir: se cae a subir. */
   if (!x && !y) return "translateY(24px)";
   return `translate(${x * 30}px, ${y * 30}px)`;
 }
 
-function ponerAdornos(seccion: El, d: InvitationData[string], sel: string, ctx: Ctx) {
+function ponerAdornos(
+  seccion: El,
+  d: InvitationData[string],
+  sel: string,
+  ctx: Ctx,
+  clave = ""
+) {
   const items = (d.adornos as Record<string, string>[]) || [];
   if (!Array.isArray(items) || !items.length) return;
 
   let puestos = 0;
-  for (const it of items) {
+  for (const [i, it] of items.entries()) {
     const url = String(it?.url || "").trim();
     if (!url) continue;
 
@@ -651,6 +666,9 @@ function ponerAdornos(seccion: El, d: InvitationData[string], sel: string, ctx: 
     const tamano = Math.min(100, Math.max(5, Number(it.tamano) || 40));
     const opacidad = Math.min(100, Math.max(5, Number(it.opacidad ?? 100))) / 100;
     const giro = Math.min(180, Math.max(-180, Number(it.giro) || 0));
+    /* Sólo significan algo en el sitio libre; en los anclados se ignoran. */
+    const cx = Math.min(100, Math.max(0, Number(it.x ?? 50)));
+    const cy = Math.min(100, Math.max(0, Number(it.y ?? 50)));
     const encima = String(it.capa || "") === "encima";
     const espejo = String(it.espejo || "");
     const entrada = ENTRADAS.has(String(it.entrada)) ? String(it.entrada) : "";
@@ -663,9 +681,17 @@ function ponerAdornos(seccion: El, d: InvitationData[string], sel: string, ctx: 
       `inv-adorno inv-ad-${sitio}` + (entrada ? ` inv-ad-entra inv-ad-e-${entrada}` : "")
     );
     caja.setAttribute("aria-hidden", "true");
+    /* Sólo en el editor, y con el índice del array y no el de los puestos:
+       un adorno sin imagen se salta al dibujar pero sigue ocupando su sitio
+       en la lista, y el editor escribe por esa posición. Sin esta marca el
+       guion de arrastre no sabría a cuál de los ocho está moviendo. */
+    if (ctx.preview && clave && sitio !== "sangre") {
+      caja.setAttribute("data-inv-adorno", `${clave}:${i}`);
+    }
     caja.setAttribute(
       "style",
       (sitio === "sangre" ? "" : `width:${tamano}%;`) +
+        (sitio === "libre" ? `--inv-ad-x:${cx}%;--inv-ad-y:${cy}%;` : "") +
         /* La opacidad elegida va en una variable porque la animación de
            entrada tiene que terminar justo en ella, no en 1.
 
@@ -679,7 +705,7 @@ function ponerAdornos(seccion: El, d: InvitationData[string], sel: string, ctx: 
         /* Varios adornos en una sección entran uno detrás de otro: a la vez
            parecen un parpadeo, escalonados parecen puestos a mano. */
         (entrada && puestos ? `;--inv-ad-espera:${puestos * 120}ms` : "") +
-        (entrada === "desliza" ? `;--inv-ad-desde:${desdeDonde(sitio)}` : "")
+        (entrada === "desliza" ? `;--inv-ad-desde:${desdeDonde(sitio, cx, cy)}` : "")
     );
 
     /* Tres capas, y cada una con su trabajo, porque las tres quieren escribir
@@ -932,6 +958,8 @@ type Ctx = {
   heroDisposicion?: string;
   /** El peso de los iconos de este diseño: `light` o `duotone`. */
   peso: Peso;
+  /** En el editor. Es lo único que enciende el arrastre de adornos. */
+  preview?: boolean;
 };
 
 function applyList(
@@ -1494,6 +1522,10 @@ export const INJECTED_CSS = `
 .inv-ad-abajo-izq{bottom:0;left:0}
 .inv-ad-abajo{bottom:0;left:50%;translate:-50% 0}
 .inv-ad-abajo-der{bottom:0;right:0}
+/* Libre: las dos coordenadas marcan el centro de la pieza, no su esquina.
+   Por eso el translate del 50%: es lo que hace que "50 y 0" sea el adorno
+   centrado sobre el borde de arriba y no colgando a su derecha. */
+.inv-ad-libre{left:var(--inv-ad-x,50%);top:var(--inv-ad-y,50%);translate:-50% -50%}
 /* A sangre: cubre la sección y recorta lo que sobre. */
 .inv-ad-sangre{inset:0}
 .inv-ad-sangre img{width:100%;height:100%;object-fit:cover}
@@ -2414,6 +2446,98 @@ const CORTINA_JS = `
   saltar.addEventListener('click', irse);
 })();`;
 
+/**
+ * Arrastrar un adorno sobre la vista previa.
+ *
+ * Los dos deslizadores de «libre» colocan a ciegas: se mueve un número, se
+ * mira, se corrige. Esto es lo mismo por el otro extremo — se agarra la pieza
+ * y se suelta donde va— y acaba escribiendo **en los mismos dos campos**, así
+ * que ni hay un segundo modelo de datos ni hay nada que sincronizar.
+ *
+ * Arrastrar un adorno anclado lo pasa a libre en el sitio donde se soltó: es
+ * lo que se espera al mover algo con el dedo, y es lo que evita explicar la
+ * diferencia entre las dos cosas.
+ *
+ * El editor sólo se entera **al soltar**. Avisarle mientras se mueve
+ * dispararía un render de la invitación entera por fotograma; durante el
+ * arrastre la pieza se mueve aquí, con estilo en línea, que le gana a la
+ * regla del anclaje sin tener que quitar clases.
+ *
+ * Va únicamente en la vista previa: en una invitación publicada esto sería un
+ * guion que deja mover la decoración a quien la recibe.
+ */
+const ADORNO_ARRASTRE_JS = `
+(function(){
+  var cajas = document.querySelectorAll('[data-inv-adorno]');
+  if (!cajas.length) return;
+
+  /* Se anuncia lo que se puede agarrar: sin esto, que un adorno se mueva es
+     un secreto. El contorno va en :hover para no ensuciar la vista previa. */
+  var css = document.createElement('style');
+  css.textContent =
+    '[data-inv-adorno]{pointer-events:auto;cursor:grab;touch-action:none}' +
+    '[data-inv-adorno]:hover{outline:1px dashed rgba(59,130,246,.9);outline-offset:3px}' +
+    '[data-inv-adorno].inv-ad-agarrado{cursor:grabbing;outline:1px solid rgba(59,130,246,1)}' +
+    /* Una franja mínima para agarrar. Un adorno ancho y fino —una filigrana
+       de separación— mide seis píxeles de alto y es casi imposible de coger;
+       y mientras su imagen carga mide cero. Va en un pseudoelemento absoluto
+       a propósito: así el área de agarre crece sin que la caja cambie de
+       tamaño, que movería la pieza respecto a donde de verdad está. */
+    '[data-inv-adorno]::before{content:"";position:absolute;left:0;right:0;' +
+      'top:50%;height:28px;translate:0 -50%}';
+  document.head.appendChild(css);
+
+  for (var i = 0; i < cajas.length; i++) preparar(cajas[i]);
+
+  function preparar(caja){
+    caja.addEventListener('pointerdown', function(e){
+      /* La sección es quien define el sistema de coordenadas: el renderer le
+         pone position:relative justo para esto. */
+      var sec = caja.offsetParent;
+      if (!sec) return;
+      e.preventDefault();
+      e.stopPropagation();
+
+      var r = sec.getBoundingClientRect();
+      if (!r.width || !r.height) return;
+      caja.setPointerCapture(e.pointerId);
+      caja.classList.add('inv-ad-agarrado');
+      var x = 50, y = 50;
+
+      function mover(ev){
+        x = Math.max(0, Math.min(100, ((ev.clientX - r.left) / r.width) * 100));
+        y = Math.max(0, Math.min(100, ((ev.clientY - r.top) / r.height) * 100));
+        /* En línea para ganarle al anclaje sin tocar las clases, y se anulan
+           right/bottom porque un adorno anclado a la derecha los tiene
+           puestos y pelearían con el left nuevo. */
+        caja.style.left = x.toFixed(1) + '%';
+        caja.style.top = y.toFixed(1) + '%';
+        caja.style.right = 'auto';
+        caja.style.bottom = 'auto';
+        caja.style.translate = '-50% -50%';
+      }
+
+      function soltar(ev){
+        caja.releasePointerCapture(e.pointerId);
+        caja.classList.remove('inv-ad-agarrado');
+        caja.removeEventListener('pointermove', mover);
+        caja.removeEventListener('pointerup', soltar);
+        caja.removeEventListener('pointercancel', soltar);
+        var partes = String(caja.getAttribute('data-inv-adorno')).split(':');
+        parent.postMessage({
+          inv: 'adorno', seccion: partes[0], i: Number(partes[1]),
+          x: Math.round(x), y: Math.round(y)
+        }, '*');
+      }
+
+      mover(e);
+      caja.addEventListener('pointermove', mover);
+      caja.addEventListener('pointerup', soltar);
+      caja.addEventListener('pointercancel', soltar);
+    });
+  }
+})();`;
+
 const HIDE_SPLASH_JS = `
 (function(){
   var s = document.getElementById('splash') || document.querySelector('.splash');
@@ -2576,6 +2700,7 @@ export function renderInvitation(opts: RenderOptions): string {
     css: extraCss,
     heroDisposicion: String(data.hero?.disposicion || ""),
     peso: pesoIconos(designOf(templateId)),
+    preview,
   };
 
   const deadline = String(data.confirm?.deadlineText || "").trim() || formatDateLong(iso);
@@ -2909,7 +3034,7 @@ export function renderInvitation(opts: RenderOptions): string {
 
     // El fondo va detrás de todo y los adornos donde el organizador diga.
     ponerFondo(root, sectionData, sectionSel, ctx);
-    ponerAdornos(root, sectionData, sectionSel, ctx);
+    ponerAdornos(root, sectionData, sectionSel, ctx, r.key);
 
     /* Un bloque de vídeo sin vídeo se esconde, y entonces no hay nada más
        que escribirle dentro. */
@@ -3194,6 +3319,11 @@ export function renderInvitation(opts: RenderOptions): string {
   /* Después de la música: la cortina la busca por su id para hacerla esperar,
      y para encontrarla tiene que estar ya creada. */
   if (document.querySelector(".inv-cortina")) scripts.push(CORTINA_JS);
+  /* Sólo en el editor: en lo publicado sería dejar mover la decoración a
+     quien recibe la invitación. */
+  if (preview && document.querySelector("[data-inv-adorno]")) {
+    scripts.push(ADORNO_ARRASTRE_JS);
+  }
   if (scripts.length) {
     const s = document.createElement("script");
     s.textContent = scripts.join("\n");

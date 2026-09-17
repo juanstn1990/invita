@@ -619,9 +619,54 @@ adornos**, y los pone quien edita, no el diseño.
 | | |
 | --- | --- |
 | **Fondo** | Una foto o un **vídeo** (MP4 o WebM). Cubre la sección entera, detrás del texto. Se elige si **cubre** (recorta), **contiene** (entera) o se **repite** en mosaico —lo último, sólo una foto—, y con qué opacidad. |
-| **Adorno** | Una imagen colocada en uno de **diez sitios** —las nueve posiciones de una rejilla de 3×3, más «a sangre»—, con su **tamaño** en porcentaje del ancho, su **opacidad**, su **giro** y su **volteo**. |
+| **Adorno** | Una imagen colocada en uno de **once sitios** —las nueve posiciones de una rejilla de 3×3, «a sangre», y **libre**—, con su **tamaño** en porcentaje del ancho, su **opacidad**, su **giro** y su **volteo**. |
 | **Capa** | Cada adorno va **debajo** o **encima** del texto. Es lo que permite un marco floral que rodea los nombres y una guirnalda que pasa por delante. |
 | **Volteo** | Horizontal, vertical o las dos. Así una sola esquina sirve para las cuatro sin subir cuatro archivos. |
+
+### Libre: dos números, o arrastrarlo
+
+Los nueve anclajes son la vía rápida para lo normal —una esquina, el centro—
+pero no sirven para «un poco más a la izquierda». El sitio **libre** añade dos
+coordenadas.
+
+En **porcentaje de la sección y no en píxeles**, y eso no es una preferencia:
+la sección mide distinto en un iPhone SE que en un escritorio, así que un
+adorno colocado en píxeles sobre una pantalla aparece en otro sitio en la de
+quien recibe la invitación. Marcan además el **centro** de la pieza y no su
+esquina, que es como se piensa al colocar algo: «esto va en el medio del borde
+de arriba» son 50 y 0, sin restar medio adorno de cabeza.
+
+Y se puede **arrastrar sobre la vista previa**. Los dos deslizadores colocan a
+ciegas —se mueve un número, se mira, se corrige—; arrastrar es lo mismo por el
+otro extremo, y acaba escribiendo en **los mismos dos campos**, así que no hay
+un segundo modelo de datos ni nada que sincronizar. Arrastrar un adorno
+anclado lo pasa a libre en el sitio donde se soltó, que es lo que se espera al
+mover algo con el dedo.
+
+Tres detalles que no se adivinan:
+
+- **El editor sólo se entera al soltar.** Avisarle mientras se mueve
+  dispararía un render de la invitación entera por fotograma; durante el
+  arrastre la pieza se mueve dentro del iframe con estilo en línea, que le
+  gana a la regla del anclaje sin tener que quitar clases.
+- **El área de agarre tiene un mínimo de 28 px**, en un pseudoelemento
+  absoluto para que crezca sin que la caja cambie de tamaño. Un adorno ancho y
+  fino —una filigrana de separación— mide seis píxeles de alto y es casi
+  imposible de coger; y mientras su imagen carga mide cero.
+- **Nada de esto viaja en lo publicado.** El atributo que identifica cada
+  adorno y el guion de arrastre se emiten sólo en la vista previa: en una
+  invitación repartida sería dejar mover la decoración a quien la recibe.
+
+El adorno a sangre queda fuera: cubre la sección entera y no hay dónde
+moverlo.
+
+`npm run audit:adornos` comprueba el **viaje redondo**, que es lo único que
+importa aquí: son dos códigos hablando del mismo sistema de coordenadas —el
+guion mide píxeles dentro del iframe y reporta porcentajes, el renderer los
+convierte en `left`/`top`— y si uno mide desde el centro y el otro desde la
+esquina, el adorno salta al soltarlo. Eso no lo ve ninguna prueba de marcado,
+porque el marcado es correcto en los dos casos. Se suelta en tres puntos, se
+toma lo reportado, se vuelve a dibujar con eso y se mide dónde quedó.
 
 El adorno se emite como un `<img>` y no como un `background-image`: así la
 pieza toma su propia proporción sin que el renderer tenga que averiguar cuánto

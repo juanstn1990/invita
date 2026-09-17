@@ -335,6 +335,80 @@ for (const [nombre, tocar] of CASOS) {
   }
 }
 
+/* ── Adornos con sitio libre ─────────────────────────────────────
+   El sitio libre se apoya en dos variables CSS. Que lleguen bien no se ve
+   mirando la invitación: un adorno colocado mal sigue siendo un adorno. */
+{
+  const base = { url: "/api/media/2026/09/aaaaaaaaaaaaaaaaaaaaaaaa.png", tamano: "30" };
+
+  const casos: [string, Record<string, string>, (a: any) => boolean][] = [
+    [
+      "un anclado no cambia",
+      { ...base, sitio: "abajo-der" },
+      (a) => {
+        const c = String(a.getAttribute("class") || "");
+        return c.includes("inv-ad-abajo-der") && !String(a.getAttribute("style")).includes("--inv-ad-x");
+      },
+    ],
+    [
+      "libre lleva sus dos coordenadas",
+      { ...base, sitio: "libre", x: "20", y: "80" },
+      (a) => {
+        const st = String(a.getAttribute("style") || "");
+        return String(a.getAttribute("class")).includes("inv-ad-libre") &&
+          st.includes("--inv-ad-x:20%") && st.includes("--inv-ad-y:80%");
+      },
+    ],
+    [
+      "sin coordenadas cae al centro",
+      { ...base, sitio: "libre" },
+      (a) => String(a.getAttribute("style")).includes("--inv-ad-x:50%"),
+    ],
+    [
+      "una coordenada fuera de rango se recorta",
+      { ...base, sitio: "libre", x: "-40", y: "900" },
+      (a) => {
+        const st = String(a.getAttribute("style") || "");
+        return st.includes("--inv-ad-x:0%") && st.includes("--inv-ad-y:100%");
+      },
+    ],
+    /* El borde del que entra se deduce del sitio, y en libre de los números:
+       puesto arriba a la izquierda tiene que entrar desde arriba y desde la
+       izquierda, no caer al "sube" del centro. */
+    [
+      "«desliza» deduce el borde de las coordenadas",
+      { ...base, sitio: "libre", x: "10", y: "10", entrada: "desliza" },
+      (a) => String(a.getAttribute("style")).includes("--inv-ad-desde:translate(-30px, -30px)"),
+    ],
+    [
+      "y en el centro no hay borde del que venir",
+      { ...base, sitio: "libre", x: "50", y: "50", entrada: "desliza" },
+      (a) => String(a.getAttribute("style")).includes("--inv-ad-desde:translateY(24px)"),
+    ],
+  ];
+
+  for (const [nombre, adorno, comprueba] of casos) {
+    const mal: string[] = [];
+    for (const tpl of TEMPLATES) {
+      const d: any = defaultData();
+      d.gallery = { ...d.gallery, adornos: [adorno] };
+      const { document } = parseHTML(
+        renderInvitation({
+          templateHtml: readTemplate(tpl.id), templateId: tpl.id, data: d, slug: "demo",
+        })
+      );
+      const a = document.querySelector(".inv-adorno") as any;
+      if (!a) mal.push(`${tpl.id} (sin adorno)`);
+      else if (!comprueba(a)) mal.push(tpl.id);
+    }
+    if (mal.length) botonMal++;
+    console.log(
+      `${mal.length ? "✗" : "✓"} adorno · ${nombre.padEnd(44)}` +
+        (mal.length ? `  ${mal.length} mal: ${mal.slice(0, 2).join(", ")}` : "")
+    );
+  }
+}
+
 /* ── La cortina de apertura ──────────────────────────────────────
    Que se vaya siempre lo prueba `audit:cortina` en el navegador, que es donde
    se puede. Aquí se mira lo otro: que se monte cuando toca, que no se monte

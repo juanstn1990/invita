@@ -177,6 +177,45 @@ export function Editor(props: EditorProps) {
     return () => clearTimeout(timer);
   }, [data, templateId]);
 
+  /* ── Arrastrar un adorno sobre la vista previa ──────────── */
+
+  /**
+   * El iframe avisa al soltar, no mientras se mueve: cada aviso vuelve a
+   * renderizar la invitación entera.
+   *
+   * Lo que llega se escribe en los mismos campos que mueven los dos
+   * deslizadores de «libre», así que arrastrar y ajustar a mano son dos caras
+   * de lo mismo y no dos maneras de guardar la posición. Y un adorno anclado
+   * que se arrastra pasa a libre donde se soltó, que es lo que se espera al
+   * mover algo con el dedo.
+   */
+  useEffect(() => {
+    const alSoltar = (e: MessageEvent) => {
+      /* Sólo de nuestro propio iframe: la vista previa vive en un `srcdoc` y
+         cualquier otra ventana puede mandar mensajes a esta página. */
+      if (e.source !== iframe.current?.contentWindow) return;
+      const m = e.data as { inv?: string; seccion?: string; i?: number; x?: number; y?: number };
+      if (!m || m.inv !== "adorno" || !m.seccion || typeof m.i !== "number") return;
+
+      const x = Math.round(Math.max(0, Math.min(100, Number(m.x) || 0)));
+      const y = Math.round(Math.max(0, Math.min(100, Number(m.y) || 0)));
+
+      dirty.current = true;
+      setData((prev) => {
+        const sec = (prev[m.seccion!] || {}) as SectionData;
+        const items = (sec.adornos as Record<string, string>[]) || [];
+        if (!items[m.i!]) return prev;
+        const next = items.map((it, k) =>
+          k === m.i ? { ...it, sitio: "libre", x: String(x), y: String(y) } : it
+        );
+        return { ...prev, [m.seccion!]: { ...sec, adornos: next } };
+      });
+    };
+
+    window.addEventListener("message", alSoltar);
+    return () => window.removeEventListener("message", alSoltar);
+  }, []);
+
   /* ── Guardado automático ────────────────────────────────── */
 
   useEffect(() => {
