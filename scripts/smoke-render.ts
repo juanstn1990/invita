@@ -464,6 +464,84 @@ for (const [nombre, tocar] of CASOS) {
   );
 }
 
+/* ── El itinerario ───────────────────────────────────────────────
+   La variante nueva del programa: medallón con el icono, hilo vertical y a
+   la derecha título, descripción y hora.
+
+   Lo que se vigila es que el marcado que necesita el CSS esté en los 50 y
+   que el orden de lectura lo ponga el CSS y no el marcado — la ficha viene
+   con tipo, título, hora, lugar, nota y botón en ese orden, y un itinerario
+   se lee título, descripción, hora. Si algún día alguien "ordena" el marcado
+   creyendo que ayuda, esto lo dice. */
+{
+  const ITEMS = [
+    { icon: "💍", title: "Ceremonia", note: "Comienzo de la ceremonia.", time: "4:00 p.m." },
+    { icon: "🥂", title: "Recepción", note: "Bienvenida y cóctel.", time: "5:00 p.m." },
+  ];
+  const render = (tpl: string, items = ITEMS) => {
+    const d: any = defaultData();
+    d.events = { ...d.events, enabled: true, title: "Itinerario", items };
+    d.layout = { blocks: [{ id: "ev", type: "events", variant: "itinerario" }] };
+    return renderInvitation({
+      templateHtml: readTemplate(tpl), templateId: tpl, data: d, slug: "demo",
+    });
+  };
+
+  const mal: string[] = [];
+  for (const tpl of TEMPLATES) {
+    const doc = parseHTML(render(tpl.id)).document;
+    const caja: any = doc.querySelector(".inv-ev-itinerario");
+    if (!caja) { mal.push(`${tpl.id}: sin itinerario`); continue; }
+    const fichas = caja.querySelectorAll(".event-card");
+    if (fichas.length !== ITEMS.length) {
+      mal.push(`${tpl.id}: ${fichas.length} fichas de ${ITEMS.length}`); continue;
+    }
+    for (const clase of ["event-icon", "event-title", "event-note", "event-time"]) {
+      if (!fichas[0].querySelector("." + clase)) mal.push(`${tpl.id}: sin ${clase}`);
+    }
+    /* El icono llega como dibujo, no como el emoji escrito: un emoji suelto
+       dentro de un medallón de 60px se ve de 26px y descentrado. */
+    if (!fichas[0].querySelector(".event-icon svg")) mal.push(`${tpl.id}: el icono no es dibujo`);
+  }
+
+  if (mal.length) botonMal++;
+  console.log(
+    `${mal.length ? "✗" : "✓"} itinerario · el marcado está en los ${TEMPLATES.length} diseños` +
+      (mal.length ? `  ${mal.slice(0, 3).join(" · ")}` +
+        (mal.length > 3 ? ` · y ${mal.length - 3} más` : "") : "")
+  );
+
+  /* El documento entero y no «el primer <style>»: los templates traen sus
+     propias hojas y el CSS inyectado va en otra, más abajo. Recortar por el
+     primer cierre dejaba fuera justo lo que se quería mirar, y las tres
+     comprobaciones fallaban por eso y no por el CSS. */
+  const hoja = (html: string) => html;
+  const casos: [string, () => boolean][] = [
+    /* El orden lo pone el CSS. Sin esto se lee tipo, título, hora, lugar,
+       nota — que es el orden de una ficha, no el de un itinerario. */
+    ["el orden de lectura lo pone el CSS, no el marcado", () => {
+      const css = hoja(render(TEMPLATES[0].id));
+      return ["event-title{order:1", "event-note{order:2", "event-time{order:3"]
+        .every((r) => css.includes(".inv-ev-itinerario .".concat(r)));
+    }],
+    ["un momento sin icono no deja un disco vacío",
+      () => hoja(render(TEMPLATES[0].id)).includes(".inv-ev-itinerario .event-icon:empty{display:none}")],
+    /* El medallón se tiñe con el acento, así que sigue a la paleta de cada
+       diseño en vez de traer un verde escrito a mano que chocaría en 49. */
+    ["el medallón se tiñe con el acento del diseño", () => {
+      const css = hoja(render(TEMPLATES[0].id));
+      const bloque = css.slice(css.indexOf(".inv-ev-itinerario .event-icon{"));
+      return bloque.slice(0, bloque.indexOf("}")).includes("var(--inv-accent)");
+    }],
+  ];
+  for (const [nombre, comprueba] of casos) {
+    let ok = false;
+    try { ok = comprueba(); } catch { ok = false; }
+    if (!ok) botonMal++;
+    console.log(`${ok ? "✓" : "✗"} itinerario · ${nombre}`);
+  }
+}
+
 /* ── La forma de los botones ─────────────────────────────────────
    Uno solo para los seis. Lo que se vigila es que de verdad los alcance a
    todos: la promesa del control es «todos a la vez», y un botón que se

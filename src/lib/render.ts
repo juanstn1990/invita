@@ -2322,6 +2322,59 @@ export const INJECTED_CSS = `
 .inv-ev-timeline .event-card::before{content:"";position:absolute;left:-24px;top:24px;
   width:9px;height:9px;border-radius:50%;background:currentColor;opacity:.5}
 
+/* Programa · Itinerario — medallón, hilo y texto a la derecha.
+
+   Tres columnas invisibles: el medallón, el hilo con su punto, y el texto.
+   Se montan con posicionado y no con una rejilla porque el hilo tiene que
+   correr por detrás de todas las fichas, y una rejilla lo cortaría en cada
+   una.
+
+   El orden del texto se reordena con CSS y no se toca el marcado: la ficha
+   viene con tipo, título, hora, lugar, nota y botón en ese orden, y de esas
+   clases cuelgan los bindings. Aquí manda título, luego la nota como
+   descripción y luego la hora, que es como se lee un itinerario: qué pasa,
+   qué es, y a qué hora. */
+.inv-ev-itinerario{position:relative;display:flex;flex-direction:column;
+  gap:30px;margin-top:32px;padding-left:86px;text-align:left}
+.inv-ev-itinerario::before{content:"";position:absolute;left:70px;top:30px;bottom:30px;
+  width:2px;background:currentColor;opacity:.16}
+
+/* La ficha pierde su caja: aquí el fondo lo pone el hilo, no un recuadro. */
+.inv-ev-itinerario .event-card{position:relative;display:flex;flex-direction:column;
+  align-items:flex-start;gap:3px;padding:0;background:none;border:0;box-shadow:none;
+  text-align:left;min-height:62px;justify-content:center}
+
+.inv-ev-itinerario .event-icon{position:absolute;left:-86px;top:50%;
+  transform:translateY(-50%);display:flex;align-items:center;justify-content:center;
+  width:60px;height:60px;margin:0;border-radius:50%;
+  background:var(--inv-accent);color:var(--inv-on-accent);
+  font-size:26px;line-height:1}
+.inv-ev-itinerario .event-icon svg{width:28px;height:28px}
+/* Un momento sin icono no deja un disco de color vacío, que se lee como que
+   algo no cargó. El hilo y su punto se quedan: la línea del itinerario no
+   depende de que cada momento tenga dibujo. */
+.inv-ev-itinerario .event-icon:empty{display:none}
+
+/* El punto sobre el hilo, alineado con el medallón. */
+.inv-ev-itinerario .event-card::before{content:"";position:absolute;left:-19px;top:50%;
+  width:8px;height:8px;margin-top:-4px;border-radius:50%;background:currentColor;opacity:.55}
+
+.inv-ev-itinerario .event-title{order:1;margin:0;font-size:var(--fs-h3)}
+.inv-ev-itinerario .event-note{order:2;margin:0;opacity:.78;font-style:normal}
+.inv-ev-itinerario .event-time{order:3;margin:0;font-variant-numeric:tabular-nums}
+.inv-ev-itinerario .event-type{order:0;margin:0}
+.inv-ev-itinerario .event-place{order:4;margin:2px 0 0;font-size:.9em;opacity:.72}
+.inv-ev-itinerario .event-map-btn{order:5;margin-top:8px}
+
+/* En pantallas muy estrechas el medallón se come el texto. */
+@media (max-width:380px){
+  .inv-ev-itinerario{padding-left:66px}
+  .inv-ev-itinerario::before{left:52px}
+  .inv-ev-itinerario .event-icon{left:-66px;width:46px;height:46px;font-size:20px}
+  .inv-ev-itinerario .event-icon svg{width:22px;height:22px}
+  .inv-ev-itinerario .event-card::before{left:-17px}
+}
+
 .inv-ga-cuadricula{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:26px}
 .inv-ga-cuadricula .gallery-item{aspect-ratio:1}
 .inv-ga-mosaico{display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:104px;gap:9px;margin-top:26px}

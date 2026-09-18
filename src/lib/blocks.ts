@@ -223,6 +223,28 @@ const events: BlockSpec = {
       ${eventCard("")}
     </div>`,
     },
+    /*
+     * El itinerario: medallón, hilo y texto a la derecha.
+     *
+     * Variante nueva y no un retoque de «Línea de tiempo», que centra el
+     * texto y marca cada momento con un punto pequeño. Son dos maneras
+     * distintas de leer lo mismo y hay invitaciones publicadas usando la
+     * otra: cambiarla les movería el suelo sin que nadie lo pidiera.
+     *
+     * El marcado es el mismo de siempre —la misma ficha, las mismas clases—
+     * porque de esas clases cuelgan los bindings. Lo único suyo es la clase
+     * del envoltorio y el CSS que cuelga de ella, que es lo que permite
+     * añadir una manera de ver el programa sin tocar el renderer.
+     */
+    {
+      id: "itinerario",
+      name: "Itinerario",
+      hint: "Medallón con el icono, hilo vertical y texto a la derecha",
+      build: () => `${head()}${body}
+    <div class="events-grid inv-ev-itinerario">
+      ${eventCard("")}
+    </div>`,
+    },
     {
       id: "lista",
       name: "Lista compacta",

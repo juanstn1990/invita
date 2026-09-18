@@ -3290,3 +3290,56 @@ que gana en CSS, y contar cuántos hay es lo que distingue «no tocamos nada» d
 «escribimos encima». La primera versión comparaba posiciones buscando `999px`
 y se creía cierta por el motivo contrario: el diseño de la prueba ya usaba
 píldora.
+
+## Programa · Itinerario
+
+Medallón con el icono, hilo vertical y a la derecha **título, descripción y
+hora**. Se elige como variante de la sección Programa, igual que «Tarjetas» o
+«Lista compacta», y está en los 50 diseños.
+
+Es una variante **nueva** y no un retoque de «Línea de tiempo», que centra el
+texto y marca cada momento con un punto pequeño. Son dos maneras distintas de
+leer lo mismo y hay invitaciones publicadas usando la otra: cambiarla les
+movería el suelo sin que nadie lo hubiera pedido.
+
+El marcado es el de siempre —la misma ficha, las mismas clases—, porque de
+esas clases cuelgan los bindings. Lo único suyo es la clase del envoltorio y
+el CSS que cuelga de ella. Añadir una manera de ver el programa no toca el
+renderer.
+
+### El orden lo pone el CSS
+
+La ficha viene con tipo, título, hora, lugar, nota y botón, en ese orden. Un
+itinerario se lee **qué pasa, qué es y a qué hora**, así que el orden se
+reordena con `order` y el marcado no se toca: moverlo rompería los bindings y
+las otras tres variantes.
+
+Hay una prueba que lo fija, y no por gusto: es justo el tipo de cosa que
+alguien "ordena" en el marcado creyendo que ayuda.
+
+### El medallón se tiñe solo
+
+Va con `--inv-accent` y `--inv-on-accent`, así que cada diseño lo pinta con su
+acento y con la tinta que el sistema de paletas verificó por contraste contra
+ese acento. En Jardín salen círculos verdes con el icono en blanco; en Blanco
+Oro, dorados con tinta oscura.
+
+Esa tinta oscura **no es un fallo**: escribir «blanco» a mano habría quedado
+bien en el diseño de la referencia y habría sido ilegible en los de acento
+claro. Aquí la decisión ya estaba tomada en un sitio mejor.
+
+Y un momento sin icono no deja un disco de color vacío —que se lee como que
+algo no cargó—: el medallón desaparece y el hilo con su punto se quedan. La
+línea del itinerario no depende de que cada momento traiga dibujo.
+
+### Un rato perdido por mirar el sitio equivocado
+
+La primera captura no salía: el elemento «no era visible». La sección
+`[data-inv-section="events"]` estaba ahí, pero oculta y con el marcado
+original — porque una variante con `build` monta su propio elemento y deja la
+del template escondida. Lo que había que mirar era `#inv-ev`.
+
+Y las tres comprobaciones del CSS fallaron a la primera por lo mismo en
+pequeño: recortaban la hoja entre el primer `<style` y el primer `</style>`,
+que es una hoja del template, no la inyectada. El CSS estaba bien desde el
+principio; lo que miraba mal era la prueba.
