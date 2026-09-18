@@ -335,6 +335,73 @@ for (const [nombre, tocar] of CASOS) {
   }
 }
 
+/* ── Los nombres, sitio por sitio ────────────────────────────────
+   `event.names` los escribe en el velo, la portada y el pie a la vez. Estos
+   tres campos se superponen, y lo que hay que vigilar es lo de siempre con un
+   campo que se superpone: que **vacío no borre**. La regla general del
+   renderer es que un campo sin valor quita su elemento, y aquí eso dejaría la
+   invitación sin nombres en cuanto alguien abriera el campo y no escribiera. */
+{
+  const sitios: [string, string, string][] = [
+    ["velo", "splash", ".splash-name"],
+    ["portada", "hero", ".hero-name"],
+    ["pie", "footer", ".footer-names"],
+  ];
+
+  const render = (toca: (d: any) => void) => {
+    const d: any = defaultData();
+    d.event = { ...d.event, name1: "Ana", name2: "Luis" };
+    toca(d);
+    return parseHTML(
+      renderInvitation({
+        templateHtml: readTemplate(TEMPLATES[0].id), templateId: TEMPLATES[0].id,
+        data: d, slug: "demo",
+      })
+    ).document;
+  };
+  const texto = (doc: any, sel: string) =>
+    (doc.querySelector(sel)?.textContent || "").replace(/\s+/g, " ").trim();
+
+  for (const [nombre, clave, sel] of sitios) {
+    const mal: string[] = [];
+
+    /* Sin tocarlo, los del evento. */
+    const base = render(() => {});
+    if (!texto(base, sel).includes("Ana")) mal.push("no trae los del evento");
+
+    /* Vacío tampoco lo toca — el caso que la regla general rompería. */
+    const vacio = render((d) => { d[clave] = { ...d[clave], nombres: "" }; });
+    if (!texto(vacio, sel).includes("Ana")) mal.push("vaciarlo borró los nombres");
+
+    /* Con valor, manda el suyo, y sin arrastrar el ampersand de antes. */
+    const propio = render((d) => { d[clave] = { ...d[clave], nombres: "Los dos" }; });
+    if (texto(propio, sel) !== "Los dos") mal.push(`quedó "${texto(propio, sel)}"`);
+
+    /* Y sólo el suyo: los otros dos siguen con los del evento. */
+    for (const [, otraClave, otroSel] of sitios) {
+      if (otraClave === clave) continue;
+      if (!texto(propio, otroSel).includes("Ana")) mal.push(`también cambió ${otroSel}`);
+    }
+
+    /* Aunque se deje vacío, su color tiene que llegar: poder teñir el nombre
+       de un sitio sin teñir el de los otros dos es la mitad de por qué el
+       campo existe. */
+    const conColor: any = defaultData();
+    conColor[clave] = { ...conColor[clave], colors: { nombres: "#00aa44" } };
+    const html = renderInvitation({
+      templateHtml: readTemplate(TEMPLATES[0].id), templateId: TEMPLATES[0].id,
+      data: conColor, slug: "demo",
+    });
+    if (!html.includes("color:#00aa44")) mal.push("el color no llega");
+
+    if (mal.length) botonMal++;
+    console.log(
+      `${mal.length ? "✗" : "✓"} nombres · ${nombre.padEnd(10)}` +
+        (mal.length ? `  ${mal.join(" · ")}` : "")
+    );
+  }
+}
+
 /* ── Que lo que el renderer entiende se pueda elegir ──────────────
    Esta comprobación existe por un fallo real: el color sólido de sección
    funcionaba en el renderer, tenía sus pruebas en verde y **no aparecía en el

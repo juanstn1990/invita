@@ -51,6 +51,15 @@ export type Op =
    * olvido no se ve en ninguna prueba de marcado.
    */
   | ({ kind: "htmlSeguro" } & OpBase)
+  /**
+   * Texto que sustituye lo que ya hay, y que vacío no borra nada.
+   *
+   * La regla general —un campo vacío quita su elemento para no dejar un
+   * hueco— es la correcta casi siempre y aquí sería un desastre: estos campos
+   * se superponen a algo que ya está escrito, así que vaciarlos tiene que
+   * devolver lo de antes, no llevárselo por delante.
+   */
+  | ({ kind: "textoOpcional" } & OpBase)
   /** Reescribe sólo la opacidad del panel de la portada. */
   | ({ kind: "alpha" } & OpBase)
   /** Foto de portada, con su forma y su sitio. */
@@ -206,6 +215,23 @@ const APARTE = new Set([
 
 /** Operaciones a mano: el tipo del campo no basta para deducirlas. */
 const A_MANO: Record<string, Op[]> = {
+  /*
+   * Los nombres, por sitio.
+   *
+   * `event.names` los escribe en los tres a la vez, que es lo que se quiere
+   * casi siempre. Estos tres se aplican **después** —los campos globales van
+   * en el paso 2 y los de cada sección en el 4— así que quien quiera que el
+   * velo diga otra cosa que la portada, puede.
+   *
+   * Y aunque se dejen vacíos sirven de algo: al existir como campo, cada uno
+   * trae su propia letra, su color, su alineación y su tamaño. Ésa es la
+   * mitad de por qué están aquí — poder teñir el nombre del velo sin teñir el
+   * de la portada.
+   */
+  "splash.nombres": [{ kind: "textoOpcional", sel: [".splash-name"] }],
+  "hero.nombres": [{ kind: "textoOpcional", sel: [".hero-name"] }],
+  "footer.nombres": [{ kind: "textoOpcional", sel: [".footer-names"] }],
+
   // El bloque de HTML propio: se limpia antes de escribirse. Ver `sanear.ts`.
   "html.codigo": [{ kind: "htmlSeguro", sel: ['[data-inv="html.codigo"]', ".inv-html"] }],
   // Los nombres van en la portada, el splash y el pie a la vez.
@@ -397,5 +423,14 @@ export function mapFor(_templateId?: string): TemplateMap {
  * con un atributo por campo ese caso ya no existe.
  */
 export function fontableOp(op: Op): boolean {
-  return op.kind === "text" || op.kind === "html" || op.kind === "couple";
+  return (
+    op.kind === "text" ||
+    op.kind === "html" ||
+    op.kind === "couple" ||
+    /* Escribe texto como los otros tres, así que también se le puede cambiar
+       la letra, el color, la alineación y el tamaño. Sin esto, los tres
+       campos de nombres traían sus controles y ninguno hacía nada — que es
+       exactamente el fallo que este proyecto ya arregló una vez. */
+    op.kind === "textoOpcional"
+  );
 }

@@ -579,6 +579,16 @@ function applyOp(root: El, op: Op, value: string, ctx: Ctx) {
         if (!value) el.remove();
         else setText(el, value, op.keepAffix);
         break;
+      /* Vacío no borra: deja lo que ya escribió quien pasó antes.
+
+         Y cuando hay valor se sustituye **todo** el contenido, no sólo el
+         nodo de texto: lo que había antes eran los nombres de la pareja con
+         el `<span>` del ampersand dentro, y escribir por encima con `setText`
+         dejaba el "&" colgando al final. Quien escribe un nombre propio
+         escribe el nombre entero, separador incluido. */
+      case "textoOpcional":
+        if (value.trim()) el.textContent = value;
+        break;
       case "html":
         if (!value) el.remove();
         else el.innerHTML = value;

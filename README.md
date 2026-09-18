@@ -574,6 +574,43 @@ porque batiendo por separado se lee como cuatro aletas. Y el par de arriba es
 bastante mayor que el de abajo: es lo que distingue una mariposa de un brote
 de dos hojas, que es exactamente en lo que se quedó el primer intento.
 
+## Los nombres, sitio por sitio
+
+`event.names` escribe los nombres en el **velo**, la **portada** y el **pie** a
+la vez, que es lo que se quiere casi siempre. Ahora cada uno de los tres tiene
+además su propio campo, vacío por defecto.
+
+Sirve para dos cosas, y la segunda es la que más se pide: que el velo diga
+otra cosa que la portada, y —aunque se dejen vacíos— que **cada uno pueda
+llevar su letra, su color, su alineación y su tamaño**. Antes eran un solo
+campo y teñir uno teñía los tres.
+
+Funciona porque los campos globales se escriben en el paso 2 del render y los
+de cada sección en el 4: lo de cada sitio se superpone a lo común sin que haya
+que ordenar nada.
+
+Van por clase y no por `data-inv`, como el href del botón del mapa y por lo
+mismo: caen sobre elementos que ya llevan el atributo de `event.names`, y un
+elemento sólo puede llevar uno.
+
+### Lo que cambia cuando un campo se superpone
+
+Un campo vacío quita su elemento — es la regla general del renderer y es la
+correcta para un antetítulo, porque deja el hueco limpio. Aquí sería un
+desastre: vaciar el campo dejaría la invitación **sin nombres**. Por eso la
+operación es suya, `textoOpcional`, y vacío no toca nada.
+
+Y cuando sí hay valor se sustituye el contenido entero, no sólo el nodo de
+texto. Lo que había antes eran los nombres con el `<span>` del ampersand
+dentro, y escribir por encima con la escritura normal dejaba un «&» colgando
+al final. Quien escribe un nombre propio escribe el nombre entero, separador
+incluido.
+
+La otra mitad tampoco era gratis: la función que decide a qué operaciones se
+les puede cambiar la letra no conocía la nueva, así que los tres campos traían
+sus controles de tipografía, color, alineación y tamaño y **ninguno hacía
+nada** — el mismo fallo que este proyecto ya había arreglado una vez.
+
 ## Letra, color, alineación y tamaño, texto por texto
 
 La tipografía ya se elegía por campo. Ahora el **color**, la **alineación** y

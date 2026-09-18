@@ -636,6 +636,23 @@ export const SECTIONS: SectionSpec[] = [
     hint: "El velo que se ve antes de entrar a la invitación.",
     fields: [
       { key: "label", label: "Antetítulo", type: "text", placeholder: "Te invitamos a celebrar" },
+      {
+        /*
+         * Los nombres, sólo para AQUÍ.
+         *
+         * Vacío = los del evento, que es lo que se quiere casi siempre. Y
+         * aunque se deje vacío sirve: al ser un campo propio, trae su letra,
+         * su color, su alineación y su tamaño — que es lo que permite teñir
+         * el nombre de un sitio sin teñir el de los otros dos.
+         */
+        key: "nombres",
+        label: "Nombres aquí",
+        type: "text",
+        span: 2,
+        placeholder: "Vacío = los nombres del evento",
+        help: "Sólo cambia lo que dice el velo. La portada y el pie siguen con los del evento.",
+      },
+
       { key: "subtitle", label: "Subtítulo", type: "text", placeholder: "Nuestra Boda" },
       { key: "ctaPrimary", label: "Botón principal", type: "text", placeholder: "Abrir invitación" },
       { key: "ctaSecondary", label: "Botón secundario", type: "text", placeholder: "Cómo llegar" },
@@ -728,6 +745,23 @@ export const SECTIONS: SectionSpec[] = [
     optional: false,
     fields: [
       { key: "label", label: "Antetítulo", type: "text", placeholder: "Te invitamos a nuestra" },
+      {
+        /*
+         * Los nombres, sólo para AQUÍ.
+         *
+         * Vacío = los del evento, que es lo que se quiere casi siempre. Y
+         * aunque se deje vacío sirve: al ser un campo propio, trae su letra,
+         * su color, su alineación y su tamaño — que es lo que permite teñir
+         * el nombre de un sitio sin teñir el de los otros dos.
+         */
+        key: "nombres",
+        label: "Nombres aquí",
+        type: "text",
+        span: 2,
+        placeholder: "Vacío = los nombres del evento",
+        help: "Sólo cambia lo que dice la portada. El velo y el pie siguen con los del evento.",
+      },
+
       { key: "subtitle", label: "Subtítulo", type: "text", placeholder: "Nuestra Boda" },
       { key: "cta", label: "Texto del botón", type: "text", placeholder: "Descubrir más" },
 
@@ -1264,6 +1298,22 @@ export const SECTIONS: SectionSpec[] = [
     icon: "—",
     optional: false,
     fields: [
+      {
+        /*
+         * Los nombres, sólo para AQUÍ.
+         *
+         * Vacío = los del evento, que es lo que se quiere casi siempre. Y
+         * aunque se deje vacío sirve: al ser un campo propio, trae su letra,
+         * su color, su alineación y su tamaño — que es lo que permite teñir
+         * el nombre de un sitio sin teñir el de los otros dos.
+         */
+        key: "nombres",
+        label: "Nombres aquí",
+        type: "text",
+        span: 2,
+        placeholder: "Vacío = los nombres del evento",
+        help: "Sólo cambia lo que dice el pie. El velo y la portada siguen con los del evento.",
+      },
       { key: "dateLine", label: "Línea de fecha", type: "text", span: 2, placeholder: "15 · Noviembre · 2025 · Sevilla" },
       { key: "note", label: "Nota final", type: "text", span: 2, placeholder: "Diseñado con amor" },
       textColor,

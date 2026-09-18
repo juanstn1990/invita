@@ -53,6 +53,9 @@ for (const s of SECTIONS) {
  *   lleva ya el `data-inv` de su texto (`splash.ctaSecondary`): un elemento
  *   sólo puede llevar un atributo, así que el href se resuelve por la clase
  *   `.splash-btn-mapa`.
+ * - Los tres `nombres` —del velo, la portada y el pie— se superponen a lo que
+ *   escribió `event.names`, así que caen sobre elementos que ya llevan **ese**
+ *   atributo. Por eso van por clase, como el href del mapa y por lo mismo.
  */
 [
   "event.name1",
@@ -61,6 +64,9 @@ for (const s of SECTIONS) {
   "hero.panelOpacity",
   "ubicacion.mapSrc",
   "splash.mapUrl",
+  "splash.nombres",
+  "hero.nombres",
+  "footer.nombres",
 ].forEach((k) => esperados.delete(k));
 
 // La rejilla de invitados no se edita, pero su marcado existe y se vacía.
