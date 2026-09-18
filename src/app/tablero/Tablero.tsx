@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ESTADOS, faltan, urge, resumir, type Estado } from "@/lib/tablero";
+import { ESTADOS, faltan, urge, resumir, whatsapp, type Estado } from "@/lib/tablero";
 import styles from "./tablero.module.css";
 
 export interface Tarjeta {
@@ -17,6 +17,10 @@ export interface Tarjeta {
   fechaTexto: string;
   diseno: string;
   paleta: [string, string, string];
+  /** El contacto de quien la encargó. Privado: no sale en la invitación. */
+  telefono: string;
+  /** Notas del organizador. También privadas. */
+  notas: string;
 }
 
 /**
@@ -41,6 +45,9 @@ export function Tablero({
   const [arrastrando, setArrastrando] = useState<string | null>(null);
   const [encima, setEncima] = useState<Estado | null>(null);
   const [error, setError] = useState("");
+  /* Qué tarjeta tiene la ficha del cliente abierta. Una a la vez: abiertas
+     todas, el tablero deja de caber en una pantalla y deja de ser un tablero. */
+  const [abierta, setAbierta] = useState<string | null>(null);
 
   const resumen = resumir(tarjetas);
 
@@ -68,6 +75,17 @@ export function Tablero({
     if (!t || t.estado === estado) return;
     setTarjetas(tarjetas.map((x) => (x.id === id ? { ...x, estado } : x)));
     guardar(id, { estado }, () => setTarjetas(antes));
+  }
+
+  /* El teléfono y las notas se guardan al salir del campo y no en cada
+     tecla: una petición por letra llena el registro de ruido y, con la red
+     mala, llegan desordenadas y gana la penúltima. */
+  function anotar(id: string, campo: "telefono" | "notas", valor: string) {
+    const antes = tarjetas;
+    const t = tarjetas.find((x) => x.id === id);
+    if (!t || t[campo] === valor) return;
+    setTarjetas(tarjetas.map((x) => (x.id === id ? { ...x, [campo]: valor } : x)));
+    guardar(id, { [campo]: valor }, () => setTarjetas(antes));
   }
 
   function cobrar(id: string, pagada: boolean) {
@@ -183,6 +201,61 @@ export function Tablero({
                         >
                           ver ↗
                         </a>
+                      )}
+                    </div>
+
+                    {/* La ficha del cliente: teléfono y notas.
+
+                        Plegada por defecto, y con un rastro cuando hay algo
+                        dentro — un botón que no dice si esconde algo obliga a
+                        abrir las quince tarjetas para saber cuáles tienen
+                        nota, que es justo el trabajo que el tablero venía a
+                        quitar. */}
+                    <div className={styles.cliente}>
+                      <button
+                        type="button"
+                        className={styles.fichaBtn}
+                        onClick={() => setAbierta(abierta === t.id ? null : t.id)}
+                        aria-expanded={abierta === t.id}
+                      >
+                        {t.telefono || t.notas ? "Ficha ·" : "Ficha"}
+                        {t.telefono && <span className={styles.pista2}>tel.</span>}
+                        {t.notas && <span className={styles.pista2}>nota</span>}
+                      </button>
+
+                      {t.telefono && whatsapp(t.telefono) && (
+                        <a
+                          className={styles.wa}
+                          href={whatsapp(t.telefono)}
+                          target="_blank"
+                          rel="noopener"
+                          title={`Escribir a ${t.telefono} por WhatsApp`}
+                        >
+                          WhatsApp ↗
+                        </a>
+                      )}
+
+                      {abierta === t.id && (
+                        <div className={styles.fichaCuerpo}>
+                          <label className={styles.campo}>
+                            <span>Teléfono</span>
+                            <input
+                              type="tel"
+                              defaultValue={t.telefono}
+                              placeholder="+57 300 000 0000"
+                              onBlur={(e) => anotar(t.id, "telefono", e.target.value)}
+                            />
+                          </label>
+                          <label className={styles.campo}>
+                            <span>Notas</span>
+                            <textarea
+                              rows={3}
+                              defaultValue={t.notas}
+                              placeholder="Lo que se acordó, qué falta, qué se cobró…"
+                              onBlur={(e) => anotar(t.id, "notas", e.target.value)}
+                            />
+                          </label>
+                        </div>
                       )}
                     </div>
 

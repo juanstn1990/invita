@@ -155,3 +155,21 @@ export function resumir(
   }
   return { porEstado, sinCobrar, urgentes, total: filas.length };
 }
+
+/* ── El contacto ─────────────────────────────────────────────── */
+
+/**
+ * El enlace de WhatsApp de un teléfono escrito a mano.
+ *
+ * Se quedan sólo las cifras: los números llegan como «+57 302 3466143», con
+ * espacios, guiones o paréntesis según quién lo copie, y wa.me no acepta nada
+ * de eso. Un `+` delante tampoco: wa.me lo quiere sin él.
+ *
+ * Devuelve vacío si no queda un número plausible. Un enlace de WhatsApp a
+ * cuatro cifras abre una conversación con nadie, y eso se descubre delante
+ * del cliente.
+ */
+export function whatsapp(telefono: string | null | undefined): string {
+  const cifras = String(telefono || "").replace(/\D/g, "");
+  return cifras.length >= 7 ? `https://wa.me/${cifras}` : "";
+}

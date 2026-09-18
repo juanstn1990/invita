@@ -14,7 +14,7 @@
  *   de alguien. Sin rescate no sale en ninguna columna y parece borrada.
  */
 
-import { ESTADOS, estadoDe, esEstado, faltan, urge, resumir } from "../src/lib/tablero";
+import { ESTADOS, estadoDe, esEstado, faltan, urge, resumir, whatsapp } from "../src/lib/tablero";
 
 let malos = 0;
 const decir = (ok: boolean, nombre: string, detalle = "") => {
@@ -105,6 +105,30 @@ const dia = (d: string) => `2026-06-${d}T17:00:00`;
      que se perdió, y en el tablero eso no se nota mirando. */
   const suma = Object.values(r.porEstado).reduce((a, b) => a + b, 0);
   decir(suma === r.total, "y ninguna se queda fuera de una columna", `${suma} de ${r.total}`);
+}
+
+/* ── El contacto ─────────────────────────────────────────────── */
+
+{
+  /* Los números llegan escritos a mano y cada quien los copia distinto. Lo
+     que se vigila es que salga un enlace usable de cualquiera de esas formas
+     —y, sobre todo, que NO salga uno de lo que no es un número: un enlace de
+     WhatsApp a cuatro cifras abre una conversación con nadie, y eso se
+     descubre delante del cliente. */
+  const casos: [string, string, string][] = [
+    ["como lo pega WhatsApp", "+57 302 3466143", "https://wa.me/573023466143"],
+    ["con guiones", "302-346-6143", "https://wa.me/3023466143"],
+    ["con paréntesis", "(302) 3466143", "https://wa.me/3023466143"],
+    ["ya limpio", "573023466143", "https://wa.me/573023466143"],
+    ["vacío", "", ""],
+    ["una extensión suelta", "123", ""],
+    ["texto que no es un número", "preguntar a la mamá", ""],
+  ];
+  for (const [nombre, entra, espera] of casos) {
+    const r = whatsapp(entra);
+    decir(r === espera, `whatsapp · ${nombre}`, `dio "${r}", esperaba "${espera}"`);
+  }
+  decir(whatsapp(null) === "", "whatsapp · sin teléfono guardado");
 }
 
 console.log(

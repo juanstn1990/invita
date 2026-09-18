@@ -3214,6 +3214,32 @@ tengo» que enseña seis de quince y calla las otras nueve no está ordenando
 nada: está dando una cifra falsa **con aspecto de completa**, que es peor que
 no tener tablero. Así que se cuentan y se dicen, aunque no se puedan abrir.
 
+### La ficha del cliente: teléfono y notas
+
+Cada tarjeta esconde un teléfono y un campo de notas. Van en columnas propias
+de la invitación y **no dentro de sus datos**, porque no son contenido: no se
+publican, no se ven, no viajan con el enlace. Son cómo se habla con quien la
+encargó, y el sitio para eso es el tablero.
+
+Plegados por defecto, con un rastro cuando hay algo dentro —«tel.», «nota»—.
+Un botón que no dice si esconde algo obliga a abrir las quince tarjetas para
+saber cuáles tienen nota, que es justo el trabajo que el tablero venía a
+quitar. Y una sola ficha abierta a la vez: abiertas todas, el tablero deja de
+caber en una pantalla y deja de ser un tablero.
+
+Se guardan **al salir del campo**, no en cada tecla. Una petición por letra
+llena el registro de ruido y, con la red mala, llegan desordenadas y gana la
+penúltima.
+
+Con un teléfono aparece un enlace directo a **WhatsApp**. El número se limpia
+a cifras porque llega escrito a mano y cada quien lo copia distinto —«+57 302
+3466143», con guiones, entre paréntesis— y `wa.me` no acepta nada de eso. Y
+se exige un mínimo de siete cifras: un enlace de WhatsApp a cuatro abre una
+conversación con nadie, y eso se descubre delante del cliente.
+
+El MCP también lee la ficha, que es lo que faltaba cuando se pide «pon el
+número para confirmar» y nadie recuerda cuál era.
+
 ### Detalles que sólo se ven usándolo
 
 **Los días que faltan se cuentan por días de calendario**, no por

@@ -337,6 +337,13 @@ export function construirServidor({ base, capturar }: OpcionesMcp): McpServer {
       if (!inv) return error(`No hay ninguna invitación con id "${id}".`);
 
       const datos = JSON.parse(inv.data) as Record<string, Record<string, unknown>>;
+      /* El contacto y las notas del tablero. No son contenido de la
+         invitación —no se publican— pero son justo lo que hace falta cuando
+         se pide «pon el número para confirmar» y nadie recuerda cuál era. */
+      const ficha = {
+        ...(inv.telefono ? { telefono: inv.telefono } : {}),
+        ...(inv.notas ? { notas: inv.notas } : {}),
+      };
       const conMarcado: string[] = [];
 
       /* Se devuelve sólo lo que tiene valor. Un volcado con los ciento y pico
@@ -362,6 +369,7 @@ export function construirServidor({ base, capturar }: OpcionesMcp): McpServer {
         titulo: inv.title,
         diseno: inv.templateId,
         publicada: inv.published,
+        ...(Object.keys(ficha).length ? { ficha } : {}),
         ...(conMarcado.length
           ? {
               ojo:

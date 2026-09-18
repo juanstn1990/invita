@@ -57,6 +57,18 @@ export async function PATCH(
 
   if (typeof body.pagada === "boolean") update.pagada = body.pagada;
 
+  /* El contacto y las notas del tablero. Se recortan porque son campos
+     libres que se rellenan a mano y nadie quiere una nota de un megabyte en
+     una tarjeta; vacío se guarda como nulo para que «sin teléfono» sea una
+     sola cosa y no dos —cadena vacía y nulo— que hay que comprobar por
+     separado en cada sitio que las lea. */
+  if (typeof body.telefono === "string") {
+    update.telefono = body.telefono.trim().slice(0, 40) || null;
+  }
+  if (typeof body.notas === "string") {
+    update.notas = body.notas.trim().slice(0, 2000) || null;
+  }
+
   try {
     const invitation = await prisma.invitation.update({
       where: { id: params.id },
@@ -68,6 +80,8 @@ export async function PATCH(
       published: invitation.published,
       estado: invitation.estado,
       pagada: invitation.pagada,
+      telefono: invitation.telefono,
+      notas: invitation.notas,
       updatedAt: invitation.updatedAt,
     });
   } catch {

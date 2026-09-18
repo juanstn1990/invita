@@ -48,6 +48,11 @@ export default async function TableroPage() {
         fechaTexto: resolvedDateLabel(data),
         diseno: tpl.name,
         paleta: tpl.palette,
+        /* Nulo y cadena vacía se juntan aquí: al componente le llega una
+           sola forma de «no hay nada», y así ni el render ni la comparación
+           al guardar tienen que distinguir dos vacíos. */
+        telefono: i.telefono || "",
+        notas: i.notas || "",
       };
     });
 

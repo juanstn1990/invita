@@ -122,3 +122,35 @@
   padding: 14px 12px; font-size: 12.5px; color: var(--text-faint); text-align: center;
   border: 1px dashed var(--border); border-radius: var(--radius);
 }
+
+/* ── La ficha del cliente ──────────────────────────────────────
+   Teléfono y notas. Privados: no salen en la invitación, son de quien la
+   encargó. Plegados por defecto para que la tarjeta siga siendo una tarjeta. */
+.cliente { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 2px; }
+
+.fichaBtn {
+  padding: 0; background: none; border: 0; cursor: pointer;
+  font-size: 11px; letter-spacing: .04em; text-transform: uppercase;
+  color: var(--text-faint);
+}
+.fichaBtn:hover { color: var(--accent-text); }
+/* El rastro de que hay algo dentro: sin él habría que abrir las quince
+   tarjetas para saber cuáles tienen nota. */
+.pista2 {
+  margin-left: 5px; padding: 1px 6px; border-radius: 999px;
+  background: var(--surface-2); color: var(--text-muted);
+  font-size: 10px; letter-spacing: .02em; text-transform: none;
+}
+.wa { margin-left: auto; font-size: 11.5px; color: #2b7a4b; text-decoration: none; }
+.wa:hover { text-decoration: underline; }
+
+.fichaCuerpo { width: 100%; display: flex; flex-direction: column; gap: 7px; margin-top: 4px; }
+.campo { display: flex; flex-direction: column; gap: 3px; }
+.campo span { font-size: 10.5px; letter-spacing: .05em; text-transform: uppercase; color: var(--text-faint); }
+.campo input, .campo textarea {
+  width: 100%; box-sizing: border-box; padding: 6px 8px;
+  font: inherit; font-size: 12.5px; line-height: 1.4;
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 7px; color: var(--text); resize: vertical;
+}
+.campo input:focus, .campo textarea:focus { outline: 2px solid var(--accent); outline-offset: -1px; }

@@ -42,6 +42,13 @@ model Invitation {
   /// sigue en curso, y se entrega algo que no se ha cobrado —que es justo lo
   /// que hay que poder ver de un vistazo.
   pagada     Boolean  @default(false)
+  /// El contacto de quien encargó la invitación. Va aquí y no en `data`
+  /// porque no es contenido de la invitación —no se publica, no se ve—: es
+  /// cómo se habla con el cliente, y el sitio para eso es el tablero.
+  telefono   String?
+  /// Notas del organizador: lo que se acordó, lo que falta, qué se cobró.
+  /// Privadas, como el teléfono.
+  notas      String?
   /// Visitas crudas, incluidos rastreadores y recargas. Se conserva porque ya
   /// venía contando, pero lo que se muestra sale de `Apertura`, que distingue
   /// personas de rastreadores. Ver `src/lib/aperturas.ts`.
