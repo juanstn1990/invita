@@ -41,6 +41,16 @@ export type Op =
   | ({ kind: "couple" } & OpBase)
   /** <img src> si el candidato es una imagen, si no background-image. */
   | ({ kind: "image"; clearPlaceholder?: boolean } & OpBase)
+  /**
+   * HTML escrito por quien organiza, que se limpia antes de entrar.
+   *
+   * Separado de `html` a propósito y no un parámetro suyo: `html` escribe lo
+   * que le den tal cual, y lo que le dan siempre lo construye la aplicación.
+   * Si los dos casos compartieran operación, bastaría olvidar una bandera
+   * para meter el HTML de un desconocido sin pasar por el filtro — y ese
+   * olvido no se ve en ninguna prueba de marcado.
+   */
+  | ({ kind: "htmlSeguro" } & OpBase)
   /** Reescribe sólo la opacidad del panel de la portada. */
   | ({ kind: "alpha" } & OpBase)
   /** Foto de portada, con su forma y su sitio. */
@@ -196,6 +206,8 @@ const APARTE = new Set([
 
 /** Operaciones a mano: el tipo del campo no basta para deducirlas. */
 const A_MANO: Record<string, Op[]> = {
+  // El bloque de HTML propio: se limpia antes de escribirse. Ver `sanear.ts`.
+  "html.codigo": [{ kind: "htmlSeguro", sel: ['[data-inv="html.codigo"]', ".inv-html"] }],
   // Los nombres van en la portada, el splash y el pie a la vez.
   "event.names": [{ kind: "couple", sel: ['[data-inv="event.names"]'], all: true }],
   "event.dateLabel": [{ kind: "text", sel: ['[data-inv="event.dateLabel"]'], all: true, keepAffix: true }],

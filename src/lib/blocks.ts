@@ -788,6 +788,61 @@ const video: BlockSpec = {
   ],
 };
 
+/**
+ * Un bloque de HTML propio.
+ *
+ * Es la salida para lo que el editor no cubre: incrustar un reproductor, un
+ * mapa, una tabla, un trozo de maquetación a mano. Es un bloque y no un campo
+ * de una sección porque lo que se incrusta necesita **sitio propio** y poder
+ * ir donde haga falta, no meterse dentro de otra cosa.
+ *
+ * Lo que se escribe pasa por `sanearHtml` antes de salir. Ver ahí el porqué —
+ * en resumen: acaba en una página que abren los invitados, y en la vista
+ * previa comparte origen con el editor.
+ */
+const htmlPropio: BlockSpec = {
+  type: "html",
+  label: "HTML",
+  icon: "‹›",
+  repeatable: true,
+  fields: [
+    { key: "label", label: "Antetítulo", type: "text", placeholder: "Opcional" },
+    { key: "title", label: "Título", type: "text", placeholder: "Opcional" },
+    {
+      key: "codigo",
+      label: "Tu HTML",
+      type: "textarea",
+      span: 2,
+      placeholder: '<iframe src="https://open.spotify.com/embed/..."></iframe>',
+      help: "Se limpia antes de publicar: fuera scripts, manejadores de eventos y enlaces que ejecutan. Los iframes se aceptan de YouTube, Vimeo, Spotify, SoundCloud, Apple Music, Instagram, Google Maps, Drive y Calendar.",
+    },
+    { key: "textColor", label: "Color de las letras", type: "color", span: 2 },
+  ],
+  variants: [
+    {
+      id: "simple",
+      name: "En el ancho del texto",
+      hint: "Como el resto de las secciones",
+      build: () => `${head()}
+    <div class="inv-html" data-inv="html.codigo"></div>`,
+    },
+    {
+      id: "ancho",
+      name: "Ancho",
+      hint: "Más aire a los lados, para una tabla o un mapa",
+      build: () => `${head()}
+    <div class="inv-html inv-html-ancho" data-inv="html.codigo"></div>`,
+    },
+    {
+      id: "completa",
+      name: "A sangre",
+      hint: "De borde a borde, sin márgenes",
+      bare: true,
+      build: () => `<div class="inv-html inv-html-completa" data-inv="html.codigo"></div>`,
+    },
+  ],
+};
+
 /* ── Registro ─────────────────────────────────────────────── */
 
 export const BLOCKS: BlockSpec[] = [
@@ -803,6 +858,7 @@ export const BLOCKS: BlockSpec[] = [
   photo,
   video,
   ubicacion,
+  htmlPropio,
 ];
 
 export const BLOCK_BY_TYPE: Record<string, BlockSpec> = Object.fromEntries(

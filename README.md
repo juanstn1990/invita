@@ -727,6 +727,61 @@ letra**, que es exactamente lo contrario de lo que se quería.
 Quien pidió menos movimiento lo ve todo puesto y quieto: ni entradas, ni
 bucles, ni letras sueltas.
 
+## El bloque de HTML, y por qué se limpia
+
+La salida para lo que el editor no cubre: incrustar un reproductor, un mapa,
+una tabla, un trozo de maquetación a mano. Es un **bloque** y no un campo de
+una sección porque lo que se incrusta necesita sitio propio y poder ir donde
+haga falta, en tres anchos — el del texto, ancho, y a sangre.
+
+Lo que se escribe ahí **no sale tal cual**, y el motivo no es purismo. Acaba
+en una página que abren los invitados, y en la vista previa del editor acaba
+dentro de un iframe `srcdoc`, que **comparte origen con la aplicación**: un
+`<script>` ahí es código corriendo con la sesión de quien edita, capaz de
+llamar a `/api/…` en su nombre. La cookie es `httpOnly` y no se puede leer,
+pero no hace falta leerla para usarla — y las plantillas guardadas viajan con
+su contenido dentro.
+
+La lista es **de permitidos y no de prohibidos**, a propósito: una de
+prohibidos se queda corta con la siguiente etiqueta que alguien invente, y
+aquí equivocarse tiene consecuencias para quien abre la invitación, no para
+quien la escribe. Sobreviven texto, estructura, tablas, imágenes, enlaces y
+estilos en línea. Se caen los scripts, los `on*`, los `javascript:`, los
+formularios, `<base>`, `<meta>` y los comentarios.
+
+Los **iframes** sí pasan —son el motivo por el que este campo existe— pero
+sólo de sitios conocidos: YouTube, Vimeo, Spotify, SoundCloud, Apple Music,
+Instagram, Google Maps, Drive y Calendar. Uno a una dirección cualquiera es
+una página ajena dentro de la invitación. A los que pasan se les fuerza
+`sandbox`, `loading="lazy"` y `referrerpolicy`.
+
+La operación que lo escribe es **suya y no la de `html`** que ya existía. Ésa
+escribe lo que le den tal cual, y lo que le dan siempre lo construye la
+aplicación; si compartieran operación bastaría olvidar una bandera para meter
+el HTML de un desconocido sin filtrar, y ese olvido no se ve en ninguna prueba
+de marcado.
+
+### Dos agujeros que encontró la prueba
+
+`npm run audit:html` intenta dieciséis formas conocidas de colar código y
+comprueba ocho usos legítimos, **por el renderer entero** y no llamando al
+filtro a secas: entre la función y la página hay un binding que también podría
+equivocarse. Encontró dos cosas que el código parecía hacer bien.
+
+La primera fue que el filtro devolvía **cadena vacía para todo**: linkedom
+deja el `<body>` vacío si lo que se le pasa no viene envuelto en `<html>`, así
+que no había árbol que recorrer. Los dieciséis casos peligrosos «pasaban» por
+no haber salida que revisar — lo cazó el caso legítimo de al lado, que
+esperaba ver algo. Es el argumento entero a favor de probar también lo que
+**sí** tiene que ocurrir.
+
+La segunda fue de orden. Una etiqueta prohibida se desenvuelve —se cambia por
+sus hijos, para no perder el texto— y esos hijos aparecían en el árbol después
+de que el recorrido hubiera hecho su lista, así que nadie volvía a mirarlos. Un
+`<form>` con un `<input>` dentro perdía el formulario y **conservaba el
+campo**. Ahora se limpia de dentro hacia fuera, así lo que se promueve ya viene
+limpio.
+
 ## Bloques: orden y variantes
 
 La invitación es una **lista ordenada de bloques**. Cada bloque tiene un tipo

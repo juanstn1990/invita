@@ -29,7 +29,8 @@
     "audit:cortina": "tsx scripts/audit-cortina.ts",
     "audit:medios": "tsx scripts/audit-medios.ts",
     "audit:adornos": "tsx scripts/audit-adornos.ts",
-    "audit:comprimir": "tsx scripts/audit-comprimir.ts"
+    "audit:comprimir": "tsx scripts/audit-comprimir.ts",
+    "audit:html": "tsx scripts/audit-html.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.20.0",

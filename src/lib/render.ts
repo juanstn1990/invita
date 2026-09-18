@@ -8,6 +8,7 @@
  */
 
 import { parseHTML } from "linkedom";
+import { sanearHtml } from "./sanear";
 import { mapFor, type ListBinding, type Op } from "./bindings";
 import { BLOCK_BY_TYPE, readLayout, variantOf, type Block } from "./blocks";
 import { FONT_BY_ID, googleHref } from "./fonts";
@@ -582,6 +583,18 @@ function applyOp(root: El, op: Op, value: string, ctx: Ctx) {
         if (!value) el.remove();
         else el.innerHTML = value;
         break;
+      /* Lo escribe quien organiza, así que pasa por el filtro. Si no queda
+         nada después de limpiar, el bloque se esconde: un hueco vacío en
+         medio de la invitación es peor que no tenerlo. */
+      case "htmlSeguro": {
+        const limpio = value ? sanearHtml(value).html : "";
+        /* Se esconde el bloque entero y no sólo el hueco: con el hueco a
+           secas quedarían el antetítulo y el título anunciando algo que no
+           está, que es como se ve un bloque roto. */
+        if (!limpio.trim()) ocultar(el.closest?.(".inv-block") || el);
+        else el.innerHTML = limpio;
+        break;
+      }
       case "image":
         if (value) setImage(el, value, op.clearPlaceholder === true);
         break;
@@ -1594,6 +1607,19 @@ export const INJECTED_CSS = `
   #splash.inv-velo-sobre.hidden{transform:none}
   #splash.inv-velo-sobre.hidden .splash-modal{transform:none;transition:opacity .4s ease}
 }
+
+/* ── Un bloque de HTML propio ──────────────────────────────────
+   Lo que se escribe ahí puede ser cualquier cosa, así que el sitio donde cae
+   no puede dar nada por hecho: se limita el ancho de lo que se meta y se
+   recortan los desbordes, para que una tabla ancha o un iframe con medidas
+   propias no rompan la maquetación de la invitación entera. */
+.inv-html{max-width:100%;overflow-x:auto}
+.inv-html :is(img,video,iframe,table){max-width:100%}
+.inv-html iframe{width:100%;border:0;aspect-ratio:16/9}
+.inv-html table{width:100%;border-collapse:collapse}
+.inv-html :is(td,th){padding:8px 10px;border:1px solid var(--inv-field-border,currentColor)}
+.inv-html-ancho{width:min(1040px,100%);margin-inline:auto}
+.inv-html-completa{width:100%}
 
 /* ── El fondo propio de una ficha ──────────────────────────────
    Una tarjeta del programa o de información con su propia imagen detrás.
