@@ -214,6 +214,9 @@ const APARTE = new Set([
   "fondoUrl",
   "fondoAjuste",
   "fondoOpacidad",
+  /* Cómo entran las fichas: lo marca `animarFichas` sobre las tarjetas ya
+     clonadas, y no escribe texto en ningún sitio. */
+  "animFichas",
 ]);
 
 /** Operaciones a mano: el tipo del campo no basta para deducirlas. */

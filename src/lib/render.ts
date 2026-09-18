@@ -26,6 +26,7 @@ import {
   SITIOS,
   SECTIONS as SPEC,
   ANIMACIONES,
+  ANIM_FICHAS_VALIDAS,
   ANIM_POR_PARTES,
   CSS_ALINEACION,
   PARTICULA_POR_TIPO,
@@ -490,6 +491,44 @@ function animarTexto(el: El, valor: string, turno: number): boolean {
   el.setAttribute("data-inv-anim", valor);
   if (turno) el.setAttribute("style", `${el.getAttribute("style") || ""};--inv-anim-turno:${turno}`.replace(/^;/, ""));
   return true;
+}
+
+/**
+ * Marca las fichas de una lista para que entren al asomarse.
+ *
+ * Se apoya en la misma maquinaria que los textos —el atributo, el
+ * observador, las mismas curvas— porque el problema es el mismo y tener dos
+ * motores de entrada sería tener dos sitios donde se rompe. Lo único suyo es
+ * la alternancia y la distancia, que en una tarjeta tiene que ser mayor que
+ * en un renglón para que se lea como que entra de un lado.
+ *
+ * El turno va en ciclo de tres y no `i` a secas. El observador dispara cada
+ * ficha cuando **ella** entra en pantalla, así que un turno creciente haría
+ * que la séptima esperase casi un segundo ya estando a la vista, que se lee
+ * como que la página se trabó. En ciclo, dos fichas que entren juntas —una
+ * rejilla de dos columnas— salen escalonadas, y una que entre sola no espera
+ * a nadie.
+ */
+function animarFichas(root: El, binding: ListBinding, valor: string) {
+  if (!valor || !ANIM_FICHAS_VALIDAS.has(valor)) return;
+  const container = pick(root, binding.container);
+  if (!container) return;
+
+  pickAll(container, binding.item).forEach((el, i) => {
+    /* Una ficha que ya lleve animación la conserva: lo de la sección no pisa
+       una elección más concreta. */
+    if (el.getAttribute("data-inv-anim")) return;
+    const dir = valor === "alterna" ? (i % 2 ? "izquierda" : "derecha") : valor;
+    el.setAttribute("data-inv-anim", dir);
+    el.setAttribute("class", `${el.getAttribute("class") || ""} inv-ficha-anim`.trim());
+    const turno = i % 3;
+    if (turno) {
+      el.setAttribute(
+        "style",
+        `${el.getAttribute("style") || ""};--inv-anim-turno:${turno}`.replace(/^;/, "")
+      );
+    }
+  });
 }
 
 /* ── nombres de la pareja ────────────────────────────────────── */
@@ -1747,31 +1786,60 @@ export const INJECTED_CSS = `
    El turno lo pone el renderer y hace que varios textos animados en una
    sección entren uno detrás de otro; el índice de cada letra lo pone también
    él, y los dos se suman en el retardo. */
-[data-inv-anim]{--inv-anim-turno:0}
-.js [data-inv-anim]{animation-fill-mode:both;animation-play-state:paused}
-.js [data-inv-anim].in{animation-play-state:running}
+[data-inv-anim]{--inv-anim-turno:0;--inv-anim-dist:26px}
+/* Una tarjeta necesita recorrer más que un renglón para que se lea como que
+   entra de un lado; a 26px parece que tiembla. No hay riesgo de barra
+   horizontal: el body lleva overflow-x oculto y cada section recorta. */
+.inv-ficha-anim{--inv-anim-dist:64px}
+.js [data-inv-anim]{animation-fill-mode:both}
 
-/* Las que entran de una pieza. */
-.js [data-inv-anim="aparece"]{animation:invTxAparece .9s ease
+/* Las que entran de una pieza.
+
+   El reposo se escribe, no se deduce de la animación.
+
+   Antes la animación estaba puesta desde el principio y sólo pausada, y el
+   sitio de partida lo ponía el relleno hacia atrás. Funcionaba mientras el
+   retardo fuera cero. Con retardo —que es justo lo que hace que varias
+   entren escalonadas— la que espera su turno se dibujaba **en su sitio
+   final**: aparecía sin moverse, mientras sus vecinas sí se movían. Se ve en
+   cuanto hay tres fichas alternando y no se ve nunca con un texto suelto,
+   que es por lo que sobrevivió tanto.
+
+   Así que las entradas se montan al llegar la clase "in", como ya hacían las de
+   bucle y las de letra a letra, y hasta entonces el elemento está quieto en
+   su posición de partida porque lo dice una regla, no un relleno. */
+.js :is([data-inv-anim="aparece"],[data-inv-anim="sube"],[data-inv-anim="baja"],
+  [data-inv-anim="izquierda"],[data-inv-anim="derecha"],[data-inv-anim="crece"],
+  [data-inv-anim="gira"]):not(.in){opacity:0}
+.js [data-inv-anim="sube"]:not(.in){transform:translateY(22px)}
+.js [data-inv-anim="baja"]:not(.in){transform:translateY(-22px)}
+.js [data-inv-anim="izquierda"]:not(.in){transform:translateX(calc(var(--inv-anim-dist) * -1))}
+.js [data-inv-anim="derecha"]:not(.in){transform:translateX(var(--inv-anim-dist))}
+.js [data-inv-anim="crece"]:not(.in){transform:scale(.82)}
+.js [data-inv-anim="gira"]:not(.in){transform:rotate(-8deg) scale(.88)}
+
+.js [data-inv-anim="aparece"].in{animation:invTxAparece .9s ease
   calc(var(--inv-anim-turno) * 140ms)}
-.js [data-inv-anim="sube"]{animation:invTxSube .9s cubic-bezier(.2,.7,.3,1)
+.js [data-inv-anim="sube"].in{animation:invTxSube .9s cubic-bezier(.2,.7,.3,1)
   calc(var(--inv-anim-turno) * 140ms)}
-.js [data-inv-anim="baja"]{animation:invTxBaja .9s cubic-bezier(.2,.7,.3,1)
+.js [data-inv-anim="baja"].in{animation:invTxBaja .9s cubic-bezier(.2,.7,.3,1)
   calc(var(--inv-anim-turno) * 140ms)}
-.js [data-inv-anim="izquierda"]{animation:invTxIzq .9s cubic-bezier(.2,.7,.3,1)
+.js [data-inv-anim="izquierda"].in{animation:invTxIzq .9s cubic-bezier(.2,.7,.3,1)
   calc(var(--inv-anim-turno) * 140ms)}
-.js [data-inv-anim="derecha"]{animation:invTxDer .9s cubic-bezier(.2,.7,.3,1)
+.js [data-inv-anim="derecha"].in{animation:invTxDer .9s cubic-bezier(.2,.7,.3,1)
   calc(var(--inv-anim-turno) * 140ms)}
-.js [data-inv-anim="crece"]{animation:invTxCrece .85s cubic-bezier(.2,.8,.3,1)
+.js [data-inv-anim="crece"].in{animation:invTxCrece .85s cubic-bezier(.2,.8,.3,1)
   calc(var(--inv-anim-turno) * 140ms)}
-.js [data-inv-anim="gira"]{animation:invTxGira .95s cubic-bezier(.2,.8,.3,1)
+.js [data-inv-anim="gira"].in{animation:invTxGira .95s cubic-bezier(.2,.8,.3,1)
   calc(var(--inv-anim-turno) * 140ms)}
 
 @keyframes invTxAparece{from{opacity:0}to{opacity:1}}
 @keyframes invTxSube{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
 @keyframes invTxBaja{from{opacity:0;transform:translateY(-22px)}to{opacity:1;transform:none}}
-@keyframes invTxIzq{from{opacity:0;transform:translateX(-26px)}to{opacity:1;transform:none}}
-@keyframes invTxDer{from{opacity:0;transform:translateX(26px)}to{opacity:1;transform:none}}
+@keyframes invTxIzq{from{opacity:0;transform:translateX(calc(var(--inv-anim-dist) * -1))}
+  to{opacity:1;transform:none}}
+@keyframes invTxDer{from{opacity:0;transform:translateX(var(--inv-anim-dist))}
+  to{opacity:1;transform:none}}
 @keyframes invTxCrece{from{opacity:0;transform:scale(.82)}to{opacity:1;transform:none}}
 @keyframes invTxGira{from{opacity:0;transform:rotate(-8deg) scale(.88)}
   to{opacity:1;transform:none}}
@@ -3874,6 +3942,11 @@ export function renderInvitation(opts: RenderOptions): string {
       applyList(root, r.key, listBinding, [], ctx);
     } else if ((spec?.list || blockSpec?.list) && listBinding) {
       applyList(root, r.key, listBinding, (sectionData.items as Record<string, string>[]) || [], ctx);
+      /* Después de escribirlas, no antes: `applyList` clona el prototipo del
+         diseño para llegar al número de fichas, y marcar antes marcaría el
+         prototipo y el clon se llevaría el atributo copiado —todas con el
+         turno de la primera y todas por el mismo lado. */
+      animarFichas(root, listBinding, String(sectionData.animFichas || ""));
     }
 
     /* La animación de cada texto, **después** de escribirlos.

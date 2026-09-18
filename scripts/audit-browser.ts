@@ -73,6 +73,13 @@ const ORIGEN = "https://invitacion.local";
        sería peor, porque un vídeo recibe clics por su cuenta. */
     (data.gallery as any).fondoUrl = "https://ejemplo.test/fondo.webm";
 
+    /* Las fichas del programa entrando alternadas, para la comprobación 7.
+       Cuatro y no dos: con dos, un turno que no escalona pasa desapercibido. */
+    (data.events as any).animFichas = "alterna";
+    (data.events as any).items = [1, 2, 3, 4].map((n) => ({
+      time: `${n}:00`, title: `Acto ${n}`, text: "Descripción",
+    }));
+
     /* Un vídeo a sangre, para la comprobación 4. */
     (data as any).layout = {
       blocks: [
@@ -238,11 +245,46 @@ const ORIGEN = "https://invitacion.local";
       return fondo || imagen;
     }, FOTO);
 
+    /* ¿Las fichas esperan fuera de sitio, y alternando?
+
+       El fallo que esto vigila no se ve en el HTML y no se ve con una sola
+       ficha. La entrada estaba puesta desde el principio y sólo pausada, y el
+       sitio de partida lo ponía el relleno hacia atrás del navegador; con
+       retardo —que es justo lo que escalona a varias— la que esperaba su
+       turno se dibujaba ya en su sitio final. Resultado: la primera y la
+       cuarta entraban deslizándose y la segunda y la tercera aparecían sin
+       moverse, en la misma tanda.
+
+       Se mide en reposo, sin desplazar la página: las fichas del programa
+       quedan bajo el pliegue en este alto de ventana, así que todavía no han
+       entrado y su posición de partida es justo lo que hay que leer. */
+    const fichas: { x: number; op: string; dir: string }[] = await page.evaluate(`(() => {
+      var f = document.querySelectorAll('[data-inv-section="events"] .inv-ficha-anim');
+      return [].map.call(f, function(e){
+        var s = getComputedStyle(e);
+        return { x: new DOMMatrix(s.transform).m41, op: s.opacity,
+          dir: e.getAttribute('data-inv-anim') || '' };
+      });
+    })()`);
+
+    const malFicha: string[] = [];
+    if (fichas.length < 2) malFicha.push(`sólo ${fichas.length} ficha(s) marcada(s)`);
+    fichas.forEach((f, i) => {
+      const esperado = i % 2 ? -64 : 64;
+      if (f.dir !== (i % 2 ? "izquierda" : "derecha")) {
+        malFicha.push(`la ${i + 1} va por ${f.dir || "ningún lado"}`);
+      } else if (Math.round(f.x) !== esperado) {
+        malFicha.push(`la ${i + 1} espera en x=${Math.round(f.x)}, no en ${esperado}`);
+      } else if (f.op !== "0") {
+        malFicha.push(`la ${i + 1} se ve antes de entrar`);
+      }
+    });
+
     await page.close();
 
     const ok =
       !errores.length && !externas.length && sobrevive && !adornosGrandes.length &&
-      !tapado && !marcaTapa && !fondoTapa;
+      !tapado && !marcaTapa && !fondoTapa && !malFicha.length;
     if (!ok) malos++;
     console.log(
       `${ok ? "✓" : "✗"} ${tpl.id.padEnd(28)}` +
@@ -252,7 +294,8 @@ const ORIGEN = "https://invitacion.local";
         `${adornosGrandes.length ? `  adorno gigante: ${adornosGrandes[0]}` : ""}` +
         `${tapado ? `  controles del vídeo tapados por ${tapado}` : ""}` +
         `${marcaTapa ? `  marca de agua: ${marcaTapa}` : ""}` +
-        `${fondoTapa ? `  fondo de vídeo: ${fondoTapa}` : ""}`
+        `${fondoTapa ? `  fondo de vídeo: ${fondoTapa}` : ""}` +
+        `${malFicha.length ? `  fichas: ${malFicha[0]}` : ""}`
     );
   }
 

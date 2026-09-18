@@ -832,6 +832,66 @@ Varios textos animados en una sección entran **uno detrás de otro**: cada uno
 lleva su turno y el retardo sale de ahí. A la vez parecen un parpadeo;
 escalonados parecen escritos.
 
+## Animar las fichas de una lista
+
+Las tarjetas del programa, las de información útil, las fotos de la galería:
+una casilla en la sección y entran todas al asomarse.
+
+| | |
+| --- | --- |
+| **Alternan** | La primera por la derecha, la segunda por la izquierda, y así |
+| **Todas por un lado** | Derecha o izquierda |
+| **Las de siempre** | Suben · Se funden · Crecen · Giran |
+
+Es **de la sección y no de cada ficha**. Un programa tiene cinco tarjetas y
+nadie va a elegir cinco veces lo mismo; y si se eligiera una a una, la gracia
+—que se alternen— habría que armarla a mano y se rompería al añadir la sexta.
+Con una sola ficha, «alternan» entra por la derecha, que es lo mismo que haría
+«todas por la derecha»: no hay un caso especial que escribir para el uno.
+
+Se apoya en la misma maquinaria que los textos —el mismo atributo, el mismo
+observador, las mismas curvas— porque el problema es el mismo y dos motores de
+entrada serían dos sitios donde se rompe. Lo propio de las fichas son dos
+cosas.
+
+**La distancia.** Una tarjeta a 26 px no parece que entre de un lado: parece
+que tiembla. Va en una variable, y las fichas la suben a 64 px. No hay riesgo
+de barra horizontal porque el `body` ya recorta en horizontal y cada `section`
+recorta lo suyo.
+
+**El turno, en ciclo de tres.** El observador dispara cada ficha cuando *ella*
+entra en pantalla, así que un turno creciente haría que la séptima esperase
+casi un segundo estando ya a la vista — que no se lee como elegancia, se lee
+como que la página se trabó. En ciclo, dos que entren juntas (una rejilla de
+dos columnas) salen escalonadas, y una que entre sola no espera a nadie.
+
+Y el orden importa: se marcan **después** de escribir la lista. `applyList`
+clona el prototipo del diseño para llegar al número de fichas, así que marcar
+antes marcaría el molde y cada clon se llevaría el atributo copiado — todas
+por el mismo lado y con el turno de la primera.
+
+### El fallo que sólo se ve con tres fichas
+
+Las entradas estaban puestas desde el principio y sólo **pausadas**, y la
+posición de partida la ponía el relleno hacia atrás del navegador. Con retardo
+cero funciona. Con retardo —que es justo lo que escalona a varias— la que
+esperaba su turno se dibujaba **ya en su sitio final**: la primera y la cuarta
+entraban deslizándose y la segunda y la tercera aparecían sin moverse, en la
+misma tanda.
+
+Sobrevivió tanto porque con un texto suelto no se ve: su turno es cero y su
+recorrido son 26 px. Hace falta una tanda de fichas alternando para que salte
+a la vista.
+
+Ahora el reposo **se escribe**: una regla dice dónde espera cada entrada, y la
+animación se monta al llegar la clase `in` — que es lo que ya hacían las de
+bucle y las de letra a letra. El arreglo es de todas las entradas, no sólo de
+las fichas.
+
+Lo vigila `audit:browser`, que mide la posición de las cuatro fichas **en
+reposo**, sin desplazar la página. Es la única forma: en el HTML no se ve, y
+con una sola ficha tampoco.
+
 ### Repartir un texto en letras
 
 Las tres de «por partes» envuelven cada trozo en un `<span>` con su índice, y

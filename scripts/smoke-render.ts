@@ -464,6 +464,81 @@ for (const [nombre, tocar] of CASOS) {
   );
 }
 
+/* ── Cómo entran las fichas ──────────────────────────────────────
+   Lo de la sección y no de cada ficha: un programa tiene cinco tarjetas y
+   nadie elige cinco veces lo mismo. Lo que se vigila aquí es el reparto —qué
+   lado y qué turno le toca a cada una— y el orden con el que se hace, que es
+   donde está el fallo fácil: `applyList` clona el prototipo del diseño para
+   llegar al número de fichas, así que marcar antes de escribir marcaría el
+   prototipo y cada clon se llevaría el atributo copiado. */
+{
+  const render = (animFichas: string, cuantas = 4, extra: any = {}) => {
+    const d: any = defaultData();
+    d.events = {
+      ...d.events, enabled: true, animFichas, ...extra,
+      items: Array.from({ length: cuantas }, (_, i) => ({
+        time: `${i + 1}:00`, title: `Acto ${i + 1}`, text: "x",
+      })),
+    };
+    const html = renderInvitation({
+      templateHtml: readTemplate(TEMPLATES[0].id), templateId: TEMPLATES[0].id,
+      data: d, slug: "demo",
+    });
+    const sec: any = parseHTML(html).document.querySelector('[data-inv-section="events"]');
+    const fichas = Array.from(sec.querySelectorAll("[data-inv-anim]")) as any[];
+    return {
+      html,
+      lados: fichas.map((e) => e.getAttribute("data-inv-anim")),
+      turnos: fichas.map((e) =>
+        Number((e.getAttribute("style") || "").match(/--inv-anim-turno:(\d+)/)?.[1] ?? 0)
+      ),
+      marcadas: fichas.filter((e) => (e.getAttribute("class") || "").includes("inv-ficha-anim")).length,
+    };
+  };
+
+  const casos: [string, () => boolean][] = [
+    ["sin elegir nada, ninguna ficha se marca", () => render("").lados.length === 0],
+    ["un valor inventado tampoco marca", () => render("volteretas").lados.length === 0],
+    [
+      "alternan derecha e izquierda, una por una",
+      () => render("alterna").lados.join(",") === "derecha,izquierda,derecha,izquierda",
+    ],
+    /* Con una sola ficha entra por la derecha, que es lo mismo que haría
+       "derecha": la alternancia no necesita un caso especial para el uno. */
+    ["con una sola ficha, entra por la derecha", () => render("alterna", 1).lados.join(",") === "derecha"],
+    ["si se elige un lado, van todas por él", () => render("izquierda").lados.join(",") === "izquierda,izquierda,izquierda,izquierda"],
+    /* El turno va en ciclo de tres: el observador dispara cada ficha cuando
+       ella entra en pantalla, y un turno creciente haría esperar a la séptima
+       casi un segundo estando ya a la vista. */
+    ["el turno va en ciclo de tres, no creciendo", () => render("alterna", 7).turnos.join(",") === "0,1,2,0,1,2,0"],
+    ["cada ficha se marca para recorrer más que un renglón", () => render("alterna").marcadas === 4],
+    /* Marcar antes de escribir marcaría el prototipo del diseño, y los clones
+       saldrían todos con el lado y el turno de la primera. */
+    ["se marcan las fichas ya clonadas, no el molde", () => {
+      const r = render("alterna", 6);
+      return r.lados.length === 6 && new Set(r.lados).size === 2;
+    }],
+    /* Se busca la consulta que sólo hace este guion, y no "IntersectionObserver"
+       a secas: el guion de la cuenta atrás que traen los diseños también usa
+       uno, así que las dos comprobaciones —viaja y no viaja— pasaban por el
+       motivo equivocado y la segunda ni siquiera podía pasar. */
+    ["y viaja el guion que las hace entrar",
+      () => render("alterna").html.includes("querySelectorAll('[data-inv-anim]')")],
+    /* El CSS de las entradas viaja siempre —es parte de la hoja inyectada—
+       así que lo que dice si algo se anima o no es el guion, que sólo se
+       añade cuando hay un elemento marcado. */
+    ["sin nada animado, el guion no viaja",
+      () => !render("").html.includes("querySelectorAll('[data-inv-anim]')")],
+  ];
+
+  for (const [nombre, comprueba] of casos) {
+    let ok = false;
+    try { ok = comprueba(); } catch { ok = false; }
+    if (!ok) botonMal++;
+    console.log(`${ok ? "✓" : "✗"} fichas · ${nombre}`);
+  }
+}
+
 /* ── Los nombres, sitio por sitio ────────────────────────────────
    `event.names` los escribe en el velo, la portada y el pie a la vez. Estos
    tres campos se superponen, y lo que hay que vigilar es lo de siempre con un

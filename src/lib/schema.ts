@@ -406,6 +406,45 @@ export const ANIM_POR_PARTES = new Set(["letras", "palabras", "maquina"]);
 export const ANIM_EN_BUCLE = new Set(["late", "flota", "brilla"]);
 
 /**
+ * Cómo entran las fichas de una lista: las tarjetas del programa, las de
+ * información útil, las fotos de la galería.
+ *
+ * Es de la sección y no de cada ficha a propósito. Un programa tiene cinco
+ * tarjetas y nadie va a elegir cinco veces lo mismo; y si se eligiera una a
+ * una, la gracia —que se alternen— habría que armarla a mano y se rompería
+ * al añadir la sexta.
+ *
+ * `alterna` es la que se pide: la primera entra por la derecha, la segunda
+ * por la izquierda, y así. Con una sola ficha entra por la derecha, que es
+ * lo mismo que haría `derecha` — no hay caso especial que escribir.
+ */
+export const ANIM_FICHAS: { value: string; label: string }[] = [
+  { value: "", label: "Sin animación" },
+  { value: "alterna", label: "Alternan: una por la derecha, otra por la izquierda" },
+  { value: "derecha", label: "Todas por la derecha" },
+  { value: "izquierda", label: "Todas por la izquierda" },
+  { value: "sube", label: "Todas suben al aparecer" },
+  { value: "aparece", label: "Todas se funden" },
+  { value: "crece", label: "Todas crecen desde pequeñas" },
+  { value: "gira", label: "Todas entran girando" },
+];
+
+/** La ficha impar de `alterna` entra por el otro lado. */
+export const ANIM_FICHAS_VALIDAS = new Set(
+  ANIM_FICHAS.map((a) => a.value).filter(Boolean)
+);
+
+const animFichasField: FieldSpec = {
+  key: "animFichas",
+  label: "Cómo entran las fichas",
+  type: "select",
+  span: 2,
+  options: ANIM_FICHAS,
+  fallback: 0,
+  help: "Se animan al asomarse por la pantalla, una vez. «Alternan» es la que mejor queda cuando hay varias.",
+};
+
+/**
  * Los adornos de una sección: imágenes que el organizador coloca donde
  * quiera, del tamaño que quiera, delante o detrás del texto.
  *
@@ -1425,6 +1464,17 @@ export const SECTIONS: SectionSpec[] = [
 for (const clave of ["events", "features"]) {
   const spec = SECTIONS.find((s) => s.key === clave);
   if (spec?.list) spec.list.fields = [...spec.list.fields, ...fichaFondoFields];
+}
+
+/*
+ * Y toda sección con lista puede animar sus fichas.
+ *
+ * `guests` queda fuera porque su rejilla se vacía siempre —ahí el nombre es
+ * el de quien abre su enlace— así que no hay fichas que animar.
+ */
+for (const spec of SECTIONS) {
+  if (!spec.list || spec.key === "guests") continue;
+  spec.fields = [...spec.fields, animFichasField];
 }
 
 for (const spec of SECTIONS) {
