@@ -26,6 +26,13 @@ services:
     environment:
       UPLOADS_DIR: /data/biblioteca
       DATABASE_URL: postgres://invita:invita@db:5432/invita?sslmode=disable
+      # La llave del servidor MCP. Sin ella, `/api/mcp` responde 503 y no
+      # monta nada: esas herramientas crean y modifican invitaciones, y una
+      # dirección pública que las ofrezca sin credencial es un formulario de
+      # escritura abierto. Vacía por defecto = apagado por defecto.
+      MCP_TOKEN: ${MCP_TOKEN:-}
+      # Con qué dirección se arman los enlaces que devuelve el MCP.
+      INVITA_URL: ${INVITA_URL:-http://localhost:3000}
     volumes:
       - ${INVITA_DATA:-/mnt/c/Users/Public/Invita}/biblioteca:/data/biblioteca
     restart: unless-stopped

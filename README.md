@@ -3070,6 +3070,53 @@ foto no se ve en los datos: sólo mirando. Antes de capturar abre el velo
 las entradas como ya vistas; sin eso la captura sería la pantalla de
 bienvenida y media página en blanco.
 
+### Contra la app desplegada: `/api/mcp`
+
+El servidor por stdio habla con Postgres **directamente**, así que apuntarlo a
+producción exigiría sacar la base a internet. La alternativa es la contraria y
+es mejor: el servidor ya está donde están los datos y los archivos subidos, y
+lo único que faltaba era una puerta.
+
+```bash
+# En EasyPanel, en las variables de entorno de la app:
+MCP_TOKEN=<openssl rand -hex 32>
+INVITA_URL=https://tuinvitacion.simpplee.com
+
+# Y en el cliente:
+claude mcp add --transport http invitaciones \
+  https://tuinvitacion.simpplee.com/api/mcp \
+  --header "Authorization: Bearer <el token>"
+```
+
+**Sin `MCP_TOKEN` la ruta responde 503 y no monta nada**, y ése es el estado
+correcto por defecto: estas herramientas crean y modifican invitaciones, y una
+dirección pública que las ofrezca sin credencial es un formulario de escritura
+abierto al que llegue. Que esté apagada por defecto significa que desplegarla
+sin querer no abre nada, y que encenderla es un acto deliberado con una llave
+que alguien tuvo que generar.
+
+El token se compara **entero y en tiempo constante**. Un `===` corta en la
+primera letra distinta, y esa diferencia se mide a través de la red para
+adivinar el token carácter a carácter. Son cuatro líneas no tenerlo.
+
+El transporte va **sin sesión**: un transporte por petición, que se atiende y
+se cierra. Es lo que pide este despliegue —puede haber varias copias del
+contenedor y una sesión abierta en una no la conoce la siguiente— y lo que se
+pierde a cambio son los avisos que el servidor manda por su cuenta, que aquí
+no hay ninguno.
+
+#### Ahí `ver` devuelve el enlace, y lo dice
+
+Playwright es una dependencia de desarrollo y el contenedor de producción no
+la trae —ni debería: son cuatrocientos megas de navegador para una captura—.
+Así que el `ver` de la ruta HTTP responde con el enlace del editor y explica
+por qué. El de stdio, que corre desde el proyecto, sí hace la foto.
+
+La diferencia se declara en la respuesta en vez de disimularse, y por eso las
+seis herramientas son **una sola fábrica** con dos parámetros —la dirección
+base y cómo capturar—: dos servidores que se parecen acaban divergiendo justo
+en la regla que importaba.
+
 ### El punto de entrada existe sólo para cambiar de directorio
 
 `scripts/mcp.ts` no hace nada más que plantarse en la raíz del proyecto y

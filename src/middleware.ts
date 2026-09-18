@@ -24,5 +24,8 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/", "/nueva", "/editor/:path*"],
+  /* `/api/mcp` queda fuera a propósito: no lleva cookie, lleva su propia
+     credencial en la cabecera. Redirigirlo al formulario de entrada le
+     devolvería una página HTML a un cliente que espera JSON. */
+  matcher: ["/", "/nueva", "/tablero", "/editor/:path*"],
 };
