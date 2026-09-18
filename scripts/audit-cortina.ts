@@ -270,9 +270,66 @@ const SALIDAS = ["", "negro", "destello", "acerca", "aleja", "sube", "baja",
     );
   }
 
+  /* ── 4 · Que nunca se vea la cortina sin imagen ──────────────
+     El fallo que esto vigila: la cortina se destapaba en el mismo clic y el
+     vídeo empezaba cuando podía, así que con la descarga a medias se veía un
+     rectángulo negro. Medido antes del arreglo, 1.080 ms en una conexión
+     mala. Ahora lo que la destapa es el propio vídeo al arrancar.
+
+     Se simula la conexión retrasando la respuesta del servidor, que es lo
+     que de verdad pasa: el archivo llega tarde, no lento. */
+  console.log();
+  for (const [comoEs, retraso] of [
+    ["conexión rápida", 0],
+    ["conexión mala", 1800],
+  ] as [string, number][]) {
+    const page = await b.newPage({ viewport: { width: 390, height: 800 } });
+    await page.route("**/ejemplo.test/**", (r) =>
+      r.fulfill({ status: 200, contentType: "image/gif",
+        body: Buffer.from("R0lGODlhAQABAAAAACw=", "base64") }));
+    await page.route("**/ejemplo.test/intro.webm*", async (r) => {
+      if (retraso) await new Promise((ok) => setTimeout(ok, retraso));
+      await r.fulfill({ status: 200, contentType: "video/webm", body: CORTO });
+    });
+
+    const data: any = presetFor(tpl);
+    data.splash.introUrl = "https://ejemplo.test/intro.webm";
+    const html = renderInvitation({
+      templateHtml: readTemplate(tpl.id), templateId: tpl.id, data, slug: "demo",
+    });
+    await page.route(`${ORIGEN}/`, (r) =>
+      r.fulfill({ status: 200, contentType: "text/html; charset=utf-8", body: html }));
+    await page.goto(`${ORIGEN}/`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(300);
+
+    /* El vigía se instala antes de pulsar: cada momento en que la cortina
+       está destapada sin que el vídeo haya arrancado es negro en pantalla. */
+    await page.evaluate(`(() => {
+      var v = document.querySelector('.inv-cortina-video');
+      var c = document.querySelector('.inv-cortina');
+      window.__t = { play: 0, negro: 0 };
+      v.addEventListener('playing', function(){
+        if (!window.__t.play) window.__t.play = performance.now();
+      }, { once: true });
+      setInterval(function(){
+        if (!window.__t.play && !c.hasAttribute('hidden')) window.__t.negro += 30;
+      }, 30);
+    })()`);
+    await page.evaluate(`document.querySelector('.splash-btn-primary').click()`);
+    await page.waitForTimeout(3200);
+
+    const t: any = await page.evaluate(`window.__t`);
+    await page.close();
+    if (t.negro) malos++;
+    console.log(
+      `${t.negro ? "✗" : "✓"} sin negro · ${comoEs.padEnd(29)}` +
+        (t.negro ? `  ${t.negro} ms de cortina vacía` : "")
+    );
+  }
+
   await b.close();
   fs.rmSync(TMP, { recursive: true, force: true });
-  const total = CASOS.length + SALIDAS.length;
+  const total = CASOS.length + SALIDAS.length + 2;
   console.log(
     malos
       ? `\n${malos} de ${total} casos con problemas`

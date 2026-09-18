@@ -1763,6 +1763,40 @@ Se cuelga de `enterSite`, que los 50 diseños definen en su propio script y que
 el botón llama por nombre. Envolverla —guardar la de antes y poner una nuestra
 encima— es lo que deja añadir esto sin reconstruir un solo template.
 
+#### La destapa el vídeo, no el clic
+
+Durante un tiempo la cortina se quitaba el `hidden` en el mismo clic y el vídeo
+arrancaba cuando pudiera. Con el archivo en caché son la misma cosa; con la
+descarga a medias no: quedaba un **rectángulo negro** en toda la pantalla
+esperando los primeros fotogramas. Medido con la respuesta del servidor
+retrasada 1,8 s, más de un segundo de negro — justo lo que se ve en un móvil
+con mala señal, que es donde se abren casi todas las invitaciones.
+
+Lo que lo arregla es invertir quién manda: el clic sólo pide `play()`, y quien
+destapa la cortina es el evento `playing` del propio vídeo. Mientras tanto el
+velo se queda puesto, apagado y sin poder pulsarse otra vez
+(`inv-velo-esperando`), que dice «va» sin mentir sobre qué va a pasar.
+
+`play()` **tiene que** seguir llamándose dentro del gesto. Sacarlo a un
+`setTimeout` o esperar a que el vídeo esté listo pierde el permiso de
+reproducción automática, y con él el sonido, que es la mitad de la gracia de la
+cortina. La llamada se queda en el clic; lo único que se movió a `playing` es
+el momento de enseñarla.
+
+A los **cuatro segundos** sin arrancar se entra sin cortina. Un vídeo que no
+empieza no puede dejar a nadie mirando un velo apagado para siempre: en esa
+situación la invitación entera importa más que su entrada. El mismo camino
+cubre el `play()` rechazado y el archivo que no se puede decodificar.
+
+El bloqueo del scroll se fue también a ese momento. Estaba en el clic, así que
+con el vídeo tardando la página quedaba trabada detrás de un velo que todavía
+no había abierto nada.
+
+Los dos últimos casos de `audit:cortina` vigilan esto midiendo, treinta veces
+por segundo, el rato en que la cortina está destapada sin que el vídeo haya
+arrancado. Con el código de antes marcan más de un segundo en una conexión
+mala; ahora, cero.
+
 #### Once maneras de dar paso
 
 | | |
@@ -1825,9 +1859,9 @@ no se puede leer. Hay cuatro maneras de llegar ahí y las cuatro tienen salida:
 | `ended` no llega nunca | Dos relojes: cinco segundos para arrancar, y su duración más un margen una vez arrancó |
 | Quien la abre no quiere verlo | El botón de saltar, que aparece solo al segundo y medio |
 
-`npm run audit:cortina` abre las cinco situaciones en el navegador y pregunta
-lo único que importa: quién ocupa el centro de la pantalla cuando debería
-estar la portada. El clip de prueba lo graba el propio navegador al empezar,
+`npm run audit:cortina` abre en el navegador las situaciones que hay y
+pregunta lo único que importa: quién ocupa el centro de la pantalla cuando
+debería estar la portada, y si alguna vez se ve cortina sin imagen. El clip de prueba lo graba el propio navegador al empezar,
 para no dejar en el repo un binario que nadie sabe de dónde salió.
 
 En su primera ejecución cazó un fallo que el marcado no delata: el botón de la

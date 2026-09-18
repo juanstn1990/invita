@@ -2909,14 +2909,49 @@ const CORTINA_JS = `
   if (!c) return;
   var v = c.querySelector('.inv-cortina-video');
   var saltar = c.querySelector('.inv-cortina-saltar');
+  var velo = document.getElementById('splash');
   /* Con sonido, la música de fondo espera: dos audios a la vez no es
      ambiente, es ruido. Muda la cortina, que suene la música encima. */
   var musica = v.hasAttribute('muted') ? null : document.getElementById('inv-musica');
+
   /* Lo que se ve de la cortina, como mucho. Ver el comentario de abajo. */
   var TOPE = 5000;
-  var fuera = false, reloj = null;
+  /* Cuánto se espera a que el vídeo tenga imagen antes de renunciar a él.
+     Cuatro segundos es mucho para una espera y poco para una descarga mala:
+     pasado eso vale más entrar a la invitación sin cortina que seguir
+     mirando el velo. */
+  var ESPERA_MAX = 4000;
+
+  var fuera = false, abierto = false, reloj = null, relojEspera = null;
 
   function callar(){ if (musica && !fuera) musica.pause(); }
+  function soltarMusica(){
+    if (!musica) return;
+    musica.removeEventListener('play', callar);
+    musica.play().catch(function(){});
+  }
+
+  /* Entrar a la invitación. Se llama una sola vez, con cortina o sin ella. */
+  function abrir(){
+    if (abierto) return;
+    abierto = true;
+    clearTimeout(relojEspera);
+    if (velo) velo.classList.remove('inv-velo-esperando');
+    if (typeof previo === 'function') previo();
+  }
+
+  /* Renunciar al vídeo: se entra igual, sin cortina. Más vale una invitación
+     sin cortina que una cortina en negro. */
+  function renunciar(){
+    if (fuera) return;
+    fuera = true;
+    clearTimeout(reloj);
+    try { v.pause(); } catch (e) {}
+    c.setAttribute('hidden', '');
+    abrir();
+    document.body.style.overflow = '';
+    soltarMusica();
+  }
 
   function irse(){
     if (fuera) return;
@@ -2928,55 +2963,67 @@ const CORTINA_JS = `
     /* Se esconde del todo al terminar: una capa a opacidad cero sigue
        estando, y con ella encima no se puede tocar nada. Se espera al
        'transitionend' y no a un número fijo porque las once salidas duran
-       cosas distintas —el círculo tarda 1,05 s y el destello medio segundo—,
-       y un número fijo o corta la más larga o deja la más corta esperando.
-       El reloj es el respaldo: una transición sobre una propiedad que el
-       navegador no anime no dispara nada. */
+       cosas distintas, y un número fijo o corta la más larga o deja la más
+       corta esperando. El reloj es el respaldo: una transición sobre una
+       propiedad que el navegador no anime no dispara nada. */
     var quitar = function(e){ if (!e || e.target === c) c.setAttribute('hidden', ''); };
     c.addEventListener('transitionend', quitar);
     /* El respaldo sale de la misma variable que usa el CSS, no de un número
        escrito aquí: así cambiar lo que dura el efecto es tocar un sitio y no
-       dos, y no hay forma de que el reloj se quede corto y retire la capa a
-       media transición. */
+       dos. */
     var dur = parseFloat(getComputedStyle(c).getPropertyValue('--inv-cortina-dur')) || 2;
     setTimeout(quitar, dur * 1000 + 700);
-    if (musica) {
-      musica.removeEventListener('play', callar);
-      musica.play().catch(function(){});
-    }
+    soltarMusica();
+  }
+
+  /* El vídeo ya tiene imagen: ahora sí se enseña todo a la vez.
+     Éste es el arreglo de fondo. Antes la cortina se destapaba en el mismo
+     clic y el vídeo empezaba cuando podía, así que con la descarga a medias
+     se veía un rectángulo negro — medido, un segundo entero en una conexión
+     mala. Ahora lo que destapa la cortina es el propio vídeo al arrancar, no
+     el clic, así que no hay forma de verla antes de que haya imagen. */
+  function mostrar(){
+    if (fuera || c.hasAttribute('hidden') === false) return;
+    clearTimeout(relojEspera);
+    c.removeAttribute('hidden');
+    c.classList.add('lista');
+    /* El scroll se bloquea **aquí** y no en el clic: si al final no hay
+       cortina, nunca llegó a bloquearse y no hay nada que devolver. */
+    document.body.style.overflow = 'hidden';
+    abrir();
+    reloj = setTimeout(irse, TOPE);
   }
 
   var previo = window.enterSite;
   window.enterSite = function(){
-    if (typeof previo === 'function') previo();
-    /* La de antes devuelve el scroll al soltar el velo; con cortina todavía
-       no toca, que lo que hay debajo aún no se ha de mirar. */
-    document.body.style.overflow = 'hidden';
     /* La música arranca con el primer clic de la página, que es justo éste, y
        lo hace después de este manejador: por eso no basta con pararla ahora,
        hay que volver a pararla cuando lo intente. */
     if (musica) { musica.pause(); musica.addEventListener('play', callar); }
 
-    c.removeAttribute('hidden');
-    /* Si en cinco segundos no ha empezado a verse nada, no va a empezar. */
-    reloj = setTimeout(irse, 5000);
-    v.addEventListener('playing', function(){
-      clearTimeout(reloj);
-      c.classList.add('lista');
-      /* Cinco segundos y se corta, dure lo que dure el archivo. No es una
-         red de seguridad, es la regla: una cortina es el rato que se tarda en
-         abrir un sobre, y pasado eso quien la abrió ya quiere leer. De paso
-         cubre el caso en que 'ended' no llega nunca, que pasa con archivos
-         que traen mal escrita su duración. */
-      reloj = setTimeout(irse, TOPE);
-    }, { once: true });
-
+    /* play() va dentro del clic aunque el vídeo todavía no tenga datos, y
+       eso no es un descuido: es lo único que conserva el gesto del usuario.
+       Pedirlo más tarde, cuando ya esté cargado, sería una reproducción sin
+       gesto — y un vídeo con sonido no arrancaría. Lo que se aplaza es
+       enseñarlo, no pedirlo. */
     var p = v.play();
-    if (p && p.catch) p.catch(irse);
+    if (p && p.catch) p.catch(renunciar);
+
+    v.addEventListener('playing', mostrar, { once: true });
+    /* Si ya venía reproduciéndose, el evento no volverá a llegar. */
+    if (!v.paused && v.readyState >= 3) mostrar();
+
+    if (!abierto) {
+      /* Mientras se espera, el velo se queda: mirar el velo es mejor que
+         mirar un rectángulo negro. Se marca para que el botón pueda decir
+         que está trabajando. */
+      if (velo) velo.classList.add('inv-velo-esperando');
+      relojEspera = setTimeout(renunciar, ESPERA_MAX);
+    }
   };
 
   v.addEventListener('ended', irse);
-  v.addEventListener('error', irse);
+  v.addEventListener('error', renunciar);
   saltar.addEventListener('click', irse);
 })();`;
 
