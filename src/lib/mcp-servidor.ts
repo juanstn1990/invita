@@ -81,12 +81,14 @@ export function construirServidor({ base, capturar }: OpcionesMcp): McpServer {
     {
       instructions:
         "Arma invitaciones digitales. El orden es siempre el mismo: 1) `disenos` " +
-        "para ver el catálogo, 2) **preguntarle a la persona cuál quiere** —el " +
-        "diseño es lo único que no se deduce de los datos, así que nunca se " +
-        "elige por ella—, 3) `crear` con ese diseño, 4) `esquema` para saber qué " +
-        "campos admite, 5) `escribir` los datos, 6) `ver` para mirar el " +
-        "resultado y corregir. Todo queda en borrador: publicar lo hace una " +
-        "persona desde el editor.",
+        "y `plantillas` para ver de qué se puede partir —un diseño es marcado en " +
+        "blanco, una plantilla guardada ya trae contenido y ajustes—, 2) " +
+        "**preguntarle a la persona de cuál quiere partir**: es lo único que no " +
+        "se deduce de los datos, así que nunca se elige por ella. Si nombra algo " +
+        "que no está en `disenos`, míralo en `plantillas` antes de decirle que " +
+        "no existe. Luego 3) `crear`, 4) `esquema` para saber qué campos admite, " +
+        "5) `escribir` los datos, 6) `ver` para mirar el resultado y corregir. " +
+        "Todo queda en borrador: publicar lo hace una persona desde el editor.",
     }
   );
 
@@ -121,45 +123,147 @@ export function construirServidor({ base, capturar }: OpcionesMcp): McpServer {
     }
   );
 
-  /* ── 2 · Crear, siempre con diseño elegido ───────────────────── */
+  /* ── 2 · Las plantillas propias ──────────────────────────────── */
+
+  server.registerTool(
+    "plantillas",
+    {
+      title: "Ver las plantillas guardadas",
+      description:
+        "Las plantillas propias: invitaciones que alguien dejó guardadas para " +
+        "partir de ellas, con su contenido y sus ajustes ya puestos. Son " +
+        "**distintas de los diseños**: un diseño es marcado en blanco, una " +
+        "plantilla es una invitación concreta que se copia. Si la persona " +
+        "nombra algo que no está en `disenos`, búscalo aquí antes de decirle " +
+        "que no existe.",
+      inputSchema: {},
+      annotations: { readOnlyHint: true },
+    },
+    async () => {
+      const todas = await prisma.plantilla.findMany({ orderBy: { createdAt: "desc" } });
+      if (!todas.length) {
+        return json({ plantillas: [], nota: "No hay ninguna guardada todavía." });
+      }
+      return json(
+        todas.map((p) => ({
+          id: p.id,
+          nombre: p.nombre,
+          disenoBase: p.templateId,
+          disenoNombre: TEMPLATE_BY_ID[p.templateId]?.name || "(de una versión anterior)",
+          usable: !!TEMPLATE_BY_ID[p.templateId],
+          creada: p.createdAt.toISOString().slice(0, 10),
+        }))
+      );
+    }
+  );
+
+  /* ── 3 · Crear, siempre desde algo elegido ───────────────────── */
 
   server.registerTool(
     "crear",
     {
       title: "Crear una invitación",
       description:
-        "Crea una invitación en borrador con el diseño elegido y contenido de " +
-        "ejemplo. El diseño es obligatorio y no tiene valor por defecto: " +
+        "Crea una invitación en borrador, o desde un diseño en blanco " +
+        "(`diseno`) o copiando una plantilla guardada (`plantilla`). Uno de " +
+        "los dos, nunca los dos ni ninguno, y **no hay valor por defecto**: " +
         "pregúntaselo a la persona antes de llamar a esto.",
       inputSchema: {
-        diseno: z.string().describe("El id de un diseño de `disenos`, p.ej. invitacion-15-burdeos."),
+        diseno: z
+          .string()
+          .optional()
+          .describe("El id de un diseño de `disenos`, p.ej. invitacion-15-burdeos."),
+        plantilla: z
+          .string()
+          .optional()
+          .describe("El id de una plantilla guardada de `plantillas`."),
         titulo: z.string().optional().describe("Nombre interno, sólo para el listado."),
       },
     },
-    async ({ diseno, titulo }) => {
-      const tpl = TEMPLATE_BY_ID[diseno];
-      /* Sin diseño válido no se devuelve «falta un parámetro»: se devuelve el
-         catálogo, para que la pregunta se pueda hacer en este mismo turno. */
-      if (!tpl) {
+    async ({ diseno, plantilla, titulo }) => {
+      /* Ni lo uno ni lo otro: se devuelven las dos listas, para que la
+         pregunta se pueda hacer en este mismo turno en vez de gastar uno en
+         decir «falta un parámetro». */
+      if (!diseno && !plantilla) {
+        const guardadas = await prisma.plantilla.findMany({ orderBy: { createdAt: "desc" } });
         return error(
-          `"${diseno}" no es un diseño. Elige uno con la persona y vuelve:\n\n` +
-            JSON.stringify(catalogo(), null, 2)
+          "Hace falta elegir de dónde parte. Enséñale esto a la persona y vuelve:\n\n" +
+            JSON.stringify(
+              {
+                disenos: catalogo(),
+                plantillas: guardadas.map((p) => ({ id: p.id, nombre: p.nombre })),
+              },
+              null,
+              2
+            )
+        );
+      }
+      if (diseno && plantilla) {
+        return error(
+          "Uno de los dos, no los dos: un diseño es marcado en blanco y una " +
+            "plantilla ya trae contenido. Con ambos no está claro cuál manda."
         );
       }
 
-      const data = presetFor(tpl);
-      const base = normalizeSlug(String(data.event.name1 || "invitacion"));
-      let slug = base;
+      /* De una plantilla: se copia su `data` tal cual, como hace el botón del
+         editor. Lo que no está ahí —el enlace público, las confirmaciones,
+         los enlaces de invitado— nace vacío, que es lo correcto: son de la
+         invitación de la que salió la plantilla, no del punto de partida. */
+      let templateId: string;
+      let datos: Record<string, unknown>;
+      let deDonde: string;
+
+      if (plantilla) {
+        const p = await prisma.plantilla.findUnique({ where: { id: plantilla } });
+        if (!p) {
+          const guardadas = await prisma.plantilla.findMany({ orderBy: { createdAt: "desc" } });
+          return error(
+            `No hay ninguna plantilla con id "${plantilla}". Las que hay:\n\n` +
+              JSON.stringify(guardadas.map((x) => ({ id: x.id, nombre: x.nombre })), null, 2)
+          );
+        }
+        if (!TEMPLATE_BY_ID[p.templateId]) {
+          return error(
+            `La plantilla "${p.nombre}" sale del diseño "${p.templateId}", que ya no ` +
+              `existe. No hay con qué dibujarla.`
+          );
+        }
+        templateId = p.templateId;
+        datos = JSON.parse(p.data);
+        deDonde = `plantilla "${p.nombre}"`;
+      } else {
+        const tpl = TEMPLATE_BY_ID[diseno!];
+        if (!tpl) {
+          return error(
+            `"${diseno}" no es un diseño. Si es una plantilla guardada, mírala en ` +
+              `\`plantillas\`. Los diseños son:\n\n` +
+              JSON.stringify(catalogo(), null, 2)
+          );
+        }
+        templateId = diseno!;
+        datos = presetFor(tpl) as unknown as Record<string, unknown>;
+        deDonde = `diseño "${tpl.name}"`;
+      }
+
+      /* La raíz del slug, que **no** es la dirección base.
+         Se llamaba `base` igual que el parámetro con la dirección de la app, y
+         lo tapaba: el enlace del editor salía como «juan/editor/…» en vez de
+         con el dominio. Un fallo que sólo se ve leyendo la respuesta, porque
+         la invitación se crea perfectamente. */
+      const raiz = normalizeSlug(
+        String((datos.event as Record<string, unknown>)?.name1 || "invitacion")
+      );
+      let slug = raiz;
       for (let i = 2; await prisma.invitation.findUnique({ where: { slug } }); i++) {
-        slug = `${base}-${i}`;
+        slug = `${raiz}-${i}`;
       }
 
       const inv = await prisma.invitation.create({
         data: {
           slug,
-          templateId: diseno,
-          title: titulo || `${tpl.name} · ${data.event.name1}`,
-          data: JSON.stringify(data),
+          templateId,
+          title: titulo || `${TEMPLATE_BY_ID[templateId].name} · ${slug}`,
+          data: JSON.stringify(datos),
           published: false,
         },
       });
@@ -167,15 +271,18 @@ export function construirServidor({ base, capturar }: OpcionesMcp): McpServer {
       return json({
         id: inv.id,
         slug: inv.slug,
-        diseno,
+        diseno: templateId,
+        parteDe: deDonde,
         editor: `${base}/editor/${inv.id}`,
         siguiente: "Pide `esquema` con este diseño para saber qué campos admite.",
-        aviso: "Nace con contenido de ejemplo. Lo que no se sobreescriba se queda así.",
+        aviso: plantilla
+          ? "Copia la plantilla entera. Lo que no se sobreescriba se queda como estaba en ella."
+          : "Nace con contenido de ejemplo. Lo que no se sobreescriba se queda así.",
       });
     }
   );
 
-  /* ── 3 · Qué admite ese diseño ───────────────────────────────── */
+  /* ── 4 · Qué admite ese diseño ───────────────────────────────── */
 
   server.registerTool(
     "esquema",
@@ -206,7 +313,7 @@ export function construirServidor({ base, capturar }: OpcionesMcp): McpServer {
     }
   );
 
-  /* ── 4 · Escribir ────────────────────────────────────────────── */
+  /* ── 5 · Escribir ────────────────────────────────────────────── */
 
   server.registerTool(
     "escribir",
@@ -256,7 +363,7 @@ export function construirServidor({ base, capturar }: OpcionesMcp): McpServer {
     }
   );
 
-  /* ── 5 · Verla ───────────────────────────────────────────────── */
+  /* ── 6 · Verla ───────────────────────────────────────────────── */
 
   server.registerTool(
     "ver",
@@ -318,7 +425,7 @@ export function construirServidor({ base, capturar }: OpcionesMcp): McpServer {
     }
   );
 
-  /* ── 6 · Listar los borradores ───────────────────────────────── */
+  /* ── 7 · Listar los borradores ───────────────────────────────── */
 
   server.registerTool(
     "listar",
