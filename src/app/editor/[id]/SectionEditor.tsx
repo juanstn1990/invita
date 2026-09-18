@@ -370,7 +370,11 @@ function Field({
                 className={styles.colorSwatch}
                 value={color.hex || "#000000"}
                 onChange={(e) => color.set(e.target.value)}
-                title={color.hex ? `Color propio: ${color.hex}` : "Color de este texto"}
+                title={
+                  color.hex
+                    ? `${field.label}: color propio ${color.hex}`
+                    : `Color de «${field.label}», sólo de este texto`
+                }
                 data-puesto={color.hex ? "1" : undefined}
               />
               {color.hex && (

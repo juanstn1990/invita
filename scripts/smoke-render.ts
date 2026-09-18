@@ -440,19 +440,59 @@ for (const [nombre, tocar] of CASOS) {
 
     /* Aunque se deje vacío, su color tiene que llegar: poder teñir el nombre
        de un sitio sin teñir el de los otros dos es la mitad de por qué el
-       campo existe. */
-    const conColor: any = defaultData();
-    conColor[clave] = { ...conColor[clave], colors: { nombres: "#00aa44" } };
-    const html = renderInvitation({
-      templateHtml: readTemplate(TEMPLATES[0].id), templateId: TEMPLATES[0].id,
-      data: conColor, slug: "demo",
-    });
-    if (!html.includes("color:#00aa44")) mal.push("el color no llega");
+       campo existe.
+
+       Y llegar no basta — tiene que llegar **acotado**. Que la regla salga en
+       el HTML no dice nada sobre a quién alcanza: un selector sin la sección
+       delante teñiría los tres nombres a la vez, que es justo la queja que
+       trajo aquí ("el mismo color no funciona en todas"). Así que se
+       comprueba el selector, no la presencia.
+
+       Sobre los 50 y no sobre el primero: el reparto del marcado es de cada
+       diseño, y un diseño que sacara el pie de su sección rompería el
+       acotado sin que el primero se enterara. */
+    for (const tpl of TEMPLATES) {
+      const conColor: any = defaultData();
+      conColor[clave] = { ...conColor[clave], colors: { nombres: "#00aa44" } };
+      const html = renderInvitation({
+        templateHtml: readTemplate(tpl.id), templateId: tpl.id,
+        data: conColor, slug: "demo",
+      });
+
+      const regla = html
+        .split(/[}\n]/)
+        .find((l) => l.includes("color:#00aa44"));
+      if (!regla) { mal.push(`${tpl.id}: el color no llega`); continue; }
+
+      const selector = regla.slice(0, regla.indexOf("{"));
+      if (!selector.includes(`[data-inv-section="${clave}"]`)) {
+        mal.push(`${tpl.id}: sin acotar (${selector.trim()})`);
+      }
+      for (const [, otraClave, otroSel] of sitios) {
+        if (otraClave === clave) continue;
+        if (selector.includes(otroSel)) mal.push(`${tpl.id}: alcanza ${otroSel}`);
+      }
+
+      /* Y el elemento vive de verdad dentro de esa sección: un selector
+         acotado sobre marcado mal repartido no pinta nada. */
+      const doc = parseHTML(html).document;
+      const el: any = doc.querySelector(sel);
+      if (!el) mal.push(`${tpl.id}: no existe ${sel}`);
+      else if (!el.closest(`[data-inv-section="${clave}"]`)) {
+        mal.push(`${tpl.id}: ${sel} está fuera de ${clave}`);
+      }
+    }
 
     if (mal.length) botonMal++;
+    /* Un fallo de reparto lo tienen los 50 a la vez —el marcado sale del
+       mismo esqueleto—, así que listarlos entero tapa el resto del informe.
+       Tres ejemplos dicen lo mismo y caben en la pantalla. */
     console.log(
       `${mal.length ? "✗" : "✓"} nombres · ${nombre.padEnd(10)}` +
-        (mal.length ? `  ${mal.join(" · ")}` : "")
+        (mal.length
+          ? `  ${mal.slice(0, 3).join(" · ")}` +
+            (mal.length > 3 ? ` · y ${mal.length - 3} más` : "")
+          : "")
     );
   }
 }

@@ -642,6 +642,37 @@ les puede cambiar la letra no conocía la nueva, así que los tres campos traía
 sus controles de tipografía, color, alineación y tamaño y **ninguno hacía
 nada** — el mismo fallo que este proyecto ya había arreglado una vez.
 
+### El campo se llamaba «Nombres aquí», y por eso no servía
+
+Todo lo de arriba funcionaba en los 50 diseños desde el primer día, y la
+queja llegó igual: *«el color del nombre se usa el mismo en la tarjeta pequeña
+del inicio, como en la portada, como en el pie»*. No era el renderer. Era el
+nombre del campo.
+
+«Nombres aquí» no dice dónde es «aquí» a quien está buscando dónde cambiarle
+el color al nombre de la portada, y la ayuda de debajo hablaba sólo del texto
+—«sólo cambia lo que dice el velo»—, así que quien venía por el color leía
+«esto es para escribir otro nombre» y seguía de largo. El control estaba a dos
+centímetros, siempre visible, y era invisible.
+
+Ahora cada uno se llama por su sitio —**Nombres del velo**, **Nombres de la
+portada**, **Nombres del pie**— y la ayuda dice lo que de verdad se viene a
+buscar: que el color, la letra y el tamaño de al lado valen **sólo aquí**, y
+que el campo de texto se puede dejar en blanco sin perderlos.
+
+Vale la pena quedarse con esto: una función que se puede alcanzar y no se
+puede encontrar está tan rota como una que no existe, y ninguna auditoría de
+render lo iba a decir. Las pruebas comprobaban que el color llegaba al HTML.
+Lo que no había forma de comprobar desde ahí es si alguien sabría pedirlo.
+
+Lo que sí se apretó en la prueba es el **acotado**. Comprobaba que la regla
+salía en el HTML, que no dice nada sobre a quién alcanza: un selector sin la
+sección delante habría teñido los tres nombres a la vez —exactamente el
+síntoma del que se quejaba el usuario— y la prueba habría seguido en verde.
+Ahora mira el selector, no la presencia, y lo hace sobre los 50: el reparto
+del marcado es de cada diseño, y uno que sacara el pie de su sección rompería
+el acotado sin que el primero se enterara.
+
 ## Letra, color, alineación y tamaño, texto por texto
 
 La tipografía ya se elegía por campo. Ahora el **color**, la **alineación** y

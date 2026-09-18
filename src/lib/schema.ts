@@ -638,19 +638,26 @@ export const SECTIONS: SectionSpec[] = [
       { key: "label", label: "Antetítulo", type: "text", placeholder: "Te invitamos a celebrar" },
       {
         /*
-         * Los nombres, sólo para AQUÍ.
+         * Los nombres de ESTE sitio.
          *
-         * Vacío = los del evento, que es lo que se quiere casi siempre. Y
-         * aunque se deje vacío sirve: al ser un campo propio, trae su letra,
-         * su color, su alineación y su tamaño — que es lo que permite teñir
-         * el nombre de un sitio sin teñir el de los otros dos.
+         * Los mismos nombres se escriben en tres lugares muy distintos —un
+         * velo a pantalla completa, una portada sobre una foto, un pie
+         * pequeño al final— y el color que va bien en uno se pierde en otro.
+         * Por eso cada uno es un campo, y por eso el campo existe aunque se
+         * deje vacío: lo que de verdad se viene a buscar aquí es el color,
+         * la letra y el tamaño, que son sólo de este sitio. El texto en
+         * blanco sigue diciendo los del evento.
+         *
+         * El nombre del campo dice el sitio a propósito. Se llamó «Nombres
+         * aquí», y «aquí» no significa nada para quien busca dónde cambiarle
+         * el color al nombre de la portada.
          */
         key: "nombres",
-        label: "Nombres aquí",
+        label: "Nombres del velo",
         type: "text",
         span: 2,
         placeholder: "Vacío = los nombres del evento",
-        help: "Sólo cambia lo que dice el velo. La portada y el pie siguen con los del evento.",
+        help: "Los de esta pantalla y nada más. Su color, su letra y su tamaño —los controles de al lado— sólo valen aquí: es donde se tiñe el nombre del velo sin tocar el de la portada ni el del pie. Déjalo en blanco y dirá los nombres del evento; el color de al lado sigue funcionando igual.",
       },
 
       { key: "subtitle", label: "Subtítulo", type: "text", placeholder: "Nuestra Boda" },
@@ -747,19 +754,26 @@ export const SECTIONS: SectionSpec[] = [
       { key: "label", label: "Antetítulo", type: "text", placeholder: "Te invitamos a nuestra" },
       {
         /*
-         * Los nombres, sólo para AQUÍ.
+         * Los nombres de ESTE sitio.
          *
-         * Vacío = los del evento, que es lo que se quiere casi siempre. Y
-         * aunque se deje vacío sirve: al ser un campo propio, trae su letra,
-         * su color, su alineación y su tamaño — que es lo que permite teñir
-         * el nombre de un sitio sin teñir el de los otros dos.
+         * Los mismos nombres se escriben en tres lugares muy distintos —un
+         * velo a pantalla completa, una portada sobre una foto, un pie
+         * pequeño al final— y el color que va bien en uno se pierde en otro.
+         * Por eso cada uno es un campo, y por eso el campo existe aunque se
+         * deje vacío: lo que de verdad se viene a buscar aquí es el color,
+         * la letra y el tamaño, que son sólo de este sitio. El texto en
+         * blanco sigue diciendo los del evento.
+         *
+         * El nombre del campo dice el sitio a propósito. Se llamó «Nombres
+         * aquí», y «aquí» no significa nada para quien busca dónde cambiarle
+         * el color al nombre de la portada.
          */
         key: "nombres",
-        label: "Nombres aquí",
+        label: "Nombres de la portada",
         type: "text",
         span: 2,
         placeholder: "Vacío = los nombres del evento",
-        help: "Sólo cambia lo que dice la portada. El velo y el pie siguen con los del evento.",
+        help: "Los de la portada y nada más. Su color, su letra y su tamaño —los controles de al lado— sólo valen aquí: es donde se tiñe el nombre de la portada sin tocar el del velo ni el del pie. Déjalo en blanco y dirá los nombres del evento; el color de al lado sigue funcionando igual.",
       },
 
       { key: "subtitle", label: "Subtítulo", type: "text", placeholder: "Nuestra Boda" },
@@ -1300,19 +1314,26 @@ export const SECTIONS: SectionSpec[] = [
     fields: [
       {
         /*
-         * Los nombres, sólo para AQUÍ.
+         * Los nombres de ESTE sitio.
          *
-         * Vacío = los del evento, que es lo que se quiere casi siempre. Y
-         * aunque se deje vacío sirve: al ser un campo propio, trae su letra,
-         * su color, su alineación y su tamaño — que es lo que permite teñir
-         * el nombre de un sitio sin teñir el de los otros dos.
+         * Los mismos nombres se escriben en tres lugares muy distintos —un
+         * velo a pantalla completa, una portada sobre una foto, un pie
+         * pequeño al final— y el color que va bien en uno se pierde en otro.
+         * Por eso cada uno es un campo, y por eso el campo existe aunque se
+         * deje vacío: lo que de verdad se viene a buscar aquí es el color,
+         * la letra y el tamaño, que son sólo de este sitio. El texto en
+         * blanco sigue diciendo los del evento.
+         *
+         * El nombre del campo dice el sitio a propósito. Se llamó «Nombres
+         * aquí», y «aquí» no significa nada para quien busca dónde cambiarle
+         * el color al nombre de la portada.
          */
         key: "nombres",
-        label: "Nombres aquí",
+        label: "Nombres del pie",
         type: "text",
         span: 2,
         placeholder: "Vacío = los nombres del evento",
-        help: "Sólo cambia lo que dice el pie. El velo y la portada siguen con los del evento.",
+        help: "Los del pie y nada más. Su color, su letra y su tamaño —los controles de al lado— sólo valen aquí: es donde se tiñe el nombre del pie sin tocar el del velo ni el de la portada. Déjalo en blanco y dirá los nombres del evento; el color de al lado sigue funcionando igual.",
       },
       { key: "dateLine", label: "Línea de fecha", type: "text", span: 2, placeholder: "15 · Noviembre · 2025 · Sevilla" },
       { key: "note", label: "Nota final", type: "text", span: 2, placeholder: "Diseñado con amor" },
