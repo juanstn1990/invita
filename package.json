@@ -30,9 +30,12 @@
     "audit:medios": "tsx scripts/audit-medios.ts",
     "audit:adornos": "tsx scripts/audit-adornos.ts",
     "audit:comprimir": "tsx scripts/audit-comprimir.ts",
-    "audit:html": "tsx scripts/audit-html.ts"
+    "audit:html": "tsx scripts/audit-html.ts",
+    "audit:mcp": "tsx scripts/audit-mcp.ts",
+    "mcp": "tsx scripts/mcp.ts"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
     "@prisma/client": "^5.20.0",
     "linkedom": "^0.18.13",
     "next": "^14.2.15",

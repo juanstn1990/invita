@@ -2972,3 +2972,93 @@ la primera vez que tomé capturas.
   Su contenido vivía en la columna `tree`, que ya no se lee; `/[slug]` les
   devuelve un 404 honesto. Si se quisieran recuperar, habría que escribir un
   migrador de `tree` al esquema.
+
+## Un servidor MCP para armarlas desde un asistente
+
+`npm run mcp` levanta un servidor MCP que habla por la entrada estándar. En
+Claude Code:
+
+```bash
+claude mcp add invitaciones -- npx tsx /ruta/a/invitaciones/scripts/mcp.ts
+```
+
+Seis herramientas, y el orden importa: `disenos` → **preguntar** → `crear` →
+`esquema` → `escribir` → `ver`.
+
+### Por qué el diseño se pregunta siempre
+
+`crear` exige un diseño y **no tiene valor por defecto**. De todo lo que lleva
+una invitación, el diseño es lo único que no se deduce de los datos: los
+nombres, la fecha y el lugar vienen dados; que la boda sea de campo o de
+salón, que la quinceañera quiera burdeos o lavanda, eso lo sabe la persona.
+Un valor por defecto aquí significa que el asistente elige por ella y que ella
+descubre la elección al final, ya hecha — el momento más caro para cambiarla.
+
+Por eso `crear` sin diseño válido no responde «falta un parámetro»: responde
+con **el catálogo entero**, para que la pregunta se pueda hacer en ese mismo
+turno.
+
+### Por qué esto costó poco
+
+Casi todo el trabajo estaba hecho, y no por suerte:
+
+- `renderInvitation()` es una **función pura** —template + datos → HTML—, así
+  que el servidor renderiza sin montar la app ni tocar la red.
+- `data` es **una sola columna JSON**. Una invitación es un objeto.
+- Y la que de verdad importa: `SECTIONS` + `templateSupport()` ya eran un
+  **contrato legible por máquina**. El esquema que ve el asistente no se
+  escribió, se deriva — y sigue sincronizado porque es la misma fuente que
+  usan el editor y las auditorías. Es justo lo que suele podrirse en estos
+  servidores: un esquema escrito a mano que a la tercera función miente.
+
+### Un campo desconocido se rechaza y se explica
+
+Es la decisión que sostiene el resto, y es lo contrario de lo que suele hacer
+una API. Al otro lado hay un modelo que **no ve el resultado**. Si escribir en
+un campo que no existe se traga en silencio, el modelo cree que quedó puesto,
+sigue adelante, y la invitación sale con media portada vacía sin que nadie
+sepa por qué. Un silencio es una mentira que se descubre tarde.
+
+Así que se devuelve el error con los nombres que sí existen, y con la
+sugerencia cuando el fallo es una letra:
+
+```
+No existe el campo "subtitl" en "Portada". ¿Querías "subtitle"?
+```
+
+Y si algo del parche falla, **no se escribe nada**: ni siquiera lo que estaba
+bien. A medias deja la invitación en un estado que el modelo no conoce.
+
+### Lo que no hace, a propósito
+
+**No toca invitaciones publicadas.** Una publicada tiene el enlace repartido:
+reescribirla es cambiarle la fecha a gente que ya la leyó. Publicar sigue
+siendo un botón que aprieta una persona, y no es una limitación pendiente de
+resolver — es la frontera correcta.
+
+**No ofrece los campos de archivo.** Fotos, vídeo y música no aparecen en el
+esquema, y escribirlos se rechaza. No es pereza: el asistente **no los puede
+aportar**, y ofrecerlos sería invitarle a inventar una ruta. Una invitación
+con la foto rota es peor que una sin foto, porque parece terminada.
+
+### `ver` es lo que lo separa de rellenar JSON a ciegas
+
+Devuelve una captura de la página entera. Que un título no se lea sobre una
+foto no se ve en los datos: sólo mirando. Antes de capturar abre el velo
+—`enterSite`, la puerta que definen los 50 diseños—, retira la cortina y marca
+las entradas como ya vistas; sin eso la captura sería la pantalla de
+bienvenida y media página en blanco.
+
+### La auditoría
+
+`npm run audit:mcp` prueba el catálogo, el esquema y la fusión **sin levantar
+el servidor**. Un servidor MCP es un proceso que habla por una tubería:
+probarlo entero obliga a arrancarlo y hablarle en JSON, y eso convierte
+cualquier prueba en una de integración lenta que nadie corre. Lo que de verdad
+puede estar mal es una función, y una función se prueba.
+
+Cazó un fallo de los buenos en la primera ejecución. `event.paleta` es un
+desplegable cuya lista de opciones **nace vacía**: cuáles hay depende del
+diseño, y el editor las rellena en cada render. El servidor no lo hacía, así
+que la comprobación de opciones rechazaba **cualquier** paleta, incluida una
+buena. El campo no quedaba invisible: quedaba imposible de escribir.
