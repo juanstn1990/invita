@@ -7,7 +7,7 @@ import { renderInvitation } from "../src/lib/render";
 import { defaultData } from "../src/lib/schema";
 import { TEMPLATES, readTemplate } from "../src/lib/templates";
 import { BLOCKS } from "../src/lib/blocks";
-import { SECTION_BY_KEY } from "../src/lib/schema";
+import { SECTION_BY_KEY, SECTIONS } from "../src/lib/schema";
 
 const out = path.join(process.cwd(), ".preview");
 fs.mkdirSync(out, { recursive: true });
@@ -332,6 +332,38 @@ for (const [nombre, tocar] of CASOS) {
       `${mal.length ? "✗" : "✓"} apertura · ${nombre.padEnd(36)}` +
         (mal.length ? `  ${mal.length} mal: ${mal.slice(0, 2).join(", ")}` : "")
     );
+  }
+}
+
+/* ── Que lo que el renderer entiende se pueda elegir ──────────────
+   Esta comprobación existe por un fallo real: el color sólido de sección
+   funcionaba en el renderer, tenía sus pruebas en verde y **no aparecía en el
+   editor**, porque los campos nunca llegaron al esquema. Las pruebas pasaban
+   porque escriben el dato a mano, que es justo el camino que no existe para
+   quien usa la aplicación.
+
+   Así que se mira lo otro: que el esquema declare el campo. Un renderer que
+   entiende algo que nadie puede elegir es código muerto con pruebas. */
+{
+  const declara = (seccion: string, clave: string) =>
+    (SECTION_BY_KEY[seccion]?.fields || []).some((f) => f.key === clave);
+  const declaraFicha = (seccion: string, clave: string) =>
+    (SECTION_BY_KEY[seccion]?.list?.fields || []).some((f) => f.key === clave);
+
+  const casos: [string, boolean][] = [
+    ["el color de fondo de una sección se puede elegir", declara("gallery", "fondoColor")],
+    ["y en todas las que aceptan fondo", SECTIONS.filter((s) => s.fondo)
+      .every((s) => s.fields.some((f) => f.key === "fondoColor"))],
+    ["el color de una ficha del programa", declaraFicha("events", "fondoColor")],
+    ["su transparencia", declaraFicha("events", "fondoOpacidad")],
+    ["y lo mismo en información útil", declaraFicha("features", "fondoColor")],
+    ["el color de los botones", declara("event", "btnColor")],
+    ["y el de su texto", declara("event", "btnInk")],
+  ];
+
+  for (const [nombre, ok] of casos) {
+    if (!ok) botonMal++;
+    console.log(`${ok ? "✓" : "✗"} elegible · ${nombre}`);
   }
 }
 

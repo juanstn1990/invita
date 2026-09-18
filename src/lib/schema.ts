@@ -130,6 +130,25 @@ const textColor: FieldSpec = {
  */
 const fichaFondoFields: FieldSpec[] = [
   {
+    key: "fondoColor",
+    label: "Color de la ficha",
+    type: "color",
+    span: 2,
+    help: "Sólido. Vacío = el de la tarjeta del diseño.",
+  },
+  {
+    key: "fondoOpacidad",
+    label: "Transparencia del color",
+    type: "range",
+    min: 5,
+    max: 100,
+    step: 5,
+    unit: "%",
+    fallback: 100,
+    span: 2,
+    help: "Bájalo para que se transparente lo que hay detrás.",
+  },
+  {
     key: "fondo",
     label: "Fondo de la ficha",
     type: "image",
@@ -173,6 +192,23 @@ export const esVideoUrl = (url: string) =>
  * y puede ir encima del texto.
  */
 const fondoFields: FieldSpec[] = [
+  {
+    /*
+     * Un color sólido detrás de la sección.
+     *
+     * Va antes que la imagen a propósito: es lo que más se pide y lo más
+     * barato —cero bytes—, y quien sólo quiere "esta sección en verde" no
+     * debería pasar por un campo de subir foto para llegar.
+     *
+     * Con imagen puesta el color queda **debajo**: es el papel sobre el que
+     * se apoya una foto con transparencia o una que no llega a cubrir.
+     */
+    key: "fondoColor",
+    label: "Color de fondo",
+    type: "color",
+    span: 2,
+    help: "Sólido, detrás de todo. Vacío = el que trae el diseño.",
+  },
   {
     key: "fondoUrl",
     label: "Fondo de la sección",

@@ -321,7 +321,9 @@ function construir(): TemplateMap {
           /* El fondo de una ficha no se escribe con una operación: lo pinta
              `ponerFondoFichas` sobre la tarjeta ya clonada. Sin esta guarda,
              el mapa pediría un `data-inv` que no existe en ningún diseño. */
-          .filter((f) => f.key !== "fondo" && f.key !== "fondoVelo")
+          /* Los cuatro del fondo de una ficha: los pinta `ponerFondoFicha`
+             sobre la tarjeta ya clonada, no una operación del mapa. */
+          .filter((f) => !f.key.startsWith("fondo"))
           .map((f) => {
             const sel = [
               `[data-inv="${s.key}.items.${f.key}"]`,
