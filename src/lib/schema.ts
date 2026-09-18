@@ -858,9 +858,13 @@ export const SECTIONS: SectionSpec[] = [
         help: "Cada salto de línea se respeta.",
       },
       { key: "padresA", label: "Título de la primera columna", type: "text", placeholder: "Padres del novio" },
-      { key: "padresANombres", label: "Nombres", type: "textarea", placeholder: "Uno por línea" },
+      /* «Nombres» a secas, dos veces y en la misma sección que «Nombres de
+         la portada»: tres campos de nombres donde dos no dicen de quién. El
+         título de al lado ya se llama «de la primera columna»; éste tenía que
+         llamarse igual. */
+      { key: "padresANombres", label: "Nombres de la primera columna", type: "textarea", placeholder: "Uno por línea" },
       { key: "padresB", label: "Título de la segunda columna", type: "text", placeholder: "Padres de la novia" },
-      { key: "padresBNombres", label: "Nombres", type: "textarea", placeholder: "Uno por línea" },
+      { key: "padresBNombres", label: "Nombres de la segunda columna", type: "textarea", placeholder: "Uno por línea" },
       {
         key: "cierre",
         label: "Línea de cierre",
