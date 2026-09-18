@@ -313,7 +313,68 @@ export function construirServidor({ base, capturar }: OpcionesMcp): McpServer {
     }
   );
 
-  /* ── 5 · Escribir ────────────────────────────────────────────── */
+  /* ── 5 · Leer lo que hay ─────────────────────────────────────── */
+
+  server.registerTool(
+    "leer",
+    {
+      title: "Ver los datos de una invitación",
+      description:
+        "Lo que hay escrito ahora mismo en cada sección. Hace falta más de lo " +
+        "que parece: al partir de una plantilla se copia contenido que nadie " +
+        "ha mirado, y sin poder leerlo se escribe a ciegas encima. Marca " +
+        "aparte los campos que traen etiquetas HTML, que es de donde salen los " +
+        "rastros raros —un resaltado amarillo, una negrita suelta— que se " +
+        "pegan al copiar de un documento.",
+      inputSchema: {
+        id: z.string().describe("El id de la invitación."),
+        seccion: z.string().optional().describe("Sólo una sección, p.ej. hero."),
+      },
+      annotations: { readOnlyHint: true },
+    },
+    async ({ id, seccion }) => {
+      const inv = await prisma.invitation.findUnique({ where: { id } });
+      if (!inv) return error(`No hay ninguna invitación con id "${id}".`);
+
+      const datos = JSON.parse(inv.data) as Record<string, Record<string, unknown>>;
+      const conMarcado: string[] = [];
+
+      /* Se devuelve sólo lo que tiene valor. Un volcado con los ciento y pico
+         campos vacíos entierra los cuatro que importan, y quien lee esto
+         tiene un presupuesto de atención tan limitado como el de cualquiera. */
+      const limpio: Record<string, unknown> = {};
+      for (const [clave, campos] of Object.entries(datos)) {
+        if (seccion && clave !== seccion) continue;
+        if (!campos || typeof campos !== "object") continue;
+        const dentro: Record<string, unknown> = {};
+        for (const [campo, valor] of Object.entries(campos)) {
+          if (valor === "" || valor === null || valor === undefined) continue;
+          if (Array.isArray(valor) && !valor.length) continue;
+          dentro[campo] = valor;
+          if (/<[a-z][^>]*>/i.test(JSON.stringify(valor))) {
+            conMarcado.push(`${clave}.${campo}`);
+          }
+        }
+        if (Object.keys(dentro).length) limpio[clave] = dentro;
+      }
+
+      return json({
+        titulo: inv.title,
+        diseno: inv.templateId,
+        publicada: inv.published,
+        ...(conMarcado.length
+          ? {
+              ojo:
+                "Estos campos traen etiquetas HTML dentro, que casi nunca es lo " +
+                "que se quería: " + conMarcado.join(", "),
+            }
+          : {}),
+        datos: limpio,
+      });
+    }
+  );
+
+  /* ── 6 · Escribir ────────────────────────────────────────────── */
 
   server.registerTool(
     "escribir",
@@ -363,7 +424,7 @@ export function construirServidor({ base, capturar }: OpcionesMcp): McpServer {
     }
   );
 
-  /* ── 6 · Verla ───────────────────────────────────────────────── */
+  /* ── 7 · Verla ───────────────────────────────────────────────── */
 
   server.registerTool(
     "ver",
@@ -425,7 +486,7 @@ export function construirServidor({ base, capturar }: OpcionesMcp): McpServer {
     }
   );
 
-  /* ── 7 · Listar los borradores ───────────────────────────────── */
+  /* ── 8 · Listar los borradores ───────────────────────────────── */
 
   server.registerTool(
     "listar",
