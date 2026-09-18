@@ -574,6 +574,37 @@ porque batiendo por separado se lee como cuatro aletas. Y el par de arriba es
 bastante mayor que el de abajo: es lo que distingue una mariposa de un brote
 de dos hojas, que es exactamente en lo que se quedó el primer intento.
 
+## Una capa detrás del texto
+
+Sobre un fondo cargado —una ilustración, una foto con detalle— **no hay color
+de letra que funcione en toda la superficie**: lo que en una zona se lee, en la
+de al lado se pierde. Subir el contraste de la letra no lo arregla, porque el
+problema no es la letra: es que detrás pasan cosas. Una capa lisa sí lo
+arregla — separa el texto de lo que hay debajo sin tapar la imagen.
+
+El bloque de párrafo trae dos campos: **color** y **transparencia**. Es
+distinto del fondo de sección, que cubre la sección entera: ésta se ciñe al
+texto.
+
+Va al **contenedor** y no a un elemento suelto. Lo que hay que separar del
+fondo es el bloque entero —antetítulo, título y párrafo—, no cada renglón por
+su cuenta, que se vería como tres subrayados en vez de como un panel. Y trae
+aire alrededor y las esquinas del diseño: sin el aire la capa se pega a las
+letras y se lee como un marcador.
+
+Lleva además un `backdrop-filter` mínimo. Un color translúcido solo deja pasar
+las formas de debajo con toda su nitidez, y con una ilustración detrás el ojo
+sigue leyendo dos cosas a la vez; desenfocar un punto y medio basta para que
+lo de atrás se vuelva textura.
+
+El mecanismo es genérico aunque hoy sólo lo ofrezca el párrafo: extenderlo a
+otra sección es añadirle los dos campos y nada más.
+
+Un aviso que se ve en cuanto se prueba: la capa arregla el cuerpo del texto,
+pero si el diseño pinta el título en claro y se elige una capa clara, el título
+sigue sin leerse. Para eso está el color por campo — la capa y el color del
+texto se eligen juntos, no uno u otro.
+
 ## Los nombres, sitio por sitio
 
 `event.names` escribe los nombres en el **velo**, la **portada** y el **pie** a

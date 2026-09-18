@@ -205,6 +205,9 @@ const APARTE = new Set([
   "ajuste",
   "velo",
   // El fondo de la sección lo pone `ponerFondo` en una capa propia.
+  /* La capa detrás del texto es una regla CSS sobre el contenedor. */
+  "panelColor",
+  "panelOpacidad",
   "fondoColor",
   "btnColor",
   "btnInk",

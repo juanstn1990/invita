@@ -3746,6 +3746,29 @@ export function renderInvitation(opts: RenderOptions): string {
       );
     }
 
+    /* La capa detrás del texto.
+       Se aplica al contenedor y no a un elemento suelto: lo que hay que
+       separar del fondo es el bloque de texto entero —antetítulo, título y
+       párrafo—, no cada renglón por su cuenta, que se vería como tres
+       subrayados en vez de como un panel.
+
+       Genérica a propósito aunque hoy sólo la ofrezca el bloque de párrafo:
+       extenderla a otra sección es añadirle los dos campos y nada más. */
+    {
+      const panel = String(sectionData.panelColor || "").trim();
+      if (HEX.test(panel)) {
+        const op = Math.min(100, Math.max(5, Number(sectionData.panelOpacidad ?? 60))) / 100;
+        extraCss.push(
+          `${sectionSel} .container{background:${alpha(panel, op)};` +
+            /* Sin aire alrededor la capa se pega a las letras y se lee como
+               un subrayado. El radio sale del diseño, para que no parezca
+               pegada de otro sitio. */
+            `padding:clamp(20px,5vw,34px);border-radius:var(--radius);` +
+            `backdrop-filter:blur(1.5px)}`
+        );
+      }
+    }
+
     // El fondo va detrás de todo y los adornos donde el organizador diga.
     ponerFondo(root, sectionData, sectionSel, ctx);
     ponerAdornos(root, sectionData, sectionSel, ctx, r.key);

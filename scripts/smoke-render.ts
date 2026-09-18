@@ -335,6 +335,61 @@ for (const [nombre, tocar] of CASOS) {
   }
 }
 
+/* ── La capa detrás del texto ────────────────────────────────────
+   Sobre un fondo cargado no hay color de letra que funcione en toda la
+   superficie: lo que en una zona se lee, en la de al lado se pierde. La capa
+   es lo que separa el texto de lo que pasa debajo. */
+{
+  const render = (data: Record<string, unknown>) => {
+    const d: any = defaultData();
+    d.layout = {
+      blocks: [{ id: "p1", type: "paragraph", variant: "simple",
+        data: { enabled: true, text: "Hola.", ...data } }],
+    };
+    return renderInvitation({
+      templateHtml: readTemplate(TEMPLATES[0].id), templateId: TEMPLATES[0].id,
+      data: d, slug: "demo",
+    });
+  };
+  const regla = (html: string) => (html.match(/#inv-p1 \.container\{[^}]*\}/) || [""])[0];
+
+  const casos: [string, () => boolean][] = [
+    ["sin color no hay capa", () => !regla(render({}))],
+    ["un color inválido tampoco", () => !regla(render({ panelColor: "blanco" }))],
+    [
+      "con color, la capa lleva su transparencia dentro",
+      () => regla(render({ panelColor: "#ffffff", panelOpacidad: "70" }))
+        .includes("background:rgba(255,255,255,0.7)"),
+    ],
+    [
+      "sin elegir transparencia, la de por defecto",
+      () => regla(render({ panelColor: "#ffffff" })).includes("0.6"),
+    ],
+    /* Sin aire alrededor la capa se pega a las letras y se lee como un
+       subrayado, no como un panel. */
+    [
+      "y trae aire y esquinas del diseño",
+      () => {
+        const r = regla(render({ panelColor: "#ffffff" }));
+        return r.includes("padding:clamp(") && r.includes("border-radius:var(--radius)");
+      },
+    ],
+    /* Va al contenedor: lo que hay que separar del fondo es el bloque entero
+       —antetítulo, título y párrafo— y no cada renglón por su cuenta. */
+    [
+      "se aplica al contenedor, no a un renglón",
+      () => regla(render({ panelColor: "#ffffff" })).startsWith("#inv-p1 .container{"),
+    ],
+  ];
+
+  for (const [nombre, comprueba] of casos) {
+    let ok = false;
+    try { ok = comprueba(); } catch { ok = false; }
+    if (!ok) botonMal++;
+    console.log(`${ok ? "✓" : "✗"} capa · ${nombre}`);
+  }
+}
+
 /* ── Los nombres, sitio por sitio ────────────────────────────────
    `event.names` los escribe en el velo, la portada y el pie a la vez. Estos
    tres campos se superponen, y lo que hay que vigilar es lo de siempre con un

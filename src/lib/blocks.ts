@@ -528,6 +528,38 @@ const paragraph: BlockSpec = {
       span: 2,
       help: "Se aplica a todo el bloque.",
     },
+    /*
+     * Una capa detrás del texto.
+     *
+     * Sobre un fondo cargado —una ilustración, una foto con detalle— no hay
+     * color de letra que funcione en toda la superficie: lo que en una zona
+     * se lee, en la de al lado se pierde. Subir el contraste de la letra no
+     * lo arregla, porque el problema no es la letra, es que detrás pasan
+     * cosas. Una capa lisa detrás sí: separa el texto de lo que hay debajo
+     * sin tapar la imagen.
+     *
+     * Distinto del fondo de sección, que cubre la sección entera: ésta se
+     * ciñe al texto.
+     */
+    {
+      key: "panelColor",
+      label: "Capa detrás del texto",
+      type: "color",
+      span: 2,
+      help: "Para que el texto se lea sobre un fondo cargado. Vacío = sin capa.",
+    },
+    {
+      key: "panelOpacidad",
+      label: "Transparencia de la capa",
+      type: "range",
+      min: 5,
+      max: 100,
+      step: 5,
+      unit: "%",
+      fallback: 60,
+      span: 2,
+      help: "Súbela hasta que el texto se lea cómodo; bájala para que se siga viendo el fondo.",
+    },
   ],
   variants: [
     {
