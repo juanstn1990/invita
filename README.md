@@ -2980,7 +2980,28 @@ Claude Code:
 
 ```bash
 claude mcp add invitaciones -- npx tsx /ruta/a/invitaciones/scripts/mcp.ts
+claude mcp list          # invitaciones: … ✔ Connected
 ```
+
+En Claude Desktop, lo mismo en `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "invitaciones": {
+      "command": "npx",
+      "args": ["tsx", "/ruta/a/invitaciones/scripts/mcp.ts"]
+    }
+  }
+}
+```
+
+**La ruta tiene que ser absoluta y no hace falta decir desde dónde se lanza.**
+El punto de entrada se planta solo en la raíz del proyecto; ver abajo por qué
+eso costó un archivo entero.
+
+La base de datos tiene que estar levantada (`docker compose up -d db`): el
+servidor lee y escribe las mismas invitaciones que el editor.
 
 Seis herramientas, y el orden importa: `disenos` → **preguntar** → `crear` →
 `esquema` → `escribir` → `ver`.
@@ -3048,6 +3069,44 @@ foto no se ve en los datos: sólo mirando. Antes de capturar abre el velo
 —`enterSite`, la puerta que definen los 50 diseños—, retira la cortina y marca
 las entradas como ya vistas; sin eso la captura sería la pantalla de
 bienvenida y media página en blanco.
+
+### El punto de entrada existe sólo para cambiar de directorio
+
+`scripts/mcp.ts` no hace nada más que plantarse en la raíz del proyecto y
+cargar `scripts/mcp-servidor.ts` con un `import()` dinámico.
+
+Un cliente MCP lanza el servidor **desde donde le parece**: su propio
+directorio, la carpeta del usuario, `/`. Y hay dos rutas que se resuelven
+contra el directorio actual —`templates/`, de donde sale el marcado de cada
+diseño, y `uploads/`—. Lanzado desde otro sitio el servidor arrancaba, listaba
+invitaciones sin problema, y sólo fallaba al pedir `ver`:
+
+```
+ENOENT: no such file or directory, open '/tmp/templates/invitacion-15-burdeos.html'
+```
+
+Que no se parece en nada a la causa. Y no habría salido nunca probando desde
+el proyecto, que es donde se prueba todo.
+
+**Un `chdir` junto a los `import` no sirve**, y ése fue el primer intento: los
+imports se izan y corren antes que cualquier sentencia del módulo, así que
+`templates.ts` ya había calculado su carpeta —al cargarse, no al usarse—
+cuando llegaba el cambio de directorio. Fallaba exactamente igual que antes.
+Un `import()` dinámico es lo único que corre de verdad después.
+
+Se arregla ahí y no en `templates.ts` a propósito: ese archivo lo usan la app,
+las auditorías y el build, y en los tres el directorio actual siempre es la
+raíz —también dentro del contenedor, donde el marcado está en
+`/app/templates`—. Cambiarlo por un caso que sólo le pasa a un script sería
+mover una pieza que no está rota y que sostiene todo lo demás.
+
+### Las invitaciones que ya no se pueden abrir
+
+Las del constructor visual retirado siguen en la base pero no tienen marcado.
+`ver` sobre una de ellas reventaba con «Template desconocido: blanco» —una
+excepción cruda, no una respuesta—, y el modelo no tenía forma de saber que el
+problema no era suyo ni que el resto sí funciona. Ahora `listar` las marca y
+`ver` y `escribir` lo explican.
 
 ### La auditoría
 
