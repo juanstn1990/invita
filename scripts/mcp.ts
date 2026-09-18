@@ -55,6 +55,7 @@ import { TEMPLATE_BY_ID, readTemplate } from "../src/lib/templates";
 import { renderInvitation } from "../src/lib/render";
 import { normalizeSlug } from "../src/lib/slug";
 import { catalogo, esquemaDe, fusionar } from "../src/lib/mcp";
+import { ESTADO_POR_ID, estadoDe } from "../src/lib/tablero";
 
 /** Dónde vive la app, para armar los enlaces que se devuelven. */
 const BASE = process.env.INVITA_URL || "http://localhost:3000";
@@ -309,20 +310,30 @@ server.registerTool(
   "listar",
   {
     title: "Ver las invitaciones que hay",
-    description: "Las invitaciones existentes, con su id, su diseño y si están publicadas.",
+    description:
+      "Las invitaciones existentes, con su id, su diseño, en qué punto del " +
+      "trabajo están (borrador, demo, en curso, entregada), si están " +
+      "publicadas y si están cobradas.",
     inputSchema: {},
     annotations: { readOnlyHint: true },
   },
   async () => {
     const todas = await prisma.invitation.findMany({
-      select: { id: true, slug: true, title: true, templateId: true, published: true, updatedAt: true },
+      select: { id: true, slug: true, title: true, templateId: true, published: true,
+        estado: true, pagada: true, updatedAt: true },
       orderBy: { updatedAt: "desc" },
       take: 50,
     });
     return json(
       todas.map((i) => ({
         id: i.id, titulo: i.title, diseno: i.templateId,
-        estado: i.published ? "publicada (no se toca)" : "borrador",
+        /* Dos cosas distintas y por eso van separadas: el estado es en qué
+           punto del trabajo está, y `publicada` es si la dirección pública
+           responde. Una demo se publica para enseñarla. */
+        estado: ESTADO_POR_ID[estadoDe(i.estado)].label,
+        publicada: i.published,
+        pagada: i.pagada,
+        editable: !i.published,
         editor: `${BASE}/editor/${i.id}`,
       }))
     );

@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { TEMPLATE_BY_ID } from "@/lib/templates";
 import { normalizeSlug, slugError } from "@/lib/slug";
 import { noAutorizado } from "@/lib/auth";
+import { ESTADOS, esEstado } from "@/lib/tablero";
 
 export async function PATCH(
   request: Request,
@@ -40,6 +41,22 @@ export async function PATCH(
 
   if (typeof body.published === "boolean") update.published = body.published;
 
+  /* El estado del tablero. Se valida contra la lista y no se acepta lo que
+     llegue: un estado inventado deja la invitación en una columna que no
+     existe, es decir, invisible. `estadoDe` la rescataría al pintarla, pero
+     el rescate es para lo viejo, no para lo que entra hoy. */
+  if (typeof body.estado === "string") {
+    if (!esEstado(body.estado)) {
+      return NextResponse.json(
+        { error: `"${body.estado}" no es un estado. Los que hay: ${ESTADOS.map((e) => e.id).join(", ")}.` },
+        { status: 400 }
+      );
+    }
+    update.estado = body.estado;
+  }
+
+  if (typeof body.pagada === "boolean") update.pagada = body.pagada;
+
   try {
     const invitation = await prisma.invitation.update({
       where: { id: params.id },
@@ -49,6 +66,8 @@ export async function PATCH(
       id: invitation.id,
       slug: invitation.slug,
       published: invitation.published,
+      estado: invitation.estado,
+      pagada: invitation.pagada,
       updatedAt: invitation.updatedAt,
     });
   } catch {

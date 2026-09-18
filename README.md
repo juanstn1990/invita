@@ -3062,3 +3062,81 @@ desplegable cuya lista de opciones **nace vacía**: cuáles hay depende del
 diseño, y el editor las rellena en cada render. El servidor no lo hacía, así
 que la comprobación de opciones rechazaba **cualquier** paleta, incluida una
 buena. El campo no quedaba invisible: quedaba imposible de escribir.
+
+## El tablero: en qué punto está cada invitación
+
+`/tablero`. Cuatro columnas —**Borrador**, **Demo**, **En curso**,
+**Entregada**— y las tarjetas se arrastran entre ellas.
+
+El listado de la portada sigue existiendo y responde a otra pregunta: «¿qué
+toqué hace poco?», que es la que se hace al volver a trabajar. El tablero
+responde «¿cómo voy?», que es la que se hace al empezar el día — y con quince
+invitaciones una lista por fecha de cambio no la contesta.
+
+### Estado y `published` son dos cosas
+
+Antes la única distinción era `published`, que dice si la dirección pública
+responde. No es lo mismo que en qué punto del trabajo va, y confundirlas es
+justo lo que desordena: **una demo se publica para poder enseñarla**, así que
+con un solo interruptor quedaba indistinguible de una entregada. Y una
+entregada se puede despublicar sin dejar de estar entregada.
+
+Por eso el estado es un campo propio y `published` se quedó diciendo lo que
+siempre dijo.
+
+### «Pagada» es un sello, no una columna
+
+Se consideró como quinta columna y no lo es, porque no es el final de la fila:
+se cobra un anticipo de algo que sigue en curso, y —lo que de verdad importa—
+se entrega algo que todavía no se ha cobrado.
+
+Como columna, «entregada sin pagar» y «entregada y pagada» serían dos sitios
+distintos y habría que mirar los dos para saber qué falta por cobrar. Como
+sello encima de la tarjeta, la columna «Entregada» contesta esa pregunta sola,
+y el resumen de arriba la contesta sin abrir nada: **«2 entregadas sin
+cobrar»**.
+
+### Lo que el tablero no puede esconder
+
+Al mirarlo por primera vez contaba **seis** invitaciones, y en la base hay
+quince. Las otras nueve son del constructor visual que se retiró: no hay con
+qué abrirlas, así que no pueden ser tarjetas.
+
+En el listado de la portada esconderlas sin más es defendible — ahí se viene a
+abrir algo concreto. En un tablero no. Un tablero cuyo trabajo es «saber qué
+tengo» que enseña seis de quince y calla las otras nueve no está ordenando
+nada: está dando una cifra falsa **con aspecto de completa**, que es peor que
+no tener tablero. Así que se cuentan y se dicen, aunque no se puedan abrir.
+
+### Detalles que sólo se ven usándolo
+
+**Los días que faltan se cuentan por días de calendario**, no por
+milisegundos. Una boda a las 17:00 de mañana está a menos de 24 horas desde
+esta tarde, y «faltan 0 días» para algo que es mañana es sencillamente falso.
+
+**Lo urgente son catorce días, no siete.** Una invitación se reparte con
+antelación: a siete días de la boda, mandarla ya llega tarde. Lleva un filo
+rojo, que es lo único del tablero que se ve sin leer.
+
+**Arrastrar es optimista.** La tarjeta se mueve y *después* se avisa al
+servidor; esperar la respuesta hace que se sienta pegajoso, y pegajoso en un
+tablero es la diferencia entre usarlo y no usarlo. Si el servidor dice que no,
+vuelve a su sitio y se explica — que es lo que casi nunca se hace y por lo que
+«optimista» tiene mala fama.
+
+**Y hay un selector de columna en cada tarjeta**, visible sólo con puntero
+grueso. Los eventos de arrastre de HTML no llegan con el dedo: sin él el
+tablero se vería perfecto en un teléfono y no se podría usar, que es la peor
+clase de roto.
+
+### Dos cosas que salieron al mirarlo
+
+La primera captura tenía la cuarta columna **cortada**: el tablero reusaba la
+caja del listado, que está en 860 px porque una lista de una columna más ancha
+se lee peor. La columna que quedaba fuera era «Entregada», que es la que se
+mira.
+
+Y `npm run audit:tablero` cazó un «falta 2 meses» que debía ser «faltan 2
+meses» — el verbo no concordaba porque la rama de los meses le pegaba una
+letra a «falta» en vez de armar la frase. La prueba existía porque la escribí
+después de la función, no antes.

@@ -31,6 +31,17 @@ model Invitation {
   /// tenga el enlace puede crear links de invitado y ver quién confirmó.
   manageToken String? @unique
   published  Boolean  @default(false)
+  /// En qué punto del trabajo está: borrador, demo, curso, entregada.
+  /// Ver `ESTADOS` en `src/lib/tablero.ts`. Es distinto de `published`, que
+  /// sólo dice si la dirección pública responde: una demo se publica para
+  /// enseñarla, y una entregada puede despublicarse sin dejar de estar
+  /// entregada.
+  estado     String   @default("borrador")
+  /// Si ya se cobró. Aparte del estado y no como una columna más del tablero
+  /// porque no es el final de una fila: se cobra un anticipo de algo que
+  /// sigue en curso, y se entrega algo que no se ha cobrado —que es justo lo
+  /// que hay que poder ver de un vistazo.
+  pagada     Boolean  @default(false)
   /// Visitas crudas, incluidos rastreadores y recargas. Se conserva porque ya
   /// venía contando, pero lo que se muestra sale de `Apertura`, que distingue
   /// personas de rastreadores. Ver `src/lib/aperturas.ts`.

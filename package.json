@@ -32,6 +32,7 @@
     "audit:comprimir": "tsx scripts/audit-comprimir.ts",
     "audit:html": "tsx scripts/audit-html.ts",
     "audit:mcp": "tsx scripts/audit-mcp.ts",
+    "audit:tablero": "tsx scripts/audit-tablero.ts",
     "mcp": "tsx scripts/mcp.ts"
   },
   "dependencies": {

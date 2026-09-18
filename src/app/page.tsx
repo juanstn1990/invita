@@ -5,6 +5,7 @@ import { coupleName, resolvedDateLabel, type InvitationData } from "@/lib/schema
 import styles from "./home.module.css";
 import { requiereSesion } from "@/lib/auth";
 import { DeleteButton } from "./DeleteButton";
+import { ESTADO_POR_ID, estadoDe } from "@/lib/tablero";
 
 export const dynamic = "force-dynamic";
 
@@ -33,6 +34,9 @@ export default async function HomePage() {
               Salir
             </button>
           </form>
+          <Link href="/tablero" className="btn btn-ghost btn-sm">
+            Ver como tablero
+          </Link>
           <Link href="/nueva" className="btn btn-primary">
             + Nueva invitación
           </Link>
@@ -79,6 +83,16 @@ export default async function HomePage() {
                 </Link>
 
                 <div className={styles.cardSide}>
+                  {/* El mismo estado que el tablero. Con la etiqueta
+                      «Borrador» colgando sólo de `published`, una demo y una
+                      entregada se veían igual aquí y distintas allá. */}
+                  <span
+                    className={styles.estado}
+                    style={{ "--punto": ESTADO_POR_ID[estadoDe(inv.estado)].color } as React.CSSProperties}
+                  >
+                    {ESTADO_POR_ID[estadoDe(inv.estado)].label}
+                  </span>
+                  {inv.pagada && <span className={styles.pagada}>Pagada</span>}
                   {inv.published ? (
                     <a
                       href={`/${inv.slug}`}
@@ -88,9 +102,7 @@ export default async function HomePage() {
                     >
                       /{inv.slug} ↗
                     </a>
-                  ) : (
-                    <span className="tag tag-draft">Borrador</span>
-                  )}
+                  ) : null}
                   {inv._count.rsvps > 0 && (
                     <Link href={`/editor/${inv.id}?panel=rsvp`} className={styles.rsvps}>
                       {inv._count.rsvps}{" "}

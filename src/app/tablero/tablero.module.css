@@ -1,0 +1,124 @@
+/* El tablero pide su propio ancho.
+   Reusaba la caja del listado, que está en 860px porque una lista de una
+   columna más ancha se lee peor. Cuatro columnas ahí dentro salen cortadas:
+   la cuarta —«Entregada», la que se mira— quedaba fuera de la pantalla. */
+.ancho { max-width: 1240px; }
+
+.envoltorio { display: flex; flex-direction: column; gap: 18px; }
+
+/* ── El resumen de arriba ──────────────────────────────────────
+   Tres datos y no un panel de métricas: lo que se quiere saber al abrir es
+   cuánto hay, qué corre prisa y qué falta por cobrar. Todo lo demás está en
+   las columnas, y repetirlo arriba sería ruido. */
+.resumen { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; }
+.dato { font-size: 13px; color: var(--text-muted); }
+.dato strong { font-size: 15px; color: var(--text); }
+
+.urgente, .cobro {
+  padding: 5px 11px; border-radius: 999px; border: 1px solid transparent;
+}
+.urgente { background: #fdf1ec; border-color: #f0d5c9; color: #8a3a22; }
+.urgente strong { color: #8a3a22; }
+.cobro { background: #fdf8e8; border-color: #ece0bc; color: #7a6320; }
+.cobro strong { color: #7a6320; }
+
+.error {
+  margin: 0; padding: 10px 14px; border-radius: var(--radius);
+  background: #fdf1ec; border: 1px solid #f0d5c9; color: var(--danger); font-size: 14px;
+}
+
+/* ── Las columnas ──────────────────────────────────────────────
+   Se desplazan en horizontal en pantallas estrechas en vez de apilarse. Un
+   tablero apilado es una lista con encabezados: se pierde justo lo que lo
+   hace un tablero, que es ver las cuatro fases a la vez. */
+.columnas {
+  display: grid; grid-auto-flow: column; grid-auto-columns: minmax(250px, 1fr);
+  gap: 14px; overflow-x: auto; padding-bottom: 10px;
+}
+
+.columna {
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 14px 12px 12px;
+  background: var(--surface-2);
+  border: 1px solid transparent;
+  border-radius: 14px;
+  transition: background .15s, border-color .15s;
+}
+/* Al arrastrar encima, la columna se enciende. Sin esto no se sabe dónde va
+   a caer la tarjeta hasta que se suelta. */
+.columna[data-encima] { background: var(--accent-soft); border-color: var(--accent); }
+
+.cabecera { display: flex; align-items: center; gap: 8px; }
+.punto { flex: none; width: 9px; height: 9px; border-radius: 50%; }
+.tituloColumna { flex: 1; margin: 0; font-size: 14px; font-weight: 700; letter-spacing: .02em; }
+.cuenta {
+  flex: none; min-width: 22px; padding: 1px 7px; text-align: center;
+  font-size: 12px; font-variant-numeric: tabular-nums;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 999px;
+  color: var(--text-muted);
+}
+.pista { margin: 0 0 8px; font-size: 11.5px; line-height: 1.4; color: var(--text-faint); }
+
+.pila { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+
+/* ── La tarjeta ────────────────────────────────────────────── */
+
+.tarjeta {
+  position: relative;
+  display: flex; flex-direction: column; gap: 5px;
+  padding: 11px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: grab;
+  transition: border-color .15s, box-shadow .15s, opacity .15s;
+}
+.tarjeta:hover { border-color: var(--border-strong); box-shadow: var(--shadow); }
+.tarjeta[data-arrastrando] { opacity: .4; cursor: grabbing; }
+
+/* Lo que se celebra pronto y no está entregado lleva un filo: es lo único
+   del tablero que hay que ver sin leer. */
+.tarjeta[data-urgente] { border-left: 3px solid #c26a4a; }
+
+.nombre {
+  font-family: var(--font-display), serif; font-size: 16px; line-height: 1.25;
+  color: var(--text); text-decoration: none;
+}
+.nombre:hover { text-decoration: underline; }
+
+.cuando { margin: 0; font-size: 12px; color: var(--text-muted); }
+.faltan { color: var(--text-faint); }
+
+.pie { display: flex; align-items: center; gap: 10px; margin-top: 2px; }
+
+.pago {
+  padding: 2px 9px; font-size: 11px; font-weight: 600; letter-spacing: .02em;
+  background: transparent; border: 1px dashed var(--border-strong); border-radius: 999px;
+  color: var(--text-faint); cursor: pointer;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.pago:hover { border-color: var(--accent); color: var(--accent-text); }
+.pago[data-pagada] {
+  background: #eaf3ec; border: 1px solid #bcd9c3; border-style: solid; color: #3d6b47;
+}
+
+.enlace { margin-left: auto; font-size: 12px; color: var(--accent-text); text-decoration: none; }
+.enlace:hover { text-decoration: underline; }
+
+/* El selector de columna para el dedo: invisible con ratón —ahí se arrastra—
+   y a la vista en cuanto el puntero es grueso. */
+.mover { display: none; }
+.mover select {
+  width: 100%; margin-top: 6px; padding: 5px 8px; font-size: 12px;
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 7px; color: var(--text);
+}
+@media (pointer: coarse) {
+  .mover { display: block; }
+  .tarjeta { cursor: default; }
+}
+
+.vacia {
+  padding: 14px 12px; font-size: 12.5px; color: var(--text-faint); text-align: center;
+  border: 1px dashed var(--border); border-radius: var(--radius);
+}
