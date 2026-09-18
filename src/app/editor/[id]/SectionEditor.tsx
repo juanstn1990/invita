@@ -119,6 +119,10 @@ export function SectionEditor({
     if (!f.showIf) return true;
     const actual = String(data[f.showIf.key] ?? "");
     const valores = Array.isArray(f.showIf.value) ? f.showIf.value : [f.showIf.value];
+    /* "*" = con que el otro tenga algo. No lleva valor por defecto: un campo
+       vacío es vacío, y colarle la primera opción de un select que no existe
+       lo daría por lleno siempre. */
+    if (valores.includes("*")) return actual.trim() !== "";
     /* Vacío = el valor por defecto del select, que es su primera opción. */
     const efectivo =
       actual ||

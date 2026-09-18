@@ -390,6 +390,80 @@ for (const [nombre, tocar] of CASOS) {
   }
 }
 
+/* ── Y la capa en TODAS las secciones, de TODOS los diseños ──────
+   La capa nació en el bloque de párrafo, que es donde se vio el problema,
+   y se quedó ahí. El error de eso: un fondo cargado no distingue entre
+   secciones —lo pone quien lo pone en la invitación entera— así que la
+   sección donde el texto no se leía podía ser justo la que no tenía el
+   control.
+
+   Lo que esta prueba vigila no es que la regla salga —eso ya lo mira el
+   bloque de arriba— sino las dos formas de quedarse corto al repartirla:
+
+   · **Que el esquema la ofrezca.** Los campos se añaden en un bucle, así
+     que una sección nueva que caiga en la lista de excluidas se quedaría
+     sin ellos y nadie se enteraría hasta que alguien la buscara.
+   · **Que el selector encuentre a alguien.** Casi todas las secciones
+     envuelven su texto en `.container`, pero el velo y la portada no. Con
+     un `.container` a secas la regla se escribe igual, no da ningún error
+     y no pinta nada — y son las dos secciones que más falta hacen, porque
+     son las que llevan foto de fondo. */
+{
+  const mal: string[] = [];
+  const conCapa = new Set(
+    SECTIONS.filter((s) => s.fields.some((f) => f.key === "panelColor")).map((s) => s.key)
+  );
+
+  /* Las que no la llevan a propósito: no dibujan nada en la página. */
+  const SIN_MARCADO = new Set([
+    "event", "compartir", "marca", "particulas", "fondoGlobal",
+  ]);
+  for (const spec of SECTIONS) {
+    if (SIN_MARCADO.has(spec.key) === conCapa.has(spec.key)) {
+      mal.push(`el esquema: ${spec.key}`);
+    }
+  }
+
+  for (const tpl of TEMPLATES) {
+    const d: any = defaultData();
+    for (const clave of conCapa) {
+      d[clave] = { ...d[clave], panelColor: "#ffffff", panelOpacidad: "70" };
+    }
+    const html = renderInvitation({
+      templateHtml: readTemplate(tpl.id), templateId: tpl.id, data: d, slug: "demo",
+    });
+    const doc = parseHTML(html).document;
+
+    for (const clave of conCapa) {
+      /* Una sección apagada o que este diseño no trae no tiene que pintar
+         nada: lo que se persigue es la que está y se queda sin capa. */
+      const sec: any = doc.querySelector(`[data-inv-section="${clave}"]`);
+      if (!sec) continue;
+
+      const regla = html
+        .split("}")
+        .find((b) => b.includes(`[data-inv-section="${clave}"]`) &&
+                     b.includes("background:rgba(255,255,255,0.7)"));
+      if (!regla) { mal.push(`${tpl.id}/${clave}: sin regla`); continue; }
+
+      const selector = regla.slice(0, regla.indexOf("{"));
+      const dentro = selector.slice(selector.indexOf(" ") + 1).trim();
+      if (!sec.querySelector(dentro)) {
+        mal.push(`${tpl.id}/${clave}: ${dentro} no existe ahí`);
+      }
+    }
+  }
+
+  if (mal.length) botonMal++;
+  console.log(
+    `${mal.length ? "✗" : "✓"} capa · en todas las secciones de los ${TEMPLATES.length} diseños` +
+      (mal.length
+        ? `  ${mal.slice(0, 4).join(" · ")}` +
+          (mal.length > 4 ? ` · y ${mal.length - 4} más` : "")
+        : "")
+  );
+}
+
 /* ── Los nombres, sitio por sitio ────────────────────────────────
    `event.names` los escribe en el velo, la portada y el pie a la vez. Estos
    tres campos se superponen, y lo que hay que vigilar es lo de siempre con un

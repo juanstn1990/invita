@@ -62,7 +62,19 @@ export interface FieldSpec {
    * con la mitad de los campos sin sentido es un formulario en el que se
    * llena el equivocado.
    */
-  showIf?: { key: string; value: string | string[] };
+  showIf?: {
+    key: string;
+    /**
+     * El valor (o los valores) del otro campo que hacen aparecer a éste.
+     *
+     * `"*"` es «cualquier cosa menos vacío». Lo pide el par color + opacidad:
+     * la transparencia de una capa que no existe no significa nada, y un
+     * control que no puede hacer nada es peor que ninguno — este proyecto ya
+     * ha enviado tres veces controles muertos y siempre costó lo mismo
+     * encontrarlos.
+     */
+    value: string | string[];
+  };
 }
 
 export interface ListSpec {
@@ -115,6 +127,46 @@ const textColor: FieldSpec = {
   span: 2,
   help: "Se aplica a toda la sección. Los botones y enlaces conservan su color.",
 };
+
+/**
+ * Una capa lisa detrás del texto, con su color y su transparencia.
+ *
+ * Sobre un fondo cargado —una ilustración, una foto con detalle— no hay color
+ * de letra que funcione en toda la superficie: lo que en una zona se lee, en
+ * la de al lado se pierde. Subir el contraste de la letra no lo arregla,
+ * porque el problema no es la letra, es que detrás pasan cosas. Una capa lisa
+ * sí: separa el texto de lo que hay debajo sin tapar la imagen.
+ *
+ * Distinta del fondo de sección, que cubre la sección entera de lado a lado:
+ * ésta se ciñe al bloque de texto y deja ver el fondo alrededor.
+ *
+ * Nació en el bloque de párrafo y se quedó ahí un tiempo, que era el error:
+ * un fondo cargado no distingue entre secciones, y la sección donde el texto
+ * no se leía era justo la que no tenía el control. Ahora la llevan todas por
+ * el mismo bucle que reparte el fondo, y no hay una lista que mantener.
+ */
+export const panelFields: FieldSpec[] = [
+  {
+    key: "panelColor",
+    label: "Capa detrás del texto",
+    type: "color",
+    span: 2,
+    help: "Para que el texto se lea sobre un fondo cargado o con mucho detalle. Vacío = sin capa.",
+  },
+  {
+    key: "panelOpacidad",
+    label: "Transparencia de la capa",
+    type: "range",
+    min: 5,
+    max: 100,
+    step: 5,
+    unit: "%",
+    fallback: 60,
+    span: 2,
+    showIf: { key: "panelColor", value: "*" },
+    help: "Súbela hasta que el texto se lea cómodo; bájala para que se siga viendo el fondo.",
+  },
+];
 
 /**
  * El fondo propio de una ficha: una tarjeta del programa, una de información.
@@ -1379,7 +1431,10 @@ for (const spec of SECTIONS) {
   ) continue;
   spec.adornos = true;
   spec.fondo = true;
-  spec.fields = [...spec.fields, ...fondoFields];
+  /* La capa detrás del texto va con el fondo y por la misma razón: quien pone
+     un fondo cargado es quien va a necesitarla, y ofrecerla sólo en algunas
+     secciones es garantizar que falte justo en la que hace falta. */
+  spec.fields = [...spec.fields, ...fondoFields, ...panelFields];
 }
 
 export const SECTION_BY_KEY: Record<string, SectionSpec> = Object.fromEntries(

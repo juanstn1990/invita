@@ -3797,22 +3797,33 @@ export function renderInvitation(opts: RenderOptions): string {
        Se aplica al contenedor y no a un elemento suelto: lo que hay que
        separar del fondo es el bloque de texto entero —antetítulo, título y
        párrafo—, no cada renglón por su cuenta, que se vería como tres
-       subrayados en vez de como un panel.
-
-       Genérica a propósito aunque hoy sólo la ofrezca el bloque de párrafo:
-       extenderla a otra sección es añadirle los dos campos y nada más. */
+       subrayados en vez de como un panel. */
     {
       const panel = String(sectionData.panelColor || "").trim();
       if (HEX.test(panel)) {
         const op = Math.min(100, Math.max(5, Number(sectionData.panelOpacidad ?? 60))) / 100;
-        extraCss.push(
-          `${sectionSel} .container{background:${alpha(panel, op)};` +
-            /* Sin aire alrededor la capa se pega a las letras y se lee como
-               un subrayado. El radio sale del diseño, para que no parezca
-               pegada de otro sitio. */
-            `padding:clamp(20px,5vw,34px);border-radius:var(--radius);` +
-            `backdrop-filter:blur(1.5px)}`
-        );
+        /* Casi todas las secciones envuelven su texto en `.container`, pero
+           el velo y la portada no: son pantallas completas con su propia
+           caja. Con un `.container` a secas la capa no habría aparecido
+           justo en las dos que más falta hace —son las que llevan foto de
+           fondo—, y sin dar ningún error: la regla se escribe igual y no
+           encuentra a nadie.
+
+           Se busca el primero que exista en vez de escribir los tres en el
+           selector: con los tres, un diseño que tuviera dos se llevaría dos
+           capas, una dentro de otra. */
+        const donde = [".container", ".splash-modal", ".hero-content"]
+          .find((sel) => root.querySelector(sel));
+        if (donde) {
+          extraCss.push(
+            `${sectionSel} ${donde}{background:${alpha(panel, op)};` +
+              /* Sin aire alrededor la capa se pega a las letras y se lee como
+                 un subrayado. El radio sale del diseño, para que no parezca
+                 pegada de otro sitio. */
+              `padding:clamp(20px,5vw,34px);border-radius:var(--radius);` +
+              `backdrop-filter:blur(1.5px)}`
+          );
+        }
       }
     }
 

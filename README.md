@@ -582,9 +582,9 @@ de al lado se pierde. Subir el contraste de la letra no lo arregla, porque el
 problema no es la letra: es que detrás pasan cosas. Una capa lisa sí lo
 arregla — separa el texto de lo que hay debajo sin tapar la imagen.
 
-El bloque de párrafo trae dos campos: **color** y **transparencia**. Es
-distinto del fondo de sección, que cubre la sección entera: ésta se ciñe al
-texto.
+**Todas las secciones** traen dos campos: **color** y **transparencia**. Es
+distinto del fondo de sección, que cubre la sección entera de lado a lado:
+ésta se ciñe al bloque de texto y deja ver el fondo alrededor.
 
 Va al **contenedor** y no a un elemento suelto. Lo que hay que separar del
 fondo es el bloque entero —antetítulo, título y párrafo—, no cada renglón por
@@ -597,8 +597,41 @@ las formas de debajo con toda su nitidez, y con una ilustración detrás el ojo
 sigue leyendo dos cosas a la vez; desenfocar un punto y medio basta para que
 lo de atrás se vuelva textura.
 
-El mecanismo es genérico aunque hoy sólo lo ofrezca el párrafo: extenderlo a
-otra sección es añadirle los dos campos y nada más.
+### Empezó en el párrafo, y ése era el error
+
+Nació en el bloque de párrafo, que es donde se vio el problema, y se quedó
+ahí. El motor siempre fue genérico —lee `panelColor` de cualquier sección—,
+así que lo único que faltaba eran los dos campos. Pero faltando los campos
+faltaba todo, y de la peor manera: **un fondo cargado no distingue entre
+secciones**. Lo pone quien lo pone en la invitación entera, así que la
+sección donde el texto no se leía podía ser perfectamente la que no tenía el
+control.
+
+Los campos se reparten en el mismo bucle que reparte el fondo de sección, y
+por la misma razón: quien pone un fondo cargado es quien va a necesitar la
+capa, son dieciséis secciones más cinco bloques, y bastaba olvidarse en uno
+para que nadie entendiera por qué ahí no se puede. Escrita una vez, la hereda
+también la sección que se añada mañana.
+
+#### El velo y la portada no tenían `.container`
+
+La regla iba a `.container`, que es donde casi todas las secciones envuelven
+su texto. El velo usa `.splash-modal` y la portada `.hero-content` — son
+pantallas completas con su propia caja.
+
+Con un `.container` a secas la capa no habría aparecido **justo en las dos
+que más falta hacen**, porque son las que llevan foto de fondo. Y sin dar
+ningún error: la regla se escribe igual, sale en el HTML, y no encuentra a
+nadie. Una prueba que mirara si la regla existe habría pasado.
+
+Ahora se busca el primero de los tres que exista en esa sección. El primero y
+no los tres en un selector: un diseño que tuviera dos se llevaría dos capas,
+una dentro de otra.
+
+La transparencia sólo aparece cuando hay un color elegido. La transparencia de
+una capa que no existe no significa nada, y este proyecto ya ha enviado tres
+veces controles que no hacían nada — cada vez costó lo mismo encontrarlos. Es
+un `showIf` con el comodín `"*"`, que es «cualquier cosa menos vacío».
 
 Un aviso que se ve en cuanto se prueba: la capa arregla el cuerpo del texto,
 pero si el diseño pinta el título en claro y se elige una capa clara, el título
