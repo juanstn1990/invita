@@ -27,6 +27,7 @@ import {
   SECTIONS as SPEC,
   ANIMACIONES,
   ANIM_FICHAS_VALIDAS,
+  RADIO_BOTON,
   ANIM_POR_PARTES,
   CSS_ALINEACION,
   PARTICULA_POR_TIPO,
@@ -4275,11 +4276,23 @@ export function renderInvitation(opts: RenderOptions): string {
   const botonCss = (() => {
     const fondo = String(data.event?.btnColor || "").trim();
     const tinta = String(data.event?.btnInk || "").trim();
+    /* La forma va por el mismo camino y por la misma razón: los seis botones
+       ya leían `--btn-radius`, así que reescribirla los alcanza a todos sin
+       perseguir una sola clase — y alcanza también al botón que se añada
+       mañana, que es la mitad del valor de hacerlo así. */
+    const forma = RADIO_BOTON[String(data.event?.btnForma || "").trim()] || "";
     const decls = [
       HEX.test(fondo) ? `--accent:${fondo};--hero-accent:${fondo};--inv-accent:${fondo}` : "",
       HEX.test(tinta)
         ? `--on-accent:${tinta};--hero-on-accent:${tinta};--inv-on-accent:${tinta}`
         : "",
+      /* Las **dos** variables. Los componentes que inyecta el renderer —los
+         botones del RSVP, los del formulario— leen `--inv-btn-radius`, que
+         es un espejo de `--btn-radius` para no depender del nombre que use
+         cada diseño. Escribiendo sólo una, el botón de confirmar se quedaba
+         cuadrado entre cinco redondos: peor que no tener el control, porque
+         parece un fallo del diseño y no una casilla sin marcar. */
+      forma ? `--btn-radius:${forma};--inv-btn-radius:${forma}` : "",
     ].filter(Boolean);
     return decls.length ? `:root{${decls.join(";")}}` : "";
   })();

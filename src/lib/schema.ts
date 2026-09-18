@@ -119,6 +119,32 @@ const sectionHeaderFields = (
   { key: "title", label: "Título", type: "text", placeholder: titlePh },
 ];
 
+/**
+ * La forma de los botones, para todos a la vez.
+ *
+ * Uno solo y global a propósito. Los botones de una invitación son seis
+ * —entrar, cómo llegar, descubrir, el mapa del programa, confirmar, la mesa
+ * de regalos— y están repartidos por cinco secciones. Con un control por
+ * sección se acaba con tres redondos y tres cuadrados sin querer: nadie
+ * recuerda haber tocado el quinto. La forma de los botones es una decisión
+ * de la invitación entera, no de cada trozo.
+ *
+ * Se apoya en que los seis ya leían la misma variable de CSS, `--btn-radius`,
+ * así que esto no persigue selectores: reescribe la variable y los seis se
+ * enteran. Y el que se añada mañana también.
+ */
+export const FORMAS_BOTON: { value: string; label: string; radio: string }[] = [
+  { value: "", label: "La del diseño", radio: "" },
+  { value: "recto", label: "Rectos, sin redondear", radio: "0" },
+  { value: "suave", label: "Esquinas suaves", radio: "6px" },
+  { value: "redondeado", label: "Redondeados", radio: "14px" },
+  { value: "pildora", label: "Píldora (bien redondos)", radio: "999px" },
+];
+
+export const RADIO_BOTON: Record<string, string> = Object.fromEntries(
+  FORMAS_BOTON.filter((f) => f.value).map((f) => [f.value, f.radio])
+);
+
 /** Color de las letras. Vacío = el que trae el diseño. */
 const textColor: FieldSpec = {
   key: "textColor",
@@ -675,6 +701,14 @@ export const SECTIONS: SectionSpec[] = [
         label: "Color de los botones",
         type: "color",
         help: "Vacío = el acento de la paleta.",
+      },
+      {
+        key: "btnForma",
+        label: "Forma de los botones",
+        type: "select",
+        options: FORMAS_BOTON.map(({ value, label }) => ({ value, label })),
+        fallback: 0,
+        help: "Se aplica a todos los botones de la invitación a la vez.",
       },
       {
         key: "btnInk",

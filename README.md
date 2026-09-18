@@ -3246,3 +3246,47 @@ Y `npm run audit:tablero` cazó un «falta 2 meses» que debía ser «faltan 2
 meses» — el verbo no concordaba porque la rama de los meses le pegaba una
 letra a «falta» en vez de armar la frase. La prueba existía porque la escribí
 después de la función, no antes.
+
+## La forma de los botones, para todos a la vez
+
+En «Datos del evento», junto al color: **rectos**, **esquinas suaves**,
+**redondeados** o **píldora**. Vacío deja la del diseño.
+
+Uno solo y global a propósito. Los botones de una invitación son seis —entrar,
+cómo llegar, descubrir, el mapa del programa, confirmar, la mesa de regalos— y
+viven en cinco secciones distintas. Con un control por sección se acaba con
+tres redondos y tres cuadrados sin querer, porque nadie recuerda haber tocado
+el quinto. La forma de los botones es una decisión de la invitación entera.
+
+No persigue selectores: los botones ya leían una variable de CSS,
+`--btn-radius`, así que esto la reescribe y se enteran todos — también el que
+se añada mañana, que es la mitad del valor de hacerlo así. Va **después** del
+bloque de la paleta, que es quien la define, para ganarle.
+
+### Eran dos variables, no una
+
+Y ahí estuvo el fallo. Los componentes que inyecta el renderer —los dos
+botones del RSVP, los del formulario— leen `--inv-btn-radius`, un espejo de la
+otra que existe para no depender del nombre que use cada diseño. Escribiendo
+sólo `--btn-radius`, **el botón de confirmar se quedaba cuadrado entre cinco
+redondos**.
+
+Eso es peor que no tener el control: parece un fallo del diseño y no una
+casilla sin marcar, así que quien lo viera buscaría el problema donde no está.
+
+No se vio en la primera medición porque el RSVP no estaba encendido en la
+página de prueba, y una sección apagada no dibuja su botón. Se ve encendiendo
+las cinco secciones y midiendo los seis, que es lo que hace ahora la prueba.
+
+La otra comprobación que vale la pena es la que mira **al revés**: recorre la
+hoja buscando cualquier regla que nombre un botón y le fije un radio propio en
+vez de la variable. Es la que garantiza la promesa —«todos a la vez»— frente a
+un diseño futuro que escriba su radio a mano y se quede fuera sin que nadie lo
+note.
+
+Y una trampa de la prueba misma: mirar «si aparece `--btn-radius`» no vale,
+porque el diseño ya la define. Lo que decide es **el último valor**, que es el
+que gana en CSS, y contar cuántos hay es lo que distingue «no tocamos nada» de
+«escribimos encima». La primera versión comparaba posiciones buscando `999px`
+y se creía cierta por el motivo contrario: el diseño de la prueba ya usaba
+píldora.

@@ -464,6 +464,103 @@ for (const [nombre, tocar] of CASOS) {
   );
 }
 
+/* ── La forma de los botones ─────────────────────────────────────
+   Uno solo para los seis. Lo que se vigila es que de verdad los alcance a
+   todos: la promesa del control es «todos a la vez», y un botón que se
+   quedara cuadrado entre cinco redondos es peor que no tener el control,
+   porque parece un fallo del diseño y no una casilla sin marcar. */
+{
+  const render = (btnForma: string) => {
+    const d: any = defaultData();
+    d.event = { ...d.event, btnForma };
+    return renderInvitation({
+      templateHtml: readTemplate(TEMPLATES[0].id), templateId: TEMPLATES[0].id,
+      data: d, slug: "demo",
+    });
+  };
+  /* Todos los valores de la variable, en orden. Mirar «si aparece» no vale:
+     el propio diseño ya la define en su `:root`, así que aparece siempre. Lo
+     que decide es el último, que es el que gana en CSS — y contar cuántos hay
+     es lo que distingue «no tocamos nada» de «escribimos encima». */
+  const radios = (html: string) =>
+    [...html.matchAll(/--btn-radius:\s*([^;}]+)/g)].map((m) => m[1].trim());
+
+  const casos: [string, () => boolean][] = [
+    ["sin elegir nada, sólo está el del diseño", () => radios(render("")).length === 1],
+    ["un valor inventado tampoco añade nada", () => radios(render("ovalados")).length === 1],
+    ["«píldora» los redondea del todo", () => {
+      const r = radios(render("pildora"));
+      return r.length === 2 && r[1] === "999px";
+    }],
+    /* Y la otra familia de botones.
+
+       Los que inyecta el renderer —confirmar, rechazar, el formulario— leen
+       `--inv-btn-radius`, un espejo de la otra para no depender del nombre
+       que use cada diseño. Escribiendo sólo una, el botón de confirmar se
+       quedaba cuadrado entre cinco redondos, que es peor que no tener el
+       control: parece un fallo del diseño y no una casilla sin marcar. Y no
+       se veía en la página de prueba, porque el RSVP no estaba encendido. */
+    ["y también los que inyecta el renderer", () => {
+      const html = render("pildora");
+      const r = [...html.matchAll(/--inv-btn-radius:\s*([^;}]+)/g)].map((m) => m[1].trim());
+      return r.length === 2 && r[1] === "999px";
+    }],
+    ["sin elegir nada, ésos tampoco se tocan", () => {
+      const html = render("");
+      return [...html.matchAll(/--inv-btn-radius:/g)].length === 1;
+    }],
+    ["«rectos» los deja a cero", () => {
+      const r = radios(render("recto"));
+      return r.length === 2 && r[1] === "0";
+    }],
+    ["y «suave» pone su medida", () => {
+      const r = radios(render("suave"));
+      return r.length === 2 && r[1] === "6px";
+    }],
+    /* El nuestro va después del de la paleta, o no ganaría.
+
+       Se compara la posición de la primera aparición con la de la segunda, y
+       no la del texto «999px» con la de la variable: el diseño de esta prueba
+       ya usa píldora, así que buscar el valor encontraba el del diseño y la
+       comprobación se creía cierta por el motivo contrario al que buscaba. */
+    ["y el nuestro va después del del diseño, que es quien gana",
+      () => {
+        const html = render("recto");
+        const donde = [...html.matchAll(/--btn-radius:/g)].map((m) => m.index!);
+        return donde.length === 2 && donde[1] > donde[0];
+      }],
+    /* La comprobación que da sentido a las otras: que los seis botones del
+       CSS lean esa variable. Si un diseño escribiera su radio a mano, la
+       variable cambiaría y ese botón no. */
+    [
+      "los seis botones leen la variable, ninguno su propio radio",
+      () => {
+        const html = render("pildora");
+        const hoja = html.slice(html.indexOf("<style"), html.indexOf("</style>"));
+        const botones = [
+          ".splash-btn", ".hero-btn", ".confirm-btn",
+          ".gifts-btn", ".event-map-btn", ".social-ig",
+        ];
+        /* Cada bloque de reglas que nombre un botón y fije un radio propio
+           —uno que no sea la variable— rompería la promesa. */
+        return !hoja.split("}").some((bloque) => {
+          const sel = bloque.slice(0, bloque.indexOf("{"));
+          if (!botones.some((b) => sel.includes(b))) return false;
+          const m = bloque.match(/border-radius:\s*([^;}]+)/);
+          return !!m && !m[1].includes("--btn-radius");
+        });
+      },
+    ],
+  ];
+
+  for (const [nombre, comprueba] of casos) {
+    let ok = false;
+    try { ok = comprueba(); } catch { ok = false; }
+    if (!ok) botonMal++;
+    console.log(`${ok ? "✓" : "✗"} botones · ${nombre}`);
+  }
+}
+
 /* ── Cómo entran las fichas ──────────────────────────────────────
    Lo de la sección y no de cada ficha: un programa tiene cinco tarjetas y
    nadie elige cinco veces lo mismo. Lo que se vigila aquí es el reparto —qué

@@ -210,6 +210,8 @@ const APARTE = new Set([
   "panelOpacidad",
   "fondoColor",
   "btnColor",
+  /* La forma de los botones es una regla CSS sobre `--btn-radius`. */
+  "btnForma",
   "btnInk",
   "fondoUrl",
   "fondoAjuste",
