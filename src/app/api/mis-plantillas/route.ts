@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { noAutorizado } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { TEMPLATE_BY_ID } from "@/lib/templates";
+import { actualizarDesdeInvitacion, deshacer } from "@/lib/plantillas";
 
 /**
  * Las plantillas propias: invitaciones guardadas para volver a empezar desde
@@ -57,9 +58,40 @@ export async function GET(request: Request) {
 
   const items = await prisma.plantilla.findMany({
     orderBy: { createdAt: "desc" },
-    select: { id: true, nombre: true, templateId: true, createdAt: true },
+    select: {
+      id: true, nombre: true, templateId: true, createdAt: true,
+      origenId: true, actualizadaAt: true,
+      _count: { select: { versiones: true } },
+    },
   });
-  return NextResponse.json({ items });
+  return NextResponse.json({
+    items: items.map(({ _count, ...p }) => ({ ...p, versiones: _count.versiones })),
+  });
+}
+
+/**
+ * Actualiza una plantilla, o la devuelve a su versión anterior.
+ *
+ *   { id, invitationId }   la plantilla pasa a ser lo que hoy es esa invitación
+ *   { id, deshacer: true } vuelve a la versión de antes de la última actualización
+ *
+ * Antes de sobrescribir siempre se guarda lo que había: ver `lib/plantillas`.
+ */
+export async function PATCH(request: Request) {
+  const no = await noAutorizado();
+  if (no) return no;
+
+  const body = await request.json().catch(() => ({}));
+  const id = String(body.id || "");
+  if (!id) return NextResponse.json({ error: "Falta la plantilla." }, { status: 400 });
+
+  const r = body.deshacer
+    ? await deshacer(id)
+    : await actualizarDesdeInvitacion(id, String(body.invitationId || ""));
+
+  return r.ok
+    ? NextResponse.json(r)
+    : NextResponse.json({ error: r.error }, { status: 400 });
 }
 
 /** Borra una. No toca la invitación de la que salió. */

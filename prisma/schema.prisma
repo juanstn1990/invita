@@ -49,6 +49,11 @@ model Invitation {
   /// Notas del organizador: lo que se acordó, lo que falta, qué se cobró.
   /// Privadas, como el teléfono.
   notas      String?
+  /// De qué plantilla guardada salió, si salió de una. Sólo informativo: no
+  /// es una relación, para que borrar la plantilla no se lleve nada. Sirve
+  /// para saber, cuando se mejora una plantilla, qué invitaciones se hicieron
+  /// con la versión anterior — hasta ahora no había forma de saberlo.
+  plantillaId String?
   /// Visitas crudas, incluidos rastreadores y recargas. Se conserva porque ya
   /// venía contando, pero lo que se muestra sale de `Apertura`, que distingue
   /// personas de rastreadores. Ver `src/lib/aperturas.ts`.
@@ -237,4 +242,24 @@ model Plantilla {
   /// invitación no se lleve la plantilla.
   origenId   String?
   createdAt  DateTime @default(now())
+  /// Cuándo se actualizó por última vez. Nulo = tal como se guardó.
+  actualizadaAt DateTime?
+  /// Lo que tenía antes de cada actualización, para poder volver atrás.
+  versiones  PlantillaVersion[]
+}
+
+/// Una foto de la plantilla justo antes de actualizarla.
+///
+/// Existe para que mejorar una plantilla no dé miedo: si el cambio sale mal,
+/// se vuelve a la anterior con un clic. Se guardan las últimas diez; más
+/// atrás no vuelve nadie, y cada una es una copia entera de la invitación.
+model PlantillaVersion {
+  id          String    @id @default(cuid())
+  plantillaId String
+  plantilla   Plantilla @relation(fields: [plantillaId], references: [id], onDelete: Cascade)
+  templateId  String
+  data        String
+  createdAt   DateTime  @default(now())
+
+  @@index([plantillaId, createdAt])
 }

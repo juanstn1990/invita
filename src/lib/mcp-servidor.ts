@@ -43,6 +43,7 @@ import { renderInvitation } from "./render";
 import { normalizeSlug } from "./slug";
 import { catalogo, esquemaDe, fusionar } from "./mcp";
 import { ESTADO_POR_ID, estadoDe } from "./tablero";
+import { actualizarConParche, deshacer } from "./plantillas";
 
 export interface OpcionesMcp {
   /** Con qué dirección se arman los enlaces que se devuelven. */
@@ -140,7 +141,10 @@ export function construirServidor({ base, capturar }: OpcionesMcp): McpServer {
       annotations: { readOnlyHint: true },
     },
     async () => {
-      const todas = await prisma.plantilla.findMany({ orderBy: { createdAt: "desc" } });
+      const todas = await prisma.plantilla.findMany({
+        orderBy: { createdAt: "desc" },
+        include: { _count: { select: { versiones: true } } },
+      });
       if (!todas.length) {
         return json({ plantillas: [], nota: "No hay ninguna guardada todavía." });
       }
@@ -152,8 +156,62 @@ export function construirServidor({ base, capturar }: OpcionesMcp): McpServer {
           disenoNombre: TEMPLATE_BY_ID[p.templateId]?.name || "(de una versión anterior)",
           usable: !!TEMPLATE_BY_ID[p.templateId],
           creada: p.createdAt.toISOString().slice(0, 10),
+          ...(p.actualizadaAt ? { actualizada: p.actualizadaAt.toISOString().slice(0, 10) } : {}),
+          versionesAnteriores: p._count.versiones,
         }))
       );
+    }
+  );
+
+  /* ── Mejorar una plantilla ───────────────────────────────────── */
+
+  server.registerTool(
+    "actualizar_plantilla",
+    {
+      title: "Mejorar una plantilla guardada",
+      description:
+        "Cambia campos de una plantilla guardada, con el mismo parche que " +
+        "`escribir`: { seccion: { campo: valor } }. Antes de cambiar nada se " +
+        "guarda la versión anterior, así que `deshacer_plantilla` la devuelve " +
+        "como estaba. Lo que no cambia: las invitaciones que ya salieron de la " +
+        "plantilla, que son copias. Para saber qué campos admite, pide " +
+        "`esquema` con su diseño base.",
+      inputSchema: {
+        plantilla: z.string().describe("El id de la plantilla, de `plantillas`."),
+        datos: z
+          .record(z.string(), z.record(z.string(), z.any()))
+          .describe("Parche { seccion: { campo: valor } }."),
+      },
+    },
+    async ({ plantilla, datos }) => {
+      const r = await actualizarConParche(plantilla, datos as any);
+      if (!r.ok) return error(r.error);
+      return json({
+        escritos: r.escritos,
+        versionesAnteriores: r.versiones,
+        nota:
+          "Actualizada. Las invitaciones que ya salieron de ella no cambian; " +
+          "las que se creen desde ahora salen con esto.",
+      });
+    }
+  );
+
+  server.registerTool(
+    "deshacer_plantilla",
+    {
+      title: "Volver a la versión anterior de una plantilla",
+      description:
+        "Deja la plantilla como estaba antes de su última actualización. " +
+        "Cada llamada va un paso más atrás; se guardan las diez últimas.",
+      inputSchema: {
+        plantilla: z.string().describe("El id de la plantilla, de `plantillas`."),
+      },
+    },
+    async ({ plantilla }) => {
+      const r = await deshacer(plantilla);
+      return r.ok
+        ? json({ hecho: "Vuelta a la versión anterior.", versionesAnterioresQuedan: r.versiones })
+        : error(r.error);
     }
   );
 
@@ -265,6 +323,7 @@ export function construirServidor({ base, capturar }: OpcionesMcp): McpServer {
           title: titulo || `${TEMPLATE_BY_ID[templateId].name} · ${slug}`,
           data: JSON.stringify(datos),
           published: false,
+          ...(plantilla ? { plantillaId: plantilla } : {}),
         },
       });
 

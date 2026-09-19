@@ -3369,3 +3369,56 @@ Y las tres comprobaciones del CSS fallaron a la primera por lo mismo en
 pequeño: recortaban la hoja entre el primer `<style` y el primer `</style>`,
 que es una hoja del template, no la inyectada. El CSS estaba bien desde el
 principio; lo que miraba mal era la prueba.
+
+## Mejorar una plantilla guardada
+
+Hasta ahora una plantilla sólo se podía crear, listar y borrar. Para
+«mejorarla» había que borrarla y volver a guardarla, y guardar otra vez con el
+mismo nombre daba un duplicado.
+
+Ahora se actualiza de dos maneras, y las dos pasan por `src/lib/plantillas.ts`
+para que «guardar la versión anterior y luego sobrescribir» esté escrito una
+sola vez:
+
+- **Desde el editor.** «Guardar como plantilla» tiene un desplegable: nueva, o
+  *Actualizar «…»*. Si la invitación abierta es de la que salió una plantilla
+  —su **maestra**—, esa opción viene elegida sola. La plantilla pasa a ser lo
+  que hoy es la invitación.
+- **Desde el MCP.** `actualizar_plantilla` cambia campos sueltos con el mismo
+  parche y la misma validación que `escribir`: un campo inventado se rechaza y
+  no se toca nada. Es lo que permite, desde claude.ai en el celular, «en boda
+  estelar cambia la frase por la de Corintios».
+
+### Deshacer
+
+Antes de cada actualización se guarda lo que había (`PlantillaVersion`), en la
+misma transacción que la escritura: una versión sin su actualización es ruido,
+y una actualización sin su versión es justo la pérdida que esto evita.
+«Deshacer» —el botón, o `deshacer_plantilla`— devuelve la anterior y la
+consume, así que dos deshacer van dos pasos atrás. Se guardan las diez
+últimas.
+
+Existe para que mejorar una plantilla no dé miedo. Una plantilla que da miedo
+tocar no se mejora nunca.
+
+### Lo que no hace, a propósito
+
+**No cambia las invitaciones que ya salieron de la plantilla.** Son copias, no
+enlaces: mejorar «boda estelar» no puede cambiarle la invitación a una pareja
+que ya la repartió. Hay una prueba que lo fija.
+
+Pero desde ahora cada invitación creada desde una plantilla guarda de cuál
+salió (`plantillaId`). Hasta hoy no había forma de saberlo, y es lo que haría
+falta si algún día se quiere llevar una mejora a las que ya existen.
+
+### Una invitación maestra por plantilla
+
+La forma cómoda de trabajar: una invitación que no es de ningún cliente, de la
+que sale la plantilla, y que se mejora como cualquier otra —fotos, colores,
+animaciones— antes de volcarla. Si la plantilla salió de la invitación de un
+cliente real, conviene separarlas: si no, cambiar algo para ese cliente y
+pulsar «Actualizar» se lleva el cambio a todas las que vengan.
+
+`npm run audit:plantillas` lo prueba contra la base, con una plantilla y una
+invitación de usar y tirar. Quitando el guardado de la versión anterior, falla
+en cinco sitios.

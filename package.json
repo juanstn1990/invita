@@ -33,6 +33,7 @@
     "audit:html": "tsx scripts/audit-html.ts",
     "audit:mcp": "tsx scripts/audit-mcp.ts",
     "audit:tablero": "tsx scripts/audit-tablero.ts",
+    "audit:plantillas": "tsx scripts/audit-plantillas.ts",
     "mcp": "tsx scripts/mcp.ts"
   },
   "dependencies": {

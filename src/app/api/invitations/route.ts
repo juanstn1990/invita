@@ -33,7 +33,9 @@ export async function POST(request: Request) {
       slug = `${base}-${i}`;
     }
     const nueva = await prisma.invitation.create({
-      data: { slug, templateId: p.templateId, title: p.nombre, data: p.data },
+      /* `plantillaId` para saber, cuando se mejore la plantilla, qué
+         invitaciones se hicieron con la versión de antes. */
+      data: { slug, templateId: p.templateId, title: p.nombre, data: p.data, plantillaId: p.id },
     });
     return NextResponse.json({ id: nueva.id, slug: nueva.slug });
   }
