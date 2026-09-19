@@ -14,7 +14,7 @@
  *   de alguien. Sin rescate no sale en ninguna columna y parece borrada.
  */
 
-import { ESTADOS, estadoDe, esEstado, faltan, urge, resumir, whatsapp } from "../src/lib/tablero";
+import { ESTADOS, estadoDe, esEstado, esTrabajo, faltan, urge, resumir, whatsapp } from "../src/lib/tablero";
 
 let malos = 0;
 const decir = (ok: boolean, nombre: string, detalle = "") => {
@@ -31,19 +31,19 @@ const dia = (d: string) => `2026-06-${d}T17:00:00`;
 /* ── Los estados ─────────────────────────────────────────────── */
 
 {
-  decir(ESTADOS.length === 4, "cuatro columnas", `${ESTADOS.length}`);
+  decir(ESTADOS.length === 5, "cinco columnas: cuatro de trabajo y el catálogo", `${ESTADOS.length}`);
   decir(
     !ESTADOS.some((e) => e.id === ("pagada" as string)),
     "y «pagada» no es una de ellas: es un sello aparte"
   );
   decir(ESTADOS.every((e) => e.hint?.trim()), "cada columna explica qué significa estar ahí");
-  decir(new Set(ESTADOS.map((e) => e.id)).size === 4, "sin ids repetidos");
+  decir(new Set(ESTADOS.map((e) => e.id)).size === 5, "sin ids repetidos");
 
   decir(estadoDe("demo") === "demo", "un estado conocido se respeta");
   decir(estadoDe("inventado") === "borrador", "uno que no existe cae en la primera columna");
   decir(estadoDe("") === "borrador", "y uno vacío también");
   decir(estadoDe(null) === "borrador", "y uno nulo, que es lo que había antes del campo");
-  decir(esEstado("curso") && !esEstado("pagada"), "`esEstado` distingue los cuatro");
+  decir(esEstado("curso") && esEstado("catalogo") && !esEstado("pagada"), "`esEstado` distingue los cinco");
 }
 
 /* ── Los días que faltan ─────────────────────────────────────── */
@@ -105,6 +105,28 @@ const dia = (d: string) => `2026-06-${d}T17:00:00`;
      que se perdió, y en el tablero eso no se nota mirando. */
   const suma = Object.values(r.porEstado).reduce((a, b) => a + b, 0);
   decir(suma === r.total, "y ninguna se queda fuera de una columna", `${suma} de ${r.total}`);
+}
+
+/* ── El catálogo ─────────────────────────────────────────────── */
+
+{
+  /* Las muestras no son trabajo: fecha de mentira y nadie las paga. Si
+     contaran, inflarían justo lo que se mira para decidir qué hacer hoy. */
+  decir(ESTADOS[ESTADOS.length - 1].id === "catalogo",
+    "el catálogo va el último: no es una fase del trabajo, es otro cajón");
+  decir(!esTrabajo("catalogo") && esTrabajo("entregada"), "`esTrabajo` deja fuera sólo el catálogo");
+  decir(!urge(dia("12"), "catalogo", AHORA),
+    "una muestra con fecha a dos días no sale como urgente");
+
+  const r = resumir([
+    { estado: "catalogo", pagada: false, fecha: dia("12") },
+    { estado: "catalogo", pagada: false, fecha: dia("13") },
+    { estado: "curso", pagada: false, fecha: dia("12") },
+  ], AHORA);
+  decir(r.total === 1, "el total de invitaciones no cuenta las muestras", `${r.total}`);
+  decir(r.muestras === 2, "las muestras se cuentan aparte", `${r.muestras}`);
+  decir(r.urgentes === 1, "y sólo la de trabajo sale como urgente", `${r.urgentes}`);
+  decir(r.sinCobrar === 0, "ninguna muestra sale «sin cobrar»");
 }
 
 /* ── El contacto ─────────────────────────────────────────────── */

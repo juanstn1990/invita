@@ -3214,6 +3214,19 @@ tengo» que enseña seis de quince y calla las otras nueve no está ordenando
 nada: está dando una cifra falsa **con aspecto de completa**, que es peor que
 no tener tablero. Así que se cuentan y se dicen, aunque no se puedan abrir.
 
+### La quinta columna: Catálogo
+
+Las **muestras**: invitaciones con datos inventados que sirven para enseñar lo
+que se hace. Va la última porque no es una fase del trabajo —nada pasa de
+«Entregada» a «Catálogo»—, es otro cajón.
+
+Y por eso no cuenta como trabajo. Su fecha es de mentira, así que no puede
+salir como urgente ni lleva «faltan N días»; no se cobra, así que no lleva
+sello de pago. En su lugar tiene **«Copiar enlace»**, que es para lo que está
+ahí: mandarla por WhatsApp. Sin publicar, lo dice en vez de copiar un enlace
+que no abre. El resumen de arriba las cuenta aparte, porque mezcladas
+inflarían justo los datos que se miran para decidir qué hacer hoy.
+
 ### La ficha del cliente: teléfono y notas
 
 Cada tarjeta esconde un teléfono y un campo de notas. Van en columnas propias

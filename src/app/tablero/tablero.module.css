@@ -32,7 +32,7 @@
    tablero apilado es una lista con encabezados: se pierde justo lo que lo
    hace un tablero, que es ver las cuatro fases a la vez. */
 .columnas {
-  display: grid; grid-auto-flow: column; grid-auto-columns: minmax(250px, 1fr);
+  display: grid; grid-auto-flow: column; grid-auto-columns: minmax(220px, 1fr);
   gap: 14px; overflow-x: auto; padding-bottom: 10px;
 }
 
@@ -154,3 +154,11 @@
   border-radius: 7px; color: var(--text); resize: vertical;
 }
 .campo input:focus, .campo textarea:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+
+/* ── Las muestras del catálogo ─────────────────────────────── */
+.copiar {
+  padding: 3px 10px; font-size: 11px; font-weight: 600; cursor: pointer;
+  background: #f6ecee; border: 1px solid #e3c9ce; border-radius: 999px; color: #8a4f5a;
+}
+.copiar:hover { background: #efdde1; }
+.aviso { font-size: 11px; color: var(--text-faint); font-style: italic; }

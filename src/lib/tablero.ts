@@ -13,7 +13,7 @@
  */
 
 /** El identificador guardado en la base. Cambiarlo rompe lo ya guardado. */
-export type Estado = "borrador" | "demo" | "curso" | "entregada";
+export type Estado = "borrador" | "demo" | "curso" | "entregada" | "catalogo";
 
 export interface EstadoSpec {
   id: Estado;
@@ -59,7 +59,26 @@ export const ESTADOS: EstadoSpec[] = [
     hint: "Terminada y en manos del cliente",
     color: "#4f8a6b",
   },
+  /*
+   * Las muestras: invitaciones que no son de ningún cliente y sirven para
+   * enseñar lo que se hace. Va la última porque no es una fase del trabajo
+   * —nada pasa de «Entregada» a «Catálogo»—, es otro cajón.
+   *
+   * Y por eso no cuenta como trabajo: su fecha es de mentira, así que no
+   * puede salir como «urgente», y no se cobra, así que no lleva sello de
+   * pago. Contarlas ahí inflaría justo los dos datos del resumen que se
+   * miran para decidir qué hacer hoy.
+   */
+  {
+    id: "catalogo",
+    label: "Catálogo",
+    hint: "Muestras para enseñar a los clientes",
+    color: "#b5838d",
+  },
 ];
+
+/** Las columnas que son trabajo de verdad: todas menos el catálogo. */
+export const esTrabajo = (e: Estado) => e !== "catalogo";
 
 export const ESTADO_POR_ID: Record<string, EstadoSpec> = Object.fromEntries(
   ESTADOS.map((e) => [e.id, e])
@@ -120,7 +139,7 @@ export function faltan(iso: string, ahora = new Date()): string {
  * tarde. Lo que ya pasó no es urgente, es otra cosa, y sale aparte.
  */
 export function urge(iso: string, estado: Estado, ahora = new Date()): boolean {
-  if (estado === "entregada" || !iso) return false;
+  if (estado === "entregada" || estado === "catalogo" || !iso) return false;
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return false;
   const soloDia = (x: Date) => Date.UTC(x.getFullYear(), x.getMonth(), x.getDate());
@@ -136,7 +155,10 @@ export interface Resumen {
   sinCobrar: number;
   /** Las que se celebran dentro de dos semanas y no están entregadas. */
   urgentes: number;
+  /** Invitaciones de clientes: todas menos las del catálogo. */
   total: number;
+  /** Las muestras del catálogo, aparte. */
+  muestras: number;
 }
 
 export function resumir(
@@ -153,7 +175,8 @@ export function resumir(
     if (e === "entregada" && !f.pagada) sinCobrar++;
     if (urge(f.fecha, e, ahora)) urgentes++;
   }
-  return { porEstado, sinCobrar, urgentes, total: filas.length };
+  const muestras = porEstado.catalogo || 0;
+  return { porEstado, sinCobrar, urgentes, total: filas.length - muestras, muestras };
 }
 
 /* ── El contacto ─────────────────────────────────────────────── */

@@ -48,6 +48,8 @@ export function Tablero({
   /* Qué tarjeta tiene la ficha del cliente abierta. Una a la vez: abiertas
      todas, el tablero deja de caber en una pantalla y deja de ser un tablero. */
   const [abierta, setAbierta] = useState<string | null>(null);
+  /* Qué tarjeta acaba de copiar su enlace, para confirmarlo un momento. */
+  const [copiado, setCopiado] = useState<string | null>(null);
 
   const resumen = resumir(tarjetas);
 
@@ -100,6 +102,11 @@ export function Tablero({
         <span className={styles.dato}>
           <strong>{resumen.total}</strong> invitaciones
         </span>
+        {resumen.muestras > 0 && (
+          <span className={styles.dato}>
+            <strong>{resumen.muestras}</strong> en el catálogo
+          </span>
+        )}
         {ocultas > 0 && (
           <span className={styles.dato} title="Hechas con el constructor visual, que se retiró">
             <strong>{ocultas}</strong> de una versión anterior, sin poder abrir
@@ -172,7 +179,7 @@ export function Tablero({
 
                     <p className={styles.cuando}>
                       {t.fechaTexto}
-                      {faltan(t.fecha) && (
+                      {t.estado !== "catalogo" && faltan(t.fecha) && (
                         <span className={styles.faltan}> · {faltan(t.fecha)}</span>
                       )}
                     </p>
@@ -181,6 +188,24 @@ export function Tablero({
                       {/* El sello de pago. Un botón y no una casilla: es una
                           acción que se hace y se deshace, y la casilla sugiere
                           un formulario que hay que enviar. */}
+                      {t.estado === "catalogo" ? (
+                        t.publicada ? (
+                          <button
+                            type="button"
+                            className={styles.copiar}
+                            onClick={() => {
+                              navigator.clipboard?.writeText(`${location.origin}/${t.slug}`);
+                              setCopiado(t.id);
+                              setTimeout(() => setCopiado((x) => (x === t.id ? null : x)), 1800);
+                            }}
+                            title="Copiar el enlace para mandarlo por WhatsApp"
+                          >
+                            {copiado === t.id ? "¡Copiado!" : "Copiar enlace"}
+                          </button>
+                        ) : (
+                          <span className={styles.aviso}>Publícala para poder compartirla</span>
+                        )
+                      ) : (
                       <button
                         type="button"
                         className={styles.pago}
@@ -190,6 +215,7 @@ export function Tablero({
                       >
                         {t.pagada ? "Pagada" : "Sin cobrar"}
                       </button>
+                      )}
 
                       {t.publicada && (
                         <a
