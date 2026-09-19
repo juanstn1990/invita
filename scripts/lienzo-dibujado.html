@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="es">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sobre dibujado · sin fotografía</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Parisienne&display=swap" rel="stylesheet">
+<style>
+  /*
+   * El mismo sobre, dibujado en SVG en vez de fotografiado.
+   *
+   * Lo que se gana frente a una lámina: pesa dos kilobytes en vez de
+   * setecientos, se ve nítido en cualquier pantalla —no hay píxeles que
+   * estirar— y **se puede recolorear**, que es lo que ninguna foto permite.
+   * Las variables de abajo son la paleta entera: cambiarlas da la misma
+   * pieza en verde salvia, en burdeos o en negro.
+   *
+   * Lo que se pierde: la fotografía. Un ramo real no se dibuja a mano con
+   * este nivel de detalle, así que aquí va una rama de línea, que es otra
+   * cosa y hay que elegirla a propósito.
+   */
+  :root{
+    --papel:#f2efe9;      /* el fondo de la escena */
+    --sobre:#5b7297;      /* el azul del sobre */
+    --sobre-osc:#3f5878;  /* su sombra, la solapa por dentro */
+    --forro:#f7f9fc;      /* el fondo del forro floral */
+    --flor:#7d9ac2;       /* el dibujo del forro */
+    --flor-sua:#b9cbe0;
+    --tarjeta:#f4f4f2;    /* el papel de la tarjeta */
+    --marco:#b9bcc0;      /* el filete del marco */
+    --tinta:#4a5468;
+    --tinta-sua:#6a7382;
+    --hoja:#8fa77f;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#e9e4dc;color:#2e2a26;
+    font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+  header{padding:18px 20px 6px;text-align:center}
+  h1{margin:0 0 4px;font:600 15px/1.3 inherit}
+  header p{margin:0;font-size:12.5px;color:#7d746a}
+  .mandos{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;padding:12px 20px 16px}
+  .mandos button{padding:6px 13px;font:inherit;font-size:12.5px;cursor:pointer;
+    background:#fff;border:1px solid #d8d0c6;border-radius:999px;color:#5c554d}
+  .mandos button[aria-pressed=true]{background:#7b5228;border-color:#7b5228;color:#fff}
+  .marco{display:flex;justify-content:center;padding:0 16px 40px}
+
+  .lienzo{position:relative;width:100%;max-width:560px;
+    aspect-ratio:572/1024;container-type:inline-size;
+    background:var(--papel);
+    box-shadow:0 10px 40px -18px rgba(46,42,38,.4)}
+  .lienzo svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+
+  .caja{position:absolute;translate:-50% -50%;margin:0;text-align:center;
+    color:var(--tinta);line-height:1.15;outline:0}
+  .caja:focus{outline:1px dashed rgba(123,82,40,.5);outline-offset:6px}
+  .antetitulo{left:50%;top:31%;width:52cqw;font-family:"Cormorant Garamond",serif;
+    font-size:3cqw;letter-spacing:.3em;text-transform:uppercase;color:var(--tinta-sua)}
+  .novia{left:50%;top:37.5%;width:60cqw;font-family:Parisienne,cursive;font-size:11cqw}
+  .amp{left:50%;top:43%;width:20cqw;font-family:"Cormorant Garamond",serif;
+    font-style:italic;font-size:5cqw;color:var(--tinta-sua)}
+  .novio{left:50%;top:48.5%;width:60cqw;font-family:Parisienne,cursive;font-size:11cqw}
+  .fecha{left:50%;top:53.5%;width:62cqw;font-family:"Cormorant Garamond",serif;
+    font-size:2.6cqw;letter-spacing:.18em;text-transform:uppercase;color:var(--tinta-sua)}
+  footer{padding:0 20px 40px;text-align:center;font-size:12px;color:#7d746a}
+</style>
+
+<header>
+  <h1>El mismo sobre, dibujado</h1>
+  <p>Sin fotografía: todo es SVG. Pesa ~3 KB y se recolorea entero.</p>
+</header>
+
+<div class="mandos">
+  <button data-paleta="azul" aria-pressed="true">Azul porcelana</button>
+  <button data-paleta="salvia">Verde salvia</button>
+  <button data-paleta="burdeos">Burdeos</button>
+  <button data-paleta="noche">Azul noche</button>
+</div>
+
+<div class="marco">
+<div class="lienzo" id="lienzo">
+  <svg viewBox="0 0 572 1024" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+    <defs>
+      <!-- El forro del sobre: una toile de flores y hojas que se repite. -->
+      <pattern id="toile" width="58" height="58" patternUnits="userSpaceOnUse"
+               patternTransform="rotate(8)">
+        <rect width="58" height="58" fill="var(--forro)"/>
+        <g fill="none" stroke="var(--flor)" stroke-width=".9" stroke-linecap="round">
+          <path d="M14 52 C13 40 16 32 20 24 M20 24 C17 20 18 15 22 13
+                   M20 24 C24 21 25 16 23 12"/>
+          <g stroke="none" fill="var(--flor-sua)">
+            <ellipse cx="20" cy="10" rx="4.2" ry="5.4"/>
+            <ellipse cx="14" cy="15" rx="3.2" ry="4" transform="rotate(-38 14 15)"/>
+            <ellipse cx="26" cy="15" rx="3.2" ry="4" transform="rotate(38 26 15)"/>
+          </g>
+          <circle cx="20" cy="12" r="1.5" fill="var(--flor)" stroke="none"/>
+          <path d="M7 40 C2 36 2 29 7 27 C11 30 11 37 7 40 Z" fill="var(--flor-sua)" fill-opacity=".5"/>
+          <path d="M33 45 C39 42 40 35 35 32 C31 35 30 42 33 45 Z" fill="var(--flor-sua)" fill-opacity=".5"/>
+          <path d="M46 56 C45 46 47 40 50 34 M50 34 C47 31 48 27 51 26 M50 34 C53 31 54 27 52 25"/>
+          <g stroke="none" fill="var(--flor-sua)" fill-opacity=".8">
+            <ellipse cx="50" cy="23" rx="3.4" ry="4.4"/>
+          </g>
+          <circle cx="50" cy="24" r="1.2" fill="var(--flor)" stroke="none"/>
+          <path d="M40 14 C36 10 37 5 41 4 C44 7 44 12 40 14 Z" fill="var(--flor-sua)" fill-opacity=".45"/>
+          <path d="M3 14 C6 10 10 9 12 5"/>
+          <path d="M56 46 C53 42 52 37 54 33"/>
+        </g>
+      </pattern>
+
+      <!-- La textura del papel de la tarjeta: ruido muy suave. -->
+      <filter id="fibra" x="0" y="0" width="100%" height="100%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3" result="r"/>
+        <feColorMatrix in="r" type="saturate" values="0"/>
+        <feComponentTransfer><feFuncA type="linear" slope=".055"/></feComponentTransfer>
+        <feComposite operator="in" in2="SourceGraphic"/>
+      </filter>
+
+      <linearGradient id="gSobre" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="var(--sobre)"/>
+        <stop offset="1" stop-color="var(--sobre-osc)"/>
+      </linearGradient>
+      <linearGradient id="gSolapa" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="var(--sobre-osc)"/>
+        <stop offset="1" stop-color="var(--sobre)"/>
+      </linearGradient>
+
+      <!--
+        El marco festoneado.
+
+        Es la pieza que justifica dibujarlo: una silueta con hombros,
+        escotaduras y arco. En un PNG esto se pixela al ampliar; aquí es una
+        curva y se ve nítida a cualquier tamaño.
+      -->
+      <path id="placa" d="
+        M 286 246
+        C 352 246 404 262 428 292
+        C 438 305 436 318 424 326
+        C 412 334 412 348 424 356
+        C 438 365 442 380 438 398
+        C 430 436 428 480 428 528
+        C 428 576 430 620 438 658
+        C 442 676 438 691 424 700
+        C 412 708 412 722 424 730
+        C 436 738 438 751 428 764
+        C 404 794 352 810 286 810
+        C 220 810 168 794 144 764
+        C 134 751 136 738 148 730
+        C 160 722 160 708 148 700
+        C 134 691 130 676 134 658
+        C 142 620 144 576 144 528
+        C 144 480 142 436 134 398
+        C 130 380 134 365 148 356
+        C 160 348 160 334 148 326
+        C 136 318 134 305 144 292
+        C 168 262 220 246 286 246
+        Z"/>
+      <filter id="sombra" x="-20%" y="-20%" width="140%" height="140%">
+        <feDropShadow dx="0" dy="6" stdDeviation="9" flood-color="#2e2a26" flood-opacity=".22"/>
+      </filter>
+    </defs>
+
+    <!-- ── El sobre ── -->
+    <g filter="url(#sombra)">
+      <!-- cuerpo -->
+      <path d="M68 300 L286 300 L504 300 L504 902 L68 902 Z" fill="url(#gSobre)"/>
+      <!-- solapa abierta hacia arriba, con su forro -->
+      <path d="M68 300 L286 52 L504 300 Z" fill="url(#gSolapa)"/>
+      <path d="M86 296 L286 70 L486 296 Z" fill="url(#toile)"/>
+      <path d="M86 296 L286 70 L486 296 Z" fill="none"
+            stroke="var(--sobre-osc)" stroke-width="3" stroke-opacity=".5"/>
+      <!-- los dos faldones laterales, que dan el volumen -->
+      <path d="M68 300 L210 620 L68 902 Z" fill="var(--sobre-osc)" fill-opacity=".28"/>
+      <path d="M504 300 L362 620 L504 902 Z" fill="var(--sobre-osc)" fill-opacity=".28"/>
+    </g>
+
+    <!-- ── La tarjeta ── -->
+    <g filter="url(#sombra)">
+      <use href="#placa" fill="var(--tarjeta)"/>
+    </g>
+    <use href="#placa" fill="#ffffff" filter="url(#fibra)"/>
+    <use href="#placa" fill="none" stroke="var(--marco)" stroke-width="9" stroke-opacity=".55"/>
+    <use href="#placa" fill="none" stroke="#ffffff" stroke-width="3.5" stroke-opacity=".9"/>
+    <g transform="translate(286 528) scale(.945) translate(-286 -528)">
+      <use href="#placa" fill="none" stroke="var(--marco)" stroke-width="2" stroke-opacity=".7"/>
+    </g>
+
+    <!-- ── La rama, en línea ──
+         Aquí está el límite honesto: un ramo fotográfico no se dibuja a
+         mano. Esto es otra cosa —una rama de línea— y hay que elegirla
+         sabiendo que no es lo mismo. -->
+    <g transform="translate(286 700)" fill="none" stroke-linecap="round">
+      <g stroke="var(--hoja)" stroke-width="1.6" stroke-opacity=".9">
+        <path d="M0 -8 C-2 20 -3 52 -2 84"/>
+        <path d="M0 2 C-16 12 -22 32 -19 56"/>
+        <path d="M0 6 C16 16 21 36 18 60"/>
+        <path d="M-2 40 C-13 50 -16 66 -13 84"/>
+        <path d="M-1 48 C9 58 12 74 9 90"/>
+      </g>
+      <g fill="none" stroke="var(--hoja)" stroke-width="1.1" stroke-opacity=".75">
+        <path d="M-10 6 C-18 2 -22 -6 -19 -13 C-12 -12 -8 -4 -10 6 Z"/>
+        <path d="M11 10 C19 6 22 -2 19 -9 C12 -8 9 0 11 10 Z"/>
+        <path d="M-6 24 C-14 21 -17 14 -14 8 C-8 9 -5 16 -6 24 Z"/>
+      </g>
+      <g fill="var(--tarjeta)" stroke="var(--marco)" stroke-width="1.2">
+        <ellipse cx="-11" cy="-24" rx="9.5" ry="12" transform="rotate(-26 -11 -24)"/>
+        <ellipse cx="11" cy="-21" rx="9.5" ry="12" transform="rotate(22 11 -21)"/>
+        <ellipse cx="0" cy="-36" rx="8.5" ry="11"/>
+        <circle cx="-19" cy="-42" r="5.6"/>
+        <circle cx="18" cy="-39" r="5"/>
+        <circle cx="1" cy="-53" r="4.4"/>
+      </g>
+      <g fill="var(--hoja)" fill-opacity=".45" stroke="none">
+        <circle cx="-11" cy="-24" r="2.2"/><circle cx="11" cy="-21" r="2.2"/>
+        <circle cx="0" cy="-36" r="2"/>
+      </g>
+    </g>
+  </svg>
+
+  <p class="caja antetitulo" contenteditable data-max="2">Tenemos el honor de invitarte a la boda de</p>
+  <p class="caja novia" contenteditable data-max="1">Juliana García</p>
+  <p class="caja amp" contenteditable>&amp;</p>
+  <p class="caja novio" contenteditable data-max="1">Ethan Mendoza</p>
+  <p class="caja fecha" contenteditable data-max="1">Tabio · Cundinamarca · 06 · 11 · 2026</p>
+</div>
+</div>
+
+<footer>
+  Todo dibujado: el sobre, el forro floral, el marco festoneado y la rama.<br>
+  La misma pieza en cuatro colores, sin volver a dibujar nada.
+</footer>
+
+<script>
+/* Auto-encoger, igual que en el lienzo con lámina. */
+function encoger(){
+  document.querySelectorAll('.caja[data-max]').forEach(function(el){
+    var max = +el.dataset.max;
+    if (!el.dataset.base) { el.style.fontSize = ''; el.dataset.base = parseFloat(getComputedStyle(el).fontSize); }
+    var base = +el.dataset.base, px = base, v = 0;
+    el.style.fontSize = px + 'px';
+    var linea = parseFloat(getComputedStyle(el).lineHeight);
+    while (el.scrollHeight > linea * max + 1 && px > base * 0.5 && v++ < 40) {
+      px -= base * 0.03; el.style.fontSize = px + 'px';
+      linea = parseFloat(getComputedStyle(el).lineHeight);
+    }
+  });
+}
+function recalcular(){
+  document.querySelectorAll('.caja[data-max]').forEach(function(el){
+    el.style.fontSize = ''; delete el.dataset.base;
+  });
+  encoger();
+}
+document.fonts.ready.then(recalcular);
+addEventListener('resize', recalcular);
+document.querySelectorAll('.caja').forEach(function(e){ e.addEventListener('input', encoger); });
+
+/* Las paletas: cambiar seis variables da la misma pieza en otro color.
+   Es exactamente lo que una lámina fotográfica no puede hacer. */
+var PALETAS = {
+  azul:    { sobre:'#5b7297', osc:'#3f5878', forro:'#f7f9fc', flor:'#7d9ac2', sua:'#b9cbe0', hoja:'#8fa77f', tinta:'#4a5468', tsua:'#6a7382' },
+  salvia:  { sobre:'#7f9478', osc:'#5c7057', forro:'#f8faf6', flor:'#8aa382', sua:'#c2d2bb', hoja:'#9aa877', tinta:'#4b5748', tsua:'#6d7a69' },
+  burdeos: { sobre:'#8a4250', osc:'#652f3b', forro:'#fdf7f7', flor:'#b0707c', sua:'#dcc0c5', hoja:'#9b8a5e', tinta:'#5a3a41', tsua:'#7d5c62' },
+  noche:   { sobre:'#2f3d55', osc:'#1d2738', forro:'#f4f6fa', flor:'#68809f', sua:'#aabbd0', hoja:'#8a9578', tinta:'#2f3a4c', tsua:'#55637a' },
+};
+document.querySelectorAll('[data-paleta]').forEach(function(b){
+  b.addEventListener('click', function(){
+    var p = PALETAS[b.dataset.paleta], r = document.documentElement.style;
+    r.setProperty('--sobre', p.sobre);      r.setProperty('--sobre-osc', p.osc);
+    r.setProperty('--forro', p.forro);      r.setProperty('--flor', p.flor);
+    r.setProperty('--flor-sua', p.sua);     r.setProperty('--hoja', p.hoja);
+    r.setProperty('--tinta', p.tinta);      r.setProperty('--tinta-sua', p.tsua);
+    document.querySelectorAll('[data-paleta]').forEach(function(o){
+      o.setAttribute('aria-pressed', String(o === b));
+    });
+  });
+});
+</script>
