@@ -49,7 +49,14 @@ function autorizado(req: Request): boolean {
   const esperado = process.env.MCP_TOKEN || "";
   if (!esperado) return false;
   const cabecera = req.headers.get("authorization") || "";
-  const dado = cabecera.replace(/^Bearer\s+/i, "").trim();
+  /* La llave también puede venir en la dirección (?clave=…).
+     Los conectores de claude.ai no dejan añadir cabeceras: sólo piden un
+     nombre y una URL, y la única autenticación que ofrecen es OAuth. Sin
+     esto el servidor sólo servía a Claude Code. Es menos discreta que la
+     cabecera —una URL puede acabar en un registro—, así que la llave tiene
+     que ser larga y aleatoria, y se cambia si la dirección circula. */
+  const enUrl = new URL(req.url).searchParams.get("clave") || "";
+  const dado = (cabecera.replace(/^Bearer\s+/i, "").trim() || enUrl).trim();
   return !!dado && iguales(dado, esperado);
 }
 
