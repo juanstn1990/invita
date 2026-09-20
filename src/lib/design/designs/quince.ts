@@ -60,6 +60,15 @@ const MEDIANOCHE = paleta({
   id: "medianoche", nombre: "Medianoche y plata",
   base: "#111726", tinta: "#e8ecf5", marca: "#a8b8d8", segundo: "#6d7a99",
 });
+/* Azul noche con el acento en oro, no en plata.
+   «Medianoche y plata» ya existía, pero el oro sobre azul noche es otra cosa
+   —es la combinación de gala— y pedirla y que no estuviera obligaba a elegir
+   entre el azul o el dorado. El oro va claro porque sobre un fondo casi negro
+   un dorado oscuro se apaga y deja de leerse. */
+const AZUL_ORO = paleta({
+  id: "azul-oro", nombre: "Azul noche y oro",
+  base: "#101726", tinta: "#f3ead9", marca: "#d9b26a", segundo: "#8c7648",
+});
 const CHAMPAN = paleta({
   id: "champan", nombre: "Champán",
   base: "#fdfaf3", tinta: "#332c1f", marca: "#a08240", segundo: "#ddc9a0",
@@ -174,7 +183,7 @@ const burdeos: Design = {
    * primera es la que se hornea en el template.
    */
   palettes: [
-    BURDEOS, MEDIANOCHE, ESMERALDA, FUCSIA,
+    BURDEOS, MEDIANOCHE, AZUL_ORO, ESMERALDA, FUCSIA,
     ROJO, ROSA, MORADO, VIOLETA, LILA,
     AZUL_BEBE, AZUL_CLARO, TURQUESA,
     HOJAS, MENTA, AMARILLO, NARANJA, CORAL, TERRACOTA,
