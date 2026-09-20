@@ -1679,10 +1679,25 @@ export const INJECTED_CSS = `
    la foto. Y los hijos se posicionan para que se pinten por encima: un
    elemento posicionado se pinta después de un ::before absoluto que va antes
    en el orden, que es justo lo que hace falta y sin repartir z-index. */
-.inv-ficha-fondo{position:relative;overflow:hidden;
-  background-color:var(--inv-ff-color,transparent);
-  background-image:var(--inv-ff-img);background-size:cover;
-  background-position:center;background-repeat:no-repeat}
+/* La clase se repite para pesar más que la regla del diseño.
+
+   Doce de los cincuenta pintan sus tarjetas con «background» a secas —una
+   propiedad abreviada— y eso **borra la imagen de fondo**: no la tapa, la
+   quita. Son los doce que usan el estilo de tarjeta «flat», y en ellos el
+   fondo de ficha se guardaba, no daba ningún error y no se veía nada.
+
+   Por eso van las propiedades separadas y no la abreviada: así conviven con
+   lo que ponga cada diseño en vez de borrarle el color de la tarjeta.
+
+   Y van marcadas como prioritarias porque subir la especificidad no bastaba:
+   los diseños planos pintan las secciones alternas con un selector de tres
+   clases (section.alt .feature-card) y siempre habría una puja más alta. Es
+   una decisión explícita de quien edita —puso una imagen en esa ficha— y
+   tiene que ganarle al diseño, igual que el color de letra por sección. */
+.inv-ficha-fondo.inv-ficha-fondo{position:relative;overflow:hidden;
+  background-color:var(--inv-ff-color,transparent) !important;
+  background-image:var(--inv-ff-img) !important;background-size:cover !important;
+  background-position:center !important;background-repeat:no-repeat !important}
 /* El color sólido va en el background-color de la tarjeta, con su
    transparencia metida dentro del propio color. Un pseudoelemento no vale:
    los dos pseudos se pintan **encima** del background-image, así que el color

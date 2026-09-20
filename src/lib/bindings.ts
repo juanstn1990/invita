@@ -88,35 +88,49 @@ export interface TemplateMap {
  * Sólo los campos que aparecen en el marcado de `blocks.ts`. Un campo que no
  * está aquí se resuelve únicamente por atributo, que es lo normal.
  */
-const CLASES: Record<string, string> = {
+/*
+ * Una clase, o varias.
+ *
+ * Varias porque las variantes de un bloque no siempre usan la misma: la
+ * galería escribe su texto en `.section-body` en unas y en `.gallery-text`
+ * en otras, y con una sola clase apuntada las demás no se tocaban nunca.
+ * Eso no daba error: dejaba el texto de muestra del marcado —«Mensaje»— en
+ * la invitación publicada, como si lo hubiera escrito el organizador.
+ */
+const CLASES: Record<string, string | string[]> = {
   /* Las cabeceras, iguales en todas las variantes. */
   "countdown.label": ".section-label",
   "countdown.title": ".section-title",
   "countdown.text": ".section-body",
   "guests.label": ".section-label",
   "guests.title": ".section-title",
-  "guests.text": ".section-body",
+  "guests.text": [".section-body", ".guests-text"],
   "events.label": ".section-label",
   "events.title": ".section-title",
   "events.text": ".section-body",
   "confirm.label": ".section-label",
   "confirm.title": ".section-title",
-  "confirm.text": ".section-body",
+  "confirm.text": [".section-body", ".confirmation-text"],
+  /* El cierre de Invitados y la nota del RSVP: los dos van en un párrafo
+     propio dentro del marcado sintetizado, y sin apuntarlos aquí se quedaban
+     con su texto de muestra puesto. */
+  "guests.textSecondary": ".guests-cierre",
+  "confirm.note": ".confirmation-deadline",
   "gallery.label": ".section-label",
   "gallery.title": ".section-title",
-  "gallery.text": ".section-body",
+  "gallery.text": [".section-body", ".gallery-text"],
   "features.label": ".section-label",
   "features.title": ".section-title",
   "gifts.label": ".section-label",
   "gifts.title": ".section-title",
-  "gifts.text": ".section-body",
+  "gifts.text": [".section-body", ".gifts-text"],
   "gifts.bankLabel": ".gifts-bank",
   "gifts.url": ".gifts-btn",
   "gifts.account": ".gifts-iban",
   "gifts.note": ".gifts-note",
   "social.label": ".section-label",
   "social.title": ".section-title",
-  "social.text": ".section-body",
+  "social.text": [".section-body", ".social-sub"],
   "social.hashtag": ".social-hashtag",
   "social.instagram": ".social-ig",
 
@@ -247,7 +261,12 @@ const A_MANO: Record<string, Op[]> = {
   "event.dateLabel": [{ kind: "text", sel: ['[data-inv="event.dateLabel"]'], all: true, keepAffix: true }],
   "event.quote": [{ kind: "text", sel: ['[data-inv="event.quote"]'] }],
   // El valor llega con un <strong> alrededor de la fecha límite.
-  "confirm.text": [{ kind: "html", sel: ['[data-inv="confirm.text"]', ".section-body"] }],
+  /* Va a mano porque el valor llega con un <strong> alrededor de la fecha
+     límite. Y lleva la clase de la variante propia: como este mapa gana al
+     de clases, olvidarla dejaba «Mensaje» puesto justo aquí. */
+  "confirm.text": [
+    { kind: "html", sel: ['[data-inv="confirm.text"]', ".section-body", ".confirmation-text"] },
+  ],
   "hero.backgroundUrl": [{ kind: "heroPhoto", sel: ['[data-inv="hero.backgroundUrl"]'] }],
   "hero.panelOpacity": [{ kind: "alpha", sel: [".hero-content"] }],
   // Lo guardado es un arroba; el enlace se arma con el prefijo.
@@ -265,7 +284,7 @@ const A_MANO: Record<string, Op[]> = {
 
 /** El atributo y, si existe, la clase de respaldo. */
 const candidatos = (path: string): string[] =>
-  [`[data-inv="${path}"]`, CLASES[path]].filter(Boolean) as string[];
+  [`[data-inv="${path}"]`, ...[CLASES[path]].flat()].filter(Boolean) as string[];
 
 function opDe(path: string, tipo: FieldType): Op[] | null {
   if (A_MANO[path]) return A_MANO[path];

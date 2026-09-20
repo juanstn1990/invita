@@ -464,6 +464,80 @@ for (const [nombre, tocar] of CASOS) {
   );
 }
 
+/* ── Ningún texto de muestra se queda puesto ─────────────────────
+   El marcado de las variantes trae palabras de relleno —«Mensaje», «Texto»,
+   «Título»— para que se vea la forma al elegirlas. Cuando el campo va vacío,
+   el renderer tiene que quitar ese elemento.
+
+   Se escapaba en silencio: la galería escribe su texto en `.section-body` en
+   unas variantes y en `.gallery-text` en otras, y sólo la primera clase
+   estaba apuntada en el mapa. Las demás no se tocaban nunca, así que la
+   invitación se publicaba diciendo «Mensaje» como si lo hubiera escrito el
+   organizador. No daba ningún error y no lo vio nadie hasta que un cliente
+   lo leyó en su propia invitación.
+
+   Se mira el bloque **construido**, no la sección original del diseño: una
+   variante con marcado propio monta su elemento aparte y deja escondida la
+   del template, que sigue teniendo sus textos de ejemplo. */
+{
+  const RELLENO = /^(Mensaje|Mensaje de cierre|Texto|Título|Antetítulo|Momento|Tipo|Hora|Lugar|Dirección|Nota)$/;
+  const mal: string[] = [];
+
+  for (const bloque of BLOCKS) {
+    for (const v of bloque.variants) {
+      const d: any = defaultData();
+      /* Todos los textos de la sección, vacíos: es cuando el relleno se ve. */
+      const clave = bloque.section || bloque.type;
+      const spec = SECTION_BY_KEY[clave];
+      if (spec) {
+        const vacios: Record<string, unknown> = { enabled: true };
+        for (const f of spec.fields) {
+          if (f.type === "text" || f.type === "textarea") vacios[f.key] = "";
+        }
+        d[clave] = { ...d[clave], ...vacios };
+      }
+      d.layout = { blocks: [{ id: "bl", type: bloque.type, variant: v.id }] };
+
+      const html = renderInvitation({
+        templateHtml: readTemplate(TEMPLATES[0].id), templateId: TEMPLATES[0].id,
+        data: d, slug: "demo",
+      });
+      const doc = parseHTML(html).document;
+      const caja: any =
+        doc.querySelector("#inv-bl") || doc.querySelector(`[data-inv-section="${clave}"]`);
+      if (!caja) continue;
+
+      /* Oculto cuenta también si lo está un padre: un bloque de vídeo sin
+         vídeo se esconde entero y sus textos de muestra no los ve nadie.
+         Mirando sólo el elemento salían cuatro falsos positivos. */
+      const escondido = (e: any): boolean => {
+        for (let n = e; n && n !== caja.parentNode; n = n.parentNode) {
+          if (n.hasAttribute?.("hidden")) return true;
+          if (/display:\s*none/.test(n.getAttribute?.("style") || "")) return true;
+        }
+        return false;
+      };
+      const quedan = (Array.from(caja.querySelectorAll("*")) as any[]).filter(
+        (e) => !e.children.length && !escondido(e) && RELLENO.test((e.textContent || "").trim())
+      );
+      if (quedan.length) {
+        mal.push(`${bloque.label}/${v.name || "la del diseño"}: ${quedan
+          .map((e) => `"${(e.textContent || "").trim()}"`)
+          .slice(0, 2)
+          .join(", ")}`);
+      }
+    }
+  }
+
+  if (mal.length) botonMal++;
+  console.log(
+    `${mal.length ? "✗" : "✓"} relleno · ninguna variante deja texto de muestra` +
+      (mal.length
+        ? `  ${mal.slice(0, 3).join(" · ")}` + (mal.length > 3 ? ` · y ${mal.length - 3} más` : "")
+        : "")
+  );
+}
+
 /* ── El itinerario ───────────────────────────────────────────────
    La variante nueva del programa: medallón con el icono, hilo vertical y a
    la derecha título, descripción y hora.

@@ -178,7 +178,7 @@ const guests: BlockSpec = {
       hint: "Mensaje centrado, sin la caja del diseño",
       build: () => `${head()}
     <p class="guests-text">Mensaje</p>
-    <p class="guests-text">Mensaje de cierre</p>
+    <p class="guests-text guests-cierre">Mensaje de cierre</p>
     <p class="guests-address">Lugar y fecha</p>`,
     },
   ],
