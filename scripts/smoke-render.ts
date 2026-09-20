@@ -496,7 +496,24 @@ for (const [nombre, tocar] of CASOS) {
         }
         d[clave] = { ...d[clave], ...vacios };
       }
-      d.layout = { blocks: [{ id: "bl", type: bloque.type, variant: v.id }] };
+      /* Los bloques que sin contenido se esconden enteros —vídeo, foto,
+         HTML— hay que darles el suyo: escondidos no enseñan su relleno, y
+         probarlos vacíos daba por buenos justo los que fallaban. El bloque
+         de HTML tenía «Antetítulo» y «Título» sin enlazar y así se publicó. */
+      const conContenido: Record<string, Record<string, unknown>> = {
+        html: { codigo: "<p>hola</p>" },
+        video: { fuente: "subido", url: "https://ejemplo.test/v.mp4" },
+        photo: { url: "https://ejemplo.test/f.jpg" },
+        ubicacion: { mapa: "https://maps.example/x" },
+      };
+      d.layout = {
+        blocks: [
+          {
+            id: "bl", type: bloque.type, variant: v.id,
+            data: { enabled: true, ...(conContenido[bloque.type] || {}) },
+          },
+        ],
+      };
 
       const html = renderInvitation({
         templateHtml: readTemplate(TEMPLATES[0].id), templateId: TEMPLATES[0].id,

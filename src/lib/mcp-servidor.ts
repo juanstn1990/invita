@@ -89,7 +89,9 @@ export function construirServidor({ base, capturar }: OpcionesMcp): McpServer {
         "que no está en `disenos`, míralo en `plantillas` antes de decirle que " +
         "no existe. Luego 3) `crear`, 4) `esquema` para saber qué campos admite, " +
         "5) `escribir` los datos, 6) `ver` para mirar el resultado y corregir. " +
-        "Todo queda en borrador: publicar lo hace una persona desde el editor.",
+        "Se puede editar mientras no esté marcada como «entregada» en el " +
+        "tablero; publicarla o no no cambia eso, porque aquí publicar es cómo " +
+        "se previsualiza y cómo se le enseña al cliente.",
     }
   );
 
@@ -465,11 +467,27 @@ export function construirServidor({ base, capturar }: OpcionesMcp): McpServer {
       /* La frontera: una publicada tiene el enlace repartido. */
       const viejo = sinDiseno(inv);
       if (viejo) return error(viejo);
-      if (inv.published) {
+      /* La frontera es «entregada», no «publicada».
+       *
+       * Empezó mirando `published` y era la lectura equivocada del oficio.
+       * Aquí publicar no significa entregar: es cómo se previsualiza y cómo
+       * se le enseña al cliente, y por eso catorce de diecinueve invitaciones
+       * estaban publicadas y en borrador a la vez. Con esa regla el servidor
+       * se negaba a editar casi todo lo que hay, justo mientras alguien
+       * trabajaba en ello: pasó cuatro veces en un día, y siempre con una
+       * corrección que el cliente acababa de pedir.
+       *
+       * Lo que sí quiere decir «ya no se toca» es el estado del tablero:
+       * entregada es que está en manos del cliente. Esa línea ahora existe y
+       * se declara a propósito, en vez de deducirse de un interruptor que
+       * significa otra cosa.
+       */
+      if (estadoDe(inv.estado) === "entregada") {
         return error(
-          `"${inv.title}" ya está publicada y este servidor no toca publicadas: ` +
-            `cambiarla es cambiársela a quien ya la leyó. Despublícala desde el editor ` +
-            `(${base}/editor/${inv.id}) si de verdad quieres editarla.`
+          `"${inv.title}" está marcada como **entregada**, y este servidor no toca ` +
+            `entregadas: cambiarla es cambiársela a quien ya la tiene. Si hay que ` +
+            `corregirla, muévela a «En curso» en el tablero (${base}/tablero) y vuelve. ` +
+            `Publicarla o no publicarla no cambia esto.`
         );
       }
 
@@ -583,7 +601,7 @@ export function construirServidor({ base, capturar }: OpcionesMcp): McpServer {
           publicada: i.published,
           pagada: i.pagada,
           ...(TEMPLATE_BY_ID[i.templateId] ? {} : { aviso: "de una versión anterior, no se puede abrir" }),
-          editable: !i.published && !!TEMPLATE_BY_ID[i.templateId],
+          editable: estadoDe(i.estado) !== "entregada" && !!TEMPLATE_BY_ID[i.templateId],
           editor: `${base}/editor/${i.id}`,
         }))
       );

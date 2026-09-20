@@ -259,6 +259,13 @@ const A_MANO: Record<string, Op[]> = {
 
   // El bloque de HTML propio: se limpia antes de escribirse. Ver `sanear.ts`.
   "html.codigo": [{ kind: "htmlSeguro", sel: ['[data-inv="html.codigo"]', ".inv-html"] }],
+  /* El antetítulo y el título del bloque de HTML. Faltaban, así que el
+     marcado se quedaba con sus palabras de muestra —«Antetítulo», «Título»—
+     encima del contenido, en la invitación publicada. Con el bloque vacío no
+     se veía, porque entonces se esconde entero: sólo aparecía cuando alguien
+     lo usaba de verdad. */
+  "html.label": [{ kind: "text", sel: ['[data-inv="html.label"]', ".section-label"] }],
+  "html.title": [{ kind: "text", sel: ['[data-inv="html.title"]', ".section-title"] }],
   // Los nombres van en la portada, el splash y el pie a la vez.
   "event.names": [{ kind: "couple", sel: ['[data-inv="event.names"]'], all: true }],
   "event.dateLabel": [{ kind: "text", sel: ['[data-inv="event.dateLabel"]'], all: true, keepAffix: true }],
