@@ -69,6 +69,15 @@ const AZUL_ORO = paleta({
   id: "azul-oro", nombre: "Azul noche y oro",
   base: "#101726", tinta: "#f3ead9", marca: "#d9b26a", segundo: "#8c7648",
 });
+/* Oro rosa: el dorado con rubor, que no es ni «Rosa palo» ni «Champán».
+   Rosa palo es un rosa apagado sin metal; champán es dorado sin rosa. El oro
+   rosa vive en medio, y pedirlo y que no estuviera obligaba a renunciar a la
+   mitad. El acento es el cobre rosado de la joyería; el segundo, su reflejo
+   claro, para los filetes. */
+const ORO_ROSA = paleta({
+  id: "oro-rosa", nombre: "Oro rosa",
+  base: "#fdf8f6", tinta: "#3a2a28", marca: "#a9615f", segundo: "#d9a98f",
+});
 const CHAMPAN = paleta({
   id: "champan", nombre: "Champán",
   base: "#fdfaf3", tinta: "#332c1f", marca: "#a08240", segundo: "#ddc9a0",
@@ -183,7 +192,7 @@ const burdeos: Design = {
    * primera es la que se hornea en el template.
    */
   palettes: [
-    BURDEOS, MEDIANOCHE, AZUL_ORO, ESMERALDA, FUCSIA,
+    BURDEOS, MEDIANOCHE, AZUL_ORO, ESMERALDA, FUCSIA, ORO_ROSA,
     ROJO, ROSA, MORADO, VIOLETA, LILA,
     AZUL_BEBE, AZUL_CLARO, TURQUESA,
     HOJAS, MENTA, AMARILLO, NARANJA, CORAL, TERRACOTA,
