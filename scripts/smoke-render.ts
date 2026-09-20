@@ -1082,6 +1082,48 @@ for (const [nombre, tocar] of CASOS) {
   }
 }
 
+/* ── Cómo entra la foto en una ficha ─────────────────────────────
+   Por defecto cubre, que llena la tarjeta recortando. Con una ilustración
+   vertical —un vestido, un ramo— eso corta justo lo que se quería enseñar,
+   y desde la imagen no hay arreglo posible: tiene que poder elegirse. */
+{
+  const conFicha = (extra: Record<string, string>) => {
+    const d: any = defaultData();
+    d.features = {
+      ...d.features, enabled: true,
+      items: [{ icon: "★", title: "Uno", text: "x", fondo: "https://x/f.jpg", ...extra }],
+    };
+    const html = renderInvitation({
+      templateHtml: readTemplate(TEMPLATES[0].id), templateId: TEMPLATES[0].id,
+      data: d, slug: "demo",
+    });
+    const el: any = parseHTML(html).document.querySelector(
+      '[data-inv-section="features"] .inv-ficha-fondo'
+    );
+    return el ? el.getAttribute("style") || "" : "";
+  };
+
+  const casos: [string, () => boolean][] = [
+    ["por defecto la foto cubre la ficha", () => !conFicha({}).includes("--inv-ff-size")],
+    ["«entera» la mete sin recortar", () => conFicha({ fondoAjuste: "entera" }).includes("--inv-ff-size:contain")],
+    ["un ajuste inventado se ignora y sigue cubriendo",
+      () => !conFicha({ fondoAjuste: "de lado" }).includes("--inv-ff-size")],
+    ["el alto mínimo le da aire a la foto",
+      () => conFicha({ fondoAlto: "260" }).includes("--inv-ff-alto:260px")],
+    ["sin alto mínimo la ficha mide lo que pida el texto",
+      () => !conFicha({ fondoAlto: "0" }).includes("--inv-ff-alto")],
+    /* Un alto disparatado estiraría la tarjeta fuera de la pantalla. */
+    ["y un alto disparatado se recorta al tope",
+      () => conFicha({ fondoAlto: "9000" }).includes("--inv-ff-alto:360px")],
+  ];
+  for (const [nombre, comprueba] of casos) {
+    let ok = false;
+    try { ok = comprueba(); } catch { ok = false; }
+    if (!ok) botonMal++;
+    console.log(`${ok ? "✓" : "✗"} ficha · ${nombre}`);
+  }
+}
+
 /* ── El fondo de toda la invitación ──────────────────────────────
    Una sola imagen detrás de todas las secciones. Lo que hay que vigilar no es
    que se vea: es **quién se vuelve transparente**. La lista de secciones que

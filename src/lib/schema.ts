@@ -233,6 +233,41 @@ const fichaFondoFields: FieldSpec[] = [
     span: 2,
     help: "Opcional. Cada ficha puede llevar el suyo.",
   },
+  /*
+   * Cómo entra la foto en la ficha.
+   *
+   * Por defecto cubre, que es lo correcto para una textura o una foto
+   * ambiente: llena la tarjeta sin bordes. Pero una ilustración vertical
+   * —un vestido, un ramo— recortada para cubrir pierde justo lo que se
+   * quería enseñar, y no hay forma de arreglarlo desde la imagen. «Entera»
+   * la mete completa aunque sobre espacio, y «alto mínimo» le da ese espacio
+   * cuando la ficha lleva dos líneas de texto y queda demasiado baja.
+   */
+  {
+    key: "fondoAjuste",
+    label: "Cómo entra la foto",
+    type: "select",
+    span: 2,
+    options: [
+      { value: "", label: "Llena la ficha (se recorta)" },
+      { value: "entera", label: "Entera, sin recortar" },
+    ],
+    fallback: 0,
+    showIf: { key: "fondo", value: "*" },
+  },
+  {
+    key: "fondoAlto",
+    label: "Alto mínimo de la ficha",
+    type: "range",
+    min: 0,
+    max: 360,
+    step: 20,
+    unit: "px",
+    fallback: 0,
+    span: 2,
+    showIf: { key: "fondo", value: "*" },
+    help: "0 = el que pida el texto. Súbelo para darle aire a la foto.",
+  },
   {
     key: "fondoVelo",
     label: "Velo sobre el fondo",

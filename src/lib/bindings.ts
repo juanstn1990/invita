@@ -230,6 +230,9 @@ const APARTE = new Set([
   "fondoUrl",
   "fondoAjuste",
   "fondoOpacidad",
+  /* De la ficha: cómo entra su foto y qué alto mínimo le deja. Los pone
+     `ponerFondoFicha` en variables de la propia tarjeta. */
+  "fondoAlto",
   /* Cómo entran las fichas: lo marca `animarFichas` sobre las tarjetas ya
      clonadas, y no escribe texto en ningún sitio. */
   "animFichas",

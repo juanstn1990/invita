@@ -1370,6 +1370,13 @@ function ponerFondoFicha(ficha: El, datos?: Record<string, string>) {
   if (url) {
     partes.push(`--inv-ff-img:url('${conAncho(url, 800).replace(/'/g, "%27")}')`);
     partes.push(`--inv-ff-velo:${velo}`);
+    /* Entera o recortada. Una ilustración vertical recortada para cubrir
+       pierde justo lo que se quería enseñar. */
+    if (String(datos?.fondoAjuste || "") === "entera") {
+      partes.push("--inv-ff-size:contain");
+    }
+    const alto = Math.min(360, Math.max(0, Number(datos?.fondoAlto ?? 0)));
+    if (alto) partes.push(`--inv-ff-alto:${alto}px`);
   } else {
     /* Sin imagen no hay nada que velar: el velo se apaga para que el color
        elegido se vea tal cual y no mezclado con el de la tarjeta. */
@@ -1696,7 +1703,9 @@ export const INJECTED_CSS = `
    tiene que ganarle al diseño, igual que el color de letra por sección. */
 .inv-ficha-fondo.inv-ficha-fondo{position:relative;overflow:hidden;
   background-color:var(--inv-ff-color,transparent) !important;
-  background-image:var(--inv-ff-img) !important;background-size:cover !important;
+  background-image:var(--inv-ff-img) !important;
+  background-size:var(--inv-ff-size,cover) !important;
+  min-height:var(--inv-ff-alto,0);
   background-position:center !important;background-repeat:no-repeat !important}
 /* El color sólido va en el background-color de la tarjeta, con su
    transparencia metida dentro del propio color. Un pseudoelemento no vale:
