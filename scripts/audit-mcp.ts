@@ -244,6 +244,55 @@ const base = () => JSON.parse(JSON.stringify(defaultData()));
         return (campo.opciones?.length || 0) === TEMPLATE_BY_ID[TPL].palettes.length + 1;
       },
     ],
+    /* Los ajustes por texto: color, letra, alineación, tamaño, animación.
+       Hicieron falta el día que una plantilla trajo el título en negro sobre
+       fondo oscuro —invisible— y el MCP no podía ni mirarlo ni arreglarlo. */
+    [
+      "se puede teñir un texto suelto",
+      () => {
+        const r = fusionar(TPL, base(), { events: { colors: { title: "#ffffff" } } });
+        return !r.errores.length && (r.datos.events as any).colors.title === "#ffffff";
+      },
+    ],
+    [
+      "y vaciarlo lo devuelve al color del diseño",
+      () => !fusionar(TPL, base(), { events: { colors: { title: "" } } }).errores.length,
+    ],
+    [
+      "un color que no es color se rechaza",
+      () => fusionar(TPL, base(), { events: { colors: { title: "negro" } } }).errores.length === 1,
+    ],
+    [
+      "teñir un texto que esa sección no tiene se rechaza",
+      () => {
+        const r = fusionar(TPL, base(), { events: { colors: { inventado: "#ffffff" } } });
+        return r.errores.length === 1 && r.errores[0].includes("inventado");
+      },
+    ],
+    [
+      "una tipografía del catálogo pasa, una inventada no",
+      () =>
+        !fusionar(TPL, base(), { events: { fonts: { title: "playfair" } } }).errores.length &&
+        fusionar(TPL, base(), { events: { fonts: { title: "comicsans" } } }).errores.length === 1,
+    ],
+    [
+      "una animación inventada se rechaza",
+      () => fusionar(TPL, base(), { events: { anim: { title: "voltereta" } } }).errores.length === 1,
+    ],
+    [
+      "un tamaño fuera de rango se rechaza",
+      () => fusionar(TPL, base(), { events: { size: { title: "900" } } }).errores.length === 1,
+    ],
+    [
+      "y los ajustes no borran los que ya había",
+      () => {
+        const d = base();
+        d.events = { ...d.events, colors: { label: "#111111" } };
+        const r = fusionar(TPL, d, { events: { colors: { title: "#ffffff" } } });
+        const c = (r.datos.events as any).colors;
+        return c.label === "#111111" && c.title === "#ffffff";
+      },
+    ],
     [
       "un diseño inventado se rechaza sin escribir",
       () => {

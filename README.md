@@ -3032,6 +3032,21 @@ Casi todo el trabajo estaba hecho, y no por suerte:
   usan el editor y las auditorías. Es justo lo que suele podrirse en estos
   servidores: un esquema escrito a mano que a la tercera función miente.
 
+### También los ajustes por texto
+
+Color, tipografía, alineación, tamaño y animación **de un texto concreto** se
+escriben como mapas —`{ colors: { title: "#ffffff" } }`— y no como campos, así
+que el MCP los rechazaba con un «no existe el campo colors»: cierto, e inútil.
+
+Hicieron falta el día que una plantilla guardada traía el título de una
+sección en **negro casi puro sobre un fondo oscuro con foto**. Era invisible,
+y no se podía ni ver desde el MCP ni arreglar sin abrir el editor.
+
+Se valida el destino además del valor: la clave tiene que ser un texto que ese
+diseño dibuje de verdad. Guardar un color para un texto que no existe no falla
+—simplemente no se ve— y ése es el fallo silencioso que este servidor evita en
+todo lo demás. Vacío siempre vale: es como se quita un ajuste.
+
 ### Un campo desconocido se rechaza y se explica
 
 Es la decisión que sostiene el resto, y es lo contrario de lo que suele hacer

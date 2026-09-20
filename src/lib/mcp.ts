@@ -25,7 +25,11 @@
  * turno. Un silencio es una mentira que se descubre tarde.
  */
 
-import { SECTIONS, SECTION_BY_KEY, type FieldSpec, type SectionSpec } from "./schema";
+import {
+  ALINEACIONES, ANIMACIONES, SECTIONS, SECTION_BY_KEY,
+  type FieldSpec, type SectionSpec,
+} from "./schema";
+import { FONTS } from "./fonts";
 import { TEMPLATES, TEMPLATE_BY_ID } from "./templates";
 import { templateSupport } from "./support";
 import { KIND_LABEL } from "./templates";
@@ -319,6 +323,24 @@ export function fusionar(
       .map((f) => f.key);
 
     for (const [campo, valor] of Object.entries(campos)) {
+      /* Los ajustes por texto: color, letra, alineación, tamaño y animación.
+       *
+       * No son campos del esquema sino mapas de «qué texto» → «qué valor»,
+       * así que antes se rechazaban con un «no existe el campo colors», que
+       * es cierto y no ayuda. Y hacían falta: una plantilla puede traer un
+       * título en negro sobre fondo oscuro —invisible— y eso sólo se
+       * arreglaba a mano en el editor.
+       *
+       * Se valida el destino además del valor: la clave tiene que ser un
+       * texto que ese diseño dibuje, o el ajuste se guardaría y no se vería,
+       * que es el fallo silencioso de siempre. */
+      if (AJUSTES_POR_TEXTO.has(campo)) {
+        const malo = revisarAjustes(spec, clave, admite, campo, valor, escritos);
+        if (malo) errores.push(malo);
+        else destino[campo] = { ...((destino[campo] as object) || {}), ...(valor as object) };
+        continue;
+      }
+
       /* La lista de una sección: el programa, las tarjetas de información. */
       if (campo === "items") {
         const malo = revisarLista(spec, clave, admite, valor, escritos, templateId);
@@ -374,6 +396,68 @@ export function fusionar(
   return errores.length
     ? { datos, escritos: [], errores }
     : { datos: copia, escritos, errores };
+}
+
+/** Los mapas de ajuste por texto que acepta una sección. */
+const AJUSTES_POR_TEXTO = new Set(["colors", "fonts", "align", "size", "anim"]);
+
+/**
+ * Comprueba un mapa de ajustes: que cada texto exista y cada valor valga.
+ *
+ * El nombre del ajuste dice qué se acepta, y por eso se comprueba aquí y no
+ * en `revisarValor`: una tipografía es un id de catálogo, una alineación es
+ * una de cuatro, y un tamaño es un porcentaje. Un valor inventado en
+ * cualquiera de los tres no rompe nada visible — simplemente no se aplica —
+ * que es justo lo que no se quiere devolver como «hecho».
+ */
+function revisarAjustes(
+  spec: SectionSpec,
+  clave: string,
+  admite: Set<string>,
+  ajuste: string,
+  valor: unknown,
+  escritos: string[]
+): string {
+  if (!valor || typeof valor !== "object" || Array.isArray(valor)) {
+    return `"${clave}.${ajuste}" tiene que ser un objeto { campo: valor }.`;
+  }
+  const textos = spec.fields
+    .filter((f) => admite.has(`${clave}.${f.key}@font`))
+    .map((f) => f.key);
+
+  for (const [campo, v] of Object.entries(valor as Record<string, unknown>)) {
+    if (!textos.includes(campo)) {
+      return (
+        `"${campo}" no es un texto de "${spec.label}" al que se le pueda cambiar ` +
+        `${ajuste === "fonts" ? "la letra" : ajuste === "colors" ? "el color" : ajuste}.` +
+        conSugerencia(campo, textos)
+      );
+    }
+    const t = String(v ?? "").trim();
+    /* Vacío siempre vale: es como se quita un ajuste y se vuelve al diseño. */
+    if (!t) continue;
+
+    if (ajuste === "colors" && !/^#[0-9a-fA-F]{6}$/.test(t)) {
+      return `"${t}" no es un color. Se escriben en hexadecimal de seis cifras, como "#8a7248"; vacío lo quita.`;
+    }
+    if (ajuste === "fonts" && !FONTS.some((f) => f.id === t)) {
+      return `"${t}" no es una tipografía del catálogo. Algunas: ${FONTS.slice(0, 6).map((f) => f.id).join(", ")}…`;
+    }
+    if (ajuste === "align" && !ALINEACIONES.some((a) => a.value === t)) {
+      return `"${t}" no es una alineación. Las que hay: ${ALINEACIONES.map((a) => a.value || '""').join(", ")}.`;
+    }
+    if (ajuste === "anim" && !ANIMACIONES.some((a) => a.value === t)) {
+      return `"${t}" no es una animación. Algunas: ${ANIMACIONES.slice(1, 6).map((a) => a.value).join(", ")}…`;
+    }
+    if (ajuste === "size") {
+      const n = Number(t);
+      if (!Number.isFinite(n) || n < 50 || n > 200) {
+        return `"${t}" no es un tamaño. Va en % de lo que da el diseño, entre 50 y 200; vacío lo deja como viene.`;
+      }
+    }
+    escritos.push(`${clave}.${ajuste}.${campo}`);
+  }
+  return "";
 }
 
 function revisarLista(
