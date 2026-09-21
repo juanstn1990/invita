@@ -511,7 +511,7 @@ const features: BlockSpec = {
         <span class="feature-icon">✦</span>
         <h3 class="feature-title">Título</h3>
         <p class="feature-text">Texto</p>
-        <canvas class="inv-rasca-capa" aria-label="Rasca para descubrir"></canvas>
+        <div class="inv-rasca-capa" data-etiqueta="Rasca para descubrir"></div>
       </div>
     </div>`,
     },

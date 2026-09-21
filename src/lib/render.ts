@@ -389,7 +389,11 @@ function ponerParticulas(document: Doc, data: InvitationData) {
   /* El polvo de oro no son piezas de CSS: es un canvas que dibuja el
      script, porque tiene que reaccionar al dedo. */
   if (tipo === "polvo" || tipo === "cielo") {
-    const lienzo = document.createElement("canvas");
+    /* Un <div> y no un <canvas>: el <canvas> de linkedom quiere el paquete
+       «canvas» de Node, que no está en el contenedor, y tumbaba el render
+       entero con «createCanvas is not a function». El lienzo lo crea el
+       script, que corre en el navegador y ahí sí hay canvas de verdad. */
+    const lienzo = document.createElement("div");
     lienzo.setAttribute("class", tipo === "cielo" ? "inv-cielo" : "inv-polvo");
     lienzo.setAttribute("aria-hidden", "true");
     /* El cielo lleva muchas más estrellas que motas el polvo: con 60

@@ -157,8 +157,13 @@ export const COMPONENTES_CSS = `
   box-shadow:inset 0 0 0 1px var(--inv-accent);border:0;cursor:pointer;
   font-family:inherit;line-height:inherit}
 
-/* ── El polvo de oro ── */
+/* ── Las capas de lienzo (polvo de oro, cielo estrellado, rasca) ──
+   El elemento que deja el servidor es un <div>: el <canvas> lo crea el
+   script en el navegador. Es a propósito. El HTML del servidor se arma con
+   linkedom, y su <canvas> intenta usar el paquete «canvas» de Node —que no
+   está en el contenedor— y revienta el render entero. */
 .inv-polvo{position:fixed;inset:0;width:100%;height:100%;z-index:9997;pointer-events:none}
+.inv-polvo canvas,.inv-cielo canvas,.inv-rasca-capa canvas{display:block;width:100%;height:100%}
 
 
 /* ── Pide un deseo: el velo se toca y cruza una estrella fugaz ── */
@@ -228,7 +233,7 @@ html:not(.js) .inv-ev-constelacion .inv-dato{opacity:1;transform:none}
 /* ── Rasca y descubre ── */
 .inv-fe-rasca .feature-card{position:relative;overflow:hidden;min-height:150px;
   user-select:none;-webkit-user-select:none}
-.inv-rasca-capa{position:absolute;inset:0;width:100%;height:100%;z-index:2;
+.inv-rasca-capa{position:absolute;inset:0;z-index:2;
   touch-action:none;cursor:grab;transition:opacity .8s}
 .feature-card.rascada .inv-rasca-capa{opacity:0;pointer-events:none}
 
@@ -433,15 +438,19 @@ export const AGENDAR_JS = `
 /** El polvo de oro: motas que suben despacio y se apartan del dedo. */
 export const POLVO_JS = `
 (function(){
-  var cv = document.querySelector('.inv-polvo');
-  if (!cv || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  var capa = document.querySelector('.inv-polvo');
+  if (!capa || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  var cv = document.createElement('canvas');
+  cv.setAttribute('aria-hidden', 'true');
+  capa.appendChild(cv);
   var cx = cv.getContext('2d'), dpr = Math.min(2, window.devicePixelRatio || 1);
-  var n = Math.max(10, Math.min(120, +cv.getAttribute('data-n') || 60));
-  var color = cv.getAttribute('data-color') ||
+  var leer = function(a){ return capa.getAttribute(a); };
+  var n = Math.max(10, Math.min(120, +leer('data-n') || 60));
+  var color = leer('data-color') ||
     getComputedStyle(document.documentElement).getPropertyValue('--brand-2').trim() || '#f3dc9a';
-  var op = +cv.getAttribute('data-op') || .8, lento = cv.getAttribute('data-ritmo');
+  var op = +leer('data-op') || .8, lento = leer('data-ritmo');
   var vel = lento === 'lento' ? .5 : lento === 'rapido' ? 1.8 : 1;
-  var escala = (+cv.getAttribute('data-tam') || 20) / 20;
+  var escala = (+leer('data-tam') || 20) / 20;
   var motas = [], p = { x: -999, y: -999 };
   function tam(){ cv.width = innerWidth * dpr; cv.height = innerHeight * dpr; }
   tam(); addEventListener('resize', tam);
@@ -515,13 +524,17 @@ export const DESEO_JS = `
  */
 export const CIELO_JS = `
 (function(){
-  var cv = document.querySelector('.inv-cielo');
-  if (!cv || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  var capa = document.querySelector('.inv-cielo');
+  if (!capa || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  var cv = document.createElement('canvas');
+  cv.setAttribute('aria-hidden', 'true');
+  capa.appendChild(cv);
   var cx = cv.getContext('2d'), dpr = Math.min(2, window.devicePixelRatio || 1);
-  var n = Math.max(40, Math.min(260, +cv.getAttribute('data-n') || 160));
-  var op = +cv.getAttribute('data-op') || .9, escala = (+cv.getAttribute('data-tam') || 20) / 20;
-  var color = cv.getAttribute('data-color') || '#ffffff';
-  var ritmo = cv.getAttribute('data-ritmo'), cada = ritmo === 'lento' ? 16000 : ritmo === 'rapido' ? 5000 : 9000;
+  var leer = function(a){ return capa.getAttribute(a); };
+  var n = Math.max(40, Math.min(260, +leer('data-n') || 160));
+  var op = +leer('data-op') || .9, escala = (+leer('data-tam') || 20) / 20;
+  var color = leer('data-color') || '#ffffff';
+  var ritmo = leer('data-ritmo'), cada = ritmo === 'lento' ? 16000 : ritmo === 'rapido' ? 5000 : 9000;
   var est = [], g = { x: 0, y: 0 }, o = { x: 0, y: 0 };
   function tam(){ cv.width = innerWidth * dpr; cv.height = innerHeight * dpr; }
   tam(); addEventListener('resize', tam);
@@ -596,8 +609,11 @@ export const RASCA_JS = `
   var dpr = Math.min(2, window.devicePixelRatio || 1);
   var s = getComputedStyle(document.documentElement);
   var acento = s.getPropertyValue('--inv-accent').trim() || '#9aa5c4';
-  capas.forEach(function(c){
-    var x = c.getContext('2d'), tarjeta = c.closest('.feature-card'), listo = false, activo = false;
+  capas.forEach(function(capa){
+    var c = document.createElement('canvas');
+    c.setAttribute('aria-label', capa.getAttribute('data-etiqueta') || 'Rasca para descubrir');
+    capa.appendChild(c);
+    var x = c.getContext('2d'), tarjeta = capa.closest('.feature-card'), listo = false, activo = false;
     function cubrir(){
       var w = c.clientWidth, h = c.clientHeight; if (!w || !h) return;
       c.width = w * dpr; c.height = h * dpr; x.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -607,7 +623,7 @@ export const RASCA_JS = `
       for (var i = 0; i < 50; i++) { x.fillStyle = 'rgba(255,255,255,' + Math.random() * .6 + ')';
         x.beginPath(); x.arc(Math.random() * w, Math.random() * h, Math.random() * 1.6, 0, 6.283); x.fill(); }
       x.fillStyle = 'rgba(20,24,48,.85)'; x.font = '600 11px Cinzel, Georgia, serif'; x.textAlign = 'center';
-      x.fillText(c.getAttribute('data-texto') || 'RASCA AQUÍ', w / 2, h / 2 + 4);
+      x.fillText(capa.getAttribute('data-texto') || 'RASCA AQUÍ', w / 2, h / 2 + 4);
     }
     cubrir(); addEventListener('resize', function(){ if (!listo) cubrir(); });
     function borrar(e){
@@ -619,7 +635,7 @@ export const RASCA_JS = `
       if (listo || !c.width) return;
       var px = x.getImageData(0, 0, c.width, c.height).data, vacios = 0, total = 0;
       for (var i = 3; i < px.length; i += 64) { total++; if (px[i] === 0) vacios++; }
-      if (vacios / total > .45) { listo = true; tarjeta.classList.add('rascada');
+      if (vacios / total > .45) { listo = true; if (tarjeta) tarjeta.classList.add('rascada');
         var b = c.getBoundingClientRect(); if (window.invEstallar) window.invEstallar(b.left + b.width / 2, b.top + b.height / 2, 50); }
     }
     c.addEventListener('pointerdown', function(e){ activo = true; c.setPointerCapture(e.pointerId); borrar(e); });

@@ -1441,7 +1441,7 @@ for (const [nombre, tocar] of CASOS) {
         conScript(doc, "invFugaz") && conScript(doc, "inv-velo-deseo')")],
     ["cielo estrellado: un canvas con muchas estrellas",
       (d) => { d.particulas = { enabled: true, tipo: "cielo", cantidad: "20" }; },
-      (doc) => doc.querySelector("canvas.inv-cielo")?.getAttribute("data-n") === "160" &&
+      (doc) => doc.querySelector("div.inv-cielo")?.getAttribute("data-n") === "160" &&
         !doc.querySelector(".inv-particulas") && conScript(doc, "inv-cielo")],
     ["cuenta atrás en órbitas, con su aro que se vacía",
       (d) => { d.layout = { blocks: [{ id: "countdown-0", type: "countdown", variant: "orbitas" }] }; },
@@ -1463,12 +1463,24 @@ for (const [nombre, tocar] of CASOS) {
         d.layout = { blocks: [{ id: "features-0", type: "features", variant: "rasca" }] };
         d.features = { ...d.features, enabled: true, items: [{ title: "A", text: "a" }, { title: "B", text: "b" }] };
       },
-      (doc) => doc.querySelectorAll(".inv-fe-rasca .feature-card .inv-rasca-capa").length === 2 &&
+      (doc) => doc.querySelectorAll(".inv-fe-rasca .feature-card div.inv-rasca-capa").length === 2 &&
         conScript(doc, "inv-rasca-capa")],
-    ["polvo de oro: un canvas y no piezas de CSS",
+    /* Un <canvas> hecho en el servidor tumba el render entero en el
+       contenedor: el de linkedom quiere el paquete «canvas» de Node, que
+       no está, y lanza «createCanvas is not a function». Pasó en producción
+       con el polvo de oro y el cielo estrellado, y no se vio aquí porque en
+       este equipo el sustituto sí resuelve. El lienzo lo crea el navegador. */
+    ["ni un solo <canvas> hecho en el servidor",
+      (d) => {
+        d.particulas = { enabled: true, tipo: "cielo", cantidad: "20" };
+        d.layout = { blocks: [{ id: "features-0", type: "features", variant: "rasca" }] };
+        d.features = { ...d.features, enabled: true, items: [{ title: "A", text: "a" }] };
+      },
+      (doc) => !doc.querySelector("canvas")],
+    ["polvo de oro: una capa y no piezas de CSS",
       (d) => { d.particulas = { enabled: true, tipo: "polvo", cantidad: "20" }; },
-      (doc) => !!doc.querySelector("canvas.inv-polvo") && !doc.querySelector(".inv-particulas") &&
-        doc.querySelector("canvas.inv-polvo").getAttribute("data-n") === "60" && conScript(doc, "inv-polvo")],
+      (doc) => !!doc.querySelector("div.inv-polvo") && !doc.querySelector(".inv-particulas") &&
+        doc.querySelector("div.inv-polvo").getAttribute("data-n") === "60" && conScript(doc, "inv-polvo")],
   ];
   for (const [nombre, preparar, comprueba] of casos) {
     const mal: string[] = [];
