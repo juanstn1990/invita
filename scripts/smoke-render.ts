@@ -1434,6 +1434,16 @@ for (const [nombre, tocar] of CASOS) {
     ["y con su tapa propia",
       (d) => { d.splash = { ...d.splash, enabled: true, apertura: "libro", sello: "/api/media/2026/09/t.png" }; },
       (doc) => String(doc.querySelector(".inv-libro-tapa")?.getAttribute("style")).includes("t.png?w=800")],
+    /* El telón se llamó .inv-cortina un rato, que ya era la cortina de
+       vídeo: su script buscaba el vídeo dentro y reventaba, y con todos los
+       scripts en un mismo bloque se llevaba por delante a los demás. */
+    ["telón: dos cortinas, el galón y su script",
+      (d) => { d.splash = { ...d.splash, enabled: true, apertura: "telon" }; },
+      (doc) => doc.querySelectorAll("#splash.inv-velo-telon .inv-telon").length === 2 &&
+        !!doc.querySelector("#splash .inv-telon-galon") && conScript(doc, "inv-velo-telon")],
+    ["y no lo confunde la cortina de vídeo",
+      (d) => { d.splash = { ...d.splash, enabled: true, apertura: "telon" }; },
+      (doc) => !doc.querySelector(".inv-telon.inv-cortina")],
     ["galería en carrusel: las fotos, el sitio de los puntos y su script",
       (d) => {
         d.layout = { blocks: [{ id: "gallery-0", type: "gallery", variant: "carrusel" }] };

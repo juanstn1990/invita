@@ -10,7 +10,8 @@
 import { parseHTML } from "linkedom";
 import {
   ABANICO_JS, AGENDAR_JS, CAPITULOS_JS, CARRUSEL_JS, CIELO_JS, COMPONENTES_CSS, CONFETI_JS,
-  CONSTELACION_JS, DESEO_JS, FUGAZ_JS, LIBRO_JS, NUBES_JS, POLVO_JS, RASCA_JS, SOBRE_JS, VOLTEA_JS,
+  CONSTELACION_JS, DESEO_JS, FUGAZ_JS, LIBRO_JS, NUBES_JS, POLVO_JS, RASCA_JS, SOBRE_JS, TELON_JS,
+  VOLTEA_JS,
 } from "./componentes";
 import { sanearHtml } from "./sanear";
 import { mapFor, type ListBinding, type Op } from "./bindings";
@@ -3075,7 +3076,7 @@ const FONDO_VIDEO_JS = `
  * inyectado; no hay marcado nuevo, así que funcionan igual en los 49 diseños
  * y en los que vengan.
  */
-const APERTURAS = new Set(["sobre", "sello", "deseo", "libro", "abanico", "nubes"]);
+const APERTURAS = new Set(["sobre", "sello", "deseo", "libro", "abanico", "nubes", "telon"]);
 
 /**
  * Cómo la cortina da paso a la invitación.
@@ -3114,6 +3115,10 @@ const CORTINA_JS = `
   var c = document.querySelector('.inv-cortina');
   if (!c) return;
   var v = c.querySelector('.inv-cortina-video');
+  /* Sin vídeo dentro no es esta cortina: se sale sin tocar nada. Sin esta
+     línea, cualquier otra cosa que se llamara igual tumbaba el resto de los
+     scripts, que van todos en el mismo bloque. */
+  if (!v) return;
   var saltar = c.querySelector('.inv-cortina-saltar');
   var velo = document.getElementById('splash');
   /* Con sonido, la música de fondo espera: dos audios a la vez no es
@@ -3905,6 +3910,15 @@ export function renderInvitation(opts: RenderOptions): string {
     if (velo && apertura === "deseo") {
       velo.insertAdjacentHTML?.("beforeend", `<p class="inv-deseo-pista">Toca y pide un deseo</p>`);
     }
+    if (velo && apertura === "telon") {
+      velo.insertAdjacentHTML?.(
+        "afterbegin",
+        `<i class="inv-telon inv-telon-izq" aria-hidden="true"></i>` +
+          `<i class="inv-telon inv-telon-der" aria-hidden="true"></i>` +
+          `<i class="inv-telon-galon" aria-hidden="true"></i>`
+      );
+      velo.insertAdjacentHTML?.("beforeend", `<p class="inv-sobre-pista">Toca para abrir el telón</p>`);
+    }
     if (velo && apertura === "nubes") {
       velo.insertAdjacentHTML?.(
         "afterbegin",
@@ -4569,7 +4583,7 @@ export function renderInvitation(opts: RenderOptions): string {
      y para encontrarla tiene que estar ya creada. */
   if (document.querySelector(".inv-cortina")) scripts.push(CORTINA_JS);
   /* Los componentes interactivos, cada uno sólo si la página lo usa. */
-  if (document.querySelector("[data-inv-sobre],[data-inv-libro],[data-inv-abanico],[data-inv-agendar],[data-inv-wa],.inv-velo-deseo,.inv-velo-nubes,.inv-cielo,.inv-rasca-capa")) {
+  if (document.querySelector("[data-inv-sobre],[data-inv-libro],[data-inv-abanico],[data-inv-agendar],[data-inv-wa],.inv-velo-deseo,.inv-velo-nubes,.inv-velo-telon,.inv-cielo,.inv-rasca-capa")) {
     scripts.push(CONFETI_JS);
   }
   if (document.querySelector(".inv-velo-deseo,.inv-cielo")) scripts.push(FUGAZ_JS);
@@ -4581,6 +4595,7 @@ export function renderInvitation(opts: RenderOptions): string {
   if (document.querySelector("[data-inv-libro]")) scripts.push(LIBRO_JS);
   if (document.querySelector("[data-inv-abanico]")) scripts.push(ABANICO_JS);
   if (document.querySelector(".inv-velo-nubes")) scripts.push(NUBES_JS);
+  if (document.querySelector(".inv-velo-telon")) scripts.push(TELON_JS);
   if (document.querySelector(".inv-ev-capitulos")) scripts.push(CAPITULOS_JS);
   if (document.querySelector(".inv-ga-carrusel")) scripts.push(CARRUSEL_JS);
   if (document.querySelector(".inv-fe-voltea")) scripts.push(VOLTEA_JS);

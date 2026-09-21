@@ -3,7 +3,7 @@
  *
  * Nacieron con «Quince Dorado», «Noche estrellada» y «Rosa encantada», pero ninguno es de un diseño: todos salen
  * de las variables de la paleta (--inv-accent, --inv-ink, --inv-surface…)
- * y se eligen desde el editor en cualquiera de los 57.
+ * y se eligen desde el editor en cualquiera de los 58.
  *
  * · Apertura «sobre con sello»: el velo es un sobre cerrado; se toca el
  *   sello, la solapa se abre, la carta sube y la invitación entra.
@@ -40,6 +40,9 @@
  *   su lado, como cuando se abre el cielo.
  *
  * · Galería «carrusel»: una foto grande a la vez, con enganche y puntos.
+ *
+ * · Apertura «telón»: dos cortinas de terciopelo y un galón que se abren.
+ *   Sin imágenes: el terciopelo son franjas sobre el color de acento.
  *
  * Aquí va lo que es igual para todos (el CSS y el JavaScript). Lo que
  * depende de los datos —el nombre en la carta, la fecha del calendario— lo
@@ -366,13 +369,46 @@ html:not(.js) .inv-ev-constelacion .inv-dato{opacity:1;transform:none}
   background:color-mix(in srgb,var(--inv-accent) 30%,transparent);transition:all .3s}
 .inv-puntos i.act{background:var(--inv-accent);width:20px;border-radius:99px}
 
+
+/* ── El telón ────────────────────────────────────────────────────
+   Dos cortinas de terciopelo y un galón arriba, y ninguna imagen: el
+   terciopelo son franjas de luz y sombra sobre el color de acento, así que
+   el telón de un diseño rojo es rojo y el de uno azul es azul.
+
+   Las clases dicen «telón» y no «cortina» a propósito: .inv-cortina ya es
+   la cortina de vídeo de apertura, y su script buscaba el vídeo dentro de
+   esto y reventaba —y como todos los scripts van en un mismo bloque, se
+   llevaba por delante a los demás—. */
+#splash.inv-velo-telon{cursor:pointer;-webkit-tap-highlight-color:transparent;overflow:hidden}
+#splash.inv-velo-telon .splash-btns{display:none}
+.inv-telon{position:absolute;top:0;bottom:0;width:52%;z-index:1;pointer-events:none;
+  background:
+    repeating-linear-gradient(90deg,rgba(0,0,0,.42) 0 6px,rgba(255,255,255,.07) 26px,rgba(0,0,0,.3) 52px),
+    linear-gradient(90deg,color-mix(in srgb,var(--inv-accent) 72%,#000),var(--inv-accent) 45%,
+      color-mix(in srgb,var(--inv-accent) 80%,#000));
+  box-shadow:inset 0 0 60px rgba(0,0,0,.55);
+  transition:transform 1.6s cubic-bezier(.5,0,.2,1)}
+.inv-telon-izq{left:0;border-right:3px solid color-mix(in srgb,var(--inv-accent) 55%,#000)}
+.inv-telon-der{right:0;border-left:3px solid color-mix(in srgb,var(--inv-accent) 55%,#000);
+  background:
+    repeating-linear-gradient(270deg,rgba(0,0,0,.42) 0 6px,rgba(255,255,255,.07) 26px,rgba(0,0,0,.3) 52px),
+    linear-gradient(270deg,color-mix(in srgb,var(--inv-accent) 72%,#000),var(--inv-accent) 45%,
+      color-mix(in srgb,var(--inv-accent) 80%,#000))}
+.inv-telon-galon{position:absolute;top:0;left:0;right:0;height:46px;z-index:2;pointer-events:none;
+  background:linear-gradient(color-mix(in srgb,var(--inv-accent) 35%,#fff),var(--inv-accent));
+  box-shadow:0 6px 16px rgba(0,0,0,.45);transition:transform 1.2s ease}
+#splash.abriendo .inv-telon-izq{transform:translateX(-101%)}
+#splash.abriendo .inv-telon-der{transform:translateX(101%)}
+#splash.abriendo .inv-telon-galon{transform:translateY(-100%)}
+#splash.inv-velo-telon .splash-modal{position:relative;z-index:3}
+
 @media (prefers-reduced-motion:reduce){
   .inv-sobre,.inv-sobre-sello,.inv-sobre-pista,.inv-deseo-pista,
   .inv-cd-orbitas .countdown-ring::after{animation:none}
   .inv-cielo{display:none}
   .inv-libro-tapa{transition:none}
   .inv-abanico-hoja{transform:none;-webkit-mask-image:none;mask-image:none}
-  .inv-nube{transition:none}
+  .inv-nube,.inv-cortina,.inv-telon-galon{transition:none}
   .inv-abanico-texto{opacity:1}
   .js .inv-ev-capitulos .event-card{transform:none;opacity:1;transition:none}
   .inv-ev-constelacion .inv-dato,.inv-luz{opacity:1;transform:none;transition:none}
@@ -831,5 +867,24 @@ export const CARRUSEL_JS = `
       i = Math.max(0, Math.min(fotos.length - 1, i));
       puntos.forEach(function(p, k){ p.className = k === i ? 'act' : ''; });
     }, { passive: true });
+  });
+})();`;
+
+/** El telón: se toca, las cortinas se van a los lados y entra. */
+export const TELON_JS = `
+(function(){
+  var velo = document.querySelector('#splash.inv-velo-telon');
+  if (!velo) return;
+  var quieto = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var hecho = false;
+  velo.addEventListener('click', function(e){
+    if (hecho || e.target.closest('a')) return;
+    hecho = true;
+    velo.classList.add('abriendo');
+    if (window.invEstallar) window.invEstallar(innerWidth / 2, innerHeight * .45, 70);
+    setTimeout(function(){
+      var b = velo.querySelector('.splash-btn-primary');
+      if (b) b.click(); else if (window.enterSite) window.enterSite();
+    }, quieto ? 0 : 1300);
   });
 })();`;
