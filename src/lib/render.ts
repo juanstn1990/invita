@@ -3992,12 +3992,15 @@ export function renderInvitation(opts: RenderOptions): string {
         `<i class="inv-escarcha" aria-hidden="true"></i><p class="inv-sobre-pista">Toca el hielo</p>`);
     }
     if (velo && apertura === "naipe") {
-      const corazon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-8-5.2-8-11.2A4.6 4.6 0 0 1 12 7a4.6 4.6 0 0 1 8 2.8C20 15.8 12 21 12 21z"/></svg>';
-      const pica = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2s8 6.3 8 11.4a4.2 4.2 0 0 1-7 3.1L14 22h-4l1-5.5a4.2 4.2 0 0 1-7-3.1C4 8.3 12 2 12 2z"/></svg>';
+      /* Los palos van como caracteres y no como <svg>: en el servidor de
+         producción, un <svg> dentro de este <i> insertado con
+         insertAdjacentHTML salía sin su cierre, y la esquina de abajo
+         quedaba anidada dentro de la de arriba —las dos arriba a la
+         izquierda—. En local no se reproducía. */
       const modal = velo.querySelector(".splash-modal") as El | null;
       modal?.insertAdjacentHTML?.("afterbegin",
-        `<i class="inv-naipe-esq inv-naipe-arriba" aria-hidden="true">A${corazon}</i>` +
-        `<i class="inv-naipe-esq inv-naipe-abajo" aria-hidden="true">A${pica}</i>` +
+        `<i class="inv-naipe-esq inv-naipe-arriba" aria-hidden="true">A<span>\u2665</span></i>` +
+        `<i class="inv-naipe-esq inv-naipe-abajo" aria-hidden="true">A<span>\u2660</span></i>` +
         `<i class="inv-naipe-dorso" aria-hidden="true"></i>`);
       velo.insertAdjacentHTML?.("beforeend", `<p class="inv-sobre-pista">Toca la carta</p>`);
     }

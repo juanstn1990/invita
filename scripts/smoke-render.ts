@@ -1565,7 +1565,10 @@ for (const [nombre, tocar] of CASOS) {
       (doc) => doc.querySelectorAll(".inv-cd-cristales [data-cd]").length === 4],
     ["naipe: las dos esquinas, el dorso y su script",
       (d) => { d.splash = { ...d.splash, enabled: true, apertura: "naipe" }; },
-      (doc) => doc.querySelectorAll("#splash.inv-velo-naipe .splash-modal .inv-naipe-esq").length === 2 &&
+      /* Las dos esquinas, hermanas y no una dentro de la otra: en producción
+         llegó a salir la de abajo anidada en la de arriba. */
+      (doc) => doc.querySelectorAll("#splash.inv-velo-naipe .splash-modal > .inv-naipe-esq").length === 2 &&
+        !doc.querySelector(".inv-naipe-esq .inv-naipe-esq") &&
         !!doc.querySelector("#splash .inv-naipe-dorso") && conScript(doc, "inv-velo-naipe")],
     ["cuenta atrás de reloj de bolsillo, con sus cuatro manecillas",
       (d) => { d.layout = { blocks: [{ id: "countdown-0", type: "countdown", variant: "bolsillo" }] }; },

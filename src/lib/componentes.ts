@@ -605,7 +605,7 @@ html:not(.js) .inv-ev-sendero .inv-dato{opacity:1;transform:none}
 .inv-naipe-esq{position:absolute;display:flex;flex-direction:column;align-items:center;gap:2px;font-style:normal;
   font-family:Georgia,'Times New Roman',serif;font-weight:700;font-size:clamp(34px,10vw,46px);line-height:1;
   color:var(--inv-naipe-tinta,var(--inv-ink))}
-.inv-naipe-esq svg{width:.9em;height:.9em;fill:currentColor}
+.inv-naipe-esq span{font-size:.95em;line-height:.9}
 .inv-naipe-arriba{left:7%;top:5%}
 .inv-naipe-abajo{right:7%;bottom:5%;transform:rotate(180deg)}
 .inv-naipe-dorso{position:absolute;inset:0;border-radius:16px;transform:rotateY(180deg);
