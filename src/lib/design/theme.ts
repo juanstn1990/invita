@@ -286,6 +286,14 @@ export interface Design {
    * lo guardado gana.
    */
   variantes?: Record<string, string>;
+  /**
+   * Dónde van los padres. Los campos son de la portada (`hero.padresA`…) y
+   * ahí se quedan en el editor, pero una portada con foto a sangre no tiene
+   * sitio para cuatro nombres: con "guests" el render los baja a la sección
+   * de invitados, debajo del mensaje. Si esa sección está apagada, se
+   * quedan en la portada.
+   */
+  padresEn?: "guests";
   /** CSS propio, corto: lo que el sistema de slots no cubre. */
   css?: (t: Theme) => string;
   deco?: Deco;

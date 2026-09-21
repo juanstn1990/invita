@@ -195,6 +195,9 @@ const APARTE = new Set([
   "greeting",
   "buttonText",
   "declineText",
+  // La canción que se le pide a cada invitado es un campo más del
+  // formulario que monta `wireRsvp`, no un texto del marcado.
+  "cancion",
   "whatsapp",
   "date",
   "type",

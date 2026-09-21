@@ -402,6 +402,32 @@ html:not(.js) .inv-ev-constelacion .inv-dato{opacity:1;transform:none}
 #splash.abriendo .inv-telon-galon{transform:translateY(-100%)}
 #splash.inv-velo-telon .splash-modal{position:relative;z-index:3}
 
+/* ── Los anillos: se tocan, se unen y el velo se levanta ──────
+   Dibujados con dos bordes y no con una imagen, para que sirvan en
+   cualquier diseño sin pedirle nada. */
+#splash.inv-velo-anillos{cursor:pointer;-webkit-tap-highlight-color:transparent;overflow:hidden;
+  transition:transform 1.3s cubic-bezier(.6,0,.25,1) .9s,opacity 1s ease 1s}
+#splash.inv-velo-anillos .splash-btns{display:none}
+#splash.inv-velo-anillos .splash-modal{position:relative;z-index:3}
+.inv-aros{position:absolute;top:17%;left:50%;width:0;height:0;z-index:4;pointer-events:none}
+.inv-aros i{position:absolute;top:0;left:0;width:clamp(62px,18vw,84px);aspect-ratio:1;border-radius:50%;
+  translate:-50% -50%;
+  border:3px solid var(--inv-accent);
+  box-shadow:0 0 20px -5px var(--inv-accent),inset 0 0 12px -6px var(--inv-accent);
+  transition:transform 1s cubic-bezier(.45,0,.2,1)}
+.inv-aro-izq{transform:translateX(-58%) rotate(-6deg)}
+.inv-aro-der{transform:translateX(58%) rotate(6deg)}
+#splash.abriendo .inv-aro-izq{transform:translateX(-24%) rotate(-16deg)}
+#splash.abriendo .inv-aro-der{transform:translateX(24%) rotate(16deg)}
+/* El destello del momento en que se juntan. */
+.inv-aros::after{content:"";position:absolute;top:0;left:0;width:12px;height:12px;border-radius:50%;
+  translate:-50% -50%;background:#fff;opacity:0;
+  box-shadow:0 0 34px 14px color-mix(in srgb,var(--inv-accent) 70%,transparent)}
+#splash.abriendo .inv-aros::after{animation:invDestello .9s ease .72s both}
+@keyframes invDestello{0%{opacity:0;transform:scale(.3)}
+  38%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(2.6)}}
+#splash.inv-velo-anillos.abriendo{transform:translateY(-102%);opacity:0}
+
 @media (prefers-reduced-motion:reduce){
   .inv-sobre,.inv-sobre-sello,.inv-sobre-pista,.inv-deseo-pista,
   .inv-cd-orbitas .countdown-ring::after{animation:none}
@@ -409,6 +435,8 @@ html:not(.js) .inv-ev-constelacion .inv-dato{opacity:1;transform:none}
   .inv-libro-tapa{transition:none}
   .inv-abanico-hoja{transform:none;-webkit-mask-image:none;mask-image:none}
   .inv-nube,.inv-cortina,.inv-telon-galon{transition:none}
+  .inv-aros i,#splash.inv-velo-anillos{transition:none}
+  .inv-aros::after{animation:none}
   .inv-abanico-texto{opacity:1}
   .js .inv-ev-capitulos .event-card{transform:none;opacity:1;transition:none}
   .inv-ev-constelacion .inv-dato,.inv-luz{opacity:1;transform:none;transition:none}
@@ -867,6 +895,31 @@ export const CARRUSEL_JS = `
       i = Math.max(0, Math.min(fotos.length - 1, i));
       puntos.forEach(function(p, k){ p.className = k === i ? 'act' : ''; });
     }, { passive: true });
+  });
+})();`;
+
+/**
+ * Los anillos: se tocan, los dos aros se acercan hasta enlazarse, sale un
+ * destello y el velo se levanta entero. Nació para la boda «Eterna», pero
+ * no depende de ella: los aros son CSS y el color es el del acento.
+ */
+export const ANILLOS_JS = `
+(function(){
+  var velo = document.querySelector('#splash.inv-velo-anillos');
+  if (!velo) return;
+  var quieto = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var hecho = false;
+  velo.addEventListener('click', function(e){
+    if (hecho || e.target.closest('a')) return;
+    hecho = true;
+    velo.classList.add('abriendo');
+    if (window.invEstallar) setTimeout(function(){
+      window.invEstallar(innerWidth / 2, innerHeight * .17, 55);
+    }, quieto ? 0 : 700);
+    setTimeout(function(){
+      var b = velo.querySelector('.splash-btn-primary');
+      if (b) b.click(); else if (window.enterSite) window.enterSite();
+    }, quieto ? 0 : 1600);
   });
 })();`;
 

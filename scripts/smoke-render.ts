@@ -1512,6 +1512,18 @@ for (const [nombre, tocar] of CASOS) {
         d.features = { ...d.features, enabled: true, items: [{ title: "A", text: "a" }] };
       },
       (doc) => !doc.querySelector("canvas")],
+    ["anillos: los dos aros, la pista y su script",
+      (d) => { d.splash = { ...d.splash, enabled: true, apertura: "anillos" }; },
+      (doc) => doc.querySelectorAll("#splash.inv-velo-anillos .inv-aros i").length === 2 &&
+        !!doc.querySelector("#splash .inv-sobre-pista") && conScript(doc, "inv-velo-anillos")],
+    ["canción: un campo más en el RSVP si se pide",
+      (d) => { d.confirm = { ...d.confirm, enabled: true, mode: "form", cancion: "La que no puede faltar" }; },
+      (doc) => !!doc.querySelector(".inv-rsvp .inv-rsvp-cancion input[name='cancion']") &&
+        String(doc.querySelector(".inv-rsvp")?.textContent).includes("La que no puede faltar") &&
+        conScript(doc, "body.cancion")],
+    ["y sin pedirla no aparece",
+      (d) => { d.confirm = { ...d.confirm, enabled: true, mode: "form", cancion: "" }; },
+      (doc) => !doc.querySelector("[name='cancion']")],
     ["polvo de oro: una capa y no piezas de CSS",
       (d) => { d.particulas = { enabled: true, tipo: "polvo", cantidad: "20" }; },
       (doc) => !!doc.querySelector("div.inv-polvo") && !doc.querySelector(".inv-particulas") &&
@@ -1562,6 +1574,32 @@ for (const [nombre, tocar] of CASOS) {
           templateId: "invitacion-15-estrellada", data: d, slug: "demo",
         }));
         return !!document.querySelector(".inv-ev-tarjetas") && !document.querySelector(".inv-ev-constelacion");
+      },
+    ],
+    [
+      "los padres bajan a invitados cuando el diseño lo pide",
+      () => {
+        const d: any = defaultData();
+        d.guests = { ...d.guests, enabled: true };
+        d.hero = { ...d.hero, padresA: "Padres de la novia", padresANombres: "Luisa\nJorge" };
+        const { document } = parseHTML(renderInvitation({
+          templateHtml: readTemplate("invitacion-eterna"),
+          templateId: "invitacion-eterna", data: d, slug: "demo",
+        }));
+        return !!document.querySelector("#guests .inv-padres-invitados") && !document.querySelector("#hero .hero-padres");
+      },
+    ],
+    [
+      "y con invitados apagado se quedan en la portada",
+      () => {
+        const d: any = defaultData();
+        d.guests = { ...d.guests, enabled: false };
+        d.hero = { ...d.hero, padresA: "Padres de la novia", padresANombres: "Luisa\nJorge" };
+        const { document } = parseHTML(renderInvitation({
+          templateHtml: readTemplate("invitacion-eterna"),
+          templateId: "invitacion-eterna", data: d, slug: "demo",
+        }));
+        return !!document.querySelector("#hero .hero-padres p");
       },
     ],
     [

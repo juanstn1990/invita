@@ -9,7 +9,7 @@
 
 import { parseHTML } from "linkedom";
 import {
-  ABANICO_JS, AGENDAR_JS, CAPITULOS_JS, CARRUSEL_JS, CIELO_JS, COMPONENTES_CSS, CONFETI_JS,
+  ABANICO_JS, AGENDAR_JS, ANILLOS_JS, CAPITULOS_JS, CARRUSEL_JS, CIELO_JS, COMPONENTES_CSS, CONFETI_JS,
   CONSTELACION_JS, DESEO_JS, FUGAZ_JS, LIBRO_JS, NUBES_JS, POLVO_JS, RASCA_JS, SOBRE_JS, TELON_JS,
   VOLTEA_JS,
 } from "./componentes";
@@ -1525,6 +1525,20 @@ function wireRsvp(doc: Doc, section: El, data: InvitationData, slug: string, pre
      y la confirmación cambiaba de forma según el diseño. */
   const form = doc.createElement("form");
   form.setAttribute("class", "inv-rsvp");
+
+  /* La canción que no puede faltar: un campo más, sólo si quien invita
+     escribió qué quiere preguntar. Nació en la boda «Eterna», donde la
+     fiesta se arma con lo que pide cada invitado, pero no tiene nada de
+     boda: sirve igual en unos quince. Lo que contesten viaja pegado al
+     mensaje —una sola respuesta por invitado, y el panel no cambia—. */
+  const cancion = String(c.cancion || "").trim();
+  const pideCancion = cancion
+    ? `<label class="inv-rsvp-lab">${escapeHtml(cancion)}` +
+      '<span class="inv-rsvp-cancion"><i aria-hidden="true">\u266a</i>' +
+      `<input class="${claseInput}" name="cancion" placeholder="Artista — título" maxlength="120">` +
+      "</span></label>"
+    : "";
+
   form.innerHTML =
     andamio(String(c.greeting || "Hola, {nombre}")) +
     `<input class="${claseInput}" name="name" placeholder="Tu nombre" required data-inv-nombre>` +
@@ -1532,6 +1546,7 @@ function wireRsvp(doc: Doc, section: El, data: InvitationData, slug: string, pre
     '<label class="inv-rsvp-lab" data-inv-cuantos>¿Cuántas personas van?' +
     `<input class="${claseInput}" name="partySize" type="number" min="1" max="20" value="1">` +
     "</label>" +
+    pideCancion +
     `<textarea class="${claseInput}" name="note" rows="2" placeholder="Mensaje (opcional)"></textarea>` +
     '<div class="inv-rsvp-acciones">' +
     `<button class="${claseBtn}" type="submit" value="confirmado" name="status">${escapeHtml(buttonText)}</button>` +
@@ -1561,6 +1576,14 @@ export const INJECTED_CSS = `
 .inv-rsvp-lab{display:block;font-family:var(--inv-font-ui);font-size:12.5px;
   color:var(--inv-ink);opacity:.72}
 .inv-rsvp-lab .inv-rsvp-input{margin-top:5px}
+/* La canción: la nota entra en la caja, no al lado. */
+.inv-rsvp-cancion{display:flex;align-items:center;gap:8px;margin-top:5px;padding-left:14px;
+  background:var(--inv-field-bg);border:1px solid var(--inv-field-border);
+  border-radius:var(--inv-radius)}
+.inv-rsvp-cancion i{flex:none;font-style:normal;font-size:17px;color:var(--inv-accent);opacity:.85}
+.inv-rsvp-cancion .inv-rsvp-input{margin-top:0;background:none;border:0;padding-left:0}
+.inv-rsvp-cancion:focus-within{border-color:var(--inv-accent);box-shadow:0 0 0 3px var(--inv-focus)}
+.inv-rsvp-cancion .inv-rsvp-input:focus{box-shadow:none}
 
 .inv-rsvp-hola{margin:0 0 2px;font-family:var(--inv-font-title);
   font-size:clamp(18px,4.8vw,22px);line-height:1.3;color:var(--inv-ink)}
@@ -2842,6 +2865,13 @@ export const RSVP_JS = `
     var body = {};
     new FormData(form).forEach(function(v,k){ body[k] = v; });
     if (respuesta) body.status = respuesta;
+    // La canción va pegada al mensaje: la respuesta sigue siendo una sola y
+    // quien invita la lee en el tablero sin ninguna columna nueva.
+    if (body.cancion) {
+      var pedido = String(body.cancion).trim();
+      delete body.cancion;
+      if (pedido) body.note = (body.note ? String(body.note).trim() + ' · ' : '') + '\u266a ' + pedido;
+    } else { delete body.cancion; }
     // El código del link personalizado, para que el panel de quien invita
     // sepa quién contestó sin tener que emparejar por nombre.
     var codigo = q.get('g') || '';
@@ -3076,7 +3106,7 @@ const FONDO_VIDEO_JS = `
  * inyectado; no hay marcado nuevo, así que funcionan igual en los 49 diseños
  * y en los que vengan.
  */
-const APERTURAS = new Set(["sobre", "sello", "deseo", "libro", "abanico", "nubes", "telon"]);
+const APERTURAS = new Set(["sobre", "sello", "deseo", "libro", "abanico", "nubes", "telon", "anillos"]);
 
 /**
  * Cómo la cortina da paso a la invitación.
@@ -3919,6 +3949,14 @@ export function renderInvitation(opts: RenderOptions): string {
       );
       velo.insertAdjacentHTML?.("beforeend", `<p class="inv-sobre-pista">Toca para abrir el telón</p>`);
     }
+    if (velo && apertura === "anillos") {
+      velo.insertAdjacentHTML?.(
+        "afterbegin",
+        `<div class="inv-aros" aria-hidden="true">` +
+          `<i class="inv-aro-izq"></i><i class="inv-aro-der"></i></div>`
+      );
+      velo.insertAdjacentHTML?.("beforeend", `<p class="inv-sobre-pista">Toca para unirlos</p>`);
+    }
     if (velo && apertura === "nubes") {
       velo.insertAdjacentHTML?.(
         "afterbegin",
@@ -4235,6 +4273,20 @@ export function renderInvitation(opts: RenderOptions): string {
     const regalos = pick(document, map.sections.gifts || []);
     for (const caja of pickAll(regalos || document.body, [".gifts-account", ".gifts-accounts"])) {
       caja.remove();
+    }
+  }
+
+  /* 4 · bis · Los padres, donde el diseño los quiere. Se mueve el nodo ya
+     lleno, así que lo que se escribió en la portada es lo que se ve aquí. */
+  if (designOf(templateId)?.padresEn === "guests") {
+    const invitados = resueltos.find((r) => r.key === "guests")?.el || null;
+    const padres = document.querySelector("#hero .hero-padres") as El | null;
+    if (invitados && padres && padres.querySelector("p")) {
+      const caja = (invitados.querySelector(".container") as El | null) || invitados;
+      const cierre = caja.querySelector(".guests-cierre, [data-inv='guests.textSecondary']") as El | null;
+      padres.setAttribute("class", "hero-padres inv-padres-invitados");
+      if (cierre?.parentNode === caja) caja.insertBefore(padres, cierre.nextSibling);
+      else caja.appendChild(padres);
     }
   }
 
@@ -4583,7 +4635,7 @@ export function renderInvitation(opts: RenderOptions): string {
      y para encontrarla tiene que estar ya creada. */
   if (document.querySelector(".inv-cortina")) scripts.push(CORTINA_JS);
   /* Los componentes interactivos, cada uno sólo si la página lo usa. */
-  if (document.querySelector("[data-inv-sobre],[data-inv-libro],[data-inv-abanico],[data-inv-agendar],[data-inv-wa],.inv-velo-deseo,.inv-velo-nubes,.inv-velo-telon,.inv-cielo,.inv-rasca-capa")) {
+  if (document.querySelector("[data-inv-sobre],[data-inv-libro],[data-inv-abanico],[data-inv-agendar],[data-inv-wa],.inv-velo-deseo,.inv-velo-nubes,.inv-velo-telon,.inv-velo-anillos,.inv-cielo,.inv-rasca-capa")) {
     scripts.push(CONFETI_JS);
   }
   if (document.querySelector(".inv-velo-deseo,.inv-cielo")) scripts.push(FUGAZ_JS);
@@ -4596,6 +4648,7 @@ export function renderInvitation(opts: RenderOptions): string {
   if (document.querySelector("[data-inv-abanico]")) scripts.push(ABANICO_JS);
   if (document.querySelector(".inv-velo-nubes")) scripts.push(NUBES_JS);
   if (document.querySelector(".inv-velo-telon")) scripts.push(TELON_JS);
+  if (document.querySelector(".inv-velo-anillos")) scripts.push(ANILLOS_JS);
   if (document.querySelector(".inv-ev-capitulos")) scripts.push(CAPITULOS_JS);
   if (document.querySelector(".inv-ga-carrusel")) scripts.push(CARRUSEL_JS);
   if (document.querySelector(".inv-fe-voltea")) scripts.push(VOLTEA_JS);

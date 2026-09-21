@@ -914,6 +914,7 @@ export const SECTIONS: SectionSpec[] = [
           { value: "abanico", label: "Un abanico que se despliega" },
           { value: "nubes", label: "Dos nubes que se abren" },
           { value: "telon", label: "Un telón de teatro que se abre" },
+          { value: "anillos", label: "Dos anillos que se unen y levantan el velo" },
         ],
         help: "Lo que pasa al pulsar el botón. Con «sobre con sello» el velo es un sobre cerrado y el sello es lo que se toca.",
       },
@@ -1163,6 +1164,14 @@ export const SECTIONS: SectionSpec[] = [
       },
       { key: "buttonText", label: "Texto del botón", type: "text", placeholder: "Confirmar asistencia" },
       { key: "declineText", label: "Botón de \"no puedo\"", type: "text", placeholder: "No podré ir" },
+      {
+        key: "cancion",
+        label: "Pedirle una canción a cada invitado",
+        type: "text",
+        span: 2,
+        placeholder: "La canción que no puede faltar",
+        help: "Escribe aquí lo que quieres preguntar y aparece un campo más en el formulario. Déjalo vacío y no se pide nada. Lo que conteste llega junto al mensaje, en la misma respuesta.",
+      },
       {
         key: "whatsapp",
         label: "WhatsApp",
@@ -1824,6 +1833,7 @@ export function defaultData(): InvitationData {
       greeting: "Hola, {nombre}",
       buttonText: "Confirmar asistencia",
       declineText: "No podré ir",
+      cancion: "",
       whatsapp: "",
     },
     gallery: {
