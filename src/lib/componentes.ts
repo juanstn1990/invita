@@ -3,7 +3,7 @@
  *
  * Nacieron con «Quince Dorado», «Noche estrellada» y «Rosa encantada», pero ninguno es de un diseño: todos salen
  * de las variables de la paleta (--inv-accent, --inv-ink, --inv-surface…)
- * y se eligen desde el editor en cualquiera de los 54.
+ * y se eligen desde el editor en cualquiera de los 55.
  *
  * · Apertura «sobre con sello»: el velo es un sobre cerrado; se toca el
  *   sello, la solapa se abre, la carta sube y la invitación entra.
@@ -30,6 +30,11 @@
  *   tapa, se abre y dentro está la invitación.
  * · Programa «capítulos»: cada momento es una página que entra girando,
  *   con su número al lado.
+ *
+ * Y el de «Rosa Real»:
+ *
+ * · Apertura «abanico»: el velo es un abanico cerrado que se despliega al
+ *   tocarlo, girando sobre su remache.
  *
  * Aquí va lo que es igual para todos (el CSS y el JavaScript). Lo que
  * depende de los datos —el nombre en la carta, la fecha del calendario— lo
@@ -298,11 +303,36 @@ html:not(.js) .inv-ev-constelacion .inv-dato{opacity:1;transform:none}
 .js .inv-ev-capitulos.in .event-card:nth-child(5){transition-delay:.72s}
 .js .inv-ev-capitulos.in .event-card:nth-child(n+6){transition-delay:.9s}
 
+
+/* ── El abanico que se abre ──────────────────────────────────────
+   Un abanico no aparece: se despliega. La imagen está entera desde el
+   principio y lo que crece es una máscara cónica con el eje en el remache,
+   abajo, que es por donde gira uno de verdad; a la vez se endereza. */
+#splash.inv-velo-abanico .splash-modal{display:none}
+.inv-abanico{position:relative;z-index:4;width:min(86vw,380px);text-align:center;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;animation:invSobreAsoma 1.1s cubic-bezier(.2,.7,.3,1) both}
+.inv-abanico-hoja{width:100%;transform-origin:50% 96%;transform:rotate(var(--inv-ab-r,-74deg));
+  background:var(--inv-abanico-img) center/contain no-repeat;aspect-ratio:1.72;
+  -webkit-mask-image:conic-gradient(from 268deg at 50% 96%,#000 var(--inv-ab-a,30deg),transparent 0);
+          mask-image:conic-gradient(from 268deg at 50% 96%,#000 var(--inv-ab-a,30deg),transparent 0);
+  filter:drop-shadow(0 18px 30px rgba(0,0,0,.45))}
+/* Sin imagen de abanico no hay nada que desplegar: en ese caso el velo se
+   abre con un toque y se dice con la pista, en vez de enseñar un hueco. */
+.inv-abanico:not([data-con-imagen]) .inv-abanico-hoja{display:none}
+.inv-abanico-texto{margin-top:8px;opacity:0;transition:opacity .8s ease .5s}
+.inv-abanico.abierto .inv-abanico-texto{opacity:1}
+.inv-abanico-ante{margin:0;font-family:var(--inv-font-ui);font-size:11px;letter-spacing:.34em;
+  text-transform:uppercase;color:var(--inv-accent)}
+.inv-abanico-nombre{margin:0;font-family:var(--inv-font-title);font-size:44px;line-height:1.15;
+  color:var(--inv-ink)}
+
 @media (prefers-reduced-motion:reduce){
   .inv-sobre,.inv-sobre-sello,.inv-sobre-pista,.inv-deseo-pista,
   .inv-cd-orbitas .countdown-ring::after{animation:none}
   .inv-cielo{display:none}
   .inv-libro-tapa{transition:none}
+  .inv-abanico-hoja{transform:none;-webkit-mask-image:none;mask-image:none}
+  .inv-abanico-texto{opacity:1}
   .js .inv-ev-capitulos .event-card{transform:none;opacity:1;transition:none}
   .inv-ev-constelacion .inv-dato,.inv-luz{opacity:1;transform:none;transition:none}
   .inv-sobre-carta,.inv-sobre-solapa,.inv-fe-voltea .inv-cara{transition:none}
@@ -685,4 +715,37 @@ export const CAPITULOS_JS = `
     es.forEach(function(e){ if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
   }, { threshold: .15 });
   listas.forEach(function(l){ io.observe(l); });
+})();`;
+
+/** El abanico: se toca, se despliega y entra la invitación. */
+export const ABANICO_JS = `
+(function(){
+  var ab = document.querySelector('[data-inv-abanico]');
+  if (!ab) return;
+  var quieto = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var hoja = ab.querySelector('.inv-abanico-hoja');
+  function entrar(){
+    var b = document.querySelector('#splash .splash-btn-primary');
+    if (b) b.click(); else if (window.enterSite) window.enterSite();
+  }
+  ab.addEventListener('click', function(){
+    if (ab.classList.contains('abierto')) return;
+    ab.classList.add('abierto');
+    if (quieto || !hoja) { entrar(); return; }
+    var t0 = performance.now(), dur = 1300;
+    (function paso(t){
+      var k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+      hoja.style.setProperty('--inv-ab-a', (30 + e * 150).toFixed(1) + 'deg');
+      hoja.style.setProperty('--inv-ab-r', (-74 + e * 74).toFixed(1) + 'deg');
+      if (k < 1) requestAnimationFrame(paso);
+      else {
+        var r = ab.getBoundingClientRect();
+        if (window.invEstallar) window.invEstallar(r.left + r.width / 2, r.top + r.height * .8, 70);
+        setTimeout(entrar, 900);
+      }
+    })(t0);
+  });
+  ab.addEventListener('keydown', function(e){
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); ab.click(); }
+  });
 })();`;

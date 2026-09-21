@@ -9,8 +9,8 @@
 
 import { parseHTML } from "linkedom";
 import {
-  AGENDAR_JS, CAPITULOS_JS, CIELO_JS, COMPONENTES_CSS, CONFETI_JS, CONSTELACION_JS, DESEO_JS,
-  FUGAZ_JS, LIBRO_JS, POLVO_JS, RASCA_JS, SOBRE_JS, VOLTEA_JS,
+  ABANICO_JS, AGENDAR_JS, CAPITULOS_JS, CIELO_JS, COMPONENTES_CSS, CONFETI_JS, CONSTELACION_JS,
+  DESEO_JS, FUGAZ_JS, LIBRO_JS, POLVO_JS, RASCA_JS, SOBRE_JS, VOLTEA_JS,
 } from "./componentes";
 import { sanearHtml } from "./sanear";
 import { mapFor, type ListBinding, type Op } from "./bindings";
@@ -3075,7 +3075,7 @@ const FONDO_VIDEO_JS = `
  * inyectado; no hay marcado nuevo, así que funcionan igual en los 49 diseños
  * y en los que vengan.
  */
-const APERTURAS = new Set(["sobre", "sello", "deseo", "libro"]);
+const APERTURAS = new Set(["sobre", "sello", "deseo", "libro", "abanico"]);
 
 /**
  * Cómo la cortina da paso a la invitación.
@@ -3905,6 +3905,25 @@ export function renderInvitation(opts: RenderOptions): string {
     if (velo && apertura === "deseo") {
       velo.insertAdjacentHTML?.("beforeend", `<p class="inv-deseo-pista">Toca y pide un deseo</p>`);
     }
+    if (velo && apertura === "abanico") {
+      const nombre = coupleName(data) || "";
+      const ante = String(data.splash?.label || "").trim();
+      const img = String(data.splash?.sello || "").trim();
+      const url = img ? (propia(img) ? conAncho(img, 800) : img) : "";
+      /* Con imagen propia manda ésa; si no, la del diseño, que la pone en
+         --inv-abanico-img. Sin ninguna de las dos no se dibuja la hoja. */
+      const estilo = url
+        ? ` style="--inv-abanico-img:url(&quot;${escapeHtml(url).replace(/"/g, "%22")}&quot;)"`
+        : "";
+      velo.insertAdjacentHTML?.(
+        "beforeend",
+        `<div class="inv-abanico" data-inv-abanico data-con-imagen role="button" tabindex="0" ` +
+          `aria-label="Abrir la invitación"><div class="inv-abanico-hoja"${estilo}></div>` +
+          `<div class="inv-abanico-texto">${ante ? `<p class="inv-abanico-ante">${escapeHtml(ante)}</p>` : ""}` +
+          `<p class="inv-abanico-nombre">${escapeHtml(nombre)}</p></div>` +
+          `</div><p class="inv-sobre-pista">Abre el abanico</p>`
+      );
+    }
     /* El libro: la tapa lleva la imagen elegida, y dentro la página con el
        nombre y la fecha, que es lo que se ve al abrirlo. */
     if (velo && apertura === "libro") {
@@ -4542,7 +4561,7 @@ export function renderInvitation(opts: RenderOptions): string {
      y para encontrarla tiene que estar ya creada. */
   if (document.querySelector(".inv-cortina")) scripts.push(CORTINA_JS);
   /* Los componentes interactivos, cada uno sólo si la página lo usa. */
-  if (document.querySelector("[data-inv-sobre],[data-inv-libro],[data-inv-agendar],[data-inv-wa],.inv-velo-deseo,.inv-cielo,.inv-rasca-capa")) {
+  if (document.querySelector("[data-inv-sobre],[data-inv-libro],[data-inv-abanico],[data-inv-agendar],[data-inv-wa],.inv-velo-deseo,.inv-cielo,.inv-rasca-capa")) {
     scripts.push(CONFETI_JS);
   }
   if (document.querySelector(".inv-velo-deseo,.inv-cielo")) scripts.push(FUGAZ_JS);
@@ -4552,6 +4571,7 @@ export function renderInvitation(opts: RenderOptions): string {
   if (document.querySelector(".inv-rasca-capa")) scripts.push(RASCA_JS);
   if (document.querySelector("[data-inv-sobre]")) scripts.push(SOBRE_JS);
   if (document.querySelector("[data-inv-libro]")) scripts.push(LIBRO_JS);
+  if (document.querySelector("[data-inv-abanico]")) scripts.push(ABANICO_JS);
   if (document.querySelector(".inv-ev-capitulos")) scripts.push(CAPITULOS_JS);
   if (document.querySelector(".inv-fe-voltea")) scripts.push(VOLTEA_JS);
   if (document.querySelector("[data-inv-agendar]")) scripts.push(AGENDAR_JS);

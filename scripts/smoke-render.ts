@@ -1434,6 +1434,11 @@ for (const [nombre, tocar] of CASOS) {
     ["y con su tapa propia",
       (d) => { d.splash = { ...d.splash, enabled: true, apertura: "libro", sello: "/api/media/2026/09/t.png" }; },
       (doc) => String(doc.querySelector(".inv-libro-tapa")?.getAttribute("style")).includes("t.png?w=800")],
+    ["abanico: la hoja, el nombre y su script",
+      (d) => { d.splash = { ...d.splash, enabled: true, apertura: "abanico" }; d.event.name1 = "Mariana"; },
+      (doc) => !!doc.querySelector("#splash.inv-velo-abanico [data-inv-abanico] .inv-abanico-hoja") &&
+        String(doc.querySelector(".inv-abanico-nombre")?.textContent).includes("Mariana") &&
+        conScript(doc, "data-inv-abanico")],
     ["programa por capítulos: el número es el ícono, y su script",
       (d) => {
         d.layout = { blocks: [{ id: "events-0", type: "events", variant: "capitulos" }] };
