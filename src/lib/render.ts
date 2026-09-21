@@ -416,9 +416,11 @@ function ponerParticulas(document: Doc, data: InvitationData) {
     /* Cuatro números por pieza: dónde empieza, cuánto tarda, cuándo arranca y
        cuánto mide. Sin el desfase, las sesenta caerían en formación. */
     /* Por los bordes: la franja de la izquierda o la de la derecha, alternas,
-       dejando libre el centro, que es donde va el texto. */
+       dejando libre el centro, que es donde va el texto. Angosta y medio
+       fuera de la pantalla: en un móvil el texto empieza a 24 px del borde,
+       y una franja más ancha lo volvía a pisar. */
     const x = (bordes
-      ? (i % 2 ? 84 : -2) + disperso(i, 1) * 16
+      ? (i % 2 ? 90 : -8) + disperso(i, 1) * 10
       : disperso(i, 1) * 100
     ).toFixed(1);
     const dur = (7 + disperso(i, 2) * 9).toFixed(1);
