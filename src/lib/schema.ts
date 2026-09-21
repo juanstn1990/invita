@@ -912,6 +912,7 @@ export const SECTIONS: SectionSpec[] = [
           { value: "deseo", label: "Pide un deseo: se toca y cruza una estrella fugaz" },
           { value: "libro", label: "Un libro de cuentos que se abre" },
           { value: "abanico", label: "Un abanico que se despliega" },
+          { value: "nubes", label: "Dos nubes que se abren" },
         ],
         help: "Lo que pasa al pulsar el botón. Con «sobre con sello» el velo es un sobre cerrado y el sello es lo que se toca.",
       },

@@ -3,7 +3,7 @@
  *
  * Nacieron con «Quince Dorado», «Noche estrellada» y «Rosa encantada», pero ninguno es de un diseño: todos salen
  * de las variables de la paleta (--inv-accent, --inv-ink, --inv-surface…)
- * y se eligen desde el editor en cualquiera de los 55.
+ * y se eligen desde el editor en cualquiera de los 56.
  *
  * · Apertura «sobre con sello»: el velo es un sobre cerrado; se toca el
  *   sello, la solapa se abre, la carta sube y la invitación entra.
@@ -35,6 +35,9 @@
  *
  * · Apertura «abanico»: el velo es un abanico cerrado que se despliega al
  *   tocarlo, girando sobre su remache.
+ *
+ * · Apertura «nubes»: dos nubes tapan la invitación y se van cada una por
+ *   su lado, como cuando se abre el cielo.
  *
  * Aquí va lo que es igual para todos (el CSS y el JavaScript). Lo que
  * depende de los datos —el nombre en la carta, la fecha del calendario— lo
@@ -326,12 +329,30 @@ html:not(.js) .inv-ev-constelacion .inv-dato{opacity:1;transform:none}
 .inv-abanico-nombre{margin:0;font-family:var(--inv-font-title);font-size:44px;line-height:1.15;
   color:var(--inv-ink)}
 
+
+/* ── El cielo que se abre ────────────────────────────────────────
+   El velo es el cielo cerrado: dos nubes tapan la invitación y al tocar se
+   van cada una por su lado. La nube la pone el diseño en --inv-nube-img;
+   sin ella no hay nubes y el velo se abre con un toque, sin más. */
+#splash.inv-velo-nubes{cursor:pointer;-webkit-tap-highlight-color:transparent}
+#splash.inv-velo-nubes .splash-btns{display:none}
+.inv-nube{position:absolute;z-index:1;width:min(150vw,1100px);aspect-ratio:1.95;pointer-events:none;
+  background:var(--inv-nube-img) center/contain no-repeat;
+  transition:transform 1.5s cubic-bezier(.5,0,.2,1),opacity 1.4s ease}
+.inv-nube-izq{left:-42%;top:4%}
+.inv-nube-der{right:-42%;bottom:2%;transform:scaleX(-1)}
+#splash.abriendo .inv-nube-izq{transform:translate(-70%,-18%)}
+#splash.abriendo .inv-nube-der{transform:scaleX(-1) translate(-70%,18%)}
+#splash.abriendo .splash-modal{opacity:0;transform:scale(1.06);
+  transition:opacity .8s ease,transform 1s ease}
+
 @media (prefers-reduced-motion:reduce){
   .inv-sobre,.inv-sobre-sello,.inv-sobre-pista,.inv-deseo-pista,
   .inv-cd-orbitas .countdown-ring::after{animation:none}
   .inv-cielo{display:none}
   .inv-libro-tapa{transition:none}
   .inv-abanico-hoja{transform:none;-webkit-mask-image:none;mask-image:none}
+  .inv-nube{transition:none}
   .inv-abanico-texto{opacity:1}
   .js .inv-ev-capitulos .event-card{transform:none;opacity:1;transition:none}
   .inv-ev-constelacion .inv-dato,.inv-luz{opacity:1;transform:none;transition:none}
@@ -747,5 +768,24 @@ export const ABANICO_JS = `
   });
   ab.addEventListener('keydown', function(e){
     if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); ab.click(); }
+  });
+})();`;
+
+/** El cielo que se abre: se toca el velo, las nubes se van y entra. */
+export const NUBES_JS = `
+(function(){
+  var velo = document.querySelector('#splash.inv-velo-nubes');
+  if (!velo) return;
+  var quieto = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var hecho = false;
+  velo.addEventListener('click', function(e){
+    if (hecho || e.target.closest('a')) return;
+    hecho = true;
+    velo.classList.add('abriendo');
+    if (window.invEstallar) window.invEstallar(innerWidth / 2, innerHeight * .42, 60);
+    setTimeout(function(){
+      var b = velo.querySelector('.splash-btn-primary');
+      if (b) b.click(); else if (window.enterSite) window.enterSite();
+    }, quieto ? 0 : 1100);
   });
 })();`;
