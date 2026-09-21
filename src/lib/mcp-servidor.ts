@@ -1,5 +1,5 @@
 /**
- * El servidor MCP: las seis herramientas y nada más.
+ * El servidor MCP.
  *
  * Es una **fábrica** y no un servidor ya montado porque se sirve de dos
  * maneras que no se parecen: por la entrada estándar desde el proyecto
@@ -44,6 +44,7 @@ import { normalizeSlug } from "./slug";
 import { catalogo, esquemaDe, fusionar } from "./mcp";
 import { ESTADO_POR_ID, estadoDe } from "./tablero";
 import { actualizarConParche, deshacer } from "./plantillas";
+import { descargar, guardarEnBiblioteca, TIPOS_BIBLIOTECA, urlsUsables } from "./subir";
 
 export interface OpcionesMcp {
   /** Con qué dirección se arman los enlaces que se devuelven. */
@@ -89,6 +90,8 @@ export function construirServidor({ base, capturar }: OpcionesMcp): McpServer {
         "que no está en `disenos`, míralo en `plantillas` antes de decirle que " +
         "no existe. Luego 3) `crear`, 4) `esquema` para saber qué campos admite, " +
         "5) `escribir` los datos, 6) `ver` para mirar el resultado y corregir. " +
+        "Las imágenes (fondos, adornos, partículas con imagen) sólo pueden ser " +
+        "URLs de `biblioteca`; si la persona da un enlace nuevo, primero `subir`. " +
         "Se puede editar mientras no esté marcada como «entregada» en el " +
         "tablero; publicarla o no no cambia eso, porque aquí publicar es cómo " +
         "se previsualiza y cómo se le enseña al cliente.",
@@ -491,7 +494,9 @@ export function construirServidor({ base, capturar }: OpcionesMcp): McpServer {
         );
       }
 
-      const r = fusionar(inv.templateId, JSON.parse(inv.data), datos as any);
+      const r = fusionar(
+        inv.templateId, JSON.parse(inv.data), datos as any, await urlsUsables(inv.data)
+      );
       if (r.errores.length) {
         return error(
           `No se escribió nada. ${r.errores.length} problema(s):\n· ` + r.errores.join("\n· ")
@@ -608,6 +613,74 @@ export function construirServidor({ base, capturar }: OpcionesMcp): McpServer {
     }
   );
 
-  
+
+  /* ── Las imágenes ────────────────────────────────────────────── */
+
+  server.registerTool(
+    "subir",
+    {
+      title: "Subir una imagen a la biblioteca",
+      description:
+        "Descarga una imagen de un enlace público (https) y la guarda en la " +
+        "biblioteca. Devuelve la `url` que luego se escribe en un campo de " +
+        "imagen, en un adorno (`seccion.adornos`) o en `particulas.pieza`. " +
+        "PNG, JPG, WebP, GIF o AVIF, hasta 8 MB. Tiene que ser el enlace a la " +
+        "imagen misma, no a la página que la muestra: uno de Google Drive o " +
+        "de Instagram devuelve una página y se rechaza.",
+      inputSchema: {
+        enlace: z.string().describe("https://… directo a la imagen."),
+        tipo: z.enum(TIPOS_BIBLIOTECA).describe(
+          "«adorno» para decoración (PNG con transparencia), «foto» para las del evento."
+        ),
+        nombre: z.string().optional().describe("Para encontrarla después, p. ej. «farolillo rapunzel»."),
+      },
+    },
+    async ({ enlace, tipo, nombre }) => {
+      try {
+        const { bytes, nombre: delEnlace } = await descargar(enlace);
+        const s = await guardarEnBiblioteca(bytes, nombre || delEnlace, tipo);
+        return json({ ...s, siguiente: "Escribe esta `url` donde vaya, con `escribir`." });
+      } catch (e) {
+        return error(`No se subió: ${(e as Error).message}`);
+      }
+    }
+  );
+
+  server.registerTool(
+    "biblioteca",
+    {
+      title: "Ver las imágenes subidas",
+      description:
+        "Lo que hay en la biblioteca, lo más nuevo primero: adornos y fotos " +
+        "con su `url`, su nombre y sus medidas. Son las únicas URLs que " +
+        "aceptan los campos de imagen y los adornos.",
+      inputSchema: {
+        tipo: z.enum(["adorno", "foto", "video", "audio"]).optional(),
+        buscar: z.string().optional().describe("Parte del nombre."),
+      },
+      annotations: { readOnlyHint: true },
+    },
+    async ({ tipo, buscar }) => {
+      const filas = await prisma.media.findMany({
+        where: {
+          ...(tipo ? { kind: tipo } : {}),
+          ...(buscar?.trim() ? { name: { contains: buscar.trim(), mode: "insensitive" as const } } : {}),
+        },
+        orderBy: { createdAt: "desc" },
+        take: 60,
+        select: { url: true, name: true, kind: true, width: true, height: true, createdAt: true },
+      });
+      if (!filas.length) return json({ imagenes: [], nota: "No hay nada con ese filtro." });
+      return json(
+        filas.map((f) => ({
+          url: f.url, nombre: f.name, tipo: f.kind,
+          ...(f.width && f.height ? { medidas: `${f.width}×${f.height}` } : {}),
+          subida: f.createdAt.toISOString().slice(0, 10),
+          ver: `${base}${f.url}`,
+        }))
+      );
+    }
+  );
+
   return server;
 }

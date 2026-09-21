@@ -20,11 +20,14 @@
  *   con la animación que no se pidió y nadie se entera.
  */
 
+import { descargar, esPrivada } from "../src/lib/subir";
 import { catalogo, esquemaDe, fusionar } from "../src/lib/mcp";
 import { defaultData, SECTIONS } from "../src/lib/schema";
 import { TEMPLATES, TEMPLATE_BY_ID } from "../src/lib/templates";
 
 let malos = 0;
+/* Una biblioteca de mentira: lo que `urlsUsables` devolvería de la base. */
+const BIB = new Set(["/api/media/2026/09/a.jpg", "/api/media/2026/09/sol.png"]);
 const decir = (ok: boolean, nombre: string, detalle = "") => {
   if (!ok) malos++;
   console.log(`${ok ? "✓" : "✗"} ${nombre}${!ok && detalle ? `  ${detalle}` : ""}`);
@@ -58,14 +61,21 @@ const base = () => JSON.parse(JSON.stringify(defaultData()));
   decir(!!hero, "y la portada entre ellas");
   decir(!!hero?.campos.find((c) => c.campo === "label"), "con sus campos de texto");
 
-  /* Ni un campo de archivo, en ninguna sección ni en ninguna lista. */
-  const ARCHIVO = new Set(["image", "video", "audio", "medio", "gallery"]);
-  const colados = e.flatMap((s) =>
+  /* Los de archivo salen, pero avisando de dónde sale la URL: sin el aviso
+     el modelo se inventa una ruta y la invitación queda rota con aspecto de
+     terminada. La galería sigue fuera: tiene su propio editor. */
+  const ARCHIVO = new Set(["image", "video", "audio", "medio"]);
+  const mudosArchivo = e.flatMap((s) =>
     [...s.campos, ...(s.lista?.campos || [])]
-      .filter((c) => ARCHIVO.has(c.tipo))
+      .filter((c) => ARCHIVO.has(c.tipo) && !c.ayuda?.includes("biblioteca"))
       .map((c) => `${s.seccion}.${c.campo}`)
   );
-  decir(!colados.length, "sin un solo campo de archivo", colados.slice(0, 3).join(", "));
+  decir(!mudosArchivo.length, "cada campo de archivo dice que la URL sale de la biblioteca",
+    mudosArchivo.slice(0, 3).join(", "));
+  decir(!e.some((s) => [...s.campos, ...(s.lista?.campos || [])].some((c) => c.tipo === "gallery")),
+    "y la galería no sale");
+  decir(!!hero?.adornos && hero.adornos.campos.some((c) => c.campo === "url"),
+    "la portada ofrece sus adornos");
 
   /* Los desplegables traen sus opciones, o el modelo tiene que adivinarlas. */
   const mudos = e.flatMap((s) =>
@@ -184,10 +194,53 @@ const base = () => JSON.parse(JSON.stringify(defaultData()));
       () => !fusionar(TPL, base(), { hero: { textColor: "#8a7248" } }).errores.length,
     ],
     [
-      "un campo de archivo se rechaza, y dice por qué",
+      "sin la biblioteca a mano, un archivo se rechaza",
+      () => fusionar(TPL, base(), { hero: { backgroundUrl: "/api/media/2026/09/a.jpg" } }).errores.length === 1,
+    ],
+    [
+      "una URL que no está en la biblioteca se rechaza, y dice qué hacer",
       () => {
-        const r = fusionar(TPL, base(), { hero: { backgroundUrl: "/inventada.jpg" } });
-        return r.errores.length === 1 && r.errores[0].includes("persona");
+        const r = fusionar(TPL, base(), { hero: { backgroundUrl: "/inventada.jpg" } }, BIB);
+        return r.errores.length === 1 && r.errores[0].includes("subir");
+      },
+    ],
+    [
+      "una de la biblioteca pasa, y entera se guarda como ruta",
+      () => {
+        const r = fusionar(TPL, base(), {
+          hero: { backgroundUrl: "https://tuinvitacion.simpplee.com/api/media/2026/09/a.jpg" },
+        }, BIB);
+        return !r.errores.length && (r.datos as any).hero.backgroundUrl === "/api/media/2026/09/a.jpg";
+      },
+    ],
+    [
+      "vaciar un archivo siempre se puede",
+      () => !fusionar(TPL, base(), { hero: { backgroundUrl: "" } }).errores.length,
+    ],
+    [
+      "los adornos se escriben completos, con los valores del editor",
+      () => {
+        const r = fusionar(TPL, base(), {
+          hero: { adornos: [{ url: "/api/media/2026/09/sol.png", movimiento: "gira", tamano: "30" }] },
+        }, BIB);
+        const a = (r.datos as any).hero?.adornos?.[0];
+        return !r.errores.length && a.movimiento === "gira" && a.tamano === "30" && a.sitio === "arriba-izq";
+      },
+    ],
+    [
+      "un adorno sin imagen, con un movimiento inventado o de más se rechaza",
+      () =>
+        fusionar(TPL, base(), { hero: { adornos: [{ sitio: "arriba" }] } }, BIB).errores.length === 1 &&
+        fusionar(TPL, base(), { hero: { adornos: [{ url: "/api/media/2026/09/sol.png", movimiento: "baila" }] } }, BIB).errores.length === 1 &&
+        fusionar(TPL, base(), { hero: { adornos: Array(40).fill({ url: "/api/media/2026/09/sol.png" }) } }, BIB).errores.length === 1,
+    ],
+    [
+      "los farolillos: partículas con una imagen de la biblioteca",
+      () => {
+        const r = fusionar(TPL, base(), {
+          particulas: { enabled: true, tipo: "imagen", pieza: "/api/media/2026/09/sol.png", rumbo: "sube" },
+        }, BIB);
+        return !r.errores.length && (r.datos as any).particulas.pieza === "/api/media/2026/09/sol.png";
       },
     ],
     [
@@ -326,9 +379,34 @@ const base = () => JSON.parse(JSON.stringify(defaultData()));
   }
 }
 
-console.log(
-  malos
-    ? `\n${malos} comprobación(es) con problemas`
-    : "\nEl servidor MCP responde lo que debe y rechaza lo que debe"
-);
-process.exit(malos ? 1 : 0);
+/* ── Descargar sin abrir la red de dentro ─────────────────────── */
+
+{
+  const internas = ["127.0.0.1", "10.0.0.5", "172.20.1.1", "192.168.1.1", "169.254.169.254",
+    "100.64.0.1", "0.0.0.0", "::1", "fd00::1", "fe80::1", "::ffff:10.0.0.1", "no-es-ip"];
+  const fuera = internas.filter((ip) => !esPrivada(ip));
+  decir(!fuera.length, "las direcciones internas se reconocen", fuera.join(", "));
+  const publicas = ["8.8.8.8", "104.18.2.3", "172.32.0.1", "2606:4700::1111"];
+  const dentro = publicas.filter(esPrivada);
+  decir(!dentro.length, "y las públicas no", dentro.join(", "));
+}
+
+void (async () => {
+  const casos: [string, string][] = [
+    ["un enlace http se rechaza", "http://example.com/a.png"],
+    ["uno a localhost también", "https://localhost/a.png"],
+    ["uno a los metadatos de la nube también", "https://169.254.169.254/latest/meta-data"],
+    ["uno con usuario y contraseña también", "https://a:b@example.com/a.png"],
+    ["y lo que no es un enlace", "farolillo.png"],
+  ];
+  for (const [nombre, enlace] of casos) {
+    const r = await descargar(enlace).then(() => "", (e) => (e as Error).message);
+    decir(!!r, `subir · ${nombre}`, "se descargó");
+  }
+  console.log(
+    malos
+      ? `\n${malos} comprobación(es) con problemas`
+      : "\nEl servidor MCP responde lo que debe y rechaza lo que debe"
+  );
+  process.exit(malos ? 1 : 0);
+})();

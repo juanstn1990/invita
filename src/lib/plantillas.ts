@@ -18,6 +18,7 @@
  * puede cambiarle la invitación a una pareja que ya la repartió.
  */
 
+import { urlsUsables } from "./subir";
 import { prisma } from "./prisma";
 import { TEMPLATE_BY_ID } from "./templates";
 import { fusionar } from "./mcp";
@@ -107,7 +108,7 @@ export async function actualizarConParche(
   const p = await prisma.plantilla.findUnique({ where: { id: plantillaId } });
   if (!p) return { ok: false, error: "No existe esa plantilla." };
 
-  const r = fusionar(p.templateId, JSON.parse(p.data), parche);
+  const r = fusionar(p.templateId, JSON.parse(p.data), parche, await urlsUsables(p.data));
   if (r.errores.length) {
     return { ok: false, error: "No se cambió nada.\n· " + r.errores.join("\n· ") };
   }

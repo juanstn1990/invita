@@ -26,7 +26,7 @@
  */
 
 import {
-  ALINEACIONES, ANIMACIONES, SECTIONS, SECTION_BY_KEY,
+  ADORNOS, ALINEACIONES, ANIMACIONES, SECTIONS, SECTION_BY_KEY,
   type FieldSpec, type SectionSpec,
 } from "./schema";
 import { FONTS } from "./fonts";
@@ -97,18 +97,47 @@ export interface SeccionResumen {
     maximo: number;
     campos: CampoResumen[];
   };
+  adornos?: {
+    clave: string;
+    maximo: number;
+    nota: string;
+    campos: CampoResumen[];
+  };
 }
 
 /**
- * Los campos de texto y de elección, que son los que un asistente puede
- * rellenar de verdad.
+ * Los campos de archivo: foto, vídeo, música, adorno.
  *
- * Fuera quedan los de archivo —foto, vídeo, música— y no por pereza: **no
- * los puede aportar**. Ofrecerlos sería invitarle a inventarse una ruta que
- * no existe, y una invitación con una foto rota es peor que una sin foto,
- * porque parece terminada. Las fotos las sube una persona desde el editor.
+ * Un asistente no puede **inventar** uno: una ruta que no existe deja una
+ * invitación con una foto rota, que es peor que una sin foto porque parece
+ * terminada. Pero sí puede usar lo que ya está en la biblioteca —lo que subió
+ * una persona en el editor, o lo que subió él con `subir`—. Así que se
+ * aceptan con una condición que se comprueba contra la base: que la URL sea
+ * de la biblioteca. Sin la biblioteca a mano (`fusionar` llamado sin ella),
+ * se rechazan como antes.
  */
-const NO_RELLENABLES = new Set(["image", "video", "audio", "medio", "gallery"]);
+const DE_ARCHIVO = new Set(["image", "video", "audio", "medio"]);
+/** La galería es una lista de fotos con su propio editor: sigue fuera. */
+const NO_RELLENABLES = new Set(["gallery"]);
+
+/** Una URL entera de nuestra biblioteca se queda en su ruta, que es lo que se guarda. */
+export const rutaDeBiblioteca = (v: string) =>
+  v.trim().replace(/^https?:\/\/[^/]+(\/api\/media\/)/i, "$1");
+
+function revisarArchivo(f: FieldSpec, valor: unknown, biblioteca?: Set<string>): string {
+  const v = rutaDeBiblioteca(String(valor ?? ""));
+  if (!v) return "";
+  if (!biblioteca) {
+    return `"${f.label}" es un archivo (${f.type}) y aquí no se puede comprobar que exista.`;
+  }
+  if (!biblioteca.has(v)) {
+    return (
+      `"${v}" no está en la biblioteca, así que "${f.label}" saldría roto. ` +
+      `Súbela antes con \`subir\`, o elige una de las que da \`biblioteca\`.`
+    );
+  }
+  return "";
+}
 
 /**
  * Las paletas de un diseño, que el esquema no puede saber.
@@ -141,6 +170,9 @@ function resumirCampo(f: FieldSpec, templateId: string): CampoResumen {
     c.opciones = campo.options.map((o) => ({ valor: o.value, etiqueta: o.label }));
   }
   if (campo.help) c.ayuda = campo.help;
+  if (DE_ARCHIVO.has(campo.type)) {
+    c.ayuda = `${c.ayuda ? c.ayuda + " " : ""}Tiene que ser una URL de \`biblioteca\` o de \`subir\`.`;
+  }
   if (campo.placeholder) c.ejemplo = campo.placeholder;
   return c;
 }
@@ -169,7 +201,7 @@ export function esquemaDe(templateId: string): SeccionResumen[] {
           .map((f) => resumirCampo(f, templateId))
       : [];
 
-    if (!campos.length && !listaCampos.length) continue;
+    if (!campos.length && !listaCampos.length && !spec.adornos) continue;
 
     const s: SeccionResumen = {
       seccion: spec.key,
@@ -185,6 +217,17 @@ export function esquemaDe(templateId: string): SeccionResumen[] {
         minimo: spec.list.min,
         maximo: spec.list.max,
         campos: listaCampos,
+      };
+    }
+    if (spec.adornos) {
+      s.adornos = {
+        clave: "adornos",
+        maximo: ADORNOS.max,
+        nota:
+          "Imágenes de la biblioteca colocadas sobre la sección. Se escribe la " +
+          "lista entera y reemplaza la que hubiera. `url` tiene que ser de " +
+          "`biblioteca` o de `subir`.",
+        campos: ADORNOS.fields.map((f) => resumirCampo(f, templateId)),
       };
     }
     out.push(s);
@@ -294,7 +337,9 @@ function revisarValor(f0: FieldSpec, valor: unknown, templateId: string): string
 export function fusionar(
   templateId: string,
   datos: Record<string, unknown>,
-  parche: Record<string, Record<string, unknown>>
+  parche: Record<string, Record<string, unknown>>,
+  /** Las URLs que hay en la biblioteca. Sin ella, ningún archivo se acepta. */
+  biblioteca?: Set<string>
 ): Resultado {
   const errores: string[] = [];
   const escritos: string[] = [];
@@ -343,9 +388,23 @@ export function fusionar(
 
       /* La lista de una sección: el programa, las tarjetas de información. */
       if (campo === "items") {
-        const malo = revisarLista(spec, clave, admite, valor, escritos, templateId);
+        const malo = revisarLista(spec, clave, admite, valor, escritos, templateId, biblioteca);
         if (malo) errores.push(malo);
         else destino.items = valor;
+        continue;
+      }
+      /* Los adornos: su propia lista, aparte de la del esquema. */
+      if (campo === "adornos") {
+        if (!spec.adornos) {
+          errores.push(`"${spec.label}" no lleva adornos.`);
+          continue;
+        }
+        const r = revisarAdornos(valor, templateId, biblioteca);
+        if (typeof r === "string") errores.push(r);
+        else {
+          destino.adornos = r;
+          escritos.push(`${clave}.adornos (${r.length})`);
+        }
         continue;
       }
       /* `enabled` no está en los campos del esquema —es del editor— pero es
@@ -377,10 +436,14 @@ export function fusionar(
         continue;
       }
       if (NO_RELLENABLES.has(f.type)) {
-        errores.push(
-          `"${f.label}" es un archivo (${f.type}) y lo sube una persona desde el editor. ` +
-            `Una ruta inventada deja la invitación rota y con aspecto de terminada.`
-        );
+        errores.push(`"${f.label}" se arma desde el editor.`);
+        continue;
+      }
+      if (DE_ARCHIVO.has(f.type)) {
+        const malo = revisarArchivo(f, valor, biblioteca);
+        if (malo) { errores.push(malo); continue; }
+        destino[campo] = rutaDeBiblioteca(String(valor ?? ""));
+        escritos.push(`${clave}.${campo}`);
         continue;
       }
       const mal = revisarValor(f, valor, templateId);
@@ -466,7 +529,8 @@ function revisarLista(
   admite: Set<string>,
   valor: unknown,
   escritos: string[],
-  templateId: string
+  templateId: string,
+  biblioteca?: Set<string>
 ): string {
   if (!spec.list) return `"${spec.label}" no tiene lista.`;
   if (!admite.has(`${clave}.items`)) return `Este diseño no dibuja la lista de "${spec.label}".`;
@@ -485,8 +549,12 @@ function revisarLista(
       if (!f) {
         return `El elemento ${i + 1} de "${spec.list.label}" no tiene campo "${campo}".${conSugerencia(campo, nombres)}`;
       }
-      if (NO_RELLENABLES.has(f.type)) {
-        return `"${f.label}" es un archivo y lo sube una persona desde el editor.`;
+      if (NO_RELLENABLES.has(f.type)) return `"${f.label}" se arma desde el editor.`;
+      if (DE_ARCHIVO.has(f.type)) {
+        const malo = revisarArchivo(f, v, biblioteca);
+        if (malo) return `Elemento ${i + 1}: ${malo}`;
+        (item as Record<string, unknown>)[campo] = rutaDeBiblioteca(String(v ?? ""));
+        continue;
       }
       const mal = revisarValor(f, v, templateId);
       if (mal) return `Elemento ${i + 1}: ${mal}`;
@@ -494,4 +562,43 @@ function revisarLista(
   }
   escritos.push(`${clave}.items (${valor.length})`);
   return "";
+}
+
+/**
+ * Una lista de adornos entera, o el motivo por el que no vale.
+ *
+ * Se completa con el `defaultItem` de cada adorno: el editor siempre guarda
+ * todos los campos, y un adorno a medias (sin `sitio`, sin `tamano`) se
+ * dibuja con los valores de reserva del renderer, que no son los del editor.
+ * Así lo que escribe el asistente se abre en el editor igual que se ve.
+ */
+function revisarAdornos(
+  valor: unknown,
+  templateId: string,
+  biblioteca?: Set<string>
+): Record<string, string>[] | string {
+  if (!Array.isArray(valor)) return `"adornos" tiene que ser una lista.`;
+  if (valor.length > ADORNOS.max) {
+    return `Caben ${ADORNOS.max} adornos por sección, y llegaron ${valor.length}.`;
+  }
+  const nombres = ADORNOS.fields.map((f) => f.key);
+  const out: Record<string, string>[] = [];
+  for (const [i, item] of valor.entries()) {
+    if (!item || typeof item !== "object" || Array.isArray(item)) {
+      return `El adorno ${i + 1} tiene que ser un objeto.`;
+    }
+    const a: Record<string, string> = { ...ADORNOS.defaultItem };
+    for (const [campo, v] of Object.entries(item as Record<string, unknown>)) {
+      const f = ADORNOS.fields.find((x) => x.key === campo);
+      if (!f) return `El adorno ${i + 1} no tiene campo "${campo}".${conSugerencia(campo, nombres)}`;
+      const malo = DE_ARCHIVO.has(f.type)
+        ? revisarArchivo(f, v, biblioteca)
+        : revisarValor(f, v, templateId);
+      if (malo) return `Adorno ${i + 1}: ${malo}`;
+      a[campo] = DE_ARCHIVO.has(f.type) ? rutaDeBiblioteca(String(v ?? "")) : String(v ?? "");
+    }
+    if (!a.url) return `El adorno ${i + 1} no tiene \`url\`: sin imagen no hay adorno.`;
+    out.push(a);
+  }
+  return out;
 }

@@ -28,8 +28,8 @@
  * respuesta en vez de disimularse.
  */
 
-import crypto from "crypto";
 import { construirServidor } from "@/lib/mcp-servidor";
+import { sinLlave } from "@/lib/mcp-llave";
 import { WebStandardStreamableHTTPServerTransport } from
   "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
 
@@ -38,47 +38,11 @@ import { WebStandardStreamableHTTPServerTransport } from
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-/** Iguales, sin que el tiempo de la comparación diga cuánto coincidían. */
-function iguales(a: string, b: string): boolean {
-  const ha = crypto.createHash("sha256").update(a).digest();
-  const hb = crypto.createHash("sha256").update(b).digest();
-  return crypto.timingSafeEqual(ha, hb);
-}
-
-function autorizado(req: Request): boolean {
-  const esperado = process.env.MCP_TOKEN || "";
-  if (!esperado) return false;
-  const cabecera = req.headers.get("authorization") || "";
-  /* La llave también puede venir en la dirección (?clave=…).
-     Los conectores de claude.ai no dejan añadir cabeceras: sólo piden un
-     nombre y una URL, y la única autenticación que ofrecen es OAuth. Sin
-     esto el servidor sólo servía a Claude Code. Es menos discreta que la
-     cabecera —una URL puede acabar en un registro—, así que la llave tiene
-     que ser larga y aleatoria, y se cambia si la dirección circula. */
-  const enUrl = new URL(req.url).searchParams.get("clave") || "";
-  const dado = (cabecera.replace(/^Bearer\s+/i, "").trim() || enUrl).trim();
-  return !!dado && iguales(dado, esperado);
-}
-
 const BASE = process.env.INVITA_URL || "https://tuinvitacion.simpplee.com";
 
 async function atender(req: Request): Promise<Response> {
-  if (!process.env.MCP_TOKEN) {
-    return Response.json(
-      {
-        error:
-          "El servidor MCP está apagado. Define MCP_TOKEN en el entorno de la " +
-          "aplicación para encenderlo.",
-      },
-      { status: 503 }
-    );
-  }
-  if (!autorizado(req)) {
-    return Response.json(
-      { error: "Hace falta una credencial: Authorization: Bearer <token>." },
-      { status: 401, headers: { "WWW-Authenticate": 'Bearer realm="mcp"' } }
-    );
-  }
+  const no = sinLlave(req);
+  if (no) return no;
 
   /*
    * Un transporte por petición, sin sesión.
