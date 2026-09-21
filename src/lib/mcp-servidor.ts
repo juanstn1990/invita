@@ -45,6 +45,7 @@ import { catalogo, esquemaDe, fusionar } from "./mcp";
 import { ESTADO_POR_ID, estadoDe } from "./tablero";
 import { actualizarConParche, deshacer } from "./plantillas";
 import { descargar, guardarEnBiblioteca, TIPOS_BIBLIOTECA, urlsUsables } from "./subir";
+import { limpiarNombres, limpiarPases, nuevoCodigo, resumirLink, urlDeLink } from "./invitados";
 
 export interface OpcionesMcp {
   /** Con qué dirección se arman los enlaces que se devuelven. */
@@ -94,7 +95,10 @@ export function construirServidor({ base, capturar }: OpcionesMcp): McpServer {
         "URLs de `biblioteca`; si la persona da un enlace nuevo, primero `subir`. " +
         "Se puede editar mientras no esté marcada como «entregada» en el " +
         "tablero; publicarla o no no cambia eso, porque aquí publicar es cómo " +
-        "se previsualiza y cómo se le enseña al cliente.",
+        "se previsualiza y cómo se le enseña al cliente. " +
+        "Cuando ya esté lista, `crear_invitados` arma un enlace por familia con " +
+        "sus pases —cuántas personas caben— y `invitados` dice quién abrió y " +
+        "quién confirmó.",
     }
   );
 
@@ -610,6 +614,150 @@ export function construirServidor({ base, capturar }: OpcionesMcp): McpServer {
           editor: `${base}/editor/${i.id}`,
         }))
       );
+    }
+  );
+
+
+  /* ── Los invitados ───────────────────────────────────────────── */
+
+  server.registerTool(
+    "crear_invitados",
+    {
+      title: "Crear los enlaces de los invitados",
+      description:
+        "Un enlace por familia o por pareja, con sus nombres y sus **pases** " +
+        "—cuántas personas caben en ese enlace—. Quien lo abre se ve nombrado, " +
+        "la invitación le dice cuántos pases tiene y la confirmación no le deja " +
+        "pasar de ahí. Devuelve la dirección de cada uno, lista para mandar por " +
+        "WhatsApp. Los pases son opcionales: sin ellos el enlace no tiene tope. " +
+        "La invitación tiene que estar publicada para que los enlaces abran.",
+      inputSchema: {
+        id: z.string().describe("El id de la invitación, de `listar`."),
+        invitados: z
+          .array(
+            z.object({
+              nombres: z
+                .string()
+                .describe("Los nombres que van juntos, separados por coma: «Ana Gómez, Carlos Gómez»."),
+              pases: z
+                .number()
+                .int()
+                .min(1)
+                .max(50)
+                .optional()
+                .describe("Cuántas personas caben. Sin esto, no hay tope."),
+              nota: z.string().optional().describe("Para acordarse: «familia de la novia»."),
+            })
+          )
+          .min(1)
+          .max(200)
+          .describe("La lista de enlaces a crear."),
+      },
+    },
+    async ({ id, invitados }) => {
+      const inv = await prisma.invitation.findUnique({
+        where: { id },
+        select: { id: true, slug: true, published: true, title: true },
+      });
+      if (!inv) return error("No existe una invitación con ese id. Mírala en `listar`.");
+
+      const hechos: { nombres: string; pases: number | null; enlace: string }[] = [];
+      const fallos: string[] = [];
+      for (const fila of invitados) {
+        const nombres = limpiarNombres(fila.nombres);
+        if (!nombres.length) {
+          fallos.push(`sin nombres: ${JSON.stringify(fila.nombres)}`);
+          continue;
+        }
+        const link = await prisma.guestLink.create({
+          data: {
+            invitationId: inv.id,
+            names: nombres.join(", "),
+            code: await nuevoCodigo(),
+            note: String(fila.nota || "").trim().slice(0, 120) || null,
+            pases: limpiarPases(fila.pases),
+          },
+        });
+        hechos.push({
+          nombres: link.names,
+          pases: link.pases,
+          enlace: urlDeLink(base, inv.slug, link.names, link.code),
+        });
+      }
+
+      return json({
+        creados: hechos.length,
+        invitados: hechos,
+        ...(fallos.length ? { sinCrear: fallos } : {}),
+        ...(inv.published
+          ? {}
+          : { aviso: "La invitación no está publicada: los enlaces existen pero todavía no abren." }),
+        siguiente: "Manda cada `enlace` a su invitado. Con `invitados` ves quién abrió y quién confirmó.",
+      });
+    }
+  );
+
+  server.registerTool(
+    "invitados",
+    {
+      title: "Ver los invitados y sus respuestas",
+      description:
+        "Los enlaces de una invitación: nombres, pases, si la abrieron, si " +
+        "contestaron y cuántas personas confirmaron. Al final, las cuentas que " +
+        "se le pasan al salón: pases reservados y personas confirmadas.",
+      inputSchema: {
+        id: z.string().describe("El id de la invitación, de `listar`."),
+      },
+      annotations: { readOnlyHint: true },
+    },
+    async ({ id }) => {
+      const inv = await prisma.invitation.findUnique({
+        where: { id },
+        select: {
+          id: true,
+          slug: true,
+          published: true,
+          links: {
+            orderBy: { createdAt: "desc" },
+            include: {
+              rsvps: { select: { status: true, partySize: true, createdAt: true } },
+              aperturas: { select: { veces: true, updatedAt: true } },
+            },
+          },
+        },
+      });
+      if (!inv) return error("No existe una invitación con ese id. Mírala en `listar`.");
+      if (!inv.links.length) {
+        return json({
+          invitados: [],
+          nota: "Esta invitación todavía no tiene enlaces. Créalos con `crear_invitados`.",
+        });
+      }
+
+      const filas = inv.links.map(resumirLink);
+      return json({
+        invitados: filas.map((f, i) => ({
+          nombres: f.nombres.join(", "),
+          pases: f.pases,
+          nota: f.note,
+          estado: f.estado,
+          confirmadas: f.total,
+          abierta: f.abrieron > 0,
+          abiertaEl: f.abiertoEl?.toISOString() ?? null,
+          respondidoEl: f.respondidoEl?.toISOString() ?? null,
+          enlace: urlDeLink(base, inv.slug, inv.links[i].names, f.code),
+        })),
+        cuentas: {
+          enlaces: filas.length,
+          /* Con pases cuenta el tope; sin pases, las personas nombradas. Es
+             el número que se reserva, no el que confirmó. */
+          pasesReservados: filas.reduce((n, f) => n + (f.pases ?? f.nombres.length), 0),
+          personasConfirmadas: filas.reduce((n, f) => n + f.total, 0),
+          sinResponder: filas.filter((f) => f.estado === "sin respuesta").length,
+          vieronYNoContestaron: filas.filter((f) => f.estado === "sin respuesta" && f.abrieron > 0).length,
+        },
+        ...(inv.published ? {} : { aviso: "La invitación no está publicada: los enlaces no abren todavía." }),
+      });
     }
   );
 

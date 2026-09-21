@@ -10,6 +10,7 @@ interface Fila {
   code: string;
   nombres: string[];
   note: string | null;
+  pases: number | null;
   estado: EstadoLink;
   asisten: number;
   total: number;
@@ -69,6 +70,7 @@ export function PanelInvitados({
   const [filas, setFilas] = useState<Fila[]>(inicial);
   const [nombres, setNombres] = useState("");
   const [nota, setNota] = useState("");
+  const [pases, setPases] = useState("");
   const [error, setError] = useState("");
   const [guardando, setGuardando] = useState(false);
   const [copiado, setCopiado] = useState<string | null>(null);
@@ -86,7 +88,10 @@ export function PanelInvitados({
       (f) => f.estado === "sin respuesta" && f.abrieron > 0
     ).length;
     const sinAbrir = filas.filter((f) => f.abrieron === 0).length;
-    return { personas, confirmados, conAcompanantes, sinResponder, vieronYCallan, sinAbrir };
+    /* Los pases reservados: con límite cuenta el límite; sin él, las
+       personas nombradas en el enlace. Es el número que se le pasa al salón. */
+    const reservados = filas.reduce((n, f) => n + (f.pases ?? f.nombres.length), 0);
+    return { personas, confirmados, conAcompanantes, sinResponder, vieronYCallan, sinAbrir, reservados };
   }, [filas]);
 
   async function crear() {
@@ -99,7 +104,7 @@ export function PanelInvitados({
     const r = await fetch(`/api/g/${token}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ names: nombres, note: nota }),
+      body: JSON.stringify({ names: nombres, note: nota, pases }),
     });
     const j = await r.json().catch(() => ({}));
     setGuardando(false);
@@ -109,12 +114,13 @@ export function PanelInvitados({
     }
     setFilas([
       { id: j.id, code: j.code, nombres: previsualizacion, note: nota.trim() || null,
-        estado: "sin respuesta", asisten: 0, total: 0, respondidoEl: null,
+        pases: j.pases ?? null, estado: "sin respuesta", asisten: 0, total: 0, respondidoEl: null,
         abrieron: 0, veces: 0, abiertoEl: null },
       ...filas,
     ]);
     setNombres("");
     setNota("");
+    setPases("");
   }
 
   async function borrar(id: string) {
@@ -171,6 +177,25 @@ export function PanelInvitados({
           <p className={styles.ayuda}>Se verá como “{unir(previsualizacion)}”.</p>
         )}
 
+        <label className="field-label" htmlFor="pases">Pases</label>
+        <input
+          id="pases"
+          className="input"
+          type="number"
+          min={1}
+          max={50}
+          inputMode="numeric"
+          value={pases}
+          placeholder={previsualizacion.length > 1 ? String(previsualizacion.length) : "Ej. 4"}
+          onChange={(e) => setPases(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter") crear(); }}
+        />
+        <p className={styles.ayuda}>
+          Cuántas personas pueden ir con este enlace. La invitación lo dice —«Hemos
+          reservado 4 pases para ti»— y no deja confirmar más. Déjalo vacío para no
+          poner límite.
+        </p>
+
         <label className="field-label" htmlFor="nota">Para acordarte (opcional)</label>
         <input
           id="nota"
@@ -191,7 +216,7 @@ export function PanelInvitados({
       {filas.length > 0 && (
         <div className={styles.cuentas}>
           <span><b>{filas.length}</b> enlaces</span>
-          <span><b>{cuentas.personas}</b> personas invitadas</span>
+          <span><b>{cuentas.reservados}</b> pases reservados</span>
           <span><b>{cuentas.conAcompanantes}</b> confirmadas</span>
           <span><b>{cuentas.sinResponder}</b> sin responder</span>
           {/* La cuenta que decide a quién escribirle: la vieron y callan.
@@ -218,7 +243,14 @@ export function PanelInvitados({
           {filas.map((f) => (
             <li key={f.id} className={styles.fila}>
               <div className={styles.filaCuerpo}>
-                <p className={styles.nombres}>{unir(f.nombres)}</p>
+                <p className={styles.nombres}>
+                  {unir(f.nombres)}
+                  {f.pases && (
+                    <span className={styles.pases}>
+                      {f.pases} {f.pases === 1 ? "pase" : "pases"}
+                    </span>
+                  )}
+                </p>
                 {f.note && <p className={styles.nota}>{f.note}</p>}
                 <p className={`${styles.enlace} mono`}>
                   /{slug}?invitado=…&amp;g={f.code}
@@ -227,7 +259,8 @@ export function PanelInvitados({
               <div className={styles.filaLado}>
                 <span className={styles.estado} data-estado={f.estado}>
                   {ETIQUETA[f.estado]}
-                  {f.estado !== "sin respuesta" && f.total > 0 && ` · ${f.total}`}
+                  {f.estado !== "sin respuesta" && f.total > 0 &&
+                    (f.pases ? ` · ${f.total} de ${f.pases}` : ` · ${f.total}`)}
                 </span>
                 {/* Si abrió y no contestó, eso es lo que hay que ver de un
                     vistazo: es a quien se le insiste. */}

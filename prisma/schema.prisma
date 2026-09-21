@@ -83,6 +83,11 @@ model GuestLink {
   code         String     @unique
   /// Para el organizador: "familia de la novia", "compañeros de trabajo"…
   note         String?
+  /// Cuántas personas caben en este enlace: los «pases». Vacío = sin límite,
+  /// que es como estaban todos los enlaces anteriores. Con límite, la
+  /// invitación lo dice («Hemos reservado 4 pases para ti») y la
+  /// confirmación no deja pasar de ahí.
+  pases        Int?
   createdAt    DateTime   @default(now())
 
   rsvps     Rsvp[]

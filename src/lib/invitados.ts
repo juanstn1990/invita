@@ -71,6 +71,17 @@ export function unir(nombres: string[]): string {
   return `${nombres.slice(0, -1).join(", ")} y ${nombres[nombres.length - 1]}`;
 }
 
+/**
+ * Los pases de un enlace, tal como se guardan: un entero entre 1 y 50, o
+ * null si no se pusieron. Lo que no sea eso —un texto, un cero, un negativo—
+ * es «sin límite», no un error: quien invita puede dejarlo vacío.
+ */
+export function limpiarPases(crudo: unknown): number | null {
+  const n = Math.floor(Number(crudo));
+  if (!Number.isFinite(n) || n < 1) return null;
+  return Math.min(n, 50);
+}
+
 /** La dirección que se le manda a un invitado. */
 export function urlDeLink(origen: string, slug: string, names: string, code: string): string {
   return `${origen}/${slug}?invitado=${encodeURIComponent(names)}&g=${code}`;
@@ -83,6 +94,8 @@ export interface FilaInvitado {
   code: string;
   nombres: string[];
   note: string | null;
+  /** Personas que caben en el enlace; null = sin límite. */
+  pases: number | null;
   estado: EstadoLink;
   /** Cuántas personas de este link dijeron que sí. */
   asisten: number;
@@ -103,6 +116,7 @@ export function resumirLink(link: {
   code: string;
   names: string;
   note: string | null;
+  pases?: number | null;
   rsvps: { status: string; partySize: number; createdAt: Date }[];
   aperturas?: { veces: number; updatedAt: Date }[];
 }): FilaInvitado {
@@ -131,6 +145,7 @@ export function resumirLink(link: {
     code: link.code,
     nombres,
     note: link.note,
+    pases: link.pases ?? null,
     estado,
     asisten,
     total,

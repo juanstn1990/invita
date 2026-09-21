@@ -63,6 +63,15 @@ export interface RenderOptions {
    * publicada; en el editor no se comparte nada.
    */
   origin?: string;
+  /**
+   * Cuántas personas caben en el enlace por el que se entró: los «pases».
+   *
+   * Viene del link personalizado (`&g=`), no de la dirección: el número lo
+   * pone quien invita y el invitado no puede subirlo escribiendo en la barra.
+   * Sin link, o con un link sin límite, es `null` y la confirmación se
+   * comporta como siempre.
+   */
+  pases?: number | null;
 }
 
 const escapeHtml = (s: string) =>
@@ -1469,9 +1478,17 @@ const waLink = (phone: string, text: string) =>
  */
 const andamio = (saludo: string) =>
   `<p class="inv-rsvp-hola" data-inv-saludo="${escapeHtml(saludo)}" hidden></p>` +
+  '<p class="inv-rsvp-pases" data-inv-pases-texto hidden></p>' +
   '<div class="inv-rsvp-lista" data-inv-lista hidden></div>';
 
-function wireRsvp(doc: Doc, section: El, data: InvitationData, slug: string, preview: boolean) {
+function wireRsvp(
+  doc: Doc,
+  section: El,
+  data: InvitationData,
+  slug: string,
+  preview: boolean,
+  pases: number | null
+) {
   const c = data.confirm || {};
   const buttonText = String(c.buttonText || "").trim() || "Confirmar asistencia";
   const noText = String(c.declineText || "").trim() || "No podré ir";
@@ -1543,8 +1560,13 @@ function wireRsvp(doc: Doc, section: El, data: InvitationData, slug: string, pre
     andamio(String(c.greeting || "Hola, {nombre}")) +
     `<input class="${claseInput}" name="name" placeholder="Tu nombre" required data-inv-nombre>` +
     `<input class="${claseInput}" name="phone" type="tel" placeholder="Teléfono (opcional)">` +
+    /* Con pases, el contador nace en el número reservado y no deja pasar de
+       ahí: es lo que evita la conversación de «apunté cinco y sólo tengo
+       cuatro sillas». El servidor lo vuelve a comprobar, porque un número en
+       el navegador se cambia en diez segundos. */
     '<label class="inv-rsvp-lab" data-inv-cuantos>¿Cuántas personas van?' +
-    `<input class="${claseInput}" name="partySize" type="number" min="1" max="20" value="1">` +
+    `<input class="${claseInput}" name="partySize" type="number" min="1" ` +
+    `max="${pases ?? 20}" value="${pases ?? 1}">` +
     "</label>" +
     pideCancion +
     `<textarea class="${claseInput}" name="note" rows="2" placeholder="Mensaje (opcional)"></textarea>` +
@@ -1552,6 +1574,10 @@ function wireRsvp(doc: Doc, section: El, data: InvitationData, slug: string, pre
     `<button class="${claseBtn}" type="submit" value="confirmado" name="status">${escapeHtml(buttonText)}</button>` +
     `<button class="${claseBtn} inv-rsvp-no" type="submit" value="rechazado" name="status">${escapeHtml(noText)}</button>` +
     "</div>";
+
+  /* Los pases viajan en el marcado para que el script los diga con palabras
+     («Hemos reservado 4 pases para ti») sin tener que preguntar al servidor. */
+  if (pases) form.setAttribute("data-inv-pases", String(pases));
 
   reemplazar(form);
   form.setAttribute("data-inv-rsvp", preview ? "preview" : slug);
@@ -1587,6 +1613,8 @@ export const INJECTED_CSS = `
 
 .inv-rsvp-hola{margin:0 0 2px;font-family:var(--inv-font-title);
   font-size:clamp(18px,4.8vw,22px);line-height:1.3;color:var(--inv-ink)}
+.inv-rsvp-pases{margin:0;font-family:var(--inv-font-ui);font-size:13px;
+  color:var(--inv-accent)}
 .inv-rsvp-lista{display:flex;flex-direction:column;gap:7px}
 .inv-rsvp-quien{display:flex;align-items:center;gap:11px;padding:12px 15px;
   font-family:var(--inv-font-ui);font-size:15px;color:var(--inv-field-ink);
@@ -2766,6 +2794,16 @@ export const RSVP_JS = `
   var nombres = crudo.split(/[,;|]/).map(function(n){ return n.trim(); })
                      .filter(Boolean).slice(0, 12);
 
+  // Los pases del enlace: lo que quien invita reservó para esta familia.
+  var pases = parseInt(form.getAttribute('data-inv-pases') || '', 10);
+  var lineaPases = form.querySelector('[data-inv-pases-texto]');
+  if (pases > 0 && lineaPases) {
+    lineaPases.textContent = pases === 1
+      ? 'Hemos reservado 1 pase para ti.'
+      : 'Hemos reservado ' + pases + ' pases para ti.';
+    lineaPases.hidden = false;
+  }
+
   var campoNombre = form.querySelector('[name="name"]');
   var saludo = form.querySelector('[data-inv-saludo]');
   var lista = form.querySelector('[data-inv-lista]');
@@ -2863,6 +2901,21 @@ export const RSVP_JS = `
         casillas.push(c);
       });
       lista.hidden = false;
+      /* Con pases, sólo se pueden marcar tantos como pases haya: al marcar
+         uno de más se desmarca solo y se avisa en la línea de arriba. */
+      if (pases > 0 && casillas.length > pases) {
+        casillas.forEach(function(c, i){ if (i >= pases) c.checked = false; });
+        casillas.forEach(function(c){
+          c.addEventListener('change', function(){
+            var marcadas = casillas.filter(function(x){ return x.checked; }).length;
+            if (marcadas > pases) {
+              c.checked = false;
+              if (lineaPases) lineaPases.textContent =
+                'Sólo hay ' + pases + ' pases reservados para este enlace.';
+            }
+          });
+        });
+      }
       esconder(form.querySelector('[name="partySize"]'));
       esconder(form.querySelector('select[name="status"]'));
     }
@@ -4347,7 +4400,7 @@ export function renderInvitation(opts: RenderOptions): string {
 
   /* 5 · RSVP — sobre el bloque que quedó, sea el del diseño o el nuestro */
   const confirmSection = resueltos.find((r) => r.key === "confirm")?.el || null;
-  if (confirmSection) wireRsvp(document, confirmSection, data, slug, preview);
+  if (confirmSection) wireRsvp(document, confirmSection, data, slug, preview, opts.pases ?? null);
 
   /* 5 · Título de la pestaña y vista previa al compartir */
   const nombres = coupleName(data) || "Invitación";

@@ -99,3 +99,7 @@
   border: 1px solid #e2c48a;
   border-radius: 10px;
 }
+
+/* Los pases del enlace, junto a los nombres. */
+.pases{display:inline-block;margin-left:8px;padding:1px 8px;border-radius:999px;font-size:12px;
+  font-weight:600;vertical-align:middle;background:var(--accent-soft,rgba(120,90,200,.12));color:var(--accent,#5b3fb0)}

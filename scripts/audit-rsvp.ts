@@ -135,6 +135,35 @@ const enviar = (slug: string, body: unknown) =>
       dos.length === uno.length, `${uno.length} → ${dos.length}`);
     di("y el que cambió de idea quedó al día",
       dos.find((x) => x.name === "Marta Lara")?.status === "confirmado");
+    /* 9 · Los pases del enlace. Existen porque el número viaja por la red:
+       el formulario ya los respeta, pero cambiarlo en el navegador es
+       trivial, y de ahí sale el recuento que se le pasa al salón. */
+    const conPases = await prisma.guestLink.create({
+      data: { invitationId: inv.id, names: "Lucía Pons, Iván Pons", code: `p${Date.now().toString(36)}`, pases: 2 },
+    });
+    await enviar(slug, { name: "Lucía Pons", status: "confirmado", partySize: 9, code: conPases.code });
+    const conRecorte = (await filas()).find((x) => x.name === "Lucía Pons");
+    di("un contador inflado se recorta a los pases", conRecorte?.partySize === 2,
+      `partySize ${conRecorte?.partySize}`);
+
+    const deMas = await enviar(slug, {
+      code: conPases.code,
+      guests: [
+        { name: "Lucía Pons", status: "confirmado" },
+        { name: "Iván Pons", status: "confirmado" },
+        { name: "Colado Pons", status: "confirmado" },
+      ],
+    });
+    di("más personas que pases se rechaza", deMas.status === 400, `HTTP ${deMas.status}`);
+    di("y el colado no quedó guardado",
+      !(await filas()).some((x) => x.name === "Colado Pons"));
+
+    const sinTope = await prisma.guestLink.create({
+      data: { invitationId: inv.id, names: "Rosa Vela", code: `s${Date.now().toString(36)}` },
+    });
+    await enviar(slug, { name: "Rosa Vela", status: "confirmado", partySize: 6, code: sinTope.code });
+    di("sin pases, el contador se respeta",
+      (await filas()).find((x) => x.name === "Rosa Vela")?.partySize === 6);
   } finally {
     await prisma.invitation.delete({ where: { id: inv.id } });
     await prisma.$disconnect();

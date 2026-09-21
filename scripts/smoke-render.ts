@@ -1387,7 +1387,9 @@ for (const [nombre, tocar] of CASOS) {
 {
   const conScript = (doc: any, trozo: string) =>
     Array.from(doc.querySelectorAll("script")).some((x: any) => String(x.textContent).includes(trozo));
-  const casos: [string, (d: any) => void, (doc: any) => boolean][] = [
+  /* El cuarto valor, opcional, son los pases del enlace por el que se entró:
+     no salen de los datos de la invitación sino del link personalizado. */
+  const casos: [string, (d: any) => void, (doc: any) => boolean, number?][] = [
     ["sobre con sello: el sobre, el nombre y su script",
       (d) => { d.splash = { ...d.splash, enabled: true, apertura: "sello" }; d.event.name1 = "Valentina"; },
       (doc) => !!doc.querySelector("#splash [data-inv-sobre]") &&
@@ -1580,6 +1582,22 @@ for (const [nombre, tocar] of CASOS) {
           { kind: "Misa", title: "Acción de gracias", time: "5:00" }, { kind: "Vals", title: "El baile", time: "8:00" }] };
       },
       (doc) => doc.querySelectorAll(".inv-ev-naipes .event-card").length === 2 && conScript(doc, "inv-ev-naipes")],
+    ["pases: el formulario los lleva y acota el contador",
+      (d) => { d.confirm = { ...d.confirm, enabled: true, mode: "form" }; },
+      (doc) => {
+        const f: any = doc.querySelector(".inv-rsvp");
+        const n: any = doc.querySelector(".inv-rsvp [name='partySize']");
+        return f?.getAttribute("data-inv-pases") === "4" &&
+          n?.getAttribute("max") === "4" && n?.getAttribute("value") === "4" &&
+          !!doc.querySelector("[data-inv-pases-texto]") && conScript(doc, "data-inv-pases");
+      }, 4],
+    ["y sin pases el contador queda como siempre",
+      (d) => { d.confirm = { ...d.confirm, enabled: true, mode: "form" }; },
+      (doc) => {
+        const n: any = doc.querySelector(".inv-rsvp [name='partySize']");
+        return !doc.querySelector("[data-inv-pases]") &&
+          n?.getAttribute("max") === "20" && n?.getAttribute("value") === "1";
+      }],
     ["cuenta atrás de luciérnagas, con sus cuatro números",
       (d) => { d.layout = { blocks: [{ id: "countdown-0", type: "countdown", variant: "luciernagas" }] }; },
       (doc) => doc.querySelectorAll(".inv-cd-luciernagas [data-cd]").length === 4],
@@ -1619,13 +1637,13 @@ for (const [nombre, tocar] of CASOS) {
       (doc) => !!doc.querySelector("div.inv-polvo") && !doc.querySelector(".inv-particulas") &&
         doc.querySelector("div.inv-polvo").getAttribute("data-n") === "60" && conScript(doc, "inv-polvo")],
   ];
-  for (const [nombre, preparar, comprueba] of casos) {
+  for (const [nombre, preparar, comprueba, pases] of casos) {
     const mal: string[] = [];
     for (const tpl of TEMPLATES) {
       const d: any = defaultData();
       preparar(d);
       const { document } = parseHTML(
-        renderInvitation({ templateHtml: readTemplate(tpl.id), templateId: tpl.id, data: d, slug: "demo" })
+        renderInvitation({ templateHtml: readTemplate(tpl.id), templateId: tpl.id, data: d, slug: "demo", pases })
       );
       try { if (!comprueba(document)) mal.push(tpl.id); } catch { mal.push(`${tpl.id} (excepción)`); }
     }

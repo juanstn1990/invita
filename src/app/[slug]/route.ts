@@ -99,20 +99,22 @@ export async function GET(
   const nuevo = !visitante;
   if (nuevo) visitante = nuevoVisitante();
 
+  /* El enlace por el que se entró se busca siempre, no sólo cuando la visita
+     se cuenta: de él salen los pases, y un rastreador o el propio organizador
+     también tienen que ver la invitación bien. Se comprueba que el código sea
+     de esta invitación: viaja en la dirección y podría venir cambiado. */
+  const codigo = (new URL(request.url).searchParams.get("g") || "").trim().slice(0, 40);
+  const link = codigo
+    ? await prisma.guestLink
+        .findFirst({
+          where: { code: codigo, invitationId: invitation.id },
+          select: { id: true, pases: true },
+        })
+        .catch(() => null)
+    : null;
+
   const contar = !esRastreador(ua) && !esOrganizador;
   if (contar) {
-    const codigo = (new URL(request.url).searchParams.get("g") || "").trim().slice(0, 40);
-    /* Se comprueba que el código sea de esta invitación: viaja en la
-       dirección y podría venir cambiado. */
-    const link = codigo
-      ? await prisma.guestLink
-          .findFirst({
-            where: { code: codigo, invitationId: invitation.id },
-            select: { id: true },
-          })
-          .catch(() => null)
-      : null;
-
     const clave = claveDeApertura(link?.id ?? null, visitante);
     /* Que fallar aquí no impida ver la invitación: esto es un dato para el
        organizador, no parte de lo que el invitado vino a leer. */
@@ -136,6 +138,7 @@ export async function GET(
     slug: invitation.slug,
     // Para las etiquetas Open Graph: WhatsApp no resuelve rutas relativas.
     origin: origenDe(request),
+    pases: link?.pases ?? null,
   });
 
   const res = new NextResponse(rendered, { headers: html });

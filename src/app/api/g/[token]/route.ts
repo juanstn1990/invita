@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { limpiarNombres, nuevoCodigo } from "@/lib/invitados";
+import { limpiarNombres, limpiarPases, nuevoCodigo } from "@/lib/invitados";
 
 /**
  * Crear y borrar links de invitado desde el panel compartido.
@@ -33,10 +33,11 @@ export async function POST(request: Request, { params }: { params: { token: stri
       names: nombres.join(", "),
       code: await nuevoCodigo(),
       note: String(body.note || "").trim().slice(0, 120) || null,
+      pases: limpiarPases(body.pases),
     },
   });
 
-  return NextResponse.json({ id: link.id, code: link.code, names: link.names });
+  return NextResponse.json({ id: link.id, code: link.code, names: link.names, pases: link.pases });
 }
 
 export async function DELETE(request: Request, { params }: { params: { token: string } }) {

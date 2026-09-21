@@ -54,9 +54,46 @@ export async function POST(
   const link = codigo
     ? await prisma.guestLink.findFirst({
         where: { code: codigo, invitationId: invitation.id },
-        select: { id: true },
+        select: { id: true, pases: true },
       })
     : null;
+
+  /*
+   * Los pases del enlace mandan sobre lo que llegue.
+   *
+   * El formulario ya los respeta, pero el número viaja por la red y se cambia
+   * en diez segundos con las herramientas del navegador. Quien invita reservó
+   * cuatro sillas: si aquí no se comprobara, el recuento del salón saldría mal
+   * y el error se descubriría el día de la fiesta.
+   *
+   * Se recorta en vez de rechazar cuando es una sola respuesta —apuntar tres
+   * de cuatro es lo normal, y pasarse suele ser un dedo torpe en el contador—,
+   * y se rechaza cuando vienen más personas nombradas que pases, que ya no es
+   * un descuido sino otra cosa.
+   */
+  const pases = link?.pases ?? 0;
+  if (pases > 0) {
+    const cabezas = respuestas
+      .filter((r) => r.status === "confirmado")
+      .reduce((n, r) => n + (r.partySize ?? 1), 0);
+    if (respuestas.length > pases) {
+      return NextResponse.json(
+        {
+          error:
+            pases === 1
+              ? "Tu invitación es para una persona."
+              : `Tu invitación es para ${pases} personas.`,
+        },
+        { status: 400 }
+      );
+    }
+    if (cabezas > pases) {
+      // Una sola respuesta que se pasó: se recorta a lo reservado.
+      for (const r of respuestas) {
+        if (r.status === "confirmado") r.partySize = Math.min(r.partySize ?? 1, pases);
+      }
+    }
+  }
 
   /*
    * Una respuesta por persona, y la última manda.
