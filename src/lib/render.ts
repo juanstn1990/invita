@@ -9,8 +9,8 @@
 
 import { parseHTML } from "linkedom";
 import {
-  ABANICO_JS, AGENDAR_JS, CAPITULOS_JS, CIELO_JS, COMPONENTES_CSS, CONFETI_JS, CONSTELACION_JS,
-  DESEO_JS, FUGAZ_JS, LIBRO_JS, NUBES_JS, POLVO_JS, RASCA_JS, SOBRE_JS, VOLTEA_JS,
+  ABANICO_JS, AGENDAR_JS, CAPITULOS_JS, CARRUSEL_JS, CIELO_JS, COMPONENTES_CSS, CONFETI_JS,
+  CONSTELACION_JS, DESEO_JS, FUGAZ_JS, LIBRO_JS, NUBES_JS, POLVO_JS, RASCA_JS, SOBRE_JS, VOLTEA_JS,
 } from "./componentes";
 import { sanearHtml } from "./sanear";
 import { mapFor, type ListBinding, type Op } from "./bindings";
@@ -4582,6 +4582,7 @@ export function renderInvitation(opts: RenderOptions): string {
   if (document.querySelector("[data-inv-abanico]")) scripts.push(ABANICO_JS);
   if (document.querySelector(".inv-velo-nubes")) scripts.push(NUBES_JS);
   if (document.querySelector(".inv-ev-capitulos")) scripts.push(CAPITULOS_JS);
+  if (document.querySelector(".inv-ga-carrusel")) scripts.push(CARRUSEL_JS);
   if (document.querySelector(".inv-fe-voltea")) scripts.push(VOLTEA_JS);
   if (document.querySelector("[data-inv-agendar]")) scripts.push(AGENDAR_JS);
   if (document.querySelector(".inv-polvo")) scripts.push(POLVO_JS);

@@ -361,6 +361,20 @@ const gallery: BlockSpec = {
       ${galleryItems(6)}
     </div>`,
     },
+    /* El carrusel: una foto grande a la vez, con enganche y puntos. La
+       tira deslizable enseña varias a medias, que está bien para mirar de
+       reojo; ésta es para mirar una. */
+    {
+      id: "carrusel",
+      name: "Carrusel",
+      hint: "Una foto grande a la vez, se desliza con el dedo y lleva puntos",
+      build: () => `${head()}
+    <p class="gallery-text">Mensaje</p>
+    <div class="gallery-grid inv-ga-carrusel">
+      ${galleryItems(6)}
+    </div>
+    <div class="inv-puntos" aria-hidden="true"></div>`,
+    },
     {
       id: "polaroid",
       name: "Polaroid",

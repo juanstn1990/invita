@@ -3,7 +3,7 @@
  *
  * Nacieron con «Quince Dorado», «Noche estrellada» y «Rosa encantada», pero ninguno es de un diseño: todos salen
  * de las variables de la paleta (--inv-accent, --inv-ink, --inv-surface…)
- * y se eligen desde el editor en cualquiera de los 56.
+ * y se eligen desde el editor en cualquiera de los 57.
  *
  * · Apertura «sobre con sello»: el velo es un sobre cerrado; se toca el
  *   sello, la solapa se abre, la carta sube y la invitación entra.
@@ -38,6 +38,8 @@
  *
  * · Apertura «nubes»: dos nubes tapan la invitación y se van cada una por
  *   su lado, como cuando se abre el cielo.
+ *
+ * · Galería «carrusel»: una foto grande a la vez, con enganche y puntos.
  *
  * Aquí va lo que es igual para todos (el CSS y el JavaScript). Lo que
  * depende de los datos —el nombre en la carta, la fecha del calendario— lo
@@ -345,6 +347,24 @@ html:not(.js) .inv-ev-constelacion .inv-dato{opacity:1;transform:none}
 #splash.abriendo .inv-nube-der{transform:scaleX(-1) translate(-70%,18%)}
 #splash.abriendo .splash-modal{opacity:0;transform:scale(1.06);
   transition:opacity .8s ease,transform 1s ease}
+
+
+/* ── La galería en carrusel ──────────────────────────────────────
+   Una foto grande a la vez, con enganche: el dedo la suelta y la foto se
+   queda centrada. Los puntos los pone el script, que es quien sabe cuántas
+   fotos hay — el marcado se escribe sin saberlo. */
+.inv-ga-carrusel{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;
+  padding:4px 0 10px;margin-inline:calc(50% - 50vw);padding-inline:max(22px,calc(50vw - 50%));
+  scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.inv-ga-carrusel::-webkit-scrollbar{display:none}
+.inv-ga-carrusel .gallery-item{flex:0 0 78%;scroll-snap-align:center;aspect-ratio:3/4;
+  border-radius:var(--inv-radius,18px);overflow:hidden;
+  box-shadow:0 18px 34px -24px rgba(0,0,0,.55)}
+.inv-ga-carrusel .gallery-ph{width:100%;height:100%}
+.inv-puntos{display:flex;justify-content:center;gap:7px;margin-top:10px}
+.inv-puntos i{width:7px;height:7px;border-radius:50%;
+  background:color-mix(in srgb,var(--inv-accent) 30%,transparent);transition:all .3s}
+.inv-puntos i.act{background:var(--inv-accent);width:20px;border-radius:99px}
 
 @media (prefers-reduced-motion:reduce){
   .inv-sobre,.inv-sobre-sello,.inv-sobre-pista,.inv-deseo-pista,
@@ -787,5 +807,29 @@ export const NUBES_JS = `
       var b = velo.querySelector('.splash-btn-primary');
       if (b) b.click(); else if (window.enterSite) window.enterSite();
     }, quieto ? 0 : 1100);
+  });
+})();`;
+
+/**
+ * El carrusel: los puntos y el que está mirándose.
+ *
+ * Los puntos se crean aquí y no en el marcado porque cuántos hay depende de
+ * cuántas fotos se subieron, y eso sólo se sabe con la invitación delante.
+ */
+export const CARRUSEL_JS = `
+(function(){
+  [].slice.call(document.querySelectorAll('.inv-ga-carrusel')).forEach(function(pista){
+    var fotos = [].slice.call(pista.children);
+    if (fotos.length < 2) return;
+    var caja = pista.parentNode.querySelector('.inv-puntos');
+    if (!caja) return;
+    fotos.forEach(function(){ caja.appendChild(document.createElement('i')); });
+    var puntos = [].slice.call(caja.children);
+    puntos[0].className = 'act';
+    pista.addEventListener('scroll', function(){
+      var i = Math.round(pista.scrollLeft / (pista.scrollWidth / fotos.length));
+      i = Math.max(0, Math.min(fotos.length - 1, i));
+      puntos.forEach(function(p, k){ p.className = k === i ? 'act' : ''; });
+    }, { passive: true });
   });
 })();`;

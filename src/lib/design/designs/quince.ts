@@ -16,6 +16,7 @@ import { estrellada } from "./estrellada";
 import { rosa } from "./rosa";
 import { rosareal } from "./rosareal";
 import { celeste } from "./celeste";
+import { glicinas } from "./glicinas";
 import {
   CORMORANT_JOST,
   DMSERIF_DMSANS,
@@ -324,5 +325,5 @@ const jardinXV: Design = {
 export const QUINCE: Design[] = [
   blanco, burdeos, amanecer, hojas, viaje,
   corona, confeti, vals, jardinXV,
-  farolillos, dorado, estrellada, rosa, rosareal, celeste,
+  farolillos, dorado, estrellada, rosa, rosareal, celeste, glicinas,
 ];

@@ -1434,6 +1434,13 @@ for (const [nombre, tocar] of CASOS) {
     ["y con su tapa propia",
       (d) => { d.splash = { ...d.splash, enabled: true, apertura: "libro", sello: "/api/media/2026/09/t.png" }; },
       (doc) => String(doc.querySelector(".inv-libro-tapa")?.getAttribute("style")).includes("t.png?w=800")],
+    ["galería en carrusel: las fotos, el sitio de los puntos y su script",
+      (d) => {
+        d.layout = { blocks: [{ id: "gallery-0", type: "gallery", variant: "carrusel" }] };
+        d.gallery = { ...d.gallery, enabled: true, items: [{ url: "/api/media/2026/09/a.jpg" }, { url: "/api/media/2026/09/b.jpg" }] };
+      },
+      (doc) => doc.querySelectorAll(".inv-ga-carrusel .gallery-item").length === 2 &&
+        !!doc.querySelector(".inv-ga-carrusel + .inv-puntos") && conScript(doc, "inv-ga-carrusel")],
     ["nubes: las dos que se abren, la pista y su script",
       (d) => { d.splash = { ...d.splash, enabled: true, apertura: "nubes" }; },
       (doc) => doc.querySelectorAll("#splash.inv-velo-nubes .inv-nube").length === 2 &&
@@ -1798,11 +1805,20 @@ for (const [nombre, tocar] of CASOS) {
 {
   const TITULO = "Momentos de los dos";
 
+  /* Dónde está de verdad la galería: en el marcado del diseño, o en la
+     sección que sintetiza un bloque cuando el diseño trae su variante —el
+     carrusel de «Jardín de Glicinas»—. Buscar sólo en #gallery daba por
+     ausente lo que estaba al lado. */
+  const galeria = (doc: any) =>
+    (doc.querySelector("#gallery")?.getAttribute("hidden") === null
+      ? doc.querySelector("#gallery")
+      : doc.querySelector(".inv-block-gallery")) || doc.querySelector("#gallery");
+
   const casos: [string, Record<string, string>, (t: any, doc: any) => boolean][] = [
     [
       "sin elegir nada no se marca nada",
       {},
-      (_t, doc) => !doc.querySelector("[data-inv-anim]"),
+      (_t, doc) => !galeria(doc)?.querySelector("[data-inv-anim]"),
     ],
     [
       "una entrada simple sólo marca",
@@ -1838,7 +1854,7 @@ for (const [nombre, tocar] of CASOS) {
     [
       "un valor inventado se ignora",
       { title: "explota" },
-      (_t, doc) => !doc.querySelector("#gallery [data-inv-anim]"),
+      (_t, doc) => !galeria(doc)?.querySelector("[data-inv-anim]"),
     ],
     /* El turno es lo que hace que dos textos animados entren uno detrás de
        otro en vez de a la vez. */
@@ -1848,7 +1864,7 @@ for (const [nombre, tocar] of CASOS) {
       "el segundo texto animado espera su turno",
       { label: "aparece", title: "sube" },
       (_t, doc) => {
-        const todos = Array.from(doc.querySelectorAll("#gallery [data-inv-anim]")) as any[];
+        const todos = Array.from(galeria(doc)?.querySelectorAll("[data-inv-anim]") || []) as any[];
         return todos.length === 2 &&
           !String(todos[0].getAttribute("style") || "").includes("--inv-anim-turno") &&
           String(todos[1].getAttribute("style") || "").includes("--inv-anim-turno:1");
@@ -1866,7 +1882,7 @@ for (const [nombre, tocar] of CASOS) {
           templateHtml: readTemplate(tpl.id), templateId: tpl.id, data: d, slug: "demo",
         })
       );
-      const t = document.querySelector("#gallery [data-inv-anim]") as any;
+      const t = galeria(document)?.querySelector("[data-inv-anim]") as any;
       try {
         if (!comprueba(t, document)) mal.push(tpl.id);
       } catch {
