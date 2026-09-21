@@ -556,6 +556,22 @@ section.alt{background:linear-gradient(var(--bg-alt),var(--bg))}
 #events .event-place{order:4;margin-top:4px;font-size:15px}
 #events .event-note{order:5;margin-top:4px}
 #events .event-map-btn{order:6;justify-self:start;margin-top:10px}
+/* El programa que trae el diseño es el «viaje» con el globo, como en el
+   HTML: el globo baja por el hilo y va marcando cada momento. */
+:root{--inv-viajero-img:url(/disenos/celeste/globo.png)}
+/* Con «section» delante: el CSS de los componentes va después del del
+   diseño y, a igual peso, ganaba el acento azul marino. */
+section .inv-ev-viaje::before{background:linear-gradient(transparent,var(--brand-2),transparent)}
+section .inv-ev-viaje .inv-hito{background:#fff;box-shadow:0 0 0 2px var(--brand-2)}
+section .inv-ev-viaje .event-card.pasada .inv-hito{background:var(--brand-2);
+  box-shadow:0 0 0 2px var(--brand-2),0 0 0 6px color-mix(in srgb,var(--brand-2) 25%,transparent)}
+section .inv-ev-viaje .event-time{font-family:var(--cel-caps);font-size:12.5px;letter-spacing:.2em;
+  color:var(--cel-plata)}
+section .inv-ev-viaje .event-type{font-family:inherit;font-style:italic;font-weight:500;font-size:23px;
+  color:var(--ink);letter-spacing:0;text-transform:none}
+section .inv-ev-viaje .event-title{font-family:inherit;font-size:16px;font-weight:400;font-style:normal;
+  letter-spacing:0;text-transform:none;color:var(--muted)}
+section .inv-ev-viaje .event-place{margin-top:2px;font-size:15px}
 
 /* ── Botones ── */
 .hero-btn,.splash-btn-primary,.confirm-btn,.gifts-btn,.inv-rsvp-btn:not(.inv-rsvp-no),

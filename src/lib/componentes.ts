@@ -305,6 +305,30 @@ export const COMPONENTES_CSS = `
 .inv-ev-sendero .event-map-btn{margin-top:8px}
 html:not(.js) .inv-ev-sendero .inv-dato{opacity:1;transform:none}
 
+/* ── El programa como viaje ──
+   El hilo pasa por el centro de la columna de las paradas (14 px de margen
+   más la mitad de 52): el viajero y los puntos se alinean con él sin
+   medir nada. Lo que viaja es una imagen del diseño en --inv-viajero-img;
+   sin ella, una esfera del color de acento. */
+.inv-ev-viaje{position:relative;display:block;max-width:420px;margin:22px auto 0;padding-left:14px;text-align:left}
+.inv-ev-viaje::before{content:"";position:absolute;left:39px;top:16px;bottom:16px;width:2px;
+  background:linear-gradient(transparent,var(--inv-accent),transparent)}
+.inv-viajero{position:absolute;left:14px;top:-30px;z-index:2;width:52px;height:64px;pointer-events:none;
+  background:var(--inv-viajero-img,radial-gradient(circle at 42% 38%,#fff 0 10%,
+    color-mix(in srgb,var(--inv-accent) 70%,#fff) 22%,var(--inv-accent) 46%,transparent 48%)) center/contain no-repeat;
+  filter:drop-shadow(0 6px 12px rgba(0,0,0,.22));transition:top .45s cubic-bezier(.3,.7,.2,1)}
+.inv-ev-viaje .event-card{position:relative;display:grid;grid-template-columns:52px 1fr;column-gap:18px;
+  align-items:start;padding:14px 0;background:none;border:0;box-shadow:none;border-radius:0;text-align:left}
+.inv-ev-viaje .event-card:hover{transform:none}
+.inv-hito{grid-column:1;grid-row:1;width:14px;height:14px;margin:8px auto 0;border-radius:50%;
+  background:var(--inv-surface);box-shadow:0 0 0 2px var(--inv-accent);transition:background .5s,box-shadow .5s}
+.inv-ev-viaje .event-card.pasada .inv-hito{background:var(--inv-accent);
+  box-shadow:0 0 0 2px var(--inv-accent),0 0 0 6px color-mix(in srgb,var(--inv-accent) 25%,transparent)}
+.inv-ev-viaje .inv-dato{grid-column:2;grid-row:1;display:flex;flex-direction:column;align-items:flex-start;text-align:left}
+.inv-ev-viaje .event-icon{display:none}
+.inv-ev-viaje :is(.event-type,.event-title,.event-time,.event-place,.event-note){margin:0}
+.inv-ev-viaje .event-map-btn{align-self:flex-start;margin-top:10px}
+
 /* ── El programa como constelación ──
    Las estrellas van por una franja central, un poco en zigzag, y cada
    momento a un lado y a otro: así la línea que las une nunca pisa texto. */
@@ -528,6 +552,7 @@ html:not(.js) .inv-ev-constelacion .inv-dato{opacity:1;transform:none}
   .inv-cd-luciernagas .countdown-ring::before,.inv-cd-luciernagas .countdown-ring::after,
   .inv-cd-luciernagas .ring-number.tick,.inv-luciernaga{animation:none}
   .inv-ev-sendero .inv-dato,.inv-parada{transition:none}
+  .inv-viajero,.inv-hito{transition:none}
   .inv-polvo,.inv-confeti{display:none}
 }`;
 
@@ -875,6 +900,27 @@ export const SENDERO_JS = `
   addEventListener('scroll', bajar, { passive: true });
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(trazar);
   setTimeout(trazar, 1200);
+})();`;
+
+/** El viaje: el viajero baja por el hilo al ritmo del scroll y marca las paradas que pasa. */
+export const VIAJE_JS = `
+(function(){
+  var viajes = [].slice.call(document.querySelectorAll('.inv-ev-viaje'));
+  if (!viajes.length) return;
+  function bajar(){
+    var mitad = innerHeight * .62;
+    viajes.forEach(function(v){
+      var b = v.getBoundingClientRect(), p = Math.max(0, Math.min(1, (mitad - b.top) / (b.height || 1)));
+      var g = v.querySelector('.inv-viajero');
+      if (g) g.style.top = (b.height * p - g.offsetHeight / 2).toFixed(0) + 'px';
+      [].slice.call(v.querySelectorAll('.event-card')).forEach(function(c){
+        if (c.getBoundingClientRect().top + 24 < mitad) c.classList.add('pasada');
+      });
+    });
+  }
+  addEventListener('scroll', bajar, { passive: true });
+  addEventListener('resize', bajar);
+  bajar();
 })();`;
 
 /** Rasca y descubre: una capa de plata sobre cada ficha. */

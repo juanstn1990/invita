@@ -337,6 +337,32 @@ const events: BlockSpec = {
       </article>
     </div>`,
     },
+    /* El viaje: un hilo vertical y algo que lo recorre al bajar —un globo
+       en Cielo Celeste, lo que cada diseño ponga en --inv-viajero-img, o
+       una esfera de luz si no pone nada—; cada parada se rellena cuando el
+       viajero la pasa. Como en el sendero, la parada es un elemento propio
+       y el ícono no se usa: el momento sin ícono no pierde su punto. */
+    {
+      id: "viaje",
+      name: "Viaje",
+      hint: "Un hilo con un globo que baja al hacer scroll y va marcando cada momento",
+      build: () => `${head()}${body}
+    <div class="events-grid inv-ev-viaje">
+      <i class="inv-viajero" aria-hidden="true"></i>
+      <article class="event-card">
+        <i class="inv-hito" aria-hidden="true"></i>
+        <div class="inv-dato">
+          <span class="event-icon">✦</span>
+          <p class="event-time">Hora</p>
+          <p class="event-type">Tipo</p>
+          <h3 class="event-title">Momento</h3>
+          <p class="event-place">Lugar<small>Dirección</small></p>
+          <p class="event-note">Nota</p>
+          <a class="event-map-btn" href="#">¿Cómo llegar?</a>
+        </div>
+      </article>
+    </div>`,
+    },
     {
       id: "lista",
       name: "Lista compacta",

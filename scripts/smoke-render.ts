@@ -1509,6 +1509,17 @@ for (const [nombre, tocar] of CASOS) {
         !!doc.querySelector(".inv-ev-sendero .inv-luciernaga") &&
         doc.querySelector(".inv-ev-sendero .inv-dato .event-type")?.textContent.trim() === "Misa" &&
         conScript(doc, "inv-ev-sendero")],
+    ["programa en viaje: el viajero, una parada por momento y su script",
+      (d) => {
+        d.layout = { blocks: [{ id: "events-0", type: "events", variant: "viaje" }] };
+        d.events = { ...d.events, enabled: true, items: [
+          { icon: "iglesia", kind: "Misa", title: "Acción de gracias", time: "5:00" },
+          { kind: "Vals", title: "El baile", time: "8:00" }, { kind: "Cena", title: "En familia", time: "9:00" }] };
+      },
+      (doc) => doc.querySelectorAll(".inv-ev-viaje .event-card > .inv-hito").length === 3 &&
+        !!doc.querySelector(".inv-ev-viaje > .inv-viajero") &&
+        doc.querySelector(".inv-ev-viaje .inv-dato .event-type")?.textContent.trim() === "Misa" &&
+        conScript(doc, "inv-ev-viaje")],
     ["cuenta atrás de luciérnagas, con sus cuatro números",
       (d) => { d.layout = { blocks: [{ id: "countdown-0", type: "countdown", variant: "luciernagas" }] }; },
       (doc) => doc.querySelectorAll(".inv-cd-luciernagas [data-cd]").length === 4],

@@ -10,7 +10,7 @@
 import { parseHTML } from "linkedom";
 import {
   ABANICO_JS, AGENDAR_JS, ANILLOS_JS, CAPITULOS_JS, CARRUSEL_JS, CIELO_JS, COMPONENTES_CSS, CONFETI_JS,
-  CONSTELACION_JS, DESEO_JS, FUGAZ_JS, LIBRO_JS, NUBES_JS, POLVO_JS, RASCA_JS, SENDERO_JS, SOBRE_JS, TELON_JS,
+  CONSTELACION_JS, DESEO_JS, FUGAZ_JS, LIBRO_JS, NUBES_JS, POLVO_JS, RASCA_JS, SENDERO_JS, SOBRE_JS, TELON_JS, VIAJE_JS,
   VOLTEA_JS,
 } from "./componentes";
 import { sanearHtml } from "./sanear";
@@ -4643,6 +4643,7 @@ export function renderInvitation(opts: RenderOptions): string {
   if (document.querySelector(".inv-cielo")) scripts.push(CIELO_JS);
   if (document.querySelector(".inv-ev-constelacion")) scripts.push(CONSTELACION_JS);
   if (document.querySelector(".inv-ev-sendero")) scripts.push(SENDERO_JS);
+  if (document.querySelector(".inv-ev-viaje")) scripts.push(VIAJE_JS);
   if (document.querySelector(".inv-rasca-capa")) scripts.push(RASCA_JS);
   if (document.querySelector("[data-inv-sobre]")) scripts.push(SOBRE_JS);
   if (document.querySelector("[data-inv-libro]")) scripts.push(LIBRO_JS);
