@@ -135,6 +135,36 @@ section.alt{background:linear-gradient(var(--bg-alt),var(--bg))}
 .feature-icon{color:var(--ros-oro-hondo)}
 .feature-title{font-family:var(--ros-caps);font-weight:600;font-size:13px;letter-spacing:.16em;
   text-transform:uppercase;color:var(--brand)}
+/* ── El programa: páginas del cuento ──
+   La forma es la de la variante «Capítulos», pero puesta en el marcado de
+   siempre: quien no cambie nada ya ve las páginas de pergamino con su
+   lomo dorado, y quien elija la variante gana además el giro al entrar. */
+#events .events-grid{display:block;max-width:440px;margin:18px auto 0}
+/* En columna y con orden propio: en el cuento la hora va primero y el
+   momento debajo, al revés del marcado de siempre. */
+#events .event-card{position:relative;display:flex;flex-direction:column;margin:0 0 12px;
+  padding:18px 20px 18px 86px;text-align:left;border-radius:4px 12px 12px 4px;
+  background:var(--card);
+  box-shadow:0 18px 30px -24px color-mix(in srgb,var(--ink) 60%,transparent),
+    inset 0 0 0 1px color-mix(in srgb,var(--ros-oro) 28%,transparent)}
+#events .event-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:8px;
+  border-radius:4px 0 0 4px;background:linear-gradient(var(--ros-oro-hondo),var(--brand-2),var(--ros-oro-hondo))}
+/* El número del momento, en su propia columna y centrado: un «VIII» es tres
+   veces más ancho que un «I», y sin ancho fijo se mete bajo el texto. */
+#events .event-icon{position:absolute;left:14px;top:50%;translate:0 -50%;width:60px;text-align:center;
+  font-family:var(--ros-caps);font-weight:600;font-size:24px;letter-spacing:.04em;line-height:1;
+  color:var(--brand)}
+#events :is(.event-type,.event-title,.event-time,.event-place,.event-note){margin:0}
+#events .event-time{order:1;font-family:var(--ros-caps);font-size:12.5px;letter-spacing:.2em;
+  color:var(--ros-oro-hondo)}
+#events .event-type{order:2;font-family:var(--ros-caps);font-size:11px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--muted)}
+#events .event-title{order:3;font-style:italic;font-weight:500;font-size:24px;line-height:1.2;color:var(--ink)}
+#events .event-place{order:4;margin-top:4px;font-size:15px}
+#events .event-note{order:5;margin-top:4px}
+#events .event-map-btn{order:6;align-self:flex-start;margin-top:10px}
+#events .event-icon{order:0}
+
 /* El candelabro preside la ubicación, que casi siempre es un bloque. */
 .inv-block-ubicacion .container::before{content:"";display:block;width:min(30vw,130px);aspect-ratio:.62;
   margin:0 auto 8px;background:url(${A}/candelabro.png) center/contain no-repeat;
