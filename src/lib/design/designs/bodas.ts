@@ -17,6 +17,7 @@ import type { Design } from "../theme";
 import { paleta } from "../paleta";
 import * as deco from "../deco";
 import { eterna } from "./eterna";
+import { olivar } from "./olivar";
 import {
   CORMORANT_INTER,
   CORMORANT_INTER_CALIGRAFIA,
@@ -333,5 +334,5 @@ const bendicion: Design = {
 
 export const BODAS: Design[] = [
   vintage, white, marsala, aurum, ivory, editorial, nocturno, campestre,
-  capilla, bruma, jardin, gala, bendicion, eterna,
+  capilla, bruma, jardin, gala, bendicion, eterna, olivar,
 ];
