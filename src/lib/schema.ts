@@ -401,6 +401,9 @@ export const TIPOS_PARTICULA: { value: string; label: string; movimiento: "cae" 
   { value: "luciernagas", label: "Luciérnagas", movimiento: "flota" },
   { value: "destellos", label: "Destellos", movimiento: "flota" },
   { value: "estrellas", label: "Estrellas", movimiento: "flota" },
+  /* La de cada plantilla: farolillos, flores de un color exacto, un logo.
+     El movimiento no sale del tipo sino del campo «rumbo». */
+  { value: "imagen", label: "Una imagen propia (PNG)", movimiento: "sube" },
 ];
 
 export const PARTICULA_POR_TIPO = Object.fromEntries(
@@ -615,6 +618,7 @@ export const ADORNOS: ListSpec = {
         { value: "late", label: "Late" },
         { value: "respira", label: "Respira (aparece y se atenúa)" },
         { value: "destello", label: "Un destello de luz lo recorre" },
+        { value: "gira", label: "Gira despacio" },
       ],
       help: "En bucle, lento y corto: es un adorno, no un reclamo. El destello sigue la silueta del adorno, así que luce en una filigrana dorada y se nota poco en una mancha plana.",
     },
@@ -1385,6 +1389,26 @@ export const SECTIONS: SectionSpec[] = [
         options: TIPOS_PARTICULA,
       },
       {
+        key: "pieza",
+        label: "La imagen",
+        type: "image",
+        span: 2,
+        showIf: { key: "tipo", value: "imagen" },
+        help: "Un PNG con fondo transparente y la pieza sola, sin aire alrededor: cada partícula es una copia de esta imagen.",
+      },
+      {
+        key: "rumbo",
+        label: "Hacia dónde",
+        type: "select",
+        fallback: 0,
+        showIf: { key: "tipo", value: "imagen" },
+        options: [
+          { value: "sube", label: "Sube" },
+          { value: "cae", label: "Cae" },
+          { value: "flota", label: "Flota en su sitio" },
+        ],
+      },
+      {
         key: "cantidad",
         label: "Cuántas",
         type: "range",
@@ -1410,7 +1434,7 @@ export const SECTIONS: SectionSpec[] = [
         label: "Tamaño",
         type: "range",
         min: 8,
-        max: 48,
+        max: 96,
         step: 1,
         unit: "px",
         fallback: 20,

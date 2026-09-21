@@ -69,6 +69,13 @@ const AZUL_ORO = paleta({
   id: "azul-oro", nombre: "Azul noche y oro",
   base: "#101726", tinta: "#f3ead9", marca: "#d9b26a", segundo: "#8c7648",
 });
+/* Noche violeta y oro: el cielo de los farolillos. Un violeta tan hondo
+   que funciona como noche, y el dorado de la luz que sube. El segundo es
+   el lila de ese mismo cielo, para filetes y detalles. */
+const VIOLETA_ORO = paleta({
+  id: "violeta-oro", nombre: "Noche violeta y oro",
+  base: "#1f1537", tinta: "#f3ead9", marca: "#d9b26a", segundo: "#8a6fb0",
+});
 /* Oro rosa: el dorado con rubor, que no es ni «Rosa palo» ni «Champán».
    Rosa palo es un rosa apagado sin metal; champán es dorado sin rosa. El oro
    rosa vive en medio, y pedirlo y que no estuviera obligaba a renunciar a la
@@ -192,7 +199,7 @@ const burdeos: Design = {
    * primera es la que se hornea en el template.
    */
   palettes: [
-    BURDEOS, MEDIANOCHE, AZUL_ORO, ESMERALDA, FUCSIA, ORO_ROSA,
+    BURDEOS, MEDIANOCHE, AZUL_ORO, VIOLETA_ORO, ESMERALDA, FUCSIA, ORO_ROSA,
     ROJO, ROSA, MORADO, VIOLETA, LILA,
     AZUL_BEBE, AZUL_CLARO, TURQUESA,
     HOJAS, MENTA, AMARILLO, NARANJA, CORAL, TERRACOTA,

@@ -1260,6 +1260,34 @@ for (const [nombre, tocar] of CASOS) {
         c.querySelectorAll(".inv-pt-ala").length > 0,
     ],
     [
+      "imagen propia sin imagen no pone capa",
+      { enabled: true, tipo: "imagen", pieza: "" },
+      (_c, doc) => !doc.querySelector(".inv-particulas"),
+    ],
+    [
+      "los farolillos suben, cada uno con su imagen",
+      { enabled: true, tipo: "imagen", pieza: "/api/media/2026/09/farol.png", cantidad: "10" },
+      (c) => String(c.getAttribute("class")).includes("inv-pt-sube") &&
+        c.querySelectorAll("img").length === 10 &&
+        String(c.querySelector("img").getAttribute("src")).endsWith("farol.png?w=400") &&
+        !c.querySelector("svg"),
+    ],
+    [
+      "y el rumbo decide hacia dónde",
+      { enabled: true, tipo: "imagen", pieza: "https://x.test/a.png", rumbo: "cae" },
+      (c) => String(c.getAttribute("class")).includes("inv-pt-cae"),
+    ],
+    [
+      "un rumbo inventado vuelve a subir",
+      { enabled: true, tipo: "imagen", pieza: "https://x.test/a.png", rumbo: "de lado" },
+      (c) => String(c.getAttribute("class")).includes("inv-pt-sube"),
+    ],
+    [
+      "unas comillas en la URL no rompen el atributo",
+      { enabled: true, tipo: "imagen", pieza: 'https://x.test/a.png" onerror="alert(1)' },
+      (c) => !c.querySelector("img").getAttribute("onerror"),
+    ],
+    [
       "la cantidad se recorta a lo razonable",
       { enabled: true, tipo: "nieve", cantidad: "900" },
       (c) => c.children.length === 60,
@@ -1701,6 +1729,12 @@ for (const [nombre, tocar] of CASOS) {
       "una imagen con destello sí la dibuja",
       { ...base, movimiento: "destello" },
       (a) => Boolean(a.querySelector(".inv-ad-luz")),
+    ],
+    [
+      "«gira despacio» se aplica al movimiento y no al giro fijo",
+      { ...base, movimiento: "gira", giro: "30" },
+      (a) => Boolean(a.querySelector(".inv-ad-mov.inv-ad-m-gira")) &&
+        String(a.querySelector(".inv-ad-pieza").getAttribute("style")).includes("rotate(30deg)"),
     ],
     [
       "«desliza» deduce el borde de las coordenadas",

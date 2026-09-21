@@ -382,12 +382,19 @@ function ponerParticulas(document: Doc, data: InvitationData) {
   if (d.enabled === false) return;
 
   const tipo = String(d.tipo || "").trim();
-  const forma = FORMA_PARTICULA[tipo];
   const spec = PARTICULA_POR_TIPO[tipo];
+  /* La imagen propia no tiene dibujo: es la que se subió. Sin ella no hay
+     nada que soltar, y una capa vacía sólo costaría batería. */
+  const imagen = tipo === "imagen" ? String(d.pieza || "").trim() : "";
+  const forma = tipo === "imagen" ? (imagen ? () => "" : undefined) : FORMA_PARTICULA[tipo];
   if (!forma || !spec) return;
+  const rumbo = ["sube", "cae", "flota"].includes(String(d.rumbo))
+    ? String(d.rumbo)
+    : spec.movimiento;
+  const movimiento = tipo === "imagen" ? rumbo : spec.movimiento;
 
   const cuantas = Math.min(60, Math.max(6, Number(d.cantidad) || 18));
-  const tamano = Math.min(48, Math.max(8, Number(d.tamano) || 20));
+  const tamano = Math.min(96, Math.max(8, Number(d.tamano) || 20));
   const opacidad = Math.min(100, Math.max(10, Number(d.opacidad ?? 70))) / 100;
   const color = HEX.test(String(d.color || "").trim())
     ? String(d.color).trim()
@@ -397,7 +404,7 @@ function ponerParticulas(document: Doc, data: InvitationData) {
     : "";
 
   const capa = document.createElement("div");
-  capa.setAttribute("class", `inv-particulas inv-pt-${spec.movimiento}`);
+  capa.setAttribute("class", `inv-particulas inv-pt-${movimiento}`);
   capa.setAttribute("data-tipo", tipo);
   capa.setAttribute("aria-hidden", "true");
   capa.setAttribute("style", `--inv-pt-op:${opacidad}`);
@@ -418,7 +425,9 @@ function ponerParticulas(document: Doc, data: InvitationData) {
         `animation-duration:${dur}s;animation-delay:${espera}s;` +
         `--inv-pt-escala:${escala};--inv-pt-giro:${giro}deg;` +
         `--inv-pt-deriva:${deriva}px;--inv-pt-y:${(disperso(i, 7) * 100).toFixed(1)}%">` +
-        forma(color, "light") +
+        (imagen
+          ? `<img src="${(propia(imagen) ? conAncho(imagen, 400) : imagen).replace(/"/g, "%22").replace(/</g, "%3C")}" alt="" decoding="async">`
+          : forma(color, "light")) +
         `</i>`
     );
   }
@@ -924,7 +933,7 @@ function ponerFondo(seccion: El, d: InvitationData[string], sel: string, ctx: Ct
 /** Los efectos de entrada que se aceptan. El resto se ignora. */
 const ENTRADAS = new Set(["aparece", "sube", "crece", "gira", "desliza"]);
 /** Los de movimiento continuo. */
-const MOVIMIENTOS = new Set(["flota", "balancea", "late", "respira", "destello"]);
+const MOVIMIENTOS = new Set(["flota", "balancea", "late", "respira", "destello", "gira"]);
 
 /**
  * De qué borde entra un adorno que "entra desde su borde".
@@ -1753,6 +1762,9 @@ export const INJECTED_CSS = `
   animation-iteration-count:infinite;animation-timing-function:linear;
   transform:scale(var(--inv-pt-escala,1))}
 .inv-particulas i svg{width:100%;height:100%;display:block}
+/* La imagen propia conserva su proporción: un farolillo es más alto que
+   ancho, y estirarlo a un cuadrado lo vuelve un barril. */
+.inv-particulas i img{width:100%;height:auto;display:block}
 
 /* Sin JavaScript no hay nada que esperar: las partículas son CSS y corren
    solas. Pero sí hay algo que evitar — que arranquen todas a la vez —, y de
@@ -2107,11 +2119,16 @@ export const INJECTED_CSS = `
   transform-origin:50% 12%}
 .inv-ad-m-late{animation:invAdLate 5s ease-in-out infinite}
 .inv-ad-m-respira{animation:invAdRespira 5.5s ease-in-out infinite}
+/* Una vuelta por minuto: se nota que gira si se mira, y no se nota si no.
+   Para soles, mandalas y coronas, que son redondos y giran sin cambiar de
+   silueta. */
+.inv-ad-m-gira{animation:invAdGiraLento 60s linear infinite}
 
 @keyframes invAdFlota{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
 @keyframes invAdBalancea{0%,100%{transform:rotate(-2.2deg)}50%{transform:rotate(2.2deg)}}
 @keyframes invAdLate{0%,100%{transform:scale(1)}50%{transform:scale(1.045)}}
 @keyframes invAdRespira{0%,100%{opacity:1}50%{opacity:.55}}
+@keyframes invAdGiraLento{to{transform:rotate(360deg)}}
 
 /* El destello: una barra de luz que cruza, recortada con la silueta del
    propio adorno. La mascara es la misma imagen, asi que la luz sigue los
@@ -2135,7 +2152,7 @@ export const INJECTED_CSS = `
 @media (prefers-reduced-motion:reduce){
   .js .inv-ad-entra{opacity:var(--inv-ad-op,1)}
   .js .inv-ad-entra.in{animation:none}
-  .inv-ad-m-flota,.inv-ad-m-balancea,.inv-ad-m-late,.inv-ad-m-respira,
+  .inv-ad-m-flota,.inv-ad-m-balancea,.inv-ad-m-late,.inv-ad-m-respira,.inv-ad-m-gira,
   .inv-ad-luz i{animation:none}
   .inv-ad-luz{display:none}
 }

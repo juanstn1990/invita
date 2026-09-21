@@ -215,6 +215,8 @@ const APARTE = new Set([
   "tipo",
   "cantidad",
   "velocidad",
+  "pieza",
+  "rumbo",
   /* El fondo global lo monta `ponerFondoGlobal` en una capa fija propia. */
   "ajuste",
   "velo",
