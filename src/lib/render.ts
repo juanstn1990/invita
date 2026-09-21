@@ -10,7 +10,7 @@
 import { parseHTML } from "linkedom";
 import {
   ABANICO_JS, AGENDAR_JS, ANILLOS_JS, CAPITULOS_JS, CARRUSEL_JS, CIELO_JS, COMPONENTES_CSS, CONFETI_JS,
-  CONSTELACION_JS, DESEO_JS, FUGAZ_JS, LIBRO_JS, NUBES_JS, POLVO_JS, RASCA_JS, SENDERO_JS, SOBRE_JS, TELON_JS, VIAJE_JS, VENTANA_JS, CLAQUETA_JS, LLEGAN_JS,
+  CONSTELACION_JS, DESEO_JS, FUGAZ_JS, LIBRO_JS, NUBES_JS, POLVO_JS, RASCA_JS, SENDERO_JS, SOBRE_JS, TELON_JS, VIAJE_JS, VENTANA_JS, CLAQUETA_JS, LLEGAN_JS, MARIPOSA_JS,
   VOLTEA_JS,
 } from "./componentes";
 import { sanearHtml } from "./sanear";
@@ -415,7 +415,7 @@ function ponerParticulas(document: Doc, data: InvitationData) {
   const imagen = tipo === "imagen" ? String(d.pieza || "").trim() : "";
   const forma = tipo === "imagen" ? (imagen ? () => "" : undefined) : FORMA_PARTICULA[tipo];
   if (!forma || !spec) return;
-  const rumbo = ["sube", "cae", "flota"].includes(String(d.rumbo))
+  const rumbo = ["sube", "cae", "flota", "revolotea"].includes(String(d.rumbo))
     ? String(d.rumbo)
     : spec.movimiento;
   const movimiento = tipo === "imagen" ? rumbo : spec.movimiento;
@@ -1852,6 +1852,20 @@ a.inv-rsvp-btn{display:flex;width:max-content;max-width:100%;margin:28px auto 0;
   0%{transform:translate3d(0,12vh,0) rotate(0) scale(var(--inv-pt-escala,1))}
   100%{transform:translate3d(var(--inv-pt-deriva,0),-112vh,0)
     rotate(var(--inv-pt-giro,180deg)) scale(var(--inv-pt-escala,1))}}
+/* Revolotea: se queda en su franja de pantalla y va de un lado a otro, y
+   la imagen bate las alas —se encoge sobre su eje, como el aleteo de las
+   mariposas dibujadas—. Pensado para una mariposa subida como imagen, que
+   cayendo como un pétalo parecía muerta. */
+.inv-pt-revolotea i{top:var(--inv-pt-y,50%);animation-name:invPtRevolotea;animation-timing-function:ease-in-out}
+.inv-pt-revolotea i img{animation:invPtAletea .55s ease-in-out infinite}
+.inv-pt-revolotea i:nth-child(2n) img{animation-duration:.47s}
+.inv-pt-revolotea i:nth-child(3n) img{animation-duration:.63s}
+@keyframes invPtRevolotea{
+  0%,100%{transform:translate3d(0,0,0) rotate(-8deg) scale(var(--inv-pt-escala,1))}
+  25%{transform:translate3d(calc(var(--inv-pt-deriva,0px) * 2.4),-9vh,0) rotate(10deg) scale(var(--inv-pt-escala,1))}
+  50%{transform:translate3d(calc(var(--inv-pt-deriva,0px) * -1.8),-16vh,0) rotate(-4deg) scale(var(--inv-pt-escala,1))}
+  75%{transform:translate3d(calc(var(--inv-pt-deriva,0px) * 1.2),-6vh,0) rotate(7deg) scale(var(--inv-pt-escala,1))}}
+@keyframes invPtAletea{0%,100%{transform:scaleX(1)}50%{transform:scaleX(.3)}}
 @keyframes invPtFlota{
   0%,100%{transform:translate3d(0,0,0) scale(var(--inv-pt-escala,1));opacity:.55}
   50%{transform:translate3d(var(--inv-pt-deriva,0),-26px,0)
@@ -3106,7 +3120,7 @@ const FONDO_VIDEO_JS = `
  * inyectado; no hay marcado nuevo, así que funcionan igual en los 49 diseños
  * y en los que vengan.
  */
-const APERTURAS = new Set(["sobre", "sello", "deseo", "libro", "abanico", "nubes", "telon", "anillos", "ventana", "claqueta"]);
+const APERTURAS = new Set(["sobre", "sello", "deseo", "libro", "abanico", "nubes", "telon", "anillos", "ventana", "claqueta", "mariposa"]);
 
 /**
  * Cómo la cortina da paso a la invitación.
@@ -3965,6 +3979,14 @@ export function renderInvitation(opts: RenderOptions): string {
       );
       velo.insertAdjacentHTML?.("beforeend", `<p class="inv-sobre-pista">Toca para la primera toma</p>`);
     }
+    if (velo && apertura === "mariposa") {
+      velo.insertAdjacentHTML?.(
+        "afterbegin",
+        `<div class="inv-mariposa" aria-hidden="true">` +
+          `<i class="inv-ala inv-ala-izq"></i><i class="inv-ala inv-ala-der"></i></div>`
+      );
+      velo.insertAdjacentHTML?.("beforeend", `<p class="inv-sobre-pista">Toca la mariposa</p>`);
+    }
     if (velo && apertura === "anillos") {
       velo.insertAdjacentHTML?.(
         "afterbegin",
@@ -4651,7 +4673,7 @@ export function renderInvitation(opts: RenderOptions): string {
      y para encontrarla tiene que estar ya creada. */
   if (document.querySelector(".inv-cortina")) scripts.push(CORTINA_JS);
   /* Los componentes interactivos, cada uno sólo si la página lo usa. */
-  if (document.querySelector("[data-inv-sobre],[data-inv-libro],[data-inv-abanico],[data-inv-agendar],[data-inv-wa],.inv-velo-deseo,.inv-velo-nubes,.inv-velo-telon,.inv-velo-anillos,.inv-velo-claqueta,.inv-cielo,.inv-rasca-capa")) {
+  if (document.querySelector("[data-inv-sobre],[data-inv-libro],[data-inv-abanico],[data-inv-agendar],[data-inv-wa],.inv-velo-deseo,.inv-velo-nubes,.inv-velo-telon,.inv-velo-anillos,.inv-velo-claqueta,.inv-velo-mariposa,.inv-cielo,.inv-rasca-capa")) {
     scripts.push(CONFETI_JS);
   }
   if (document.querySelector(".inv-velo-deseo,.inv-cielo")) scripts.push(FUGAZ_JS);
@@ -4662,6 +4684,7 @@ export function renderInvitation(opts: RenderOptions): string {
   if (document.querySelector(".inv-ev-viaje")) scripts.push(VIAJE_JS);
   if (document.querySelector(".inv-velo-ventana")) scripts.push(VENTANA_JS);
   if (document.querySelector(".inv-velo-claqueta")) scripts.push(CLAQUETA_JS);
+  if (document.querySelector(".inv-velo-mariposa")) scripts.push(MARIPOSA_JS);
   if (document.querySelector(".inv-ev-cinta,.inv-ev-postales")) scripts.push(LLEGAN_JS);
   if (document.querySelector(".inv-rasca-capa")) scripts.push(RASCA_JS);
   if (document.querySelector("[data-inv-sobre]")) scripts.push(SOBRE_JS);

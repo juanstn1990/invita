@@ -917,6 +917,7 @@ export const SECTIONS: SectionSpec[] = [
           { value: "anillos", label: "Dos anillos que se unen y levantan el velo" },
           { value: "ventana", label: "Una ventana de balcón cuyos postigos se abren" },
           { value: "claqueta", label: "Una claqueta de cine: ¡acción!" },
+          { value: "mariposa", label: "Una mariposa que bate las alas y sale volando" },
         ],
         help: "Lo que pasa al pulsar el botón. Con «sobre con sello» el velo es un sobre cerrado y el sello es lo que se toca.",
       },
@@ -1437,6 +1438,7 @@ export const SECTIONS: SectionSpec[] = [
           { value: "sube", label: "Sube" },
           { value: "cae", label: "Cae" },
           { value: "flota", label: "Flota en su sitio" },
+          { value: "revolotea", label: "Revolotea batiendo las alas (para mariposas)" },
         ],
       },
       {

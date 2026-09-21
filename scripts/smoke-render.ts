@@ -1547,6 +1547,16 @@ for (const [nombre, tocar] of CASOS) {
       },
       (doc) => doc.querySelectorAll(".inv-ev-postales .event-card > .inv-estampilla").length === 2 &&
         !!doc.querySelector(".inv-estampilla .event-icon svg") && conScript(doc, "inv-ev-postales")],
+    ["mariposa: las dos alas, la pista y su script",
+      (d) => { d.splash = { ...d.splash, enabled: true, apertura: "mariposa" }; },
+      (doc) => doc.querySelectorAll("#splash.inv-velo-mariposa .inv-mariposa .inv-ala").length === 2 &&
+        conScript(doc, "inv-velo-mariposa")],
+    ["cuenta atrás con alas, con sus cuatro números",
+      (d) => { d.layout = { blocks: [{ id: "countdown-0", type: "countdown", variant: "alas" }] }; },
+      (doc) => doc.querySelectorAll(".inv-cd-alas [data-cd]").length === 4],
+    ["partículas que revolotean: la clase y su imagen",
+      (d) => { d.particulas = { enabled: true, tipo: "imagen", pieza: "/api/media/2026/09/m.png", rumbo: "revolotea", cantidad: "8" }; },
+      (doc) => doc.querySelectorAll(".inv-particulas.inv-pt-revolotea i img").length === 8],
     ["cuenta atrás de luciérnagas, con sus cuatro números",
       (d) => { d.layout = { blocks: [{ id: "countdown-0", type: "countdown", variant: "luciernagas" }] }; },
       (doc) => doc.querySelectorAll(".inv-cd-luciernagas [data-cd]").length === 4],

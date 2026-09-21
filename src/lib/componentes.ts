@@ -465,6 +465,68 @@ html:not(.js) .inv-ev-sendero .inv-dato{opacity:1;transform:none}
 .js .inv-ev-postales .event-card.llega{opacity:1;translate:0 0;
   transition:opacity .6s ease,translate .8s cubic-bezier(.2,.8,.3,1.15)}
 
+/* ── La mariposa: bate las alas despacio sobre el nombre; al tocarla, las
+   bate deprisa y sale volando ──
+   Cada ala es la mitad de la misma imagen (fondo al 200 %), así que basta
+   una mariposa de frente y simétrica. El diseño la pone en
+   --inv-mariposa-img; sin ella se dibuja una con cuatro elipses del acento. */
+#splash.inv-velo-mariposa{cursor:pointer;-webkit-tap-highlight-color:transparent;overflow:hidden}
+#splash.inv-velo-mariposa .splash-btns{display:none}
+#splash.inv-velo-mariposa .splash-modal{position:relative;z-index:3;margin-top:16vh}
+.inv-mariposa{position:absolute;left:50%;top:13%;z-index:4;width:clamp(150px,46vw,210px);aspect-ratio:1.33;
+  margin-left:calc(clamp(150px,46vw,210px) / -2);pointer-events:none;perspective:700px;
+  filter:drop-shadow(0 10px 18px rgba(0,0,0,.28));animation:invPosada 4s ease-in-out infinite}
+.inv-ala{position:absolute;top:0;bottom:0;width:50%;background-repeat:no-repeat;background-size:200% 100%;
+  background-image:var(--inv-mariposa-img,
+    radial-gradient(ellipse 22% 30% at 30% 34%,var(--inv-accent) 0 62%,transparent 64%),
+    radial-gradient(ellipse 16% 20% at 36% 74%,color-mix(in srgb,var(--inv-accent) 65%,#fff) 0 62%,transparent 64%),
+    radial-gradient(ellipse 22% 30% at 70% 34%,var(--inv-accent) 0 62%,transparent 64%),
+    radial-gradient(ellipse 16% 20% at 64% 74%,color-mix(in srgb,var(--inv-accent) 65%,#fff) 0 62%,transparent 64%));
+  animation:invAleteoIzq 2.8s ease-in-out infinite}
+.inv-ala-izq{left:0;background-position:0 0;transform-origin:100% 50%}
+.inv-ala-der{right:0;background-position:100% 0;transform-origin:0 50%;animation-name:invAleteoDer}
+@keyframes invAleteoIzq{0%,100%{transform:rotateY(0)}50%{transform:rotateY(58deg)}}
+@keyframes invAleteoDer{0%,100%{transform:rotateY(0)}50%{transform:rotateY(-58deg)}}
+@keyframes invPosada{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+#splash.abriendo .inv-ala{animation-duration:.26s}
+#splash.abriendo .inv-mariposa{animation:invVuela 1.5s cubic-bezier(.45,0,.7,.35) .2s forwards}
+@keyframes invVuela{40%{transform:translate(-6vw,-6vh) rotate(-10deg)}
+  100%{transform:translate(42vw,-72vh) rotate(26deg) scale(.45);opacity:0}}
+
+/* ── Cuenta atrás con alas ──
+   Cada número se posa entre dos alas que respiran; al cambiar, baten una
+   vez. Son dos seudoelementos por casilla, con dos elipses cada uno. */
+.inv-cd-alas{display:grid;grid-template-columns:repeat(4,1fr);gap:2px;max-width:440px;margin-inline:auto}
+.inv-cd-alas .countdown-ring{position:relative;aspect-ratio:1.05;display:grid;place-items:center;
+  border:0;border-radius:0;padding:0;background:none;box-shadow:none;overflow:visible;perspective:320px}
+/* Las alas son las dos mitades de una mariposa, como en la apertura: la
+   del diseño en --inv-alas-img (o la de la apertura), o, sin ninguna, dos
+   pares de alas dibujados con el acento. */
+.inv-cd-alas .countdown-ring::before,.inv-cd-alas .countdown-ring::after{content:"";position:absolute;top:-6%;bottom:-6%;
+  width:56%;pointer-events:none;background-repeat:no-repeat;background-size:200% 100%;
+  background-image:var(--inv-alas-img,var(--inv-mariposa-img,
+    radial-gradient(ellipse 34% 30% at 30% 30%,color-mix(in srgb,var(--inv-accent) 42%,transparent) 0 70%,transparent 72%),
+    radial-gradient(ellipse 22% 22% at 36% 72%,color-mix(in srgb,var(--inv-accent) 30%,transparent) 0 70%,transparent 72%),
+    radial-gradient(ellipse 34% 30% at 70% 30%,color-mix(in srgb,var(--inv-accent) 42%,transparent) 0 70%,transparent 72%),
+    radial-gradient(ellipse 22% 22% at 64% 72%,color-mix(in srgb,var(--inv-accent) 30%,transparent) 0 70%,transparent 72%)));
+  opacity:var(--inv-alas-op,.55);animation:invAlaCdIzq 3.4s ease-in-out infinite}
+.inv-cd-alas .countdown-ring::before{right:50%;background-position:0 50%;transform-origin:100% 50%}
+.inv-cd-alas .countdown-ring::after{left:50%;background-position:100% 50%;transform-origin:0 50%;animation-name:invAlaCdDer}
+.inv-cd-alas .countdown-ring:nth-child(2)::before,.inv-cd-alas .countdown-ring:nth-child(2)::after{animation-delay:-.8s}
+.inv-cd-alas .countdown-ring:nth-child(3)::before,.inv-cd-alas .countdown-ring:nth-child(3)::after{animation-delay:-1.6s}
+.inv-cd-alas .countdown-ring:nth-child(4)::before,.inv-cd-alas .countdown-ring:nth-child(4)::after{animation-delay:-2.4s}
+@keyframes invAlaCdIzq{0%,100%{transform:rotateY(0)}50%{transform:rotateY(38deg)}}
+@keyframes invAlaCdDer{0%,100%{transform:rotateY(0)}50%{transform:rotateY(-38deg)}}
+.inv-cd-alas .countdown-ring:has(.tick)::before{animation:invBateIzq .6s ease-in-out}
+.inv-cd-alas .countdown-ring:has(.tick)::after{animation:invBateDer .6s ease-in-out}
+@keyframes invBateIzq{50%{transform:rotateY(70deg)}}
+@keyframes invBateDer{50%{transform:rotateY(-70deg)}}
+.inv-cd-alas .ring-inner{position:relative;z-index:1;text-align:center}
+.inv-cd-alas .ring-number{display:block;font-size:clamp(24px,7.2vw,34px);line-height:1;
+  text-shadow:0 0 10px var(--inv-surface),0 0 3px var(--inv-surface)}
+.inv-cd-alas .ring-label{text-shadow:0 0 6px var(--inv-surface)}
+.inv-cd-alas .ring-label{display:block;margin-top:4px;font-size:9px;letter-spacing:.16em;text-transform:uppercase}
+
 /* ── El programa como constelación ──
    Las estrellas van por una franja central, un poco en zigzag, y cada
    momento a un lado y a otro: así la línea que las une nunca pisa texto. */
@@ -693,6 +755,7 @@ html:not(.js) .inv-ev-constelacion .inv-dato{opacity:1;transform:none}
   .inv-ev-sendero .inv-dato,.inv-parada{transition:none}
   .inv-viajero,.inv-hito{transition:none}
   .inv-postigo,.inv-claqueta-palo{transition:none}
+  .inv-mariposa,.inv-ala,.inv-cd-alas .countdown-ring::before,.inv-cd-alas .countdown-ring::after{animation:none}
   #splash.inv-velo-claqueta.abriendo,.inv-claqueta::after,.inv-cd-marquesina .countdown-ring::before,
   .inv-cd-marquesina .countdown-ring::after{animation:none}
   .js .inv-ev-cinta .event-card,.js .inv-ev-postales .event-card{opacity:1;translate:none;animation:none}
@@ -1117,6 +1180,25 @@ export const LLEGAN_JS = `
     es.forEach(function(e){ if (e.isIntersecting) { marca(e.target); io.unobserve(e.target); } });
   }, { threshold: .3 });
   fichas.forEach(function(f){ io.observe(f); });
+})();`;
+
+/** La mariposa: se toca, bate las alas deprisa y sale volando; detrás, la invitación. */
+export const MARIPOSA_JS = `
+(function(){
+  var velo = document.querySelector('#splash.inv-velo-mariposa');
+  if (!velo) return;
+  var quieto = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var hecho = false;
+  velo.addEventListener('click', function(e){
+    if (hecho || e.target.closest('a')) return;
+    hecho = true;
+    velo.classList.add('abriendo');
+    if (window.invEstallar) setTimeout(function(){ window.invEstallar(innerWidth / 2, innerHeight * .22, 46); }, quieto ? 0 : 250);
+    setTimeout(function(){
+      var b = velo.querySelector('.splash-btn-primary');
+      if (b) b.click(); else if (window.enterSite) window.enterSite();
+    }, quieto ? 0 : 1500);
+  });
 })();`;
 
 /** Rasca y descubre: una capa de plata sobre cada ficha. */

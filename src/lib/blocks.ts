@@ -183,6 +183,13 @@ const countdown: BlockSpec = {
       hint: "Cada número en un letrero de cine con bombillas que corren por el marco",
       build: () => reloj("inv-cd-marquesina"),
     },
+    /* Las alas: cada número entre dos alas que respiran y baten al cambiar. */
+    {
+      id: "alas",
+      name: "Alas",
+      hint: "Cada número se posa entre dos alas de mariposa que baten al cambiar",
+      build: () => reloj("inv-cd-alas"),
+    },
     {
       id: "medallon",
       name: "Medallón",
