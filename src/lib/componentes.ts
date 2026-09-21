@@ -222,6 +222,89 @@ export const COMPONENTES_CSS = `
 .inv-cd-orbitas .ring-label{position:absolute;left:0;right:0;bottom:-19px;display:block;
   font-size:9px;letter-spacing:.18em}
 
+/* ── Cuenta atrás de luciérnagas ──
+   Un halo que respira detrás de cada número y tres luciérnagas que
+   revolotean, cada una con su recorrido y su ritmo para que no se note el
+   bucle. Las luciérnagas son sombras de un solo punto: tres cuerpos, cero
+   elementos de más. */
+.inv-cd-luciernagas{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;max-width:440px;margin-inline:auto}
+.inv-cd-luciernagas .countdown-ring{position:relative;aspect-ratio:.9;display:grid;place-items:center;
+  background:none;border:0;box-shadow:none;overflow:visible}
+.inv-cd-luciernagas .countdown-ring::before{content:"";position:absolute;inset:6%;border-radius:50%;
+  background:radial-gradient(closest-side,color-mix(in srgb,var(--inv-accent) 52%,transparent),
+    color-mix(in srgb,var(--inv-accent) 14%,transparent) 62%,transparent);
+  animation:invHalo 4s ease-in-out infinite;transition:filter .5s}
+.inv-cd-luciernagas .countdown-ring:nth-child(2)::before{animation-delay:-1s}
+.inv-cd-luciernagas .countdown-ring:nth-child(3)::before{animation-delay:-2s}
+.inv-cd-luciernagas .countdown-ring:nth-child(4)::before{animation-delay:-3s}
+.inv-cd-luciernagas .countdown-ring::after{content:"";position:absolute;left:50%;top:50%;width:3px;height:3px;
+  border-radius:50%;background:#fffbe0;pointer-events:none;
+  box-shadow:0 0 6px 2px color-mix(in srgb,var(--inv-accent) 80%,#fff),
+    22px -30px 0 0 #fffbe0,22px -30px 6px 2px color-mix(in srgb,var(--inv-accent) 70%,transparent),
+    -28px 18px 0 0 #fffbe0,-28px 18px 6px 2px color-mix(in srgb,var(--inv-accent) 70%,transparent);
+  animation:invRevolotea 9s ease-in-out infinite}
+.inv-cd-luciernagas .countdown-ring:nth-child(2)::after{animation-duration:11s;animation-direction:reverse}
+.inv-cd-luciernagas .countdown-ring:nth-child(3)::after{animation-duration:8s;animation-delay:-3s}
+.inv-cd-luciernagas .countdown-ring:nth-child(4)::after{animation-duration:12s;animation-direction:alternate-reverse}
+@keyframes invHalo{0%,100%{transform:scale(.9);opacity:.7}50%{transform:scale(1.05);opacity:1}}
+@keyframes invRevolotea{
+  0%{transform:translate(-8px,-26px);opacity:.9}20%{transform:translate(20px,-6px);opacity:.4}
+  45%{transform:translate(6px,24px);opacity:1}70%{transform:translate(-22px,6px);opacity:.5}
+  100%{transform:translate(-8px,-26px);opacity:.9}}
+.inv-cd-luciernagas .ring-inner{position:relative;z-index:1;text-align:center}
+.inv-cd-luciernagas .ring-number{display:block;font-size:clamp(24px,7.4vw,34px);line-height:1;
+  text-shadow:0 0 14px color-mix(in srgb,var(--inv-accent) 70%,transparent)}
+.inv-cd-luciernagas .ring-label{display:block;margin-top:6px;font-size:9.5px;letter-spacing:.18em}
+/* El segundo que pasa: el número destella y su halo se aviva un instante. */
+.inv-cd-luciernagas .ring-number.tick{animation:invDestellaNum .7s ease-out}
+.inv-cd-luciernagas .countdown-ring:has(.tick)::before{filter:brightness(1.5) saturate(1.2)}
+@keyframes invDestellaNum{0%{text-shadow:0 0 26px var(--inv-accent),0 0 6px #fff}100%{}}
+
+/* ── El programa como sendero ──
+   El camino lo traza el script por el centro de cada parada y se curva a un
+   lado y a otro entre parada y parada: las curvas caen en el hueco entre
+   dos momentos, que es donde no hay texto. La luciérnaga va por el mismo
+   camino con offset-path, así que nunca se sale de él. */
+.inv-ev-sendero{position:relative;display:block;max-width:440px;margin:24px auto 0;padding:26px 0}
+.inv-senda{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+.inv-senda path{fill:none;stroke-linecap:round}
+.inv-senda-fondo{stroke:color-mix(in srgb,var(--inv-accent) 35%,transparent);stroke-width:1.5;stroke-dasharray:2 7}
+.inv-senda-luz{stroke:var(--inv-accent);stroke-width:2;stroke-dasharray:1;
+  stroke-dashoffset:calc(1 - var(--inv-senda,0));
+  filter:drop-shadow(0 0 4px color-mix(in srgb,var(--inv-accent) 80%,transparent))}
+.inv-luciernaga{position:absolute;left:0;top:0;z-index:4;width:12px;height:12px;border-radius:50%;
+  pointer-events:none;opacity:0;
+  background:radial-gradient(#fffbe0 20%,color-mix(in srgb,var(--inv-accent) 85%,#fff) 45%,transparent 72%);
+  box-shadow:0 0 16px 6px color-mix(in srgb,var(--inv-accent) 55%,transparent);
+  offset-rotate:0deg;offset-distance:calc(var(--inv-senda,0) * 100%);
+  transition:offset-distance .3s linear,opacity .6s;animation:invTitila 1.7s ease-in-out infinite}
+.inv-ev-sendero.trazado .inv-luciernaga{opacity:1}
+@keyframes invTitila{0%,100%{scale:1}50%{scale:.7}}
+.inv-ev-sendero .event-card{position:relative;display:grid;grid-template-columns:1fr 60px 1fr;column-gap:14px;
+  align-items:center;min-height:118px;padding:10px 0;background:none;border:0;box-shadow:none;border-radius:0}
+.inv-ev-sendero .event-card:hover{transform:none}
+.inv-parada{grid-column:2;grid-row:1;justify-self:center;position:relative;z-index:3;
+  width:54px;height:54px;display:grid;place-items:center;border-radius:50%;
+  background:var(--inv-surface);color:var(--inv-accent);font-size:22px;font-style:normal;
+  box-shadow:0 0 0 1.5px color-mix(in srgb,var(--inv-accent) 40%,transparent);
+  transform:scale(.84);transition:transform .7s cubic-bezier(.2,.7,.3,1),box-shadow .7s}
+.inv-parada .event-icon{display:grid;place-items:center;margin:0;padding:0;width:auto;height:auto;
+  background:none;border:0;box-shadow:none;color:inherit;font-size:inherit}
+.inv-parada svg{width:26px;height:26px}
+/* Sin ícono, la parada es un punto de luz. */
+.inv-parada:empty{width:18px;height:18px;
+  background:radial-gradient(#fffbe0 25%,color-mix(in srgb,var(--inv-accent) 85%,#fff) 55%,transparent 72%)}
+.inv-ev-sendero .event-card.encendido .inv-parada{transform:none;
+  box-shadow:0 0 0 1.5px var(--inv-accent),0 0 24px 5px color-mix(in srgb,var(--inv-accent) 45%,transparent)}
+.inv-ev-sendero .event-card.encendido .inv-parada:empty{box-shadow:0 0 18px 6px color-mix(in srgb,var(--inv-accent) 55%,transparent)}
+.inv-ev-sendero .inv-dato{grid-column:3;grid-row:1;text-align:left;
+  opacity:0;transform:translateX(14px);transition:opacity .8s ease .1s,transform .8s ease .1s}
+.inv-ev-sendero .event-card:nth-of-type(odd) .inv-dato{grid-column:1;text-align:right;transform:translateX(-14px)}
+.inv-ev-sendero .event-card.encendido .inv-dato{opacity:1;transform:none}
+.inv-ev-sendero :is(.event-type,.event-title,.event-time,.event-place,.event-note){margin:0}
+.inv-ev-sendero .event-map-btn{margin-top:8px}
+html:not(.js) .inv-ev-sendero .inv-dato{opacity:1;transform:none}
+
 /* ── El programa como constelación ──
    Las estrellas van por una franja central, un poco en zigzag, y cada
    momento a un lado y a otro: así la línea que las une nunca pisa texto. */
@@ -442,6 +525,9 @@ html:not(.js) .inv-ev-constelacion .inv-dato{opacity:1;transform:none}
   .inv-ev-constelacion .inv-dato,.inv-luz{opacity:1;transform:none;transition:none}
   .inv-sobre-carta,.inv-sobre-solapa,.inv-fe-voltea .inv-cara{transition:none}
   .inv-cd-paletas .ring-number.tick{animation:none}
+  .inv-cd-luciernagas .countdown-ring::before,.inv-cd-luciernagas .countdown-ring::after,
+  .inv-cd-luciernagas .ring-number.tick,.inv-luciernaga{animation:none}
+  .inv-ev-sendero .inv-dato,.inv-parada{transition:none}
   .inv-polvo,.inv-confeti{display:none}
 }`;
 
@@ -737,6 +823,56 @@ export const CONSTELACION_JS = `
   addEventListener('resize', function(){ trazar(); bajar(); });
   addEventListener('scroll', bajar, { passive: true });
   /* Las letras cambian la altura de cada momento al cargar: se vuelve a trazar. */
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(trazar);
+  setTimeout(trazar, 1200);
+})();`;
+
+/**
+ * El sendero: traza el camino por el centro de cada ícono, curvándose a un
+ * lado y a otro entre parada y parada, lo pone también como recorrido de la
+ * luciérnaga, y al bajar avanza la luz y enciende cada momento.
+ */
+export const SENDERO_JS = `
+(function(){
+  var sendas = [].slice.call(document.querySelectorAll('.inv-ev-sendero'));
+  if (!sendas.length) return;
+  function trazar(){
+    sendas.forEach(function(m){
+      var b = m.getBoundingClientRect();
+      if (!b.width) return;
+      var pts = [].slice.call(m.querySelectorAll('.event-card .inv-parada')).map(function(l){
+        var r = l.getBoundingClientRect();
+        return [r.left + r.width / 2 - b.left, r.top + r.height / 2 - b.top];
+      });
+      if (!pts.length) return;
+      var cx = b.width / 2, previo = [cx, 0], d = 'M' + cx.toFixed(1) + ' 0';
+      var vaiven = Math.min(46, b.width * .11);
+      pts.concat([[cx, b.height]]).forEach(function(p, i){
+        var my = (previo[1] + p[1]) / 2, w = (i % 2 ? 1 : -1) * vaiven;
+        d += ' C' + (previo[0] + w).toFixed(1) + ' ' + my.toFixed(1) + ' ' + (p[0] + w).toFixed(1) + ' ' +
+          my.toFixed(1) + ' ' + p[0].toFixed(1) + ' ' + p[1].toFixed(1);
+        previo = p;
+      });
+      [].slice.call(m.querySelectorAll('.inv-senda path')).forEach(function(x){ x.setAttribute('d', d); });
+      var luz = m.querySelector('.inv-luciernaga');
+      if (luz) luz.style.offsetPath = 'path("' + d + '")';
+      m.classList.add('trazado');
+    });
+  }
+  function bajar(){
+    var mitad = innerHeight * .62;
+    sendas.forEach(function(m){
+      var b = m.getBoundingClientRect(), p = Math.max(0, Math.min(1, (mitad - b.top) / (b.height || 1)));
+      m.style.setProperty('--inv-senda', p.toFixed(3));
+      [].slice.call(m.querySelectorAll('.event-card')).forEach(function(c){
+        var ic = c.querySelector('.inv-parada') || c;
+        if (ic.getBoundingClientRect().top + 10 < mitad) c.classList.add('encendido');
+      });
+    });
+  }
+  trazar(); bajar();
+  addEventListener('resize', function(){ trazar(); bajar(); });
+  addEventListener('scroll', bajar, { passive: true });
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(trazar);
   setTimeout(trazar, 1200);
 })();`;

@@ -1493,6 +1493,25 @@ for (const [nombre, tocar] of CASOS) {
         !!doc.querySelector(".inv-ev-constelacion .inv-traza path") &&
         doc.querySelector(".inv-ev-constelacion .inv-dato .event-type")?.textContent.trim() === "Recepción" &&
         conScript(doc, "inv-ev-constelacion")],
+    ["programa en sendero: el camino, la luciérnaga, una parada por momento y su script",
+      (d) => {
+        d.layout = { blocks: [{ id: "events-0", type: "events", variant: "sendero" }] };
+        d.events = { ...d.events, enabled: true, items: [
+          { icon: "iglesia", kind: "Misa", title: "Acción de gracias", time: "5:00" },
+          { kind: "Vals", title: "El baile", time: "8:00" },
+          { kind: "Cena", title: "En familia", time: "9:00" }] };
+      },
+      /* Tres paradas aunque sólo el primero traiga ícono: sin ícono el
+         renderer borra el .event-icon, y la parada no puede depender de él. */
+      (doc) => doc.querySelectorAll(".inv-ev-sendero .event-card > .inv-parada").length === 3 &&
+        !!doc.querySelector(".inv-ev-sendero .inv-parada .event-icon svg") &&
+        doc.querySelectorAll(".inv-ev-sendero .inv-senda path").length === 2 &&
+        !!doc.querySelector(".inv-ev-sendero .inv-luciernaga") &&
+        doc.querySelector(".inv-ev-sendero .inv-dato .event-type")?.textContent.trim() === "Misa" &&
+        conScript(doc, "inv-ev-sendero")],
+    ["cuenta atrás de luciérnagas, con sus cuatro números",
+      (d) => { d.layout = { blocks: [{ id: "countdown-0", type: "countdown", variant: "luciernagas" }] }; },
+      (doc) => doc.querySelectorAll(".inv-cd-luciernagas [data-cd]").length === 4],
     ["rasca y descubre: una capa por ficha y su script",
       (d) => {
         d.layout = { blocks: [{ id: "features-0", type: "features", variant: "rasca" }] };

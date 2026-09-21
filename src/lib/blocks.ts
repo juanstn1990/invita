@@ -165,6 +165,16 @@ const countdown: BlockSpec = {
       hint: "Como un reloj de aeropuerto: cada número gira al cambiar",
       build: () => reloj("inv-cd-paletas"),
     },
+    /* Las luciérnagas: cada número dentro de un halo que respira, con
+       tres luciérnagas que revolotean alrededor a su aire. Al cambiar el
+       número —el .tick que ya pone la cuenta atrás— el halo se enciende.
+       Es CSS nada más: no hace falta script propio. */
+    {
+      id: "luciernagas",
+      name: "Luciérnagas",
+      hint: "Cada número en un halo de luz con luciérnagas alrededor; se enciende al cambiar",
+      build: () => reloj("inv-cd-luciernagas"),
+    },
     {
       id: "medallon",
       name: "Medallón",
@@ -297,6 +307,33 @@ const events: BlockSpec = {
         <p class="event-place">Lugar<small>Dirección</small></p>
         <p class="event-note">Nota</p>
         <a class="event-map-btn" href="#">¿Cómo llegar?</a>
+      </article>
+    </div>`,
+    },
+    /* El sendero: un camino que serpentea entre los momentos y una
+       luciérnaga que lo recorre al bajar; cada parada se enciende cuando
+       llega. La parada es un elemento propio con el ícono dentro: un
+       momento sin ícono pierde su .event-icon —el renderer borra los campos
+       vacíos— y sin esto el camino se saltaba esa parada. Como en la
+       constelación, el resto de la ficha va dentro de .inv-dato. */
+    {
+      id: "sendero",
+      name: "Sendero",
+      hint: "Un camino que serpentea y una luciérnaga que lo recorre encendiendo cada momento",
+      build: () => `${head()}${body}
+    <div class="events-grid inv-ev-sendero">
+      <svg class="inv-senda" aria-hidden="true"><path class="inv-senda-fondo"/><path class="inv-senda-luz" pathLength="1"/></svg>
+      <i class="inv-luciernaga" aria-hidden="true"></i>
+      <article class="event-card">
+        <i class="inv-parada" aria-hidden="true"><span class="event-icon">✦</span></i>
+        <div class="inv-dato">
+          <p class="event-time">Hora</p>
+          <p class="event-type">Tipo</p>
+          <h3 class="event-title">Momento</h3>
+          <p class="event-place">Lugar<small>Dirección</small></p>
+          <p class="event-note">Nota</p>
+          <a class="event-map-btn" href="#">¿Cómo llegar?</a>
+        </div>
       </article>
     </div>`,
     },
