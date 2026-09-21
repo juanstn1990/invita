@@ -404,6 +404,9 @@ export const TIPOS_PARTICULA: { value: string; label: string; movimiento: "cae" 
   /* La de cada plantilla: farolillos, flores de un color exacto, un logo.
      El movimiento no sale del tipo sino del campo «rumbo». */
   { value: "imagen", label: "Una imagen propia (PNG)", movimiento: "sube" },
+  /* No es una pieza que cae: es polvo que flota y se aparta del dedo. Se
+     dibuja en un canvas, no con piezas de CSS. */
+  { value: "polvo", label: "Polvo de oro (se aparta del dedo)", movimiento: "flota" },
 ];
 
 export const PARTICULA_POR_TIPO = Object.fromEntries(
@@ -902,8 +905,17 @@ export const SECTIONS: SectionSpec[] = [
         options: [
           { value: "", label: "Se funde (la de siempre)" },
           { value: "sobre", label: "Como un sobre que se abre" },
+          { value: "sello", label: "Un sobre con sello: se toca para abrir" },
         ],
-        help: "Lo que pasa al pulsar el botón. El velo cerrado se ve igual en los dos casos.",
+        help: "Lo que pasa al pulsar el botón. Con «sobre con sello» el velo es un sobre cerrado y el sello es lo que se toca.",
+      },
+      {
+        key: "sello",
+        label: "Imagen del sello",
+        type: "image",
+        span: 2,
+        showIf: { key: "apertura", value: "sello" },
+        help: "Un PNG redondo con transparencia, como un lacre. Vacío = un sello del color de acento con la inicial.",
       },
       textColor,
     ],

@@ -1370,6 +1370,74 @@ for (const [nombre, tocar] of CASOS) {
   }
 }
 
+/* ── Los componentes interactivos ────────────────────────────────
+   Sobre con sello, cuenta atrás de paletas, fichas que se voltean,
+   «Agendar» y polvo de oro. Se comprueba en los 52 que el marcado sale y
+   que el script que lo mueve va con él: un componente sin su script es un
+   sobre que no se abre, que es peor que no tener sobre. */
+{
+  const conScript = (doc: any, trozo: string) =>
+    Array.from(doc.querySelectorAll("script")).some((x: any) => String(x.textContent).includes(trozo));
+  const casos: [string, (d: any) => void, (doc: any) => boolean][] = [
+    ["sobre con sello: el sobre, el nombre y su script",
+      (d) => { d.splash = { ...d.splash, enabled: true, apertura: "sello" }; d.event.name1 = "Valentina"; },
+      (doc) => !!doc.querySelector("#splash [data-inv-sobre]") &&
+        String(doc.querySelector(".inv-sobre-nombre")?.textContent).includes("Valentina") &&
+        doc.querySelector(".inv-sobre-sello")?.textContent.trim() === "V" &&
+        conScript(doc, "data-inv-sobre") && conScript(doc, "invEstallar")],
+    ["sobre con sello y su imagen",
+      (d) => { d.splash = { ...d.splash, enabled: true, apertura: "sello", sello: "/api/media/2026/09/s.png" }; },
+      (doc) => String(doc.querySelector(".inv-sobre-sello.con-imagen")?.getAttribute("style")).includes("s.png?w=400")],
+    ["sin apertura de sello no hay sobre ni su script",
+      () => {},
+      (doc) => !doc.querySelector("[data-inv-sobre]") && !conScript(doc, "data-inv-sobre')")],
+    ["cuenta atrás de paletas, con sus cuatro números",
+      (d) => { d.layout = { blocks: [{ id: "countdown-0", type: "countdown", variant: "paletas" }] }; },
+      (doc) => doc.querySelectorAll(".inv-cd-paletas [data-cd]").length === 4],
+    ["fichas que se voltean: título delante, texto detrás, y su script",
+      (d) => {
+        d.layout = { blocks: [{ id: "features-0", type: "features", variant: "voltea" }] };
+        d.features = { ...d.features, enabled: true, items: [{ icon: "✦", title: "Ellas", text: "Vestido largo" }] };
+      },
+      (doc) => doc.querySelector(".inv-fe-voltea .inv-cara-frente .feature-title")?.textContent.trim() === "Ellas" &&
+        doc.querySelector(".inv-fe-voltea .inv-cara-dorso .feature-text")?.textContent.trim() === "Vestido largo" &&
+        conScript(doc, "inv-fe-voltea")],
+    ["ubicación sin texto de calendario: sin botón",
+      (d) => { d.layout = { blocks: [{ id: "u-1", type: "ubicacion", variant: "ficha", data: { place: "Salón" } }] }; },
+      (doc) => !doc.querySelector("[data-inv-agendar]")],
+    ["ubicación con «Agendar»: fecha, título y lugar",
+      (d) => {
+        d.event.date = "2027-03-14T19:00"; d.event.name1 = "Valentina"; d.splash = { ...d.splash, label: "Mis XV años" };
+        d.layout = { blocks: [{ id: "u-1", type: "ubicacion", variant: "ficha",
+          data: { place: "Hacienda", address: "Km 5", calendarText: "Agendar" } }] };
+      },
+      (doc) => {
+        const b = doc.querySelector("[data-inv-agendar]");
+        return !!b && b.getAttribute("data-inicio") === "2027-03-14T19:00" &&
+          String(b.getAttribute("data-titulo")).includes("Valentina") &&
+          b.getAttribute("data-lugar") === "Hacienda, Km 5" && conScript(doc, "data-inv-agendar");
+      }],
+    ["polvo de oro: un canvas y no piezas de CSS",
+      (d) => { d.particulas = { enabled: true, tipo: "polvo", cantidad: "20" }; },
+      (doc) => !!doc.querySelector("canvas.inv-polvo") && !doc.querySelector(".inv-particulas") &&
+        doc.querySelector("canvas.inv-polvo").getAttribute("data-n") === "60" && conScript(doc, "inv-polvo")],
+  ];
+  for (const [nombre, preparar, comprueba] of casos) {
+    const mal: string[] = [];
+    for (const tpl of TEMPLATES) {
+      const d: any = defaultData();
+      preparar(d);
+      const { document } = parseHTML(
+        renderInvitation({ templateHtml: readTemplate(tpl.id), templateId: tpl.id, data: d, slug: "demo" })
+      );
+      try { if (!comprueba(document)) mal.push(tpl.id); } catch { mal.push(`${tpl.id} (excepción)`); }
+    }
+    if (mal.length) botonMal++;
+    console.log(`${mal.length ? "✗" : "✓"} componente · ${nombre.padEnd(52)}` +
+      (mal.length ? `  ${mal.length} mal: ${mal.slice(0, 2).join(", ")}` : ""));
+  }
+}
+
 /* ── La portada acepta fondo y párrafo ───────────────────────────
    La portada estuvo fuera del fondo mientras el argumento fue "ese sitio ya
    lo ocupa su foto". Con el fondo aceptando vídeo dejó de valer, y lo que hay

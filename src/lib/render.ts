@@ -8,6 +8,9 @@
  */
 
 import { parseHTML } from "linkedom";
+import {
+  AGENDAR_JS, COMPONENTES_CSS, CONFETI_JS, POLVO_JS, SOBRE_JS, VOLTEA_JS,
+} from "./componentes";
 import { sanearHtml } from "./sanear";
 import { mapFor, type ListBinding, type Op } from "./bindings";
 import { BLOCK_BY_TYPE, readLayout, variantOf, type Block } from "./blocks";
@@ -382,6 +385,20 @@ function ponerParticulas(document: Doc, data: InvitationData) {
   if (d.enabled === false) return;
 
   const tipo = String(d.tipo || "").trim();
+  /* El polvo de oro no son piezas de CSS: es un canvas que dibuja el
+     script, porque tiene que reaccionar al dedo. */
+  if (tipo === "polvo") {
+    const lienzo = document.createElement("canvas");
+    lienzo.setAttribute("class", "inv-polvo");
+    lienzo.setAttribute("aria-hidden", "true");
+    lienzo.setAttribute("data-n", String(Math.min(120, Math.max(10, (Number(d.cantidad) || 18) * 3))));
+    lienzo.setAttribute("data-op", String(Math.min(100, Math.max(10, Number(d.opacidad ?? 70))) / 100));
+    lienzo.setAttribute("data-tam", String(Math.min(96, Math.max(8, Number(d.tamano) || 20))));
+    if (HEX.test(String(d.color || "").trim())) lienzo.setAttribute("data-color", String(d.color).trim());
+    if (["lento", "rapido"].includes(String(d.velocidad))) lienzo.setAttribute("data-ritmo", String(d.velocidad));
+    document.body.appendChild(lienzo);
+    return;
+  }
   const spec = PARTICULA_POR_TIPO[tipo];
   /* La imagen propia no tiene dibujo: es la que se subió. Sin ella no hay
      nada que soltar, y una capa vacía sólo costaría batería. */
@@ -3049,7 +3066,7 @@ const FONDO_VIDEO_JS = `
  * inyectado; no hay marcado nuevo, así que funcionan igual en los 49 diseños
  * y en los que vengan.
  */
-const APERTURAS = new Set(["sobre"]);
+const APERTURAS = new Set(["sobre", "sello"]);
 
 /**
  * Cómo la cortina da paso a la invitación.
@@ -3790,7 +3807,30 @@ export function renderInvitation(opts: RenderOptions): string {
   }
   if (ancla && ancla.parentNode === padre) padre.insertBefore(ancla, padre.firstChild);
 
-  /* 3 · bis · El botón de la portada apunta a la primera sección visible.
+  /* 3 · bis · El botón de «Agendar» de cada ubicación.
+     Sin texto no hay botón: es opcional y las ubicaciones de antes no lo
+     traían. Con texto lleva la fecha de la invitación, el título y el
+     lugar, que es lo que el script mete en el .ics. */
+  for (const r of resueltos) {
+    const boton = r.el.querySelector?.("[data-inv-agendar]") as El | null;
+    if (!boton) continue;
+    const texto = String((r.data as Record<string, unknown>)?.calendarText || "").trim();
+    if (!texto || !iso) { boton.remove(); continue; }
+    boton.textContent = texto;
+    boton.setAttribute("data-inicio", iso);
+    /* «Mis XV años · Valentina»: el antetítulo del velo dice qué se
+       celebra, y en un calendario un nombre suelto no dice nada. */
+    const que = String(data.splash?.label || data.hero?.label || "").trim();
+    const quien = coupleName(data) || "";
+    boton.setAttribute("data-titulo", [que, quien].filter(Boolean).join(" · ") || "Invitación");
+    const rd = (r.data || {}) as Record<string, unknown>;
+    boton.setAttribute(
+      "data-lugar",
+      [rd.place, rd.address].map((x) => String(x || "").trim()).filter(Boolean).join(", ")
+    );
+  }
+
+  /* 3 · ter · El botón de la portada apunta a la primera sección visible.
      El esqueleto lo deja en `#countdown`, y si esa sección está apagada el
      botón queda vivo pero no lleva a ningún sitio: para quien lo pulsa es lo
      mismo que si no estuviera. Aquí ya se sabe qué secciones quedaron y en
@@ -3835,6 +3875,28 @@ export function renderInvitation(opts: RenderOptions): string {
       velo.setAttribute(
         "class",
         `${velo.getAttribute("class") || ""} inv-velo-${apertura}`.trim()
+      );
+    }
+    /* El sobre con sello: el velo se vuelve un sobre cerrado, con el nombre
+       en la carta de dentro. El panel del velo sigue ahí, escondido, porque
+       su botón es el que el sobre pulsa al abrirse. */
+    if (velo && apertura === "sello") {
+      const nombre = coupleName(data) || "";
+      const ante = String(data.splash?.label || "").trim();
+      const img = String(data.splash?.sello || "").trim();
+      const inicial = (String(data.event?.name1 || nombre).trim().charAt(0) || "✦").toUpperCase();
+      const url = img ? (propia(img) ? conAncho(img, 400) : img) : "";
+      const sello = url
+        ? `<div class="inv-sobre-sello con-imagen" style="--inv-sello-img:url(&quot;${escapeHtml(url).replace(/"/g, "%22")}&quot;)"></div>`
+        : `<div class="inv-sobre-sello">${escapeHtml(inicial)}</div>`;
+      velo.insertAdjacentHTML?.(
+        "beforeend",
+        `<div class="inv-sobre" data-inv-sobre role="button" tabindex="0" aria-label="Abrir la invitación">` +
+          `<div class="inv-sobre-cuerpo"></div>` +
+          `<div class="inv-sobre-carta">${ante ? `<p class="inv-sobre-ante">${escapeHtml(ante)}</p>` : ""}` +
+          `<p class="inv-sobre-nombre">${escapeHtml(nombre)}</p></div>` +
+          `<div class="inv-sobre-bolsillo"></div><div class="inv-sobre-solapa"></div>${sello}` +
+          `</div><p class="inv-sobre-pista">Toca el sello</p>`
       );
     }
   }
@@ -4408,7 +4470,7 @@ export function renderInvitation(opts: RenderOptions): string {
     return decls.length ? `:root{${decls.join(";")}}` : "";
   })();
 
-  style.textContent = [paletaCss, botonCss, INJECTED_CSS, ...extraCss, ...fontCss, ...colorCss]
+  style.textContent = [paletaCss, botonCss, INJECTED_CSS, COMPONENTES_CSS, ...extraCss, ...fontCss, ...colorCss]
     .filter(Boolean)
     .join("\n");
 
@@ -4435,6 +4497,12 @@ export function renderInvitation(opts: RenderOptions): string {
   /* Después de la música: la cortina la busca por su id para hacerla esperar,
      y para encontrarla tiene que estar ya creada. */
   if (document.querySelector(".inv-cortina")) scripts.push(CORTINA_JS);
+  /* Los componentes interactivos, cada uno sólo si la página lo usa. */
+  if (document.querySelector("[data-inv-sobre],[data-inv-agendar],[data-inv-wa]")) scripts.push(CONFETI_JS);
+  if (document.querySelector("[data-inv-sobre]")) scripts.push(SOBRE_JS);
+  if (document.querySelector(".inv-fe-voltea")) scripts.push(VOLTEA_JS);
+  if (document.querySelector("[data-inv-agendar]")) scripts.push(AGENDAR_JS);
+  if (document.querySelector(".inv-polvo")) scripts.push(POLVO_JS);
   /* Sólo en el editor: en lo publicado sería dejar mover la decoración a
      quien recibe la invitación. */
   if (preview && document.querySelector("[data-inv-adorno]")) {

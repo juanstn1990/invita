@@ -154,6 +154,12 @@ const countdown: BlockSpec = {
       build: () => reloj("inv-cd-vertical"),
     },
     {
+      id: "paletas",
+      name: "Paletas",
+      hint: "Como un reloj de aeropuerto: cada número gira al cambiar",
+      build: () => reloj("inv-cd-paletas"),
+    },
+    {
       id: "medallon",
       name: "Medallón",
       hint: "Los días en un círculo grande y el resto pequeño debajo",
@@ -446,6 +452,22 @@ const features: BlockSpec = {
       ${featureCard}
     </div>`,
     },
+    {
+      id: "voltea",
+      name: "Se voltean",
+      hint: "Por delante el ícono y el título; se tocan y por detrás aparece el texto",
+      build: () => `${head()}
+    <div class="features-grid inv-fe-voltea">
+      <div class="feature-card" role="button" tabindex="0" aria-pressed="false">
+        <div class="inv-cara inv-cara-frente">
+          <span class="feature-icon">✦</span>
+          <h3 class="feature-title">Título</h3>
+          <span class="inv-fe-pista">Toca</span>
+        </div>
+        <div class="inv-cara inv-cara-dorso"><p class="feature-text">Texto</p></div>
+      </div>
+    </div>`,
+    },
   ],
 };
 
@@ -639,7 +661,8 @@ const photo: BlockSpec = {
 const fichaMapa = `<div class="inv-mapa-datos">
         <p class="inv-mapa-lugar">Lugar</p>
         <p class="inv-mapa-dir">Dirección</p>
-        <a class="inv-mapa-btn" href="#" target="_blank" rel="noopener">Cómo llegar</a>
+        <a class="inv-mapa-btn" href="#" target="_blank" rel="noopener">Cómo llegar</a><button
+          class="inv-mapa-btn inv-agendar" type="button" data-inv-agendar>Agendar</button>
       </div>`;
 
 const lienzoMapa = `<div class="inv-mapa-lienzo">
@@ -674,6 +697,13 @@ const ubicacion: BlockSpec = {
       help: "Opcional. Sin él, el botón abre la búsqueda en Google Maps.",
     },
     { key: "buttonText", label: "Texto del botón", type: "text", placeholder: "Cómo llegar" },
+    {
+      key: "calendarText",
+      label: "Botón de calendario",
+      type: "text",
+      placeholder: "Agendar",
+      help: "Descarga el evento al calendario del teléfono, con la fecha y la hora de la invitación. Vacío = sin botón.",
+    },
     { key: "textColor", label: "Color de las letras", type: "color", span: 2 },
   ],
   variants: [

@@ -216,6 +216,8 @@ const APARTE = new Set([
   "cantidad",
   "velocidad",
   "pieza",
+  "sello",
+  "calendarText",
   "rumbo",
   "zona",
   /* El fondo global lo monta `ponerFondoGlobal` en una capa fija propia. */
