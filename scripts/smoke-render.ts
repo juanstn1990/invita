@@ -436,13 +436,22 @@ for (const [nombre, tocar] of CASOS) {
 
     for (const clave of conCapa) {
       /* Una sección apagada o que este diseño no trae no tiene que pintar
-         nada: lo que se persigue es la que está y se queda sin capa. */
-      const sec: any = doc.querySelector(`[data-inv-section="${clave}"]`);
+         nada: lo que se persigue es la que está y se queda sin capa.
+
+         Puede estar en dos sitios: en el marcado del diseño, o en la
+         sección que sintetiza un bloque con variante propia —la que el
+         diseño trae de fábrica, por ejemplo—. En ese caso la original
+         queda oculta y la capa se escribe contra el id del bloque. */
+      const original: any = doc.querySelector(`[data-inv-section="${clave}"]`);
+      const bloque: any = doc.querySelector(`.inv-block-${clave}`);
+      const oculta = original && original.getAttribute("hidden") !== null;
+      const sec: any = oculta && bloque ? bloque : original;
       if (!sec) continue;
+      const ambito = oculta && bloque ? `#${bloque.getAttribute("id")}` : `[data-inv-section="${clave}"]`;
 
       const regla = html
         .split("}")
-        .find((b) => b.includes(`[data-inv-section="${clave}"]`) &&
+        .find((b) => b.includes(ambito) &&
                      b.includes("background:rgba(255,255,255,0.7)"));
       if (!regla) { mal.push(`${tpl.id}/${clave}: sin regla`); continue; }
 
@@ -1495,6 +1504,58 @@ for (const [nombre, tocar] of CASOS) {
     if (mal.length) botonMal++;
     console.log(`${mal.length ? "✗" : "✓"} componente · ${nombre.padEnd(52)}` +
       (mal.length ? `  ${mal.length} mal: ${mal.slice(0, 2).join(", ")}` : ""));
+  }
+}
+
+/* ── La variante que trae el diseño ──────────────────────────────
+   Hay diseños cuya forma **es** la variante: las órbitas y la constelación
+   de «Noche Estrellada» no son un adorno que se le añade, son cómo se ve.
+   Sin esto salían con el marcado genérico hasta que alguien las elegía a
+   mano, y no se parecían a lo que enseña el catálogo. */
+{
+  const casos: [string, () => boolean][] = [
+    [
+      "sin elegir nada, el diseño pone la suya",
+      () => {
+        const d: any = defaultData();
+        delete d.layout;
+        const { document } = parseHTML(renderInvitation({
+          templateHtml: readTemplate("invitacion-15-estrellada"),
+          templateId: "invitacion-15-estrellada", data: d, slug: "demo",
+        }));
+        return !!document.querySelector(".inv-cd-orbitas") && !!document.querySelector(".inv-ev-constelacion");
+      },
+    ],
+    [
+      "y lo que se eligió a mano le gana",
+      () => {
+        const d: any = defaultData();
+        d.layout = { blocks: [{ id: "events-0", type: "events", variant: "tarjetas" }] };
+        const { document } = parseHTML(renderInvitation({
+          templateHtml: readTemplate("invitacion-15-estrellada"),
+          templateId: "invitacion-15-estrellada", data: d, slug: "demo",
+        }));
+        return !!document.querySelector(".inv-ev-tarjetas") && !document.querySelector(".inv-ev-constelacion");
+      },
+    ],
+    [
+      "un diseño que no declara ninguna sigue con su marcado",
+      () => {
+        const d: any = defaultData();
+        delete d.layout;
+        const { document } = parseHTML(renderInvitation({
+          templateHtml: readTemplate("invitacion-15-white"),
+          templateId: "invitacion-15-white", data: d, slug: "demo",
+        }));
+        return !document.querySelector("[class*='inv-cd-']") && !document.querySelector("[class*='inv-ev-']");
+      },
+    ],
+  ];
+  for (const [nombre, comprueba] of casos) {
+    let ok = false;
+    try { ok = comprueba(); } catch { ok = false; }
+    if (!ok) botonMal++;
+    console.log(`${ok ? "✓" : "✗"} variante del diseño · ${nombre}`);
   }
 }
 

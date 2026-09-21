@@ -200,9 +200,14 @@ export const COMPONENTES_CSS = `
 .inv-cd-orbitas .countdown-ring:nth-child(3)::after{animation-duration:14s}
 .inv-cd-orbitas .countdown-ring:nth-child(4)::after{animation-duration:6s}
 @keyframes invOrbita{to{transform:rotate(360deg)}}
-.inv-cd-orbitas .ring-inner{position:relative;text-align:center}
+.inv-cd-orbitas{padding-bottom:22px}
+.inv-cd-orbitas .countdown-ring{overflow:visible}
+.inv-cd-orbitas .ring-inner{position:static;text-align:center}
 .inv-cd-orbitas .ring-number{display:block;font-size:clamp(19px,5.8vw,27px);line-height:1}
-.inv-cd-orbitas .ring-label{display:block;margin-top:4px;font-size:9px;letter-spacing:.18em}
+/* La etiqueta, fuera del aro: dentro se monta sobre el número, que es lo
+   que de verdad se mira. */
+.inv-cd-orbitas .ring-label{position:absolute;left:0;right:0;bottom:-19px;display:block;
+  font-size:9px;letter-spacing:.18em}
 
 /* ── El programa como constelación ──
    Las estrellas van por una franja central, un poco en zigzag, y cada

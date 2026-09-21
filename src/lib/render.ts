@@ -3751,7 +3751,20 @@ export function renderInvitation(opts: RenderOptions): string {
     const blockData = (primero && spec.section ? data[sectionKey] : block.data) || {};
     if (blockData.enabled === false) continue;
 
-    const variante = variantOf(spec, block.variant) || spec.variants[0];
+    /* La variante: la que eligió quien edita, y si no eligió ninguna, la que
+       el diseño declara como suya. Sin esto, un diseño cuya forma es la
+       variante —las órbitas de «Noche Estrellada»— salía con el marcado
+       genérico hasta que alguien la elegía a mano, y no se parecía a lo
+       que se ve en el catálogo. */
+    const porDefecto = designOf(templateId)?.variantes?.[block.type] || "";
+    /* Vacío no es «la del diseño elegida a mano»: es «no se eligió». La
+       variante vacía existe en la lista —es el marcado del template— y por
+       eso `variantOf(spec, "")` devuelve algo, que era lo que impedía llegar
+       nunca a la que declara el diseño. */
+    const variante =
+      (block.variant ? variantOf(spec, block.variant) : undefined) ||
+      (!block.variant && porDefecto ? variantOf(spec, porDefecto) : undefined) ||
+      spec.variants[0];
     const propia = primero && !!spec.section && !variante.build;
 
     if (propia) {

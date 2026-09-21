@@ -273,6 +273,19 @@ export interface Design {
   palettes: Palette[];
   /** El peso de los iconos. Por defecto sale de la ocasión. */
   iconos?: "light" | "duotone";
+  /**
+   * La variante con la que sale cada bloque si quien edita no elige otra.
+   *
+   * Los slots de `layout` cambian la piel del mismo marcado; esto cambia el
+   * marcado, y hace falta cuando la forma **es** el diseño: la cuenta atrás
+   * en órbitas de «Noche Estrellada» o su programa en constelación no son un
+   * adorno que se le añade, son cómo se ve esa invitación.
+   *
+   * Es sólo el valor de partida: en el editor se sigue pudiendo elegir otra,
+   * y una invitación que ya eligió una no cambia — se guarda en sus datos, y
+   * lo guardado gana.
+   */
+  variantes?: Record<string, string>;
   /** CSS propio, corto: lo que el sistema de slots no cubre. */
   css?: (t: Theme) => string;
   deco?: Deco;

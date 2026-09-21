@@ -121,17 +121,17 @@ body{background:${ESTRELLAS} 0 0/320px 320px repeat,
 /* ── La noche: transparente, para que se vea el cielo ── */
 section,section.alt,footer{background:transparent}
 section{padding:100px 26px}
-#countdown .container::before{content:"";display:block;width:110px;aspect-ratio:1;margin:0 auto 12px;
+:is(#countdown,.inv-block-countdown) .container::before{content:"";display:block;width:110px;aspect-ratio:1;margin:0 auto 12px;
   background:url(${A}/luna.png) center/contain no-repeat;animation:estFlota 6s ease-in-out infinite;
   filter:drop-shadow(0 0 24px color-mix(in srgb,var(--brand) 30%,transparent))}
-#gifts .container::before{content:"";display:block;width:110px;aspect-ratio:1;margin:0 auto 12px;
+:is(#gifts,.inv-block-gifts) .container::before{content:"";display:block;width:110px;aspect-ratio:1;margin:0 auto 12px;
   background:url(${A}/sello.png) center/contain no-repeat;
   filter:drop-shadow(0 0 20px color-mix(in srgb,var(--brand-2) 35%,transparent))}
-#confirmation::after{content:"";position:absolute;left:-10%;right:-10%;bottom:-20px;height:160px;z-index:0;
+#confirmation::after,.inv-block-confirm::after{content:"";position:absolute;left:-10%;right:-10%;bottom:-20px;height:160px;z-index:0;
   background:url(${A}/nubes.png) center bottom/contain no-repeat;opacity:.55;pointer-events:none;
   animation:estDeriva 30s ease-in-out infinite alternate}
-#confirmation .container{position:relative;z-index:1}
-#confirmation{padding-bottom:150px}
+#confirmation .container,.inv-block-confirm .container{position:relative;z-index:1}
+#confirmation,.inv-block-confirm{padding-bottom:150px}
 .countdown-ring{background:rgba(255,255,255,.04);border:1px solid color-mix(in srgb,var(--accent) 35%,transparent);
   border-radius:14px}
 :is(#countdown,.inv-block-countdown) :is([data-cd],.ring-number){font-family:var(--est-caps);font-weight:400;color:#fff}
@@ -214,6 +214,9 @@ export const estrellada: Design = {
   },
   shape: { radius: 18, radiusSm: 14, btnRadius: "pill", shadow: "none" },
   palettes: [NOCHE, VIOLETA, OCEANO, NEGRO],
+  /* La forma es el diseño: las órbitas y la constelación salen de fábrica,
+     como en la invitación de la que nació. Se pueden cambiar en el editor. */
+  variantes: { countdown: "orbitas", events: "constelacion" },
   css,
   deco: {
     ornament: () => `<img class="est-divisor" src="${A}/divisor.png" alt="">`,

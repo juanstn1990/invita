@@ -243,6 +243,8 @@ export const rosa: Design = {
   },
   shape: { radius: 18, radiusSm: 14, btnRadius: "pill", shadow: "none" },
   palettes: [ROSA_ORO, MIEL, AMBAR, ROSAL],
+  /* Las páginas del cuento, con su giro al entrar. */
+  variantes: { events: "capitulos" },
   css,
   deco: {
     ornament: () => `<img class="ros-divisor" src="${A}/divisor.png" alt="">`,

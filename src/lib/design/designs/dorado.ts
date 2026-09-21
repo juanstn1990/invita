@@ -268,6 +268,8 @@ export const dorado: Design = {
   },
   shape: { radius: 18, radiusSm: 14, btnRadius: "pill", shadow: "none" },
   palettes: [DORADO, CHAMPAN_ROSA, BLANCO_ORO, NEGRO_ORO],
+  /* El reloj de paletas de la invitación original. */
+  variantes: { countdown: "paletas" },
   css,
   deco: {
     ornament: () => `<img class="dor-divisor" src="${A}/divisor.png" alt="">`,
