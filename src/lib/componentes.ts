@@ -1,9 +1,9 @@
 /**
  * Componentes interactivos que sirven a cualquier diseño.
  *
- * Nacieron con «Quince Dorado», pero ninguno es de ese diseño: todos salen
+ * Nacieron con «Quince Dorado» y «Noche estrellada», pero ninguno es de un diseño: todos salen
  * de las variables de la paleta (--inv-accent, --inv-ink, --inv-surface…)
- * y se eligen desde el editor en cualquiera de los 52.
+ * y se eligen desde el editor en cualquiera de los 53.
  *
  * · Apertura «sobre con sello»: el velo es un sobre cerrado; se toca el
  *   sello, la solapa se abre, la carta sube y la invitación entra.
@@ -12,6 +12,17 @@
  *   texto. Se toca para darles la vuelta.
  * · Ubicación con «Agendar»: descarga el evento al calendario del teléfono.
  * · Partícula «polvo de oro»: motas que suben y se apartan del dedo.
+ *
+ * Y los de «Noche estrellada»:
+ *
+ * · Apertura «pide un deseo»: se toca el velo, cruza una estrella fugaz y
+ *   la invitación entra.
+ * · Partícula «cielo estrellado»: estrellas que titilan y siguen el giro
+ *   del teléfono, y estrellas fugaces, solas y donde se toque.
+ * · Cuenta atrás «órbitas»: el aro que se vacía y una luna que da vueltas.
+ * · Programa «constelación»: una estrella por momento, unidas por una
+ *   línea que se traza al bajar.
+ * · Información útil «rasca y descubre»: una capa de plata que se rasca.
  *
  * Aquí va lo que es igual para todos (el CSS y el JavaScript). Lo que
  * depende de los datos —el nombre en la carta, la fecha del calendario— lo
@@ -142,8 +153,83 @@ export const COMPONENTES_CSS = `
 /* ── El polvo de oro ── */
 .inv-polvo{position:fixed;inset:0;width:100%;height:100%;z-index:9997;pointer-events:none}
 
+
+/* ── Pide un deseo: el velo se toca y cruza una estrella fugaz ── */
+#splash.inv-velo-deseo{cursor:pointer;-webkit-tap-highlight-color:transparent}
+#splash.inv-velo-deseo .splash-btns{display:none}
+.inv-deseo-pista{position:absolute;z-index:4;left:0;right:0;
+  bottom:calc(9vh + env(safe-area-inset-bottom));margin:0;text-align:center;
+  font-family:var(--inv-font-ui);font-size:12px;letter-spacing:.4em;text-transform:uppercase;
+  color:var(--inv-accent);animation:invPista 2.4s ease-in-out infinite;pointer-events:none}
+.inv-fugaz{position:fixed;left:0;top:0;z-index:10003;width:190px;height:2px;pointer-events:none;
+  border-radius:2px;transform-origin:0 50%;
+  background:linear-gradient(90deg,#fff,rgba(200,215,255,.75) 18%,rgba(200,215,255,0));
+  box-shadow:0 0 10px 2px rgba(210,225,255,.8)}
+
+/* ── El cielo estrellado (partícula) ── */
+.inv-cielo{position:fixed;inset:0;width:100%;height:100%;z-index:9996;pointer-events:none}
+
+/* ── Cuenta atrás en órbitas ──
+   El aro es el de «anillos» —se va vaciando con el tiempo— con un brillo, y
+   una luna pequeña que da la vuelta, cada unidad a su ritmo. */
+.inv-cd-orbitas{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;max-width:440px;margin-inline:auto}
+.inv-cd-orbitas .countdown-ring{position:relative;aspect-ratio:1;display:grid;place-items:center;
+  background:none;border:0;box-shadow:none}
+.inv-cd-orbitas .countdown-ring::before{content:"";position:absolute;inset:0;border-radius:50%;
+  background:conic-gradient(var(--inv-accent) calc(var(--p,0) * 1turn),
+    color-mix(in srgb,var(--inv-accent) 18%,transparent) 0);
+  -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 2.5px),#000 calc(100% - 2px));
+          mask:radial-gradient(farthest-side,transparent calc(100% - 2.5px),#000 calc(100% - 2px));
+  filter:drop-shadow(0 0 4px color-mix(in srgb,var(--inv-accent) 70%,transparent))}
+.inv-cd-orbitas .countdown-ring::after{content:"";position:absolute;inset:0;border-radius:50%;
+  background:radial-gradient(circle at 50% 3px,#fff 2.5px,transparent 3.5px);
+  filter:drop-shadow(0 0 5px rgba(210,225,255,.9));animation:invOrbita 60s linear infinite}
+.inv-cd-orbitas .countdown-ring:nth-child(2)::after{animation-duration:30s}
+.inv-cd-orbitas .countdown-ring:nth-child(3)::after{animation-duration:14s}
+.inv-cd-orbitas .countdown-ring:nth-child(4)::after{animation-duration:6s}
+@keyframes invOrbita{to{transform:rotate(360deg)}}
+.inv-cd-orbitas .ring-inner{position:relative;text-align:center}
+.inv-cd-orbitas .ring-number{display:block;font-size:clamp(19px,5.8vw,27px);line-height:1}
+.inv-cd-orbitas .ring-label{display:block;margin-top:4px;font-size:9px;letter-spacing:.18em}
+
+/* ── El programa como constelación ──
+   Las estrellas van por una franja central, un poco en zigzag, y cada
+   momento a un lado y a otro: así la línea que las une nunca pisa texto. */
+.inv-ev-constelacion{position:relative;display:block;max-width:440px;margin:24px auto 0}
+.inv-traza{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+.inv-traza path{fill:none;stroke:var(--inv-accent);stroke-width:1.2;stroke-dasharray:1;
+  stroke-dashoffset:var(--inv-traza,1);opacity:.85;
+  filter:drop-shadow(0 0 3px color-mix(in srgb,var(--inv-accent) 70%,transparent))}
+.inv-ev-constelacion .event-card{position:relative;display:grid;grid-template-columns:1fr 64px 1fr;
+  align-items:center;min-height:104px;padding:0;background:none;border:0;box-shadow:none;border-radius:0}
+.inv-ev-constelacion .event-card:hover{transform:none}
+.inv-luz{grid-column:2;grid-row:1;justify-self:center;width:22px;height:22px;border-radius:50%;
+  translate:-14px 0;background:radial-gradient(#fff,color-mix(in srgb,var(--inv-accent) 30%,transparent) 60%,transparent 70%);
+  opacity:.25;transform:scale(.6);transition:opacity .7s,transform .7s cubic-bezier(.2,.7,.3,1),box-shadow .7s}
+.inv-ev-constelacion .inv-dato{grid-column:3;grid-row:1;text-align:left;
+  opacity:0;transform:translateY(12px);transition:opacity .8s ease .15s,transform .8s ease .15s}
+.inv-ev-constelacion .event-card:nth-of-type(odd) .inv-dato{grid-column:1;text-align:right}
+.inv-ev-constelacion .event-card:nth-of-type(odd) .inv-luz{translate:14px 0}
+.inv-ev-constelacion .event-card.encendido .inv-luz{opacity:1;transform:scale(1);
+  box-shadow:0 0 18px 6px color-mix(in srgb,var(--inv-accent) 45%,transparent)}
+.inv-ev-constelacion .event-card.encendido .inv-dato{opacity:1;transform:none}
+.inv-ev-constelacion .event-icon{display:none}
+.inv-ev-constelacion :is(.event-type,.event-title,.event-time,.event-place,.event-note){margin:0}
+/* Sin JavaScript no hay quien las encienda: se ven todas. */
+html:not(.js) .inv-ev-constelacion .inv-dato{opacity:1;transform:none}
+
+/* ── Rasca y descubre ── */
+.inv-fe-rasca .feature-card{position:relative;overflow:hidden;min-height:150px;
+  user-select:none;-webkit-user-select:none}
+.inv-rasca-capa{position:absolute;inset:0;width:100%;height:100%;z-index:2;
+  touch-action:none;cursor:grab;transition:opacity .8s}
+.feature-card.rascada .inv-rasca-capa{opacity:0;pointer-events:none}
+
 @media (prefers-reduced-motion:reduce){
-  .inv-sobre,.inv-sobre-sello,.inv-sobre-pista{animation:none}
+  .inv-sobre,.inv-sobre-sello,.inv-sobre-pista,.inv-deseo-pista,
+  .inv-cd-orbitas .countdown-ring::after{animation:none}
+  .inv-cielo{display:none}
+  .inv-ev-constelacion .inv-dato,.inv-luz{opacity:1;transform:none;transition:none}
   .inv-sobre-carta,.inv-sobre-solapa,.inv-fe-voltea .inv-cara{transition:none}
   .inv-cd-paletas .ring-number.tick{animation:none}
   .inv-polvo,.inv-confeti{display:none}
@@ -313,4 +399,167 @@ export const POLVO_JS = `
     }
     requestAnimationFrame(cuadro);
   })();
+})();`;
+
+/**
+ * La estrella fugaz: cruza en diagonal y acaba donde se pide. La usan el
+ * velo «pide un deseo» y el cielo estrellado.
+ */
+export const FUGAZ_JS = `
+(function(){
+  if (window.invFugaz) return;
+  var quieto = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  window.invFugaz = function(xf, yf, luego){
+    if (quieto) { if (luego) luego(); return; }
+    var el = document.createElement('i'); el.className = 'inv-fugaz'; document.body.appendChild(el);
+    var dx = 240 + Math.random() * 120, dy = -(140 + Math.random() * 70);
+    var ang = Math.atan2(-dy, -dx) * 180 / Math.PI, t0 = performance.now(), dur = 850;
+    (function paso(t){
+      var k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+      el.style.opacity = k < .8 ? 1 : (1 - k) / .2;
+      el.style.transform = 'translate(' + (xf + dx * (1 - e)) + 'px,' + (yf + dy * (1 - e)) + 'px) rotate(' + ang + 'deg)';
+      if (k < 1) requestAnimationFrame(paso);
+      else { el.remove(); if (window.invEstallar) window.invEstallar(xf, yf, 22); if (luego) luego(); }
+    })(t0);
+  };
+})();`;
+
+/** Pide un deseo: tocar el velo suelta una estrella fugaz y entra. */
+export const DESEO_JS = `
+(function(){
+  var velo = document.querySelector('#splash.inv-velo-deseo');
+  if (!velo) return;
+  var hecho = false;
+  velo.addEventListener('click', function(e){
+    if (hecho || e.target.closest('a')) return;
+    hecho = true;
+    var x = e.clientX || innerWidth / 2, y = e.clientY || innerHeight / 2;
+    (window.invFugaz || function(a, b, f){ f(); })(x, y, function(){
+      setTimeout(function(){
+        var b = velo.querySelector('.splash-btn-primary');
+        if (b) b.click(); else if (window.enterSite) window.enterSite();
+      }, 300);
+    });
+  });
+})();`;
+
+/**
+ * El cielo estrellado: estrellas que titilan y se mueven un poco con el
+ * giro del teléfono o el ratón, estrellas fugaces de vez en cuando, y una
+ * donde se toque (fuera de botones y enlaces).
+ */
+export const CIELO_JS = `
+(function(){
+  var cv = document.querySelector('.inv-cielo');
+  if (!cv || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  var cx = cv.getContext('2d'), dpr = Math.min(2, window.devicePixelRatio || 1);
+  var n = Math.max(40, Math.min(260, +cv.getAttribute('data-n') || 160));
+  var op = +cv.getAttribute('data-op') || .9, escala = (+cv.getAttribute('data-tam') || 20) / 20;
+  var color = cv.getAttribute('data-color') || '#ffffff';
+  var ritmo = cv.getAttribute('data-ritmo'), cada = ritmo === 'lento' ? 16000 : ritmo === 'rapido' ? 5000 : 9000;
+  var est = [], g = { x: 0, y: 0 }, o = { x: 0, y: 0 };
+  function tam(){ cv.width = innerWidth * dpr; cv.height = innerHeight * dpr; }
+  tam(); addEventListener('resize', tam);
+  for (var i = 0; i < n; i++) est.push({ x: Math.random(), y: Math.random(),
+    r: (Math.random() < .08 ? 1.5 + Math.random() : .4 + Math.random() * .9) * escala,
+    f: Math.random() * 6.28, v: .01 + Math.random() * .03, p: .3 + Math.random() * .7, azul: Math.random() < .3 });
+  addEventListener('pointermove', function(e){ o.x = e.clientX / innerWidth - .5; o.y = e.clientY / innerHeight - .5; }, { passive: true });
+  addEventListener('deviceorientation', function(e){ if (e.gamma == null) return;
+    o.x = Math.max(-.5, Math.min(.5, e.gamma / 60)); o.y = Math.max(-.5, Math.min(.5, (e.beta - 40) / 60)); });
+  (function cuadro(){
+    g.x += (o.x - g.x) * .05; g.y += (o.y - g.y) * .05;
+    cx.setTransform(dpr, 0, 0, dpr, 0, 0); cx.clearRect(0, 0, innerWidth, innerHeight);
+    for (var i = 0; i < est.length; i++) {
+      var s = est[i]; s.f += s.v;
+      var x = s.x * innerWidth - g.x * 30 * s.p, y = s.y * innerHeight - g.y * 30 * s.p;
+      var a = Math.max(.05, .6 + Math.sin(s.f) * .35) * op;
+      cx.globalAlpha = a; cx.fillStyle = s.azul ? '#bccbff' : color;
+      cx.beginPath(); cx.arc(x, y, s.r, 0, 6.283); cx.fill();
+      if (s.r > 1.4) { cx.globalAlpha = a * .35; cx.fillRect(x - s.r * 3, y - .4, s.r * 6, .8); cx.fillRect(x - .4, y - s.r * 3, .8, s.r * 6); }
+    }
+    requestAnimationFrame(cuadro);
+  })();
+  function abierta(){ var v = document.getElementById('splash'); return !v || v.classList.contains('hidden'); }
+  setInterval(function(){ if (!document.hidden && abierta() && window.invFugaz)
+    window.invFugaz(innerWidth * (.2 + Math.random() * .6), innerHeight * (.15 + Math.random() * .3)); }, cada);
+  document.addEventListener('click', function(e){
+    if (!abierta() || !window.invFugaz) return;
+    if (e.target.closest('a,button,input,textarea,select,label,form,.feature-card,iframe,video')) return;
+    window.invFugaz(e.clientX, e.clientY);
+  });
+})();`;
+
+/** La constelación del programa: la línea se traza al bajar. */
+export const CONSTELACION_JS = `
+(function(){
+  var mapas = [].slice.call(document.querySelectorAll('.inv-ev-constelacion'));
+  if (!mapas.length) return;
+  function trazar(){
+    mapas.forEach(function(m){
+      var path = m.querySelector('.inv-traza path'); if (!path) return;
+      var b = m.getBoundingClientRect(), d = '';
+      [].slice.call(m.querySelectorAll('.event-card .inv-luz')).forEach(function(l, i){
+        var r = l.getBoundingClientRect();
+        d += (i ? ' L' : 'M') + (r.left + r.width / 2 - b.left).toFixed(1) + ' ' + (r.top + r.height / 2 - b.top).toFixed(1);
+      });
+      path.setAttribute('d', d);
+    });
+  }
+  function bajar(){
+    var mitad = innerHeight * .65;
+    mapas.forEach(function(m){
+      var b = m.getBoundingClientRect(), p = Math.max(0, Math.min(1, (mitad - b.top) / (b.height || 1)));
+      m.style.setProperty('--inv-traza', (1 - p).toFixed(3));
+      [].slice.call(m.querySelectorAll('.event-card')).forEach(function(c){
+        if (c.getBoundingClientRect().top + 30 < mitad) c.classList.add('encendido');
+      });
+    });
+  }
+  trazar(); bajar();
+  addEventListener('resize', function(){ trazar(); bajar(); });
+  addEventListener('scroll', bajar, { passive: true });
+  /* Las letras cambian la altura de cada momento al cargar: se vuelve a trazar. */
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(trazar);
+  setTimeout(trazar, 1200);
+})();`;
+
+/** Rasca y descubre: una capa de plata sobre cada ficha. */
+export const RASCA_JS = `
+(function(){
+  var capas = [].slice.call(document.querySelectorAll('.inv-rasca-capa'));
+  if (!capas.length) return;
+  var dpr = Math.min(2, window.devicePixelRatio || 1);
+  var s = getComputedStyle(document.documentElement);
+  var acento = s.getPropertyValue('--inv-accent').trim() || '#9aa5c4';
+  capas.forEach(function(c){
+    var x = c.getContext('2d'), tarjeta = c.closest('.feature-card'), listo = false, activo = false;
+    function cubrir(){
+      var w = c.clientWidth, h = c.clientHeight; if (!w || !h) return;
+      c.width = w * dpr; c.height = h * dpr; x.setTransform(dpr, 0, 0, dpr, 0, 0);
+      var g = x.createLinearGradient(0, 0, w, h);
+      g.addColorStop(0, '#9aa5c4'); g.addColorStop(.45, '#eef2fb'); g.addColorStop(.55, '#c9d1e6'); g.addColorStop(1, acento);
+      x.globalCompositeOperation = 'source-over'; x.fillStyle = g; x.fillRect(0, 0, w, h);
+      for (var i = 0; i < 50; i++) { x.fillStyle = 'rgba(255,255,255,' + Math.random() * .6 + ')';
+        x.beginPath(); x.arc(Math.random() * w, Math.random() * h, Math.random() * 1.6, 0, 6.283); x.fill(); }
+      x.fillStyle = 'rgba(20,24,48,.85)'; x.font = '600 11px Cinzel, Georgia, serif'; x.textAlign = 'center';
+      x.fillText(c.getAttribute('data-texto') || 'RASCA AQUÍ', w / 2, h / 2 + 4);
+    }
+    cubrir(); addEventListener('resize', function(){ if (!listo) cubrir(); });
+    function borrar(e){
+      if (!activo || listo) return;
+      var b = c.getBoundingClientRect(); x.globalCompositeOperation = 'destination-out';
+      x.beginPath(); x.arc(e.clientX - b.left, e.clientY - b.top, 22, 0, 6.283); x.fill();
+    }
+    function revisar(){
+      if (listo || !c.width) return;
+      var px = x.getImageData(0, 0, c.width, c.height).data, vacios = 0, total = 0;
+      for (var i = 3; i < px.length; i += 64) { total++; if (px[i] === 0) vacios++; }
+      if (vacios / total > .45) { listo = true; tarjeta.classList.add('rascada');
+        var b = c.getBoundingClientRect(); if (window.invEstallar) window.invEstallar(b.left + b.width / 2, b.top + b.height / 2, 50); }
+    }
+    c.addEventListener('pointerdown', function(e){ activo = true; c.setPointerCapture(e.pointerId); borrar(e); });
+    c.addEventListener('pointermove', borrar);
+    c.addEventListener('pointerup', function(){ activo = false; revisar(); });
+    c.addEventListener('pointercancel', function(){ activo = false; revisar(); });
+  });
 })();`;

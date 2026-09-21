@@ -9,7 +9,8 @@
 
 import { parseHTML } from "linkedom";
 import {
-  AGENDAR_JS, COMPONENTES_CSS, CONFETI_JS, POLVO_JS, SOBRE_JS, VOLTEA_JS,
+  AGENDAR_JS, CIELO_JS, COMPONENTES_CSS, CONFETI_JS, CONSTELACION_JS, DESEO_JS, FUGAZ_JS,
+  POLVO_JS, RASCA_JS, SOBRE_JS, VOLTEA_JS,
 } from "./componentes";
 import { sanearHtml } from "./sanear";
 import { mapFor, type ListBinding, type Op } from "./bindings";
@@ -387,11 +388,15 @@ function ponerParticulas(document: Doc, data: InvitationData) {
   const tipo = String(d.tipo || "").trim();
   /* El polvo de oro no son piezas de CSS: es un canvas que dibuja el
      script, porque tiene que reaccionar al dedo. */
-  if (tipo === "polvo") {
+  if (tipo === "polvo" || tipo === "cielo") {
     const lienzo = document.createElement("canvas");
-    lienzo.setAttribute("class", "inv-polvo");
+    lienzo.setAttribute("class", tipo === "cielo" ? "inv-cielo" : "inv-polvo");
     lienzo.setAttribute("aria-hidden", "true");
-    lienzo.setAttribute("data-n", String(Math.min(120, Math.max(10, (Number(d.cantidad) || 18) * 3))));
+    /* El cielo lleva muchas más estrellas que motas el polvo: con 60
+       estrellas no es un cielo, son unos puntos. */
+    const factor = tipo === "cielo" ? 8 : 3;
+    lienzo.setAttribute("data-n", String(Math.min(tipo === "cielo" ? 260 : 120,
+      Math.max(10, (Number(d.cantidad) || 18) * factor))));
     lienzo.setAttribute("data-op", String(Math.min(100, Math.max(10, Number(d.opacidad ?? 70))) / 100));
     lienzo.setAttribute("data-tam", String(Math.min(96, Math.max(8, Number(d.tamano) || 20))));
     if (HEX.test(String(d.color || "").trim())) lienzo.setAttribute("data-color", String(d.color).trim());
@@ -3066,7 +3071,7 @@ const FONDO_VIDEO_JS = `
  * inyectado; no hay marcado nuevo, así que funcionan igual en los 49 diseños
  * y en los que vengan.
  */
-const APERTURAS = new Set(["sobre", "sello"]);
+const APERTURAS = new Set(["sobre", "sello", "deseo"]);
 
 /**
  * Cómo la cortina da paso a la invitación.
@@ -3880,6 +3885,9 @@ export function renderInvitation(opts: RenderOptions): string {
     /* El sobre con sello: el velo se vuelve un sobre cerrado, con el nombre
        en la carta de dentro. El panel del velo sigue ahí, escondido, porque
        su botón es el que el sobre pulsa al abrirse. */
+    if (velo && apertura === "deseo") {
+      velo.insertAdjacentHTML?.("beforeend", `<p class="inv-deseo-pista">Toca y pide un deseo</p>`);
+    }
     if (velo && apertura === "sello") {
       const nombre = coupleName(data) || "";
       const ante = String(data.splash?.label || "").trim();
@@ -4498,7 +4506,14 @@ export function renderInvitation(opts: RenderOptions): string {
      y para encontrarla tiene que estar ya creada. */
   if (document.querySelector(".inv-cortina")) scripts.push(CORTINA_JS);
   /* Los componentes interactivos, cada uno sólo si la página lo usa. */
-  if (document.querySelector("[data-inv-sobre],[data-inv-agendar],[data-inv-wa]")) scripts.push(CONFETI_JS);
+  if (document.querySelector("[data-inv-sobre],[data-inv-agendar],[data-inv-wa],.inv-velo-deseo,.inv-cielo,.inv-rasca-capa")) {
+    scripts.push(CONFETI_JS);
+  }
+  if (document.querySelector(".inv-velo-deseo,.inv-cielo")) scripts.push(FUGAZ_JS);
+  if (document.querySelector(".inv-velo-deseo")) scripts.push(DESEO_JS);
+  if (document.querySelector(".inv-cielo")) scripts.push(CIELO_JS);
+  if (document.querySelector(".inv-ev-constelacion")) scripts.push(CONSTELACION_JS);
+  if (document.querySelector(".inv-rasca-capa")) scripts.push(RASCA_JS);
   if (document.querySelector("[data-inv-sobre]")) scripts.push(SOBRE_JS);
   if (document.querySelector(".inv-fe-voltea")) scripts.push(VOLTEA_JS);
   if (document.querySelector("[data-inv-agendar]")) scripts.push(AGENDAR_JS);

@@ -1417,6 +1417,36 @@ for (const [nombre, tocar] of CASOS) {
           String(b.getAttribute("data-titulo")).includes("Valentina") &&
           b.getAttribute("data-lugar") === "Hacienda, Km 5" && conScript(doc, "data-inv-agendar");
       }],
+    ["pide un deseo: la pista, la estrella fugaz y su script",
+      (d) => { d.splash = { ...d.splash, enabled: true, apertura: "deseo" }; },
+      (doc) => !!doc.querySelector("#splash.inv-velo-deseo .inv-deseo-pista") &&
+        conScript(doc, "invFugaz") && conScript(doc, "inv-velo-deseo')")],
+    ["cielo estrellado: un canvas con muchas estrellas",
+      (d) => { d.particulas = { enabled: true, tipo: "cielo", cantidad: "20" }; },
+      (doc) => doc.querySelector("canvas.inv-cielo")?.getAttribute("data-n") === "160" &&
+        !doc.querySelector(".inv-particulas") && conScript(doc, "inv-cielo")],
+    ["cuenta atrás en órbitas, con su aro que se vacía",
+      (d) => { d.layout = { blocks: [{ id: "countdown-0", type: "countdown", variant: "orbitas" }] }; },
+      (doc) => doc.querySelectorAll(".inv-cd-orbitas [data-cd-ring] [data-cd]").length === 4],
+    ["programa en constelación: una estrella por momento y su script",
+      (d) => {
+        d.layout = { blocks: [{ id: "events-0", type: "events", variant: "constelacion" }] };
+        d.events = { ...d.events, enabled: true, items: [
+          { kind: "Recepción", title: "Bienvenida", time: "7:00" },
+          { kind: "Vals", title: "El baile", time: "8:00" },
+          { kind: "Cena", title: "En familia", time: "9:00" }] };
+      },
+      (doc) => doc.querySelectorAll(".inv-ev-constelacion .event-card .inv-luz").length === 3 &&
+        !!doc.querySelector(".inv-ev-constelacion .inv-traza path") &&
+        doc.querySelector(".inv-ev-constelacion .inv-dato .event-type")?.textContent.trim() === "Recepción" &&
+        conScript(doc, "inv-ev-constelacion")],
+    ["rasca y descubre: una capa por ficha y su script",
+      (d) => {
+        d.layout = { blocks: [{ id: "features-0", type: "features", variant: "rasca" }] };
+        d.features = { ...d.features, enabled: true, items: [{ title: "A", text: "a" }, { title: "B", text: "b" }] };
+      },
+      (doc) => doc.querySelectorAll(".inv-fe-rasca .feature-card .inv-rasca-capa").length === 2 &&
+        conScript(doc, "inv-rasca-capa")],
     ["polvo de oro: un canvas y no piezas de CSS",
       (d) => { d.particulas = { enabled: true, tipo: "polvo", cantidad: "20" }; },
       (doc) => !!doc.querySelector("canvas.inv-polvo") && !doc.querySelector(".inv-particulas") &&

@@ -154,6 +154,12 @@ const countdown: BlockSpec = {
       build: () => reloj("inv-cd-vertical"),
     },
     {
+      id: "orbitas",
+      name: "Órbitas",
+      hint: "Un aro que se vacía con el tiempo y una luna pequeña que le da la vuelta",
+      build: () => reloj("inv-cd-orbitas", true),
+    },
+    {
       id: "paletas",
       name: "Paletas",
       hint: "Como un reloj de aeropuerto: cada número gira al cambiar",
@@ -249,6 +255,30 @@ const events: BlockSpec = {
       build: () => `${head()}${body}
     <div class="events-grid inv-ev-itinerario">
       ${eventCard("")}
+    </div>`,
+    },
+    /* La constelación: una estrella por momento, unidas por una línea que
+       se traza al bajar. El marcado es el de siempre metido en .inv-dato,
+       más la estrella: los bindings buscan por clase dentro de la ficha. */
+    {
+      id: "constelacion",
+      name: "Constelación",
+      hint: "Una estrella por momento, unidas por una línea que se dibuja al bajar",
+      build: () => `${head()}${body}
+    <div class="events-grid inv-ev-constelacion">
+      <svg class="inv-traza" aria-hidden="true"><path pathLength="1"/></svg>
+      <article class="event-card">
+        <i class="inv-luz" aria-hidden="true"></i>
+        <div class="inv-dato">
+          <span class="event-icon">✦</span>
+          <p class="event-time">Hora</p>
+          <p class="event-type">Tipo</p>
+          <h3 class="event-title">Momento</h3>
+          <p class="event-place">Lugar<small>Dirección</small></p>
+          <p class="event-note">Nota</p>
+          <a class="event-map-btn" href="#">¿Cómo llegar?</a>
+        </div>
+      </article>
     </div>`,
     },
     {
@@ -450,6 +480,20 @@ const features: BlockSpec = {
       build: () => `${head()}
     <div class="features-grid inv-fe-lista">
       ${featureCard}
+    </div>`,
+    },
+    {
+      id: "rasca",
+      name: "Rasca y descubre",
+      hint: "Cada ficha tapada con una capa de plata que se rasca con el dedo",
+      build: () => `${head()}
+    <div class="features-grid inv-fe-rasca">
+      <div class="feature-card">
+        <span class="feature-icon">✦</span>
+        <h3 class="feature-title">Título</h3>
+        <p class="feature-text">Texto</p>
+        <canvas class="inv-rasca-capa" aria-label="Rasca para descubrir"></canvas>
+      </div>
     </div>`,
     },
     {

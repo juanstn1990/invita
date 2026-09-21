@@ -407,6 +407,9 @@ export const TIPOS_PARTICULA: { value: string; label: string; movimiento: "cae" 
   /* No es una pieza que cae: es polvo que flota y se aparta del dedo. Se
      dibuja en un canvas, no con piezas de CSS. */
   { value: "polvo", label: "Polvo de oro (se aparta del dedo)", movimiento: "flota" },
+  /* Un cielo entero: titila, sigue el giro del teléfono y suelta estrellas
+     fugaces, solas y donde se toque. También en canvas. */
+  { value: "cielo", label: "Cielo estrellado (con estrellas fugaces)", movimiento: "flota" },
 ];
 
 export const PARTICULA_POR_TIPO = Object.fromEntries(
@@ -906,6 +909,7 @@ export const SECTIONS: SectionSpec[] = [
           { value: "", label: "Se funde (la de siempre)" },
           { value: "sobre", label: "Como un sobre que se abre" },
           { value: "sello", label: "Un sobre con sello: se toca para abrir" },
+          { value: "deseo", label: "Pide un deseo: se toca y cruza una estrella fugaz" },
         ],
         help: "Lo que pasa al pulsar el botón. Con «sobre con sello» el velo es un sobre cerrado y el sello es lo que se toca.",
       },
