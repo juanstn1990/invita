@@ -1,7 +1,7 @@
 """
 Adornos para plantillas: de una frase a un PNG con transparencia de verdad.
 
-    export XAI_API_KEY=...            # nunca en un archivo del proyecto
+    export XAI_API_KEY=...            # o en ~/.config/xai/clave, nunca en el proyecto
     python3 scripts/adornos-grok.py generar esquina "watercolor floral corner ..." --fondo claro
     python3 scripts/adornos-grok.py generar farolillo "glowing paper lantern ..." --fondo negro --aspecto 2:3
     python3 scripts/adornos-grok.py recortar mi-foto.jpg --fondo claro
@@ -22,6 +22,9 @@ el fondo se pide liso y la pieza sola:
   como resplandor que se funde con lo que haya detrás.
 · `--fondo solido` para objetos opacos sobre negro (una corona, un zapato):
   mismo prompt que negro, pero el objeto queda macizo y no translúcido.
+· `--fondo oscuro` cuando el «negro» salió gris o con textura: mide el
+  fondo real en el borde y lo quita. Es el que casi siempre hace falta con
+  piezas doradas.
 
 Por qué no un fondo transparente pedido al modelo, ni un `mix-blend-mode`
 en la página: lo primero no existe, y lo segundo se ve bien sobre el fondo
@@ -50,8 +53,15 @@ SALIDA = pathlib.Path("adornos-grok")
 
 def generar(nombre: str, prompt: str, aspecto: str | None, modelo: str) -> pathlib.Path:
     clave = os.environ.get("XAI_API_KEY", "").strip()
+    privada = pathlib.Path.home() / ".config" / "xai" / "clave"
+    if not clave and privada.exists():
+        # Un archivo fuera del proyecto y sólo legible por su dueño: nunca
+        # dentro del repo, donde acabaría en un commit.
+        if privada.stat().st_mode & 0o077:
+            sys.exit(f"{privada} lo pueden leer otros usuarios: chmod 600 {privada}")
+        clave = privada.read_text().strip()
     if not clave:
-        sys.exit("Falta XAI_API_KEY en el entorno. Ponla con `export`, no en un archivo.")
+        sys.exit("Falta la clave: XAI_API_KEY en el entorno, o en ~/.config/xai/clave (chmod 600).")
     cuerpo = {"model": modelo, "prompt": prompt, "n": 1, "response_format": "b64_json"}
     if aspecto:
         cuerpo["aspect_ratio"] = aspecto
@@ -139,6 +149,27 @@ def solido(src, dst, suelo=0.06, techo=0.22):
     _guardar(im, a, dst)
 
 
+def oscuro(src, dst, suelo=0.10, techo=0.30):
+    """
+    Un objeto sobre un fondo oscuro que no es negro puro: el gris con textura
+    que el modelo pinta a menudo cuando se le pide «black background». Con
+    `solido` ese gris quedaba como un recuadro alrededor de la pieza.
+
+    Se mide el fondo en el borde y la transparencia sale de cuánto se aparta
+    cada píxel de él, en cualquier canal; luego se descontamina como en
+    `claro`, para que el borde no arrastre el gris.
+    """
+    im = np.asarray(Image.open(src).convert("RGB")).astype(np.float32) / 255
+    B = _fondo_de(im)
+    dist = np.max(np.abs(im - B), axis=2)
+    a = np.clip((dist - suelo) / (techo - suelo), 0, 1)
+    a = np.asarray(
+        Image.fromarray((a * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(0.7))
+    ).astype(np.float32) / 255
+    aa = np.maximum(a[..., None], 1e-3)
+    _guardar((im - (1 - aa) * B) / aa, a, dst)
+
+
 def ajustar(dst: pathlib.Path, margen=6) -> None:
     """Recorta el lienzo al contenido: medio lienzo vacío no se sabe colocar."""
     im = Image.open(dst)
@@ -152,7 +183,7 @@ def ajustar(dst: pathlib.Path, margen=6) -> None:
     im.quantize(256, method=Image.Quantize.FASTOCTREE).save(dst, optimize=True)
 
 
-RECORTES = {"claro": claro, "negro": negro, "solido": solido}
+RECORTES = {"claro": claro, "negro": negro, "solido": solido, "oscuro": oscuro}
 
 
 def recortar(src: pathlib.Path, fondo: str) -> pathlib.Path:
