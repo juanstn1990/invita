@@ -10,7 +10,7 @@
 import { parseHTML } from "linkedom";
 import {
   ABANICO_JS, AGENDAR_JS, ANILLOS_JS, CAPITULOS_JS, CARRUSEL_JS, CIELO_JS, COMPONENTES_CSS, CONFETI_JS,
-  CONSTELACION_JS, DESEO_JS, FUGAZ_JS, LIBRO_JS, NUBES_JS, POLVO_JS, RASCA_JS, SENDERO_JS, SOBRE_JS, TELON_JS, VIAJE_JS, VENTANA_JS, CLAQUETA_JS, LLEGAN_JS, MARIPOSA_JS, ESCARCHA_JS,
+  CONSTELACION_JS, DESEO_JS, FUGAZ_JS, LIBRO_JS, NUBES_JS, POLVO_JS, RASCA_JS, SENDERO_JS, SOBRE_JS, TELON_JS, VIAJE_JS, VENTANA_JS, CLAQUETA_JS, LLEGAN_JS, MARIPOSA_JS, ESCARCHA_JS, NAIPE_JS,
   VOLTEA_JS,
 } from "./componentes";
 import { sanearHtml } from "./sanear";
@@ -3120,7 +3120,7 @@ const FONDO_VIDEO_JS = `
  * inyectado; no hay marcado nuevo, así que funcionan igual en los 49 diseños
  * y en los que vengan.
  */
-const APERTURAS = new Set(["sobre", "sello", "deseo", "libro", "abanico", "nubes", "telon", "anillos", "ventana", "claqueta", "mariposa", "escarcha"]);
+const APERTURAS = new Set(["sobre", "sello", "deseo", "libro", "abanico", "nubes", "telon", "anillos", "ventana", "claqueta", "mariposa", "escarcha", "naipe"]);
 
 /**
  * Cómo la cortina da paso a la invitación.
@@ -3991,6 +3991,16 @@ export function renderInvitation(opts: RenderOptions): string {
       velo.insertAdjacentHTML?.("beforeend",
         `<i class="inv-escarcha" aria-hidden="true"></i><p class="inv-sobre-pista">Toca el hielo</p>`);
     }
+    if (velo && apertura === "naipe") {
+      const corazon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-8-5.2-8-11.2A4.6 4.6 0 0 1 12 7a4.6 4.6 0 0 1 8 2.8C20 15.8 12 21 12 21z"/></svg>';
+      const pica = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2s8 6.3 8 11.4a4.2 4.2 0 0 1-7 3.1L14 22h-4l1-5.5a4.2 4.2 0 0 1-7-3.1C4 8.3 12 2 12 2z"/></svg>';
+      const modal = velo.querySelector(".splash-modal") as El | null;
+      modal?.insertAdjacentHTML?.("afterbegin",
+        `<i class="inv-naipe-esq inv-naipe-arriba" aria-hidden="true">A${corazon}</i>` +
+        `<i class="inv-naipe-esq inv-naipe-abajo" aria-hidden="true">A${pica}</i>` +
+        `<i class="inv-naipe-dorso" aria-hidden="true"></i>`);
+      velo.insertAdjacentHTML?.("beforeend", `<p class="inv-sobre-pista">Toca la carta</p>`);
+    }
     if (velo && apertura === "anillos") {
       velo.insertAdjacentHTML?.(
         "afterbegin",
@@ -4677,7 +4687,7 @@ export function renderInvitation(opts: RenderOptions): string {
      y para encontrarla tiene que estar ya creada. */
   if (document.querySelector(".inv-cortina")) scripts.push(CORTINA_JS);
   /* Los componentes interactivos, cada uno sólo si la página lo usa. */
-  if (document.querySelector("[data-inv-sobre],[data-inv-libro],[data-inv-abanico],[data-inv-agendar],[data-inv-wa],.inv-velo-deseo,.inv-velo-nubes,.inv-velo-telon,.inv-velo-anillos,.inv-velo-claqueta,.inv-velo-mariposa,.inv-velo-escarcha,.inv-cielo,.inv-rasca-capa")) {
+  if (document.querySelector("[data-inv-sobre],[data-inv-libro],[data-inv-abanico],[data-inv-agendar],[data-inv-wa],.inv-velo-deseo,.inv-velo-nubes,.inv-velo-telon,.inv-velo-anillos,.inv-velo-claqueta,.inv-velo-mariposa,.inv-velo-escarcha,.inv-velo-naipe,.inv-cielo,.inv-rasca-capa")) {
     scripts.push(CONFETI_JS);
   }
   if (document.querySelector(".inv-velo-deseo,.inv-cielo")) scripts.push(FUGAZ_JS);
@@ -4690,7 +4700,8 @@ export function renderInvitation(opts: RenderOptions): string {
   if (document.querySelector(".inv-velo-claqueta")) scripts.push(CLAQUETA_JS);
   if (document.querySelector(".inv-velo-mariposa")) scripts.push(MARIPOSA_JS);
   if (document.querySelector(".inv-velo-escarcha")) scripts.push(ESCARCHA_JS);
-  if (document.querySelector(".inv-ev-cinta,.inv-ev-postales")) scripts.push(LLEGAN_JS);
+  if (document.querySelector(".inv-velo-naipe")) scripts.push(NAIPE_JS);
+  if (document.querySelector(".inv-ev-cinta,.inv-ev-postales,.inv-ev-naipes")) scripts.push(LLEGAN_JS);
   if (document.querySelector(".inv-rasca-capa")) scripts.push(RASCA_JS);
   if (document.querySelector("[data-inv-sobre]")) scripts.push(SOBRE_JS);
   if (document.querySelector("[data-inv-libro]")) scripts.push(LIBRO_JS);

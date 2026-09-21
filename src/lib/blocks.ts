@@ -197,6 +197,13 @@ const countdown: BlockSpec = {
       hint: "Cada número dentro de un cristal hexagonal con facetas y un brillo que lo cruza",
       build: () => reloj("inv-cd-cristales"),
     },
+    /* El reloj de bolsillo: la manecilla gira con lo que le queda al ciclo. */
+    {
+      id: "bolsillo",
+      name: "Reloj de bolsillo",
+      hint: "Cada unidad en la esfera de un reloj antiguo, con su manecilla girando",
+      build: () => reloj("inv-cd-bolsillo", true),
+    },
     {
       id: "medallon",
       name: "Medallón",
@@ -414,6 +421,16 @@ const events: BlockSpec = {
         <p class="event-note">Nota</p>
         <a class="event-map-btn" href="#">¿Cómo llegar?</a>
       </article>
+    </div>`,
+    },
+    /* Los naipes: cada momento es una carta —A♥, 2♠, 3♦…— que se reparte al asomar. */
+    {
+      id: "naipes",
+      name: "Naipes",
+      hint: "Cada momento es una carta de la baraja que se reparte sobre la mesa al llegar",
+      build: () => `${head()}${body}
+    <div class="events-grid inv-ev-naipes">
+      ${eventCard("")}
     </div>`,
     },
     {

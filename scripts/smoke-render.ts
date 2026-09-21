@@ -1563,6 +1563,20 @@ for (const [nombre, tocar] of CASOS) {
     ["cuenta atrás de cristales, con sus cuatro números",
       (d) => { d.layout = { blocks: [{ id: "countdown-0", type: "countdown", variant: "cristales" }] }; },
       (doc) => doc.querySelectorAll(".inv-cd-cristales [data-cd]").length === 4],
+    ["naipe: las dos esquinas, el dorso y su script",
+      (d) => { d.splash = { ...d.splash, enabled: true, apertura: "naipe" }; },
+      (doc) => doc.querySelectorAll("#splash.inv-velo-naipe .splash-modal .inv-naipe-esq").length === 2 &&
+        !!doc.querySelector("#splash .inv-naipe-dorso") && conScript(doc, "inv-velo-naipe")],
+    ["cuenta atrás de reloj de bolsillo, con sus cuatro manecillas",
+      (d) => { d.layout = { blocks: [{ id: "countdown-0", type: "countdown", variant: "bolsillo" }] }; },
+      (doc) => doc.querySelectorAll(".inv-cd-bolsillo [data-cd-ring] [data-cd]").length === 4],
+    ["programa en naipes: una carta por momento y su script",
+      (d) => {
+        d.layout = { blocks: [{ id: "events-0", type: "events", variant: "naipes" }] };
+        d.events = { ...d.events, enabled: true, items: [
+          { kind: "Misa", title: "Acción de gracias", time: "5:00" }, { kind: "Vals", title: "El baile", time: "8:00" }] };
+      },
+      (doc) => doc.querySelectorAll(".inv-ev-naipes .event-card").length === 2 && conScript(doc, "inv-ev-naipes")],
     ["cuenta atrás de luciérnagas, con sus cuatro números",
       (d) => { d.layout = { blocks: [{ id: "countdown-0", type: "countdown", variant: "luciernagas" }] }; },
       (doc) => doc.querySelectorAll(".inv-cd-luciernagas [data-cd]").length === 4],

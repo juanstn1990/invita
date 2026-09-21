@@ -587,6 +587,104 @@ html:not(.js) .inv-ev-sendero .inv-dato{opacity:1;transform:none}
 .inv-cd-cristales .ring-label{display:block;margin-top:4px;font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;
   color:color-mix(in srgb,var(--inv-ink) 75%,transparent)}
 
+/* ── El naipe: el velo es un As de corazones; al tocarlo se voltea y cae
+   girando por la madriguera ──
+   La carta es el propio panel del velo —así el nombre y la fecha son los
+   de siempre—, con sus esquinas: A y corazón arriba, A y pica invertidos
+   abajo, como un naipe de verdad. El dorso es una capa con la cara vuelta. */
+#splash.inv-velo-naipe{cursor:pointer;-webkit-tap-highlight-color:transparent;overflow:hidden;perspective:1200px}
+#splash.inv-velo-naipe .splash-btns{display:none}
+#splash.inv-velo-naipe .splash-modal{position:relative;z-index:3;width:min(80vw,330px);aspect-ratio:.7;
+  display:flex;flex-direction:column;justify-content:center;padding:18% 12%;border-radius:16px;
+  background:var(--inv-naipe-fondo,var(--inv-surface));transform-style:preserve-3d;
+  box-shadow:0 26px 50px -20px rgba(0,0,0,.55),inset 0 0 0 1px color-mix(in srgb,var(--inv-ink) 18%,transparent),
+    inset 0 0 0 9px var(--inv-naipe-fondo,var(--inv-surface)),inset 0 0 0 10px color-mix(in srgb,var(--inv-ink) 35%,transparent)}
+#splash.inv-velo-naipe .splash-modal > *:not(.inv-naipe-dorso){backface-visibility:hidden;-webkit-backface-visibility:hidden}
+/* Sin opacidad en la animación: una opacidad menor que 1 aplana el 3D y
+   el dorso no llega a verse nunca. */
+.inv-naipe-esq{position:absolute;display:flex;flex-direction:column;align-items:center;gap:2px;font-style:normal;
+  font-family:Georgia,'Times New Roman',serif;font-weight:700;font-size:clamp(34px,10vw,46px);line-height:1;
+  color:var(--inv-naipe-tinta,var(--inv-ink))}
+.inv-naipe-esq svg{width:.9em;height:.9em;fill:currentColor}
+.inv-naipe-arriba{left:7%;top:5%}
+.inv-naipe-abajo{right:7%;bottom:5%;transform:rotate(180deg)}
+.inv-naipe-dorso{position:absolute;inset:0;border-radius:16px;transform:rotateY(180deg);
+  backface-visibility:hidden;-webkit-backface-visibility:hidden;
+  background:
+    repeating-linear-gradient(45deg,color-mix(in srgb,var(--inv-accent) 85%,#000) 0 6px,var(--inv-accent) 6px 12px),
+    var(--inv-accent);
+  box-shadow:inset 0 0 0 10px var(--inv-naipe-fondo,var(--inv-surface))}
+#splash.abriendo .splash-modal{animation:invNaipeCae 1.7s cubic-bezier(.45,0,.55,1) forwards}
+@keyframes invNaipeCae{
+  0%{transform:none}
+  30%{transform:rotateY(180deg)}
+  45%{transform:rotateY(180deg) scale(1.02)}
+  100%{transform:rotateY(180deg) rotateZ(900deg) scale(0)}}
+#splash.inv-velo-naipe .inv-sobre-pista{z-index:4}
+
+/* ── Cuenta atrás de reloj de bolsillo ──
+   Cada unidad es la esfera de un reloj: las doce marcas, la corona arriba
+   y una manecilla que gira con lo que le queda al ciclo (--p, el mismo que
+   usan los anillos). El número va en la mitad de abajo, como el segundero
+   de un reloj antiguo, y la unidad debajo de la esfera. */
+.inv-cd-bolsillo{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;max-width:440px;margin-inline:auto;padding:14px 0 20px}
+.inv-cd-bolsillo .countdown-ring{position:relative;aspect-ratio:1;display:block;border-radius:50%;padding:0;overflow:visible;
+  border:0;background:
+    repeating-conic-gradient(from -1deg,color-mix(in srgb,var(--inv-accent) 80%,transparent) 0 2deg,transparent 2deg 30deg) center/100% 100%,
+    radial-gradient(circle,var(--inv-surface) 0 58%,transparent 59%),
+    var(--inv-surface);
+  box-shadow:0 0 0 3px var(--inv-accent),0 0 0 5px color-mix(in srgb,var(--inv-accent) 35%,var(--inv-surface)),
+    0 10px 18px -10px rgba(0,0,0,.55)}
+/* La corona del reloj. */
+.inv-cd-bolsillo .countdown-ring::before{content:"";position:absolute;left:50%;top:-11px;width:12px;height:9px;translate:-50% 0;
+  border-radius:3px 3px 1px 1px;background:var(--inv-accent)}
+/* La manecilla, del centro hacia arriba, girando con el ciclo. */
+.inv-cd-bolsillo .countdown-ring::after{content:"";position:absolute;left:50%;top:14%;width:2px;height:36%;margin-left:-1px;
+  border-radius:2px;background:var(--inv-accent);transform-origin:50% 100%;
+  transform:rotate(calc(var(--p,0) * 1turn));transition:transform .6s cubic-bezier(.4,1.6,.5,1);
+  box-shadow:0 0 0 .5px color-mix(in srgb,var(--inv-accent) 40%,transparent)}
+.inv-cd-bolsillo .ring-inner{position:absolute;inset:0;display:block;text-align:center}
+.inv-cd-bolsillo .ring-inner::before{content:"";position:absolute;left:50%;top:50%;width:7px;height:7px;translate:-50% -50%;
+  border-radius:50%;background:var(--inv-accent);z-index:1}
+.inv-cd-bolsillo .ring-number{position:absolute;left:0;right:0;top:56%;display:block;font-size:clamp(15px,4.6vw,21px);line-height:1;
+  color:var(--inv-ink)}
+.inv-cd-bolsillo .ring-label{position:absolute;left:-6px;right:-6px;top:calc(100% + 10px);display:block;font-size:9.5px;
+  letter-spacing:.16em;text-transform:uppercase;color:color-mix(in srgb,var(--inv-ink) 75%,transparent)}
+
+/* ── El programa como naipes ──
+   Cada momento es una carta —A, 2, 3… con su palo, corazones y diamantes
+   en rojo— que se reparte desde un lado al asomar y queda apenas ladeada,
+   como sobre la mesa del Sombrerero. */
+.inv-ev-naipes{display:flex;flex-direction:column;gap:16px;max-width:400px;margin:22px auto 0;padding:0 10px}
+.inv-ev-naipes .event-card{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;
+  padding:34px 54px 30px;text-align:center;border:0;border-radius:14px;background:var(--inv-surface);
+  box-shadow:0 14px 26px -16px rgba(0,0,0,.55),inset 0 0 0 1px color-mix(in srgb,var(--inv-ink) 15%,transparent),
+    inset 0 0 0 7px var(--inv-surface),inset 0 0 0 8px color-mix(in srgb,var(--inv-ink) 22%,transparent);
+  rotate:-1.5deg;--palo-c:var(--inv-naipe-rojo,#a3242f)}
+.inv-ev-naipes .event-card:nth-of-type(even){rotate:1.5deg;--palo-c:var(--inv-ink)}
+.inv-ev-naipes .event-card:hover{transform:none}
+.inv-ev-naipes .event-card::before,.inv-ev-naipes .event-card::after{position:absolute;white-space:pre;text-align:center;
+  font-family:Georgia,'Times New Roman',serif;font-weight:700;font-size:21px;line-height:1.05;color:var(--palo-c)}
+.inv-ev-naipes .event-card::before{left:14px;top:12px}
+.inv-ev-naipes .event-card::after{right:14px;bottom:12px;transform:rotate(180deg)}
+.inv-ev-naipes .event-card:nth-of-type(1)::before,.inv-ev-naipes .event-card:nth-of-type(1)::after{content:"A\\A\\2665"}
+.inv-ev-naipes .event-card:nth-of-type(2)::before,.inv-ev-naipes .event-card:nth-of-type(2)::after{content:"2\\A\\2660"}
+.inv-ev-naipes .event-card:nth-of-type(3)::before,.inv-ev-naipes .event-card:nth-of-type(3)::after{content:"3\\A\\2666"}
+.inv-ev-naipes .event-card:nth-of-type(4)::before,.inv-ev-naipes .event-card:nth-of-type(4)::after{content:"4\\A\\2663"}
+.inv-ev-naipes .event-card:nth-of-type(5)::before,.inv-ev-naipes .event-card:nth-of-type(5)::after{content:"5\\A\\2665"}
+.inv-ev-naipes .event-card:nth-of-type(6)::before,.inv-ev-naipes .event-card:nth-of-type(6)::after{content:"6\\A\\2660"}
+.inv-ev-naipes .event-card:nth-of-type(7)::before,.inv-ev-naipes .event-card:nth-of-type(7)::after{content:"7\\A\\2666"}
+.inv-ev-naipes .event-card:nth-of-type(8)::before,.inv-ev-naipes .event-card:nth-of-type(8)::after{content:"8\\A\\2663"}
+.inv-ev-naipes .event-icon{width:auto;height:auto;margin:0 0 4px;background:none;border:0;box-shadow:none;
+  color:var(--palo-c);font-size:24px}
+.inv-ev-naipes .event-icon svg{width:28px;height:28px}
+.inv-ev-naipes :is(.event-type,.event-title,.event-time,.event-place,.event-note){margin:0}
+.inv-ev-naipes .event-map-btn{margin-top:10px}
+.js .inv-ev-naipes .event-card{opacity:0;translate:60vw -30px;transform:rotate(24deg)}
+.js .inv-ev-naipes .event-card:nth-of-type(even){translate:-60vw -30px;transform:rotate(-24deg)}
+.js .inv-ev-naipes .event-card.llega{opacity:1;translate:0 0;transform:none;
+  transition:opacity .5s ease,translate .8s cubic-bezier(.2,.8,.25,1.05),transform .8s cubic-bezier(.2,.8,.25,1.05)}
+
 /* ── El programa como constelación ──
    Las estrellas van por una franja central, un poco en zigzag, y cada
    momento a un lado y a otro: así la línea que las une nunca pisa texto. */
@@ -816,6 +914,9 @@ html:not(.js) .inv-ev-constelacion .inv-dato{opacity:1;transform:none}
   .inv-viajero,.inv-hito{transition:none}
   .inv-postigo,.inv-claqueta-palo{transition:none}
   .inv-pedazo,.inv-grietas path{transition:none;animation:none}
+  #splash.abriendo .splash-modal{animation:none}
+  .inv-cd-bolsillo .countdown-ring::after{transition:none}
+  .js .inv-ev-naipes .event-card{opacity:1;translate:none;transform:none}
   .inv-cd-cristales .countdown-ring::after{animation:none}
   .inv-mariposa,.inv-ala,.inv-cd-alas .countdown-ring::before,.inv-cd-alas .countdown-ring::after{animation:none}
   #splash.inv-velo-claqueta.abriendo,.inv-claqueta::after,.inv-cd-marquesina .countdown-ring::before,
@@ -1234,7 +1335,7 @@ export const CLAQUETA_JS = `
  */
 export const LLEGAN_JS = `
 (function(){
-  var fichas = [].slice.call(document.querySelectorAll('.inv-ev-cinta .event-card,.inv-ev-postales .event-card'));
+  var fichas = [].slice.call(document.querySelectorAll('.inv-ev-cinta .event-card,.inv-ev-postales .event-card,.inv-ev-naipes .event-card'));
   if (!fichas.length) return;
   function marca(el){ el.classList.add(el.closest('.inv-ev-cinta') ? 'proyectada' : 'llega'); }
   if (!window.IntersectionObserver) { fichas.forEach(marca); return; }
@@ -1326,6 +1427,25 @@ export const ESCARCHA_JS = `
       if (window.invEstallar) window.invEstallar(x + r.left, y + r.top, 40);
     }, 260);
     setTimeout(entrar, 1700);
+  });
+})();`;
+
+/** El naipe: se toca, la carta se voltea y cae girando; detrás, la invitación. */
+export const NAIPE_JS = `
+(function(){
+  var velo = document.querySelector('#splash.inv-velo-naipe');
+  if (!velo) return;
+  var quieto = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var hecho = false;
+  velo.addEventListener('click', function(e){
+    if (hecho || e.target.closest('a')) return;
+    hecho = true;
+    velo.classList.add('abriendo');
+    if (window.invEstallar) setTimeout(function(){ window.invEstallar(innerWidth / 2, innerHeight / 2, 40); }, quieto ? 0 : 1300);
+    setTimeout(function(){
+      var b = velo.querySelector('.splash-btn-primary');
+      if (b) b.click(); else if (window.enterSite) window.enterSite();
+    }, quieto ? 0 : 1650);
   });
 })();`;
 
