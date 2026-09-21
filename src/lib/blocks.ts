@@ -190,6 +190,13 @@ const countdown: BlockSpec = {
       hint: "Cada número se posa entre dos alas de mariposa que baten al cambiar",
       build: () => reloj("inv-cd-alas"),
     },
+    /* Los cristales: cada número en un cristal de hielo hexagonal que brilla. */
+    {
+      id: "cristales",
+      name: "Cristales de hielo",
+      hint: "Cada número dentro de un cristal hexagonal con facetas y un brillo que lo cruza",
+      build: () => reloj("inv-cd-cristales"),
+    },
     {
       id: "medallon",
       name: "Medallón",

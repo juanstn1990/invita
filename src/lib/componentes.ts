@@ -527,6 +527,66 @@ html:not(.js) .inv-ev-sendero .inv-dato{opacity:1;transform:none}
 .inv-cd-alas .ring-label{text-shadow:0 0 6px var(--inv-surface)}
 .inv-cd-alas .ring-label{display:block;margin-top:4px;font-size:9px;letter-spacing:.16em;text-transform:uppercase}
 
+/* ── La escarcha: el velo es un vidrio congelado; al tocarlo se agrieta
+   desde el dedo y se rompe en pedazos que caen ──
+   El hielo es una capa con backdrop-filter —el nombre se ve empañado
+   detrás— y un poco de escarcha pintada con degradados. Los pedazos los
+   crea el script: copias de la misma capa recortadas en cuñas alrededor
+   del punto tocado, así que no hay imagen que preparar. */
+#splash.inv-velo-escarcha{cursor:pointer;-webkit-tap-highlight-color:transparent;overflow:hidden}
+#splash.inv-velo-escarcha .splash-btns{display:none}
+#splash.inv-velo-escarcha .splash-modal{position:relative;z-index:1}
+.inv-escarcha{position:absolute;inset:0;z-index:3;pointer-events:none;
+  -webkit-backdrop-filter:blur(4px) saturate(1.2);backdrop-filter:blur(4px) saturate(1.2);
+  background:
+    radial-gradient(120% 70% at 50% 0%,rgba(255,255,255,.34),transparent 60%),
+    radial-gradient(60% 40% at 12% 88%,rgba(255,255,255,.4),transparent 70%),
+    radial-gradient(50% 36% at 92% 70%,rgba(255,255,255,.3),transparent 70%),
+    repeating-linear-gradient(62deg,rgba(255,255,255,.07) 0 2px,transparent 2px 9px),
+    repeating-linear-gradient(-58deg,rgba(255,255,255,.05) 0 1px,transparent 1px 13px),
+    color-mix(in srgb,var(--inv-accent) 22%,rgba(215,232,248,.35));
+  box-shadow:inset 0 0 90px rgba(255,255,255,.45)}
+.inv-escarcha.rota{opacity:0}
+.inv-grietas{position:absolute;inset:0;z-index:5;width:100%;height:100%;pointer-events:none;overflow:visible}
+.inv-grietas path{fill:none;stroke:#fff;stroke-width:1.4;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1;
+  filter:drop-shadow(0 0 3px rgba(190,225,255,.95));animation:invGrieta .22s ease-out forwards}
+@keyframes invGrieta{to{stroke-dashoffset:0}}
+.inv-pedazo{position:absolute;inset:0;z-index:4;pointer-events:none;
+  transition:transform var(--t,1.1s) cubic-bezier(.5,0,.8,.5),opacity var(--t,1.1s) ease-in}
+#splash.inv-velo-escarcha .inv-sobre-pista{z-index:6;color:#fff;text-shadow:0 1px 8px rgba(0,30,70,.6)}
+#splash.abriendo .inv-sobre-pista{opacity:0;animation:none}
+
+/* ── Cuenta atrás de cristales ──
+   Cada número dentro de un cristal de hielo hexagonal, con facetas y un
+   brillo que lo cruza de vez en cuando; al cambiar, el cristal destella.
+   El hexágono es un recorte, así que el fondo y el brillo van en capas
+   con el mismo recorte. */
+.inv-cd-cristales{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;max-width:440px;margin-inline:auto}
+.inv-cd-cristales .countdown-ring{position:relative;aspect-ratio:.87;display:grid;place-items:center;
+  border:0;border-radius:0;padding:0;background:none;box-shadow:none;overflow:visible;
+  filter:drop-shadow(0 8px 14px color-mix(in srgb,var(--inv-accent) 35%,transparent))}
+.inv-cd-cristales .countdown-ring::before,.inv-cd-cristales .countdown-ring::after{content:"";position:absolute;inset:0;
+  clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);pointer-events:none}
+.inv-cd-cristales .countdown-ring::before{background:
+  linear-gradient(90deg,transparent 49.5%,rgba(255,255,255,.35) 50%,transparent 50.5%),
+  linear-gradient(30deg,transparent 49.6%,rgba(255,255,255,.22) 50%,transparent 50.4%),
+  linear-gradient(-30deg,transparent 49.6%,rgba(255,255,255,.22) 50%,transparent 50.4%),
+  linear-gradient(160deg,rgba(255,255,255,.95),color-mix(in srgb,var(--inv-accent) 14%,rgba(232,243,253,.92)) 45%,
+    color-mix(in srgb,var(--inv-accent) 32%,rgba(200,224,248,.92)))}
+.inv-cd-cristales .countdown-ring::after{background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.85) 50%,transparent 65%)
+  -150% 0/250% 100% no-repeat;animation:invReflejo 5s ease-in-out infinite}
+.inv-cd-cristales .countdown-ring:nth-child(2)::after{animation-delay:1.2s}
+.inv-cd-cristales .countdown-ring:nth-child(3)::after{animation-delay:2.4s}
+.inv-cd-cristales .countdown-ring:nth-child(4)::after{animation-delay:3.6s}
+@keyframes invReflejo{0%,60%{background-position:-150% 0}100%{background-position:250% 0}}
+.inv-cd-cristales .countdown-ring:has(.tick)::before{animation:invHielaTick .6s ease-out}
+@keyframes invHielaTick{0%{filter:brightness(1.6)}100%{filter:none}}
+.inv-cd-cristales .ring-inner{position:relative;z-index:1;text-align:center}
+.inv-cd-cristales .ring-number{display:block;font-size:clamp(22px,7vw,32px);line-height:1;color:var(--inv-ink);
+  text-shadow:0 1px 0 rgba(255,255,255,.7)}
+.inv-cd-cristales .ring-label{display:block;margin-top:4px;font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;
+  color:color-mix(in srgb,var(--inv-ink) 75%,transparent)}
+
 /* ── El programa como constelación ──
    Las estrellas van por una franja central, un poco en zigzag, y cada
    momento a un lado y a otro: así la línea que las une nunca pisa texto. */
@@ -755,6 +815,8 @@ html:not(.js) .inv-ev-constelacion .inv-dato{opacity:1;transform:none}
   .inv-ev-sendero .inv-dato,.inv-parada{transition:none}
   .inv-viajero,.inv-hito{transition:none}
   .inv-postigo,.inv-claqueta-palo{transition:none}
+  .inv-pedazo,.inv-grietas path{transition:none;animation:none}
+  .inv-cd-cristales .countdown-ring::after{animation:none}
   .inv-mariposa,.inv-ala,.inv-cd-alas .countdown-ring::before,.inv-cd-alas .countdown-ring::after{animation:none}
   #splash.inv-velo-claqueta.abriendo,.inv-claqueta::after,.inv-cd-marquesina .countdown-ring::before,
   .inv-cd-marquesina .countdown-ring::after{animation:none}
@@ -1198,6 +1260,72 @@ export const MARIPOSA_JS = `
       var b = velo.querySelector('.splash-btn-primary');
       if (b) b.click(); else if (window.enterSite) window.enterSite();
     }, quieto ? 0 : 1500);
+  });
+})();`;
+
+/**
+ * La escarcha: se toca y el hielo se agrieta desde el dedo; luego se rompe
+ * en cuñas que caen. Los pedazos son copias de la capa de hielo recortadas
+ * con clip-path, así que se ven exactamente como el hielo que había.
+ */
+export const ESCARCHA_JS = `
+(function(){
+  var velo = document.querySelector('#splash.inv-velo-escarcha');
+  if (!velo) return;
+  var hielo = velo.querySelector('.inv-escarcha');
+  var quieto = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var hecho = false;
+  function entrar(){
+    var b = velo.querySelector('.splash-btn-primary');
+    if (b) b.click(); else if (window.enterSite) window.enterSite();
+  }
+  velo.addEventListener('click', function(e){
+    if (hecho || e.target.closest('a')) return;
+    hecho = true;
+    velo.classList.add('abriendo');
+    if (quieto || !hielo) { entrar(); return; }
+    var r = velo.getBoundingClientRect();
+    var x = (e.clientX || r.width / 2) - r.left, y = (e.clientY || r.height / 2) - r.top;
+    var R = Math.hypot(r.width, r.height) * 1.2, n = 11, angs = [], i;
+    var base = Math.random() * 6.283;
+    for (i = 0; i < n; i++) angs.push(base + (i + Math.random() * .6) * 6.283 / n);
+    var medio = angs.map(function(){ return R * (.12 + Math.random() * .16); });
+    var pt = function(a, d){ return [x + Math.cos(a) * d, y + Math.sin(a) * d]; };
+    var svgNS = 'http://www.w3.org/2000/svg';
+    var svg = document.createElementNS(svgNS, 'svg');
+    svg.setAttribute('class', 'inv-grietas');
+    angs.forEach(function(a, k){
+      var p1 = pt(a, medio[k]), p2 = pt(a + (Math.random() - .5) * .25, R);
+      var path = document.createElementNS(svgNS, 'path');
+      path.setAttribute('pathLength', '1');
+      path.setAttribute('d', 'M' + x + ' ' + y + ' L' + p1[0].toFixed(1) + ' ' + p1[1].toFixed(1) + ' L' + p2[0].toFixed(1) + ' ' + p2[1].toFixed(1));
+      svg.appendChild(path);
+    });
+    velo.appendChild(svg);
+    setTimeout(function(){
+      var poli = function(ps){ return 'polygon(' + ps.map(function(p){ return p[0].toFixed(1) + 'px ' + p[1].toFixed(1) + 'px'; }).join(',') + ')'; };
+      angs.forEach(function(a, k){
+        var b2 = angs[(k + 1) % n] + (k === n - 1 ? 6.283 : 0);
+        var m1 = medio[k], m2 = medio[(k + 1) % n];
+        [[[x, y], pt(a, m1), pt(b2, m2)], [pt(a, m1), pt(a, R), pt(b2, R), pt(b2, m2)]].forEach(function(ps, capa){
+          var p = hielo.cloneNode(false);
+          p.className = 'inv-escarcha inv-pedazo';
+          p.style.clipPath = p.style.webkitClipPath = poli(ps);
+          var mid = (a + b2) / 2, lejos = capa ? 160 : 70;
+          p.style.setProperty('--t', (0.9 + Math.random() * .6).toFixed(2) + 's');
+          velo.appendChild(p);
+          requestAnimationFrame(function(){ requestAnimationFrame(function(){
+            p.style.transform = 'translate(' + (Math.cos(mid) * lejos).toFixed(0) + 'px,' +
+              (Math.sin(mid) * lejos + r.height * .9).toFixed(0) + 'px) rotate(' + ((Math.random() - .5) * 60).toFixed(0) + 'deg)';
+            p.style.opacity = '0';
+          }); });
+        });
+      });
+      hielo.classList.add('rota');
+      svg.remove();
+      if (window.invEstallar) window.invEstallar(x + r.left, y + r.top, 40);
+    }, 260);
+    setTimeout(entrar, 1700);
   });
 })();`;
 
