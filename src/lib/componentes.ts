@@ -1,9 +1,9 @@
 /**
  * Componentes interactivos que sirven a cualquier diseño.
  *
- * Nacieron con «Quince Dorado» y «Noche estrellada», pero ninguno es de un diseño: todos salen
+ * Nacieron con «Quince Dorado», «Noche estrellada» y «Rosa encantada», pero ninguno es de un diseño: todos salen
  * de las variables de la paleta (--inv-accent, --inv-ink, --inv-surface…)
- * y se eligen desde el editor en cualquiera de los 53.
+ * y se eligen desde el editor en cualquiera de los 54.
  *
  * · Apertura «sobre con sello»: el velo es un sobre cerrado; se toca el
  *   sello, la solapa se abre, la carta sube y la invitación entra.
@@ -23,6 +23,13 @@
  * · Programa «constelación»: una estrella por momento, unidas por una
  *   línea que se traza al bajar.
  * · Información útil «rasca y descubre»: una capa de plata que se rasca.
+ *
+ * Y los de «Rosa encantada»:
+ *
+ * · Apertura «libro de cuentos»: el velo es un libro cerrado; se toca la
+ *   tapa, se abre y dentro está la invitación.
+ * · Programa «capítulos»: cada momento es una página que entra girando,
+ *   con su número al lado.
  *
  * Aquí va lo que es igual para todos (el CSS y el JavaScript). Lo que
  * depende de los datos —el nombre en la carta, la fecha del calendario— lo
@@ -225,10 +232,68 @@ html:not(.js) .inv-ev-constelacion .inv-dato{opacity:1;transform:none}
   touch-action:none;cursor:grab;transition:opacity .8s}
 .feature-card.rascada .inv-rasca-capa{opacity:0;pointer-events:none}
 
+
+/* ── El libro de cuentos ─────────────────────────────────────────
+   Como el sobre: el velo se vuelve un libro cerrado y su panel se esconde,
+   pero sigue ahí porque su botón es el que el libro pulsa al abrirse. */
+#splash.inv-velo-libro .splash-modal{display:none}
+.inv-libro{position:relative;z-index:4;width:min(78vw,330px);aspect-ratio:.76;cursor:pointer;
+  perspective:1600px;-webkit-tap-highlight-color:transparent;
+  animation:invSobreAsoma 1.1s cubic-bezier(.2,.7,.3,1) both}
+.inv-libro-pagina{position:absolute;inset:0;border-radius:6px 12px 12px 6px;display:grid;
+  place-content:center;gap:6px;text-align:center;padding:24px;
+  background:linear-gradient(100deg,color-mix(in srgb,var(--inv-surface) 88%,var(--inv-accent)),
+    var(--inv-surface) 18%,#fff);color:var(--inv-ink);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--inv-accent) 35%,transparent),
+    0 30px 60px -28px rgba(0,0,0,.8)}
+.inv-libro-ante{margin:0;font-family:var(--inv-font-ui);font-size:11px;letter-spacing:.32em;
+  text-transform:uppercase;color:var(--inv-accent)}
+.inv-libro-nombre{margin:0;font-family:var(--inv-font-title);font-size:40px;line-height:1.1}
+.inv-libro-tapa{position:absolute;inset:0;z-index:2;transform-origin:left center;
+  backface-visibility:hidden;border-radius:6px 12px 12px 6px;overflow:hidden;
+  background:var(--inv-libro-img,linear-gradient(135deg,
+    color-mix(in srgb,var(--inv-accent) 70%,#000),var(--inv-accent) 45%,
+    color-mix(in srgb,var(--inv-accent) 55%,#fff)));
+  background-size:cover;background-position:center;
+  box-shadow:0 30px 60px -24px rgba(0,0,0,.85);
+  transition:transform 1.3s cubic-bezier(.4,.05,.2,1)}
+.inv-libro.abre .inv-libro-tapa{transform:rotateY(-158deg)}
+.inv-libro-lomo{position:absolute;left:-6px;top:0;bottom:0;width:10px;z-index:3;border-radius:6px 0 0 6px;
+  background:linear-gradient(color-mix(in srgb,var(--inv-accent) 60%,#000),var(--inv-accent),
+    color-mix(in srgb,var(--inv-accent) 60%,#000))}
+
+/* ── El programa por capítulos ───────────────────────────────────
+   Cada momento es una página que se pasa: entra girando desde el lomo. */
+.inv-ev-capitulos{display:block;max-width:440px;margin:18px auto 0;perspective:1200px}
+.inv-ev-capitulos .event-card{position:relative;display:block;margin:0 0 12px;
+  padding:18px 20px 18px 86px;text-align:left;border-radius:4px 12px 12px 4px;
+  background:var(--inv-surface);transform-origin:left center;
+  box-shadow:0 18px 30px -24px rgba(0,0,0,.6),
+    inset 0 0 0 1px color-mix(in srgb,var(--inv-accent) 28%,transparent)}
+.inv-ev-capitulos .event-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:8px;
+  border-radius:4px 0 0 4px;background:linear-gradient(color-mix(in srgb,var(--inv-accent) 60%,#000),
+    var(--inv-accent),color-mix(in srgb,var(--inv-accent) 60%,#000))}
+/* El número del capítulo, en su propia columna: un «VIII» es tres veces más
+   ancho que un «I», y sin ancho fijo se mete debajo del texto. */
+.inv-ev-capitulos .event-icon{position:absolute;left:14px;top:50%;translate:0 -50%;width:60px;
+  text-align:center;font-family:var(--inv-font-ui);font-weight:600;font-size:24px;
+  letter-spacing:.04em;line-height:1;color:var(--inv-accent)}
+.inv-ev-capitulos :is(.event-type,.event-title,.event-time,.event-place,.event-note){margin:0}
+.js .inv-ev-capitulos .event-card{transform:rotateY(-92deg);opacity:0;
+  transition:transform 1s cubic-bezier(.3,.7,.2,1),opacity .7s ease}
+.js .inv-ev-capitulos.in .event-card{transform:none;opacity:1}
+.js .inv-ev-capitulos.in .event-card:nth-child(2){transition-delay:.18s}
+.js .inv-ev-capitulos.in .event-card:nth-child(3){transition-delay:.36s}
+.js .inv-ev-capitulos.in .event-card:nth-child(4){transition-delay:.54s}
+.js .inv-ev-capitulos.in .event-card:nth-child(5){transition-delay:.72s}
+.js .inv-ev-capitulos.in .event-card:nth-child(n+6){transition-delay:.9s}
+
 @media (prefers-reduced-motion:reduce){
   .inv-sobre,.inv-sobre-sello,.inv-sobre-pista,.inv-deseo-pista,
   .inv-cd-orbitas .countdown-ring::after{animation:none}
   .inv-cielo{display:none}
+  .inv-libro-tapa{transition:none}
+  .js .inv-ev-capitulos .event-card{transform:none;opacity:1;transition:none}
   .inv-ev-constelacion .inv-dato,.inv-luz{opacity:1;transform:none;transition:none}
   .inv-sobre-carta,.inv-sobre-solapa,.inv-fe-voltea .inv-cara{transition:none}
   .inv-cd-paletas .ring-number.tick{animation:none}
@@ -562,4 +627,41 @@ export const RASCA_JS = `
     c.addEventListener('pointerup', function(){ activo = false; revisar(); });
     c.addEventListener('pointercancel', function(){ activo = false; revisar(); });
   });
+})();`;
+
+/** El libro de cuentos: se toca la tapa, se abre y entra la invitación. */
+export const LIBRO_JS = `
+(function(){
+  var libro = document.querySelector('[data-inv-libro]');
+  if (!libro) return;
+  var quieto = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function abrir(){
+    if (libro.classList.contains('abre')) return;
+    libro.classList.add('abre');
+    var r = libro.getBoundingClientRect();
+    setTimeout(function(){ if (window.invEstallar) window.invEstallar(r.left + r.width * .55, r.top + r.height / 2, 70); }, 700);
+    setTimeout(function(){
+      var b = document.querySelector('#splash .splash-btn-primary');
+      if (b) b.click(); else if (window.enterSite) window.enterSite();
+    }, quieto ? 0 : 1700);
+  }
+  libro.addEventListener('click', abrir);
+  libro.addEventListener('keydown', function(e){ if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); abrir(); } });
+})();`;
+
+/**
+ * Los capítulos se pasan solos al asomarse.
+ *
+ * No se reutiliza el observador del esqueleto —el de .reveal— porque ése
+ * mira la sección entera y aquí hace falta el momento en que la lista entra
+ * en pantalla, que con una sección alta es bastante después.
+ */
+export const CAPITULOS_JS = `
+(function(){
+  var listas = [].slice.call(document.querySelectorAll('.inv-ev-capitulos'));
+  if (!listas.length) return;
+  var io = new IntersectionObserver(function(es){
+    es.forEach(function(e){ if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { threshold: .15 });
+  listas.forEach(function(l){ io.observe(l); });
 })();`;

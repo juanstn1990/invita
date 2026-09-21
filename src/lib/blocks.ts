@@ -281,6 +281,25 @@ const events: BlockSpec = {
       </article>
     </div>`,
     },
+    /* Los capítulos: el icono de cada momento es su número, y la ficha
+       entra girando como una página que se pasa. */
+    {
+      id: "capitulos",
+      name: "Capítulos",
+      hint: "Fichas de pergamino que entran girando, con el número del momento al lado",
+      build: () => `${head()}${body}
+    <div class="events-grid inv-ev-capitulos">
+      <article class="event-card">
+        <span class="event-icon">✦</span>
+        <p class="event-time">Hora</p>
+        <p class="event-type">Tipo</p>
+        <h3 class="event-title">Momento</h3>
+        <p class="event-place">Lugar<small>Dirección</small></p>
+        <p class="event-note">Nota</p>
+        <a class="event-map-btn" href="#">¿Cómo llegar?</a>
+      </article>
+    </div>`,
+    },
     {
       id: "lista",
       name: "Lista compacta",

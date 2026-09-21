@@ -1417,6 +1417,24 @@ for (const [nombre, tocar] of CASOS) {
           String(b.getAttribute("data-titulo")).includes("Valentina") &&
           b.getAttribute("data-lugar") === "Hacienda, Km 5" && conScript(doc, "data-inv-agendar");
       }],
+    ["libro de cuentos: tapa, página con el nombre y su script",
+      (d) => { d.splash = { ...d.splash, enabled: true, apertura: "libro" }; d.event.name1 = "Camila"; },
+      (doc) => !!doc.querySelector("#splash.inv-velo-libro [data-inv-libro] .inv-libro-tapa") &&
+        String(doc.querySelector(".inv-libro-nombre")?.textContent).includes("Camila") &&
+        conScript(doc, "data-inv-libro")],
+    ["y con su tapa propia",
+      (d) => { d.splash = { ...d.splash, enabled: true, apertura: "libro", sello: "/api/media/2026/09/t.png" }; },
+      (doc) => String(doc.querySelector(".inv-libro-tapa")?.getAttribute("style")).includes("t.png?w=800")],
+    ["programa por capítulos: el número es el ícono, y su script",
+      (d) => {
+        d.layout = { blocks: [{ id: "events-0", type: "events", variant: "capitulos" }] };
+        d.events = { ...d.events, enabled: true, items: [
+          { icon: "I", kind: "Recepción", title: "Bienvenida", time: "7:00" },
+          { icon: "II", kind: "Vals", title: "El baile", time: "8:00" }] };
+      },
+      (doc) => doc.querySelectorAll(".inv-ev-capitulos .event-card").length === 2 &&
+        doc.querySelector(".inv-ev-capitulos .event-icon")?.textContent.trim() === "I" &&
+        conScript(doc, "inv-ev-capitulos")],
     ["pide un deseo: la pista, la estrella fugaz y su script",
       (d) => { d.splash = { ...d.splash, enabled: true, apertura: "deseo" }; },
       (doc) => !!doc.querySelector("#splash.inv-velo-deseo .inv-deseo-pista") &&

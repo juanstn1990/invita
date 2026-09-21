@@ -13,6 +13,7 @@ import * as deco from "../deco";
 import { farolillos } from "./farolillos";
 import { dorado } from "./dorado";
 import { estrellada } from "./estrellada";
+import { rosa } from "./rosa";
 import {
   CORMORANT_JOST,
   DMSERIF_DMSANS,
@@ -321,5 +322,5 @@ const jardinXV: Design = {
 export const QUINCE: Design[] = [
   blanco, burdeos, amanecer, hojas, viaje,
   corona, confeti, vals, jardinXV,
-  farolillos, dorado, estrellada,
+  farolillos, dorado, estrellada, rosa,
 ];
