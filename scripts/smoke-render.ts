@@ -1582,20 +1582,24 @@ for (const [nombre, tocar] of CASOS) {
           { kind: "Misa", title: "Acción de gracias", time: "5:00" }, { kind: "Vals", title: "El baile", time: "8:00" }] };
       },
       (doc) => doc.querySelectorAll(".inv-ev-naipes .event-card").length === 2 && conScript(doc, "inv-ev-naipes")],
-    ["pases: el formulario los lleva y acota el contador",
+    ["pases: tarjeta con el número y sin preguntar cuántos van",
       (d) => { d.confirm = { ...d.confirm, enabled: true, mode: "form" }; },
       (doc) => {
         const f: any = doc.querySelector(".inv-rsvp");
         const n: any = doc.querySelector(".inv-rsvp [name='partySize']");
         return f?.getAttribute("data-inv-pases") === "4" &&
-          n?.getAttribute("max") === "4" && n?.getAttribute("value") === "4" &&
-          !!doc.querySelector("[data-inv-pases-texto]") && conScript(doc, "data-inv-pases");
+          n?.getAttribute("type") === "hidden" && n?.getAttribute("value") === "4" &&
+          !doc.querySelector("[data-inv-cuantos]") &&
+          !!doc.querySelector("[data-inv-pases-texto] .inv-rsvp-pases-n") &&
+          conScript(doc, "data-inv-pases");
       }, 4],
-    ["y sin pases el contador queda como siempre",
+    ["y sin pases sigue el contador de siempre",
       (d) => { d.confirm = { ...d.confirm, enabled: true, mode: "form" }; },
       (doc) => {
         const n: any = doc.querySelector(".inv-rsvp [name='partySize']");
-        return !doc.querySelector("[data-inv-pases]") &&
+        // La tarjeta viene escondida y tiene que quedarse escondida.
+        return !doc.querySelector("[data-inv-pases]") && !!doc.querySelector("[data-inv-cuantos]") &&
+          doc.querySelector("[data-inv-pases-texto]")?.hasAttribute("hidden") === true &&
           n?.getAttribute("max") === "20" && n?.getAttribute("value") === "1";
       }],
     ["cuenta atrás de luciérnagas, con sus cuatro números",

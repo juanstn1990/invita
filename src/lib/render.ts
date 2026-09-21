@@ -1478,7 +1478,8 @@ const waLink = (phone: string, text: string) =>
  */
 const andamio = (saludo: string) =>
   `<p class="inv-rsvp-hola" data-inv-saludo="${escapeHtml(saludo)}" hidden></p>` +
-  '<p class="inv-rsvp-pases" data-inv-pases-texto hidden></p>' +
+  '<div class="inv-rsvp-pases" data-inv-pases-texto hidden>' +
+  '<b class="inv-rsvp-pases-n"></b><span class="inv-rsvp-pases-t"></span></div>' +
   '<div class="inv-rsvp-lista" data-inv-lista hidden></div>';
 
 function wireRsvp(
@@ -1560,14 +1561,15 @@ function wireRsvp(
     andamio(String(c.greeting || "Hola, {nombre}")) +
     `<input class="${claseInput}" name="name" placeholder="Tu nombre" required data-inv-nombre>` +
     `<input class="${claseInput}" name="phone" type="tel" placeholder="Teléfono (opcional)">` +
-    /* Con pases, el contador nace en el número reservado y no deja pasar de
-       ahí: es lo que evita la conversación de «apunté cinco y sólo tengo
-       cuatro sillas». El servidor lo vuelve a comprobar, porque un número en
-       el navegador se cambia en diez segundos. */
-    '<label class="inv-rsvp-lab" data-inv-cuantos>¿Cuántas personas van?' +
-    `<input class="${claseInput}" name="partySize" type="number" min="1" ` +
-    `max="${pases ?? 20}" value="${pases ?? 1}">` +
-    "</label>" +
+    /* Con pases no se pregunta «¿cuántas personas van?»: el número ya lo
+       puso quien invita y preguntarlo otra vez es pedirle al invitado que
+       repita lo que la tarjeta acaba de decirle. Va en un campo escondido, y
+       el servidor lo vuelve a comprobar de todos modos. */
+    (pases
+      ? `<input type="hidden" name="partySize" value="${pases}">`
+      : '<label class="inv-rsvp-lab" data-inv-cuantos>¿Cuántas personas van?' +
+        `<input class="${claseInput}" name="partySize" type="number" min="1" max="20" value="1">` +
+        "</label>") +
     pideCancion +
     `<textarea class="${claseInput}" name="note" rows="2" placeholder="Mensaje (opcional)"></textarea>` +
     '<div class="inv-rsvp-acciones">' +
@@ -1613,8 +1615,21 @@ export const INJECTED_CSS = `
 
 .inv-rsvp-hola{margin:0 0 2px;font-family:var(--inv-font-title);
   font-size:clamp(18px,4.8vw,22px);line-height:1.3;color:var(--inv-ink)}
-.inv-rsvp-pases{margin:0;font-family:var(--inv-font-ui);font-size:13px;
+/* La tarjeta de los pases: el número grande es lo que el invitado necesita
+   saber —cuántos caben— y por eso ocupa el sitio del contador que antes
+   había que rellenar. */
+.inv-rsvp-pases{display:flex;flex-direction:column;align-items:center;gap:2px;
+  margin:0 auto;padding:12px 22px;border-radius:var(--inv-radius);
+  background:var(--inv-field-bg);border:1px solid var(--inv-accent);text-align:center}
+/* La regla de arriba pone display:flex y eso gana sobre el hidden del
+   navegador: sin esta línea, quien entra sin enlace personalizado ve la
+   tarjeta vacía. (Nada de comillas invertidas aquí dentro: esto es una
+   plantilla de TypeScript y una sola cierra la cadena.) */
+.inv-rsvp-pases[hidden]{display:none}
+.inv-rsvp-pases-n{font-family:var(--inv-font-title);font-size:34px;line-height:1;
   color:var(--inv-accent)}
+.inv-rsvp-pases-t{font-family:var(--inv-font-ui);font-size:11.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--inv-ink);opacity:.75}
 .inv-rsvp-lista{display:flex;flex-direction:column;gap:7px}
 .inv-rsvp-quien{display:flex;align-items:center;gap:11px;padding:12px 15px;
   font-family:var(--inv-font-ui);font-size:15px;color:var(--inv-field-ink);
@@ -2797,10 +2812,11 @@ export const RSVP_JS = `
   // Los pases del enlace: lo que quien invita reservó para esta familia.
   var pases = parseInt(form.getAttribute('data-inv-pases') || '', 10);
   var lineaPases = form.querySelector('[data-inv-pases-texto]');
+  var numPases = lineaPases && lineaPases.querySelector('.inv-rsvp-pases-n');
+  var txtPases = lineaPases && lineaPases.querySelector('.inv-rsvp-pases-t');
   if (pases > 0 && lineaPases) {
-    lineaPases.textContent = pases === 1
-      ? 'Hemos reservado 1 pase para ti.'
-      : 'Hemos reservado ' + pases + ' pases para ti.';
+    if (numPases) numPases.textContent = String(pases);
+    if (txtPases) txtPases.textContent = pases === 1 ? 'pase reservado' : 'pases reservados';
     lineaPases.hidden = false;
   }
 
@@ -2910,8 +2926,7 @@ export const RSVP_JS = `
             var marcadas = casillas.filter(function(x){ return x.checked; }).length;
             if (marcadas > pases) {
               c.checked = false;
-              if (lineaPases) lineaPases.textContent =
-                'Sólo hay ' + pases + ' pases reservados para este enlace.';
+              if (txtPases) txtPases.textContent = 'sólo hay ' + pases + ' pases';
             }
           });
         });
