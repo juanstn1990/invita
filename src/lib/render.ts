@@ -1558,6 +1558,10 @@ export const INJECTED_CSS = `
 .inv-rsvp-btn:disabled{opacity:.5;transform:none;cursor:default}
 .inv-rsvp-no{background:transparent;color:var(--inv-accent);
   box-shadow:inset 0 0 0 1px var(--inv-accent)}
+/* En modo WhatsApp el botón es un enlace suelto, sin la fila que reparte los
+   dos del formulario: sin esto salía subrayado y pegado a la izquierda. */
+a.inv-rsvp-btn{display:flex;width:max-content;max-width:100%;margin:28px auto 0;
+  padding:15px 30px;text-decoration:none}
 
 /* Un display de autor le gana al atributo hidden del navegador. */
 .inv-rsvp-hola[hidden],.inv-rsvp-lista[hidden],.inv-rsvp-lab[hidden]{display:none !important}
