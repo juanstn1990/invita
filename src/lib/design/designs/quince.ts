@@ -19,6 +19,8 @@ import { celeste } from "./celeste";
 import { glicinas } from "./glicinas";
 import { carmesi } from "./carmesi";
 import { bosque } from "./bosque";
+import { paris } from "./paris";
+import { hollywood } from "./hollywood";
 import {
   CORMORANT_JOST,
   DMSERIF_DMSANS,
@@ -327,5 +329,5 @@ const jardinXV: Design = {
 export const QUINCE: Design[] = [
   blanco, burdeos, amanecer, hojas, viaje,
   corona, confeti, vals, jardinXV,
-  farolillos, dorado, estrellada, rosa, rosareal, celeste, glicinas, carmesi, bosque,
+  farolillos, dorado, estrellada, rosa, rosareal, celeste, glicinas, carmesi, bosque, paris, hollywood,
 ];

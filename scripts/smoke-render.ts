@@ -1520,6 +1520,33 @@ for (const [nombre, tocar] of CASOS) {
         !!doc.querySelector(".inv-ev-viaje > .inv-viajero") &&
         doc.querySelector(".inv-ev-viaje .inv-dato .event-type")?.textContent.trim() === "Misa" &&
         conScript(doc, "inv-ev-viaje")],
+    ["ventana: los dos postigos, la pista y su script",
+      (d) => { d.splash = { ...d.splash, enabled: true, apertura: "ventana" }; },
+      (doc) => doc.querySelectorAll("#splash.inv-velo-ventana .inv-postigo").length === 2 &&
+        conScript(doc, "inv-velo-ventana")],
+    ["claqueta: la tabla, el palo y su script",
+      (d) => { d.splash = { ...d.splash, enabled: true, apertura: "claqueta" }; },
+      (doc) => !!doc.querySelector("#splash.inv-velo-claqueta .inv-claqueta .inv-claqueta-palo") &&
+        conScript(doc, "inv-velo-claqueta")],
+    ["cuenta atrás de marquesina, con sus cuatro números",
+      (d) => { d.layout = { blocks: [{ id: "countdown-0", type: "countdown", variant: "marquesina" }] }; },
+      (doc) => doc.querySelectorAll(".inv-cd-marquesina [data-cd]").length === 4],
+    ["programa en cinta: un fotograma por momento y su script",
+      (d) => {
+        d.layout = { blocks: [{ id: "events-0", type: "events", variant: "cinta" }] };
+        d.events = { ...d.events, enabled: true, items: [
+          { kind: "Misa", title: "Acción de gracias", time: "5:00" }, { kind: "Vals", title: "El baile", time: "8:00" }] };
+      },
+      (doc) => doc.querySelectorAll(".inv-ev-cinta .event-card").length === 2 && conScript(doc, "inv-ev-cinta")],
+    ["programa en postales: una estampilla por momento, con ícono o sin él",
+      (d) => {
+        d.layout = { blocks: [{ id: "events-0", type: "events", variant: "postales" }] };
+        d.events = { ...d.events, enabled: true, items: [
+          { icon: "iglesia", kind: "Misa", title: "Acción de gracias", time: "5:00" },
+          { kind: "Vals", title: "El baile", time: "8:00" }] };
+      },
+      (doc) => doc.querySelectorAll(".inv-ev-postales .event-card > .inv-estampilla").length === 2 &&
+        !!doc.querySelector(".inv-estampilla .event-icon svg") && conScript(doc, "inv-ev-postales")],
     ["cuenta atrás de luciérnagas, con sus cuatro números",
       (d) => { d.layout = { blocks: [{ id: "countdown-0", type: "countdown", variant: "luciernagas" }] }; },
       (doc) => doc.querySelectorAll(".inv-cd-luciernagas [data-cd]").length === 4],

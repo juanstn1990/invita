@@ -915,6 +915,8 @@ export const SECTIONS: SectionSpec[] = [
           { value: "nubes", label: "Dos nubes que se abren" },
           { value: "telon", label: "Un telón de teatro que se abre" },
           { value: "anillos", label: "Dos anillos que se unen y levantan el velo" },
+          { value: "ventana", label: "Una ventana de balcón cuyos postigos se abren" },
+          { value: "claqueta", label: "Una claqueta de cine: ¡acción!" },
         ],
         help: "Lo que pasa al pulsar el botón. Con «sobre con sello» el velo es un sobre cerrado y el sello es lo que se toca.",
       },

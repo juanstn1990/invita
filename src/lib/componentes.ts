@@ -329,6 +329,142 @@ html:not(.js) .inv-ev-sendero .inv-dato{opacity:1;transform:none}
 .inv-ev-viaje :is(.event-type,.event-title,.event-time,.event-place,.event-note){margin:0}
 .inv-ev-viaje .event-map-btn{align-self:flex-start;margin-top:10px}
 
+/* ── La ventana: dos postigos de balcón que se abren ──
+   Las lamas son un degradado que se repite, así que no hay imagen que
+   cargar y toma el color del acento de cualquier diseño. Cada postigo gira
+   sobre su bisagra, hacia fuera, como una ventana francesa. */
+#splash.inv-velo-ventana{cursor:pointer;-webkit-tap-highlight-color:transparent;overflow:hidden;perspective:1400px}
+#splash.inv-velo-ventana .splash-btns{display:none}
+#splash.inv-velo-ventana .splash-modal{position:relative;z-index:1}
+.inv-postigo{position:absolute;top:0;bottom:0;width:50.5%;z-index:3;pointer-events:none;
+  background:
+    linear-gradient(90deg,color-mix(in srgb,var(--inv-accent) 70%,#000) 0 6px,transparent 6px calc(100% - 6px),
+      color-mix(in srgb,var(--inv-accent) 70%,#000) calc(100% - 6px)),
+    repeating-linear-gradient(180deg,color-mix(in srgb,var(--inv-accent) 92%,#fff) 0 9px,
+      color-mix(in srgb,var(--inv-accent) 70%,#000) 9px 11px,var(--inv-accent) 11px 18px);
+  box-shadow:inset 0 0 0 10px color-mix(in srgb,var(--inv-accent) 82%,#000),inset 0 0 40px rgba(0,0,0,.35);
+  transition:transform 1.5s cubic-bezier(.55,0,.25,1)}
+.inv-postigo::after{content:"";position:absolute;top:50%;width:8px;height:34px;margin-top:-17px;border-radius:4px;
+  background:linear-gradient(#fff6d6,color-mix(in srgb,var(--inv-accent) 30%,#c9a24a));
+  box-shadow:0 2px 4px rgba(0,0,0,.4)}
+.inv-postigo-izq{left:0;transform-origin:left center}
+.inv-postigo-izq::after{right:16px}
+.inv-postigo-der{right:0;transform-origin:right center}
+.inv-postigo-der::after{left:16px}
+#splash.abriendo .inv-postigo-izq{transform:rotateY(-108deg)}
+#splash.abriendo .inv-postigo-der{transform:rotateY(108deg)}
+#splash.inv-velo-ventana .inv-sobre-pista{z-index:4;color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.5)}
+
+/* ── La claqueta: se toca, el palo cae —¡acción!— y empieza la película ──
+   Toda en CSS: la tabla con sus renglones y el palo con las franjas. El
+   palo gira sobre la bisagra de la izquierda. */
+#splash.inv-velo-claqueta{cursor:pointer;-webkit-tap-highlight-color:transparent;overflow:hidden}
+#splash.inv-velo-claqueta .splash-btns{display:none}
+#splash.inv-velo-claqueta .splash-modal{position:relative;z-index:3}
+.inv-claqueta{position:absolute;left:50%;top:15%;z-index:4;width:clamp(120px,36vw,160px);aspect-ratio:1.3;
+  translate:-50% 0;pointer-events:none;filter:drop-shadow(0 10px 18px rgba(0,0,0,.45))}
+.inv-claqueta-tabla{position:absolute;left:0;right:0;bottom:0;top:24%;border-radius:4px;background:
+  repeating-linear-gradient(180deg,transparent 0 22%,rgba(255,255,255,.55) 22% calc(22% + 1px)),#15120e;
+  box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--inv-accent) 70%,#fff)}
+.inv-claqueta-palo{position:absolute;left:0;right:0;top:4%;height:18%;border-radius:3px;transform-origin:6% 100%;
+  background:repeating-linear-gradient(-55deg,#15120e 0 12px,#f7f2e6 12px 24px);
+  box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--inv-accent) 70%,#fff);
+  transform:rotate(-24deg);transition:transform .22s cubic-bezier(.7,0,.9,.6)}
+.inv-claqueta::before{content:"";position:absolute;left:1%;top:17%;width:12%;aspect-ratio:1;border-radius:50%;z-index:2;
+  background:radial-gradient(#fff6d6,color-mix(in srgb,var(--inv-accent) 60%,#8a6d2a))}
+.inv-claqueta::after{content:"";position:absolute;inset:-60%;border-radius:50%;opacity:0;pointer-events:none;
+  background:radial-gradient(closest-side,rgba(255,250,230,.95),transparent)}
+#splash.abriendo .inv-claqueta-palo{transform:rotate(0)}
+#splash.abriendo .inv-claqueta::after{animation:invFlash .6s ease-out .2s both}
+@keyframes invFlash{0%{opacity:0}25%{opacity:1}100%{opacity:0}}
+#splash.inv-velo-claqueta.abriendo{animation:invCorte 1s ease-in .75s both}
+@keyframes invCorte{to{opacity:0;filter:brightness(2.2)}}
+
+/* ── Cuenta atrás de marquesina ──
+   Cada unidad es un letrero de cine con bombillas en el marco. Son dos
+   capas de bombillas desfasadas que se encienden por turnos: es lo que da
+   la sensación de que la luz corre alrededor. */
+.inv-cd-marquesina{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;max-width:440px;margin-inline:auto}
+.inv-cd-marquesina .countdown-ring{position:relative;display:grid;place-items:center;aspect-ratio:.86;
+  border:0;border-radius:10px;padding:0;overflow:visible;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--inv-accent) 18%,#140f0c),#0c0907);
+  box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--inv-accent) 70%,transparent),0 0 22px -6px var(--inv-accent)}
+.inv-cd-marquesina .countdown-ring::before,.inv-cd-marquesina .countdown-ring::after{content:"";position:absolute;
+  inset:3px;border-radius:8px;padding:6px;pointer-events:none;
+  background:radial-gradient(circle,#fffbe6 0 1.6px,color-mix(in srgb,var(--inv-accent) 80%,#fff) 2.4px,transparent 3.4px)
+    0 0/12px 12px;
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;
+  mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0);
+  filter:drop-shadow(0 0 3px var(--inv-accent));animation:invBombilla 1.2s steps(1) infinite}
+.inv-cd-marquesina .countdown-ring::after{background-position:6px 6px;animation-delay:-.6s}
+@keyframes invBombilla{0%{opacity:1}50%{opacity:.25}}
+.inv-cd-marquesina .ring-inner{position:relative;z-index:1;text-align:center}
+.inv-cd-marquesina .ring-number{display:block;font-size:clamp(24px,7.2vw,34px);line-height:1;color:#fff6de;
+  text-shadow:0 0 12px color-mix(in srgb,var(--inv-accent) 80%,transparent)}
+.inv-cd-marquesina .ring-label{display:block;margin-top:6px;font-size:8px;letter-spacing:.1em;text-transform:uppercase;
+  color:color-mix(in srgb,var(--inv-accent) 70%,#fff)}
+.inv-cd-marquesina .ring-number.tick{animation:invDestellaNum .6s ease-out}
+
+/* ── El programa como cinta de cine ──
+   Una tira vertical con sus perforaciones a los dos lados; cada momento
+   es un fotograma, numerado como una escena. Al asomar, el fotograma se
+   «proyecta»: parpadea como la luz de un proyector y se queda. */
+.inv-ev-cinta{position:relative;display:block;max-width:420px;margin:22px auto 0;padding:14px 34px;counter-reset:escena;
+  border-radius:6px;background:
+    radial-gradient(circle at 50% 50%,color-mix(in srgb,var(--inv-accent) 10%,#fff) 0 3.5px,transparent 4px) left 12px top 0/10px 18px repeat-y,
+    radial-gradient(circle at 50% 50%,color-mix(in srgb,var(--inv-accent) 10%,#fff) 0 3.5px,transparent 4px) right 12px top 0/10px 18px repeat-y,
+    #0d0b09;
+  box-shadow:0 18px 34px -20px rgba(0,0,0,.8),inset 0 0 0 1px color-mix(in srgb,var(--inv-accent) 35%,transparent)}
+.inv-ev-cinta .event-card{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;margin:0 0 10px;
+  padding:26px 16px 20px;text-align:center;counter-increment:escena;border:0;border-radius:3px;
+  background:radial-gradient(120% 90% at 50% 0%,color-mix(in srgb,var(--inv-accent) 22%,#1b1611),#120e0b);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--inv-accent) 40%,transparent)}
+.inv-ev-cinta .event-card:last-child{margin-bottom:0}
+.inv-ev-cinta .event-card:hover{transform:none}
+.inv-ev-cinta .event-card::before{content:"ESCENA " counter(escena);position:absolute;left:10px;top:8px;
+  font-family:var(--inv-font-ui);font-size:9px;letter-spacing:.24em;color:color-mix(in srgb,var(--inv-accent) 75%,#fff)}
+.inv-ev-cinta .event-icon{width:auto;height:auto;margin:0 0 4px;background:none;border:0;box-shadow:none;
+  font-size:26px;color:var(--inv-accent)}
+.inv-ev-cinta .event-icon svg{width:30px;height:30px}
+.inv-ev-cinta :is(.event-type,.event-title,.event-time,.event-place,.event-note){margin:0;color:#f6efe2}
+.inv-ev-cinta .event-time{color:var(--inv-accent)}
+.inv-ev-cinta :is(.event-place,.event-note){color:rgba(246,239,226,.72)}
+.inv-ev-cinta .event-map-btn{margin-top:10px}
+.js .inv-ev-cinta .event-card{opacity:0}
+.js .inv-ev-cinta .event-card.proyectada{animation:invProyecta 1.1s steps(1) both}
+@keyframes invProyecta{0%{opacity:.15}12%{opacity:.8}20%{opacity:.3}32%{opacity:1}40%{opacity:.6}52%,100%{opacity:1}}
+
+/* ── El programa como postales ──
+   Cada momento es una postal con su estampilla —el ícono, dentro de un
+   sello de borde dentado— y el matasellos encima. Llegan torcidas, una a
+   un lado y otra al otro, cayendo como si las dejaran sobre la mesa. */
+.inv-ev-postales{display:flex;flex-direction:column;gap:18px;max-width:420px;margin:22px auto 0}
+.inv-ev-postales .event-card{position:relative;display:block;padding:22px 96px 20px 20px;text-align:left;border:0;
+  border-radius:4px;background:
+    linear-gradient(90deg,transparent calc(100% - 118px),color-mix(in srgb,var(--inv-accent) 22%,transparent) calc(100% - 118px) calc(100% - 117px),transparent calc(100% - 117px)),
+    var(--inv-surface);
+  box-shadow:0 14px 26px -18px rgba(0,0,0,.55),inset 0 0 0 1px color-mix(in srgb,var(--inv-accent) 18%,transparent);
+  rotate:-1.6deg}
+.inv-ev-postales .event-card:nth-of-type(even){rotate:1.4deg}
+.inv-ev-postales .event-card:hover{transform:none}
+.inv-estampilla{position:absolute;right:16px;top:16px;width:62px;height:74px;display:grid;place-items:center;
+  font-style:normal;background:
+    radial-gradient(circle,transparent 3px,var(--inv-accent) 3.5px) -4px -4px/8px 8px;
+  padding:5px}
+.inv-estampilla::before{content:"";position:absolute;inset:5px;background:color-mix(in srgb,var(--inv-accent) 14%,#fff);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--inv-accent) 45%,transparent)}
+.inv-estampilla::after{content:"";position:absolute;left:-26px;top:22px;width:58px;height:40px;border-radius:50%;
+  border:1.5px solid color-mix(in srgb,var(--inv-ink) 35%,transparent);opacity:.7;rotate:-14deg;
+  box-shadow:18px 0 0 -12px color-mix(in srgb,var(--inv-ink) 35%,transparent)}
+.inv-estampilla .event-icon{position:relative;z-index:1;display:grid;place-items:center;width:auto;height:auto;margin:0;
+  background:none;border:0;box-shadow:none;color:var(--inv-accent);font-size:24px}
+.inv-estampilla .event-icon svg{width:28px;height:28px}
+.inv-ev-postales :is(.event-type,.event-title,.event-time,.event-place,.event-note){margin:0}
+.inv-ev-postales .event-map-btn{margin-top:10px}
+.js .inv-ev-postales .event-card{opacity:0;translate:0 -26px}
+.js .inv-ev-postales .event-card.llega{opacity:1;translate:0 0;
+  transition:opacity .6s ease,translate .8s cubic-bezier(.2,.8,.3,1.15)}
+
 /* ── El programa como constelación ──
    Las estrellas van por una franja central, un poco en zigzag, y cada
    momento a un lado y a otro: así la línea que las une nunca pisa texto. */
@@ -455,7 +591,10 @@ html:not(.js) .inv-ev-constelacion .inv-dato{opacity:1;transform:none}
 .inv-nube-der{right:-42%;bottom:2%;transform:scaleX(-1)}
 #splash.abriendo .inv-nube-izq{transform:translate(-70%,-18%)}
 #splash.abriendo .inv-nube-der{transform:scaleX(-1) translate(-70%,18%)}
-#splash.abriendo .splash-modal{opacity:0;transform:scale(1.06);
+/* Sólo en las nubes: sin el .inv-velo-nubes delante escondía el nombre en
+   todas las aperturas —el telón, los anillos, la ventana— justo cuando
+   tenía que verse. */
+#splash.inv-velo-nubes.abriendo .splash-modal{opacity:0;transform:scale(1.06);
   transition:opacity .8s ease,transform 1s ease}
 
 
@@ -553,6 +692,10 @@ html:not(.js) .inv-ev-constelacion .inv-dato{opacity:1;transform:none}
   .inv-cd-luciernagas .ring-number.tick,.inv-luciernaga{animation:none}
   .inv-ev-sendero .inv-dato,.inv-parada{transition:none}
   .inv-viajero,.inv-hito{transition:none}
+  .inv-postigo,.inv-claqueta-palo{transition:none}
+  #splash.inv-velo-claqueta.abriendo,.inv-claqueta::after,.inv-cd-marquesina .countdown-ring::before,
+  .inv-cd-marquesina .countdown-ring::after{animation:none}
+  .js .inv-ev-cinta .event-card,.js .inv-ev-postales .event-card{opacity:1;translate:none;animation:none}
   .inv-polvo,.inv-confeti{display:none}
 }`;
 
@@ -921,6 +1064,59 @@ export const VIAJE_JS = `
   addEventListener('scroll', bajar, { passive: true });
   addEventListener('resize', bajar);
   bajar();
+})();`;
+
+/** La ventana: se toca, los postigos se abren y entra la invitación. */
+export const VENTANA_JS = `
+(function(){
+  var velo = document.querySelector('#splash.inv-velo-ventana');
+  if (!velo) return;
+  var quieto = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var hecho = false;
+  velo.addEventListener('click', function(e){
+    if (hecho || e.target.closest('a')) return;
+    hecho = true;
+    velo.classList.add('abriendo');
+    setTimeout(function(){
+      var b = velo.querySelector('.splash-btn-primary');
+      if (b) b.click(); else if (window.enterSite) window.enterSite();
+    }, quieto ? 0 : 1300);
+  });
+})();`;
+
+/** La claqueta: el palo cae, destello, y corte a la invitación. */
+export const CLAQUETA_JS = `
+(function(){
+  var velo = document.querySelector('#splash.inv-velo-claqueta');
+  if (!velo) return;
+  var quieto = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var hecho = false;
+  velo.addEventListener('click', function(e){
+    if (hecho || e.target.closest('a')) return;
+    hecho = true;
+    velo.classList.add('abriendo');
+    if (window.invEstallar) setTimeout(function(){ window.invEstallar(innerWidth / 2, innerHeight * .2, 50); }, quieto ? 0 : 230);
+    setTimeout(function(){
+      var b = velo.querySelector('.splash-btn-primary');
+      if (b) b.click(); else if (window.enterSite) window.enterSite();
+    }, quieto ? 0 : 1650);
+  });
+})();`;
+
+/**
+ * La cinta y las postales: cada fotograma se proyecta y cada postal llega
+ * cuando asoma. Uno por uno, no la lista entera, para que se vea pasar.
+ */
+export const LLEGAN_JS = `
+(function(){
+  var fichas = [].slice.call(document.querySelectorAll('.inv-ev-cinta .event-card,.inv-ev-postales .event-card'));
+  if (!fichas.length) return;
+  function marca(el){ el.classList.add(el.closest('.inv-ev-cinta') ? 'proyectada' : 'llega'); }
+  if (!window.IntersectionObserver) { fichas.forEach(marca); return; }
+  var io = new IntersectionObserver(function(es){
+    es.forEach(function(e){ if (e.isIntersecting) { marca(e.target); io.unobserve(e.target); } });
+  }, { threshold: .3 });
+  fichas.forEach(function(f){ io.observe(f); });
 })();`;
 
 /** Rasca y descubre: una capa de plata sobre cada ficha. */

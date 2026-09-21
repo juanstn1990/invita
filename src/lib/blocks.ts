@@ -175,6 +175,14 @@ const countdown: BlockSpec = {
       hint: "Cada número en un halo de luz con luciérnagas alrededor; se enciende al cambiar",
       build: () => reloj("inv-cd-luciernagas"),
     },
+    /* La marquesina: cada unidad en un letrero de cine con bombillas que
+       se encienden por turnos alrededor. CSS nada más. */
+    {
+      id: "marquesina",
+      name: "Marquesina",
+      hint: "Cada número en un letrero de cine con bombillas que corren por el marco",
+      build: () => reloj("inv-cd-marquesina"),
+    },
     {
       id: "medallon",
       name: "Medallón",
@@ -360,6 +368,37 @@ const events: BlockSpec = {
           <p class="event-note">Nota</p>
           <a class="event-map-btn" href="#">¿Cómo llegar?</a>
         </div>
+      </article>
+    </div>`,
+    },
+    /* La cinta: una tira de película con perforaciones; cada momento es un
+       fotograma numerado como escena que se «proyecta» al asomar. */
+    {
+      id: "cinta",
+      name: "Cinta de cine",
+      hint: "Una tira de película: cada momento es una escena que se proyecta al llegar",
+      build: () => `${head()}${body}
+    <div class="events-grid inv-ev-cinta">
+      ${eventCard("")}
+    </div>`,
+    },
+    /* Las postales: cada momento con su estampilla y matasellos. La
+       estampilla es un elemento propio con el ícono dentro, para que un
+       momento sin ícono conserve su sello. */
+    {
+      id: "postales",
+      name: "Postales",
+      hint: "Cada momento es una postal con su estampilla, que cae sobre la mesa al llegar",
+      build: () => `${head()}${body}
+    <div class="events-grid inv-ev-postales">
+      <article class="event-card">
+        <i class="inv-estampilla" aria-hidden="true"><span class="event-icon">✦</span></i>
+        <p class="event-time">Hora</p>
+        <p class="event-type">Tipo</p>
+        <h3 class="event-title">Momento</h3>
+        <p class="event-place">Lugar<small>Dirección</small></p>
+        <p class="event-note">Nota</p>
+        <a class="event-map-btn" href="#">¿Cómo llegar?</a>
       </article>
     </div>`,
     },
