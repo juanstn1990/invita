@@ -1283,6 +1283,22 @@ for (const [nombre, tocar] of CASOS) {
       (c) => String(c.getAttribute("class")).includes("inv-pt-sube"),
     ],
     [
+      "una imagen propia apenas se ladea, no da vueltas",
+      { enabled: true, tipo: "imagen", pieza: "https://x.test/a.png", cantidad: "30" },
+      (c) => Array.from(c.children).every((i: any) => {
+        const g = Number(/--inv-pt-giro:(-?\d+)deg/.exec(i.getAttribute("style"))?.[1]);
+        return Math.abs(g) <= 8;
+      }),
+    ],
+    [
+      "por los bordes, el centro queda libre",
+      { enabled: true, tipo: "petalos", zona: "bordes", cantidad: "40" },
+      (c) => Array.from(c.children).every((i: any) => {
+        const x = Number(/left:(-?[\d.]+)%/.exec(i.getAttribute("style"))?.[1]);
+        return x < 15 || x > 83;
+      }),
+    ],
+    [
       "unas comillas en la URL no rompen el atributo",
       { enabled: true, tipo: "imagen", pieza: 'https://x.test/a.png" onerror="alert(1)' },
       (c) => !c.querySelector("img").getAttribute("onerror"),

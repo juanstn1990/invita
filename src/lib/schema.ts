@@ -1409,6 +1409,17 @@ export const SECTIONS: SectionSpec[] = [
         ],
       },
       {
+        key: "zona",
+        label: "Por dónde",
+        type: "select",
+        fallback: 0,
+        options: [
+          { value: "", label: "Por toda la pantalla" },
+          { value: "bordes", label: "Sólo por los bordes" },
+        ],
+        help: "Por los bordes el texto queda limpio: es lo que pide una partícula grande, como un farolillo, que encima de un párrafo lo tapa.",
+      },
+      {
         key: "cantidad",
         label: "Cuántas",
         type: "range",

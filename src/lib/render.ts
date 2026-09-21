@@ -410,15 +410,26 @@ function ponerParticulas(document: Doc, data: InvitationData) {
   capa.setAttribute("style", `--inv-pt-op:${opacidad}`);
   if (ritmo) capa.setAttribute("data-ritmo", ritmo);
 
+  const bordes = String(d.zona) === "bordes";
   const piezas: string[] = [];
   for (let i = 0; i < cuantas; i++) {
     /* Cuatro números por pieza: dónde empieza, cuánto tarda, cuándo arranca y
        cuánto mide. Sin el desfase, las sesenta caerían en formación. */
-    const x = (disperso(i, 1) * 100).toFixed(1);
+    /* Por los bordes: la franja de la izquierda o la de la derecha, alternas,
+       dejando libre el centro, que es donde va el texto. */
+    const x = (bordes
+      ? (i % 2 ? 84 : -2) + disperso(i, 1) * 16
+      : disperso(i, 1) * 100
+    ).toFixed(1);
     const dur = (7 + disperso(i, 2) * 9).toFixed(1);
     const espera = (disperso(i, 3) * -16).toFixed(1);
     const escala = (0.62 + disperso(i, 4) * 0.76).toFixed(2);
-    const giro = Math.round(disperso(i, 5) * 360);
+    /* Una imagen propia apenas se ladea: un farolillo que da vueltas se ve
+       como una bola, y casi todo lo que se sube (farolillos, globos, flores
+       de frente) tiene un derecho. Lo dibujado sí gira: un pétalo cae así. */
+    const giro = imagen
+      ? Math.round(disperso(i, 5) * 16 - 8)
+      : Math.round(disperso(i, 5) * 360);
     const deriva = (disperso(i, 6) * 60 - 30).toFixed(0);
     piezas.push(
       `<i style="left:${x}%;width:${tamano}px;height:${tamano}px;color:${color};` +
