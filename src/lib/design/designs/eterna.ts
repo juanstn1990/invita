@@ -223,7 +223,8 @@ ${NOCHE} .inv-mapa-lugar{color:#fdfbf7}
    la del diseño. Lo resuelve el CSS y no quien edita, que si no son ocho
    colores que arreglar a mano. */
 ${NOCHE}:has(> .inv-fondo) .countdown-grid{background:none;gap:0}
-${NOCHE}:has(> .inv-fondo) .countdown-ring{background:transparent;
+${NOCHE}:has(> .inv-fondo) .countdown-ring{
+  background:color-mix(in srgb,var(--ink) 9%,transparent);
   box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--brand-2) 45%,transparent)}
 ${NOCHE}:has(> .inv-fondo) :is([data-cd],.ring-number){color:var(--brand)}
 ${NOCHE}:has(> .inv-fondo) .ring-label{color:color-mix(in srgb,var(--ink) 62%,transparent)}
