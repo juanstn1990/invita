@@ -258,6 +258,10 @@ footer{padding:82px 24px calc(74px + env(safe-area-inset-bottom));background:var
 footer .container{position:relative;z-index:2}
 footer .container::before{content:"";display:block;width:120px;aspect-ratio:1;margin:0 auto 6px;
   background:url(${A}/paloma.png) center/contain no-repeat}
+/* Con una foto en el pie, la paloma sobra: cae en el centro, que es justo
+   donde está la gente de la foto. El adorno es del diseño y la foto es de
+   quien se casa; manda la foto. */
+footer:has(> .inv-fondo) .container::before{display:none}
 .footer-names{font-size:56px;line-height:1.1;padding-top:.08em}
 .footer-date{font-family:var(--et-caps);letter-spacing:.26em}
 .footer-copy{letter-spacing:.34em;color:var(--et-oro-claro);opacity:.9}
