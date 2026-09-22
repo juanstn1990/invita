@@ -4743,6 +4743,17 @@ export function renderInvitation(opts: RenderOptions): string {
     return decls.length ? `:root{${decls.join(";")}}` : "";
   })();
 
+  /* Un color de botón propio no es sólo un color: los diseños que visten el
+     botón de metal —el oro de Eterna— lo hacen con un degradado que sobre un
+     verde elegido a mano se lee como plástico. La clase deja que cada diseño
+     se aplane cuando el color ya no es el suyo, sin tener que adivinarlo. */
+  if (HEX.test(String(data.event?.btnColor || "").trim())) {
+    document.body.setAttribute(
+      "class",
+      `${document.body.getAttribute("class") || ""} inv-btn-propio`.trim()
+    );
+  }
+
   style.textContent = [paletaCss, botonCss, INJECTED_CSS, COMPONENTES_CSS, ...extraCss, ...fontCss, ...colorCss]
     .filter(Boolean)
     .join("\n");

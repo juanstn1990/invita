@@ -228,13 +228,19 @@ ${NOCHE}:has(> .inv-fondo) .inv-mapa-lugar{color:var(--ink)}
 
 /* ── Botones: oro liso y contorno fino ── */
 .hero-btn,.splash-btn-primary,.confirm-btn,.gifts-btn,.inv-rsvp-btn:not(.inv-rsvp-no),
-.inv-mapa-btn:not(.inv-agendar){border:0;border-radius:0;
+.inv-mapa-btn:not(.inv-agendar){border:0;border-radius:var(--btn-radius,0);
   background:linear-gradient(100deg,var(--accent),color-mix(in srgb,var(--accent) 45%,#fff) 45%,var(--accent));
   background-size:220% 100%;color:var(--on-accent);font-size:11.5px;letter-spacing:.24em;
   transition:background-position .8s,transform .2s}
 .hero-btn:hover,.confirm-btn:hover,.gifts-btn:hover{background-position:100% 0}
-.event-map-btn,.inv-rsvp-no{border-radius:0;background:transparent;color:var(--brand);
+.event-map-btn,.inv-rsvp-no{border-radius:var(--btn-radius,0);background:transparent;color:var(--brand);
   box-shadow:inset 0 0 0 1px var(--accent)}
+/* Con un color de botón elegido a mano, el oro sobra: el degradado que hace
+   de lámina sobre el oro, sobre un verde de campo hace de plástico. Liso, y
+   una sombra corta debajo, que es como lo lleva «Boda en el Olivar». */
+body.inv-btn-propio :is(.hero-btn,.splash-btn-primary,.confirm-btn,.gifts-btn,
+  .inv-rsvp-btn:not(.inv-rsvp-no),.inv-mapa-btn:not(.inv-agendar)){background:var(--accent);
+  box-shadow:0 12px 24px -14px color-mix(in srgb,var(--accent) 90%,#000)}
 ${NOCHE} :is(.gifts-btn,.inv-mapa-btn:not(.inv-agendar),.inv-rsvp-btn:not(.inv-rsvp-no)){
   background:linear-gradient(100deg,var(--et-oro-hondo),var(--brand-2) 45%,var(--et-oro-hondo));
   background-size:220% 100%;color:var(--et-noche)}
