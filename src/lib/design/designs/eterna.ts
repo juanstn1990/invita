@@ -47,6 +47,7 @@ const css = () => `
 :root{--et-caps:'Cinzel',Georgia,serif;--et-script:'Pinyon Script',cursive;
   --et-noche:var(--footer-bg);--et-noche-ink:var(--footer-ink);
   --et-oro:var(--brand-2);
+  --et-lino:color-mix(in srgb,var(--bg) 90%,#fff);
   --et-oro-claro:color-mix(in srgb,var(--brand-2) 48%,#fff);
   --et-oro-hondo:color-mix(in srgb,var(--brand-2) 60%,#000);
   --et-lamina:linear-gradient(100deg,var(--et-oro-hondo) 0%,var(--brand-2) 22%,
@@ -88,6 +89,19 @@ body{background:var(--bg)}
 .splash-date{font-family:var(--et-caps);font-size:8.5px;letter-spacing:.16em;line-height:1.7;
   color:var(--muted);margin:0 auto;max-width:17em;text-wrap:balance}
 #splash .inv-sobre-pista{color:var(--brand);opacity:.8}
+/* ── El sobre, como el de «Boda en el Olivar» ──
+   El componente tiñe el sobre con el acento, y con una paleta cálida salía
+   rosado. Aquí el papel manda —lino marfil— y el lacre es el sello de oro
+   que ya preside la mesa de regalos, no un botón de color. */
+.inv-sobre-cuerpo{background:var(--et-lino);
+  box-shadow:0 30px 70px -22px rgba(0,0,0,.45),
+    inset 0 0 0 1px color-mix(in srgb,var(--brand-2) 34%,transparent)}
+.inv-sobre-bolsillo::before,.inv-sobre-bolsillo::after{background:color-mix(in srgb,var(--et-lino) 93%,#000)}
+.inv-sobre-solapa{background:color-mix(in srgb,var(--et-lino) 96%,#fff)}
+.inv-sobre-sello:not(.con-imagen){background:url(${A}/sello.png) center/contain no-repeat;
+  color:transparent;box-shadow:none;border:0;filter:drop-shadow(0 5px 11px rgba(0,0,0,.32))}
+#splash .inv-sobre-ante{color:var(--brand)}
+#splash .inv-sobre-nombre{font-family:var(--et-script);font-size:clamp(30px,9vw,40px);color:var(--brand)}
 
 /* ── Portada: el arco de rosas ── */
 #hero{place-items:end center;padding:0 24px calc(58px + env(safe-area-inset-bottom));
@@ -193,6 +207,24 @@ ${NOCHE} .ring-label{font-size:9.5px;letter-spacing:.22em;
 .gifts-bank{color:var(--et-oro-claro)}
 ${NOCHE} .inv-mapa-datos{background:rgba(255,255,255,.05);color:var(--et-noche-ink)}
 ${NOCHE} .inv-mapa-lugar{color:#fdfbf7}
+
+/* ── Y si la invitación le pone su propio papel a una sección de noche ──
+   El fondo propio entra como una capa dentro de la sección (.inv-fondo).
+   Cuando está, la noche sobra: las casillas negras del reloj sobre un papel
+   claro se ven como cuatro agujeros. Se quedan transparentes —el hilo de oro
+   de la rejilla sigue dibujando las cuatro casillas— y la tinta vuelve a ser
+   la del diseño. Lo resuelve el CSS y no quien edita, que si no son ocho
+   colores que arreglar a mano. */
+${NOCHE}:has(> .inv-fondo) .countdown-grid{background:none;gap:0}
+${NOCHE}:has(> .inv-fondo) .countdown-ring{background:transparent;
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--brand-2) 45%,transparent)}
+${NOCHE}:has(> .inv-fondo) :is([data-cd],.ring-number){color:var(--brand)}
+${NOCHE}:has(> .inv-fondo) .ring-label{color:color-mix(in srgb,var(--ink) 62%,transparent)}
+${NOCHE}:has(> .inv-fondo) .section-title{color:var(--ink)}
+${NOCHE}:has(> .inv-fondo) .section-label,${NOCHE}:has(> .inv-fondo) .gifts-bank{color:var(--brand)}
+${NOCHE}:has(> .inv-fondo) :is(.section-body,.gifts-text,.gifts-note,.inv-mapa-dir){color:var(--ink)}
+${NOCHE}:has(> .inv-fondo) .inv-mapa-datos{background:rgba(0,0,0,.04);color:var(--ink)}
+${NOCHE}:has(> .inv-fondo) .inv-mapa-lugar{color:var(--ink)}
 
 /* ── Botones: oro liso y contorno fino ── */
 .hero-btn,.splash-btn-primary,.confirm-btn,.gifts-btn,.inv-rsvp-btn:not(.inv-rsvp-no),
