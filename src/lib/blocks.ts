@@ -508,6 +508,18 @@ const gallery: BlockSpec = {
     </div>
     <div class="inv-puntos" aria-hidden="true"></div>`,
     },
+    /* El papel rasgado: la foto sin marco, rota a mano por los cuatro
+       lados. Va una debajo de otra y grande, que es como luce el borde. */
+    {
+      id: "rasgada",
+      name: "Papel rasgado",
+      hint: "Una debajo de otra, con el borde roto a mano",
+      build: () => `${head()}
+    <p class="gallery-text">Mensaje</p>
+    <div class="gallery-grid inv-ga-rasgada">
+      ${galleryItems(4)}
+    </div>`,
+    },
     {
       id: "polaroid",
       name: "Polaroid",
@@ -799,6 +811,18 @@ const paragraph: BlockSpec = {
       build: () => `${head()}
     <p class="section-body inv-pa-destacado">Texto</p>`,
     },
+    /* La cita: la frase en su tarjeta y quién la dijo debajo. No usa el
+       head() común porque la firma va dentro de la tarjeta, al pie. */
+    {
+      id: "cita",
+      name: "Cita",
+      hint: "La frase en una tarjeta y el antetítulo debajo, como firma",
+      build: () => `
+    <figure class="inv-pa-cita">
+      <p class="section-body inv-cita-texto">Texto</p>
+      <figcaption class="section-label inv-cita-firma">Antetítulo</figcaption>
+    </figure>`,
+    },
     {
       id: "dividido",
       name: "Dividido",
@@ -862,6 +886,13 @@ const photo: BlockSpec = {
       hint: "Recortada en arco, como un retrato",
       build: () => `${head()}
     ${marcoFoto("inv-foto-arco")}`,
+    },
+    {
+      id: "rasgada",
+      name: "Papel rasgado",
+      hint: "Con el borde roto a mano, sobre el papel del diseño",
+      build: () => `${head()}
+    ${marcoFoto("inv-foto-rasgada")}`,
     },
   ],
 };

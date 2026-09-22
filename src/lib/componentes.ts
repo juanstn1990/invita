@@ -54,6 +54,61 @@
  */
 
 /* ────────────────────────────────────────────────────────────────
+   El papel rasgado
+   ──────────────────────────────────────────────────────────────── */
+
+/**
+ * La máscara de una foto con el borde roto a mano.
+ *
+ * Es un SVG en línea con un solo camino: cada lado del rectángulo se
+ * recorre en pasos cortos y cada punto se aparta un poco hacia dentro o
+ * hacia fuera, con alguna muesca más honda de vez en cuando. Tres semillas
+ * dan tres roturas distintas, para que dos fotos seguidas no se rompan
+ * igual.
+ *
+ * Se estira con la foto (`preserveAspectRatio="none"`): el diente mide poco
+ * más del 1 % del lado, así que estirarlo no se nota, y a cambio la misma
+ * máscara sirve para cualquier proporción.
+ *
+ * El azar es propio y con semilla —no `Math.random`— porque el CSS se
+ * escribe una vez por render: con el azar del sistema, dos capturas de la
+ * misma invitación saldrían rotas de distinta manera.
+ */
+function rasgado(semilla: number): string {
+  let s = (semilla * 2654435761) % 2147483647;
+  const azar = () => (s = (s * 1103515245 + 12345) % 2147483647) / 2147483647;
+  const W = 100;
+  const H = 125;
+  const lado = (x0: number, y0: number, x1: number, y1: number, amp: number, n: number) => {
+    const puntos: string[] = [];
+    for (let i = 1; i <= n; i++) {
+      const t = i / n;
+      const largo = Math.hypot(y1 - y0, x0 - x1);
+      const nx = (y1 - y0) / largo;
+      const ny = (x0 - x1) / largo;
+      const d = (azar() * 2 - 1) * amp * (azar() > 0.22 ? 1 : 2.1);
+      const x = x0 + (x1 - x0) * t + nx * d;
+      const y = y0 + (y1 - y0) * t + ny * d;
+      puntos.push(`${x.toFixed(1)} ${y.toFixed(1)}`);
+    }
+    return puntos;
+  };
+  const d =
+    "M0 0L" +
+    [
+      ...lado(0, 0, W, 0, 1.5, 24),
+      ...lado(W, 0, W, H, 1, 20),
+      ...lado(W, H, 0, H, 1.5, 24),
+      ...lado(0, H, 0, 0, 1, 20),
+    ].join("L") +
+    "Z";
+  const svg =
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" ` +
+    `preserveAspectRatio="none"><path d="${d}" fill="#000"/></svg>`;
+  return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
+}
+
+/* ────────────────────────────────────────────────────────────────
    CSS
    ──────────────────────────────────────────────────────────────── */
 
@@ -493,6 +548,41 @@ html:not(.js) .inv-ev-sendero .inv-dato{opacity:1;transform:none}
 @keyframes invVuela{40%{transform:translate(-6vw,-6vh) rotate(-10deg)}
   100%{transform:translate(42vw,-72vh) rotate(26deg) scale(.45);opacity:0}}
 
+/* ── El jardín: el follaje se mece y la mariposa blanca se va ──
+   La mariposa de arriba, pero posada en un jardín. Dos matas de follaje
+   ocupan las esquinas del velo y respiran despacio, cada una a su ritmo;
+   al tocar, la mariposa sale volando, las matas se apartan hacia afuera y
+   el velo se disuelve encima de la foto de la portada.
+
+   El diseño pone las matas en --inv-jardin-izq y --inv-jardin-der —con una
+   sola, la otra es la misma en espejo— y la mariposa en --inv-mariposa-img.
+   Sin ninguna de las tres queda el fundido y la mariposa dibujada con el
+   acento, que es lo que ya hacía la apertura «mariposa». */
+#splash.inv-velo-jardin{cursor:pointer;-webkit-tap-highlight-color:transparent;overflow:hidden}
+#splash.inv-velo-jardin .splash-btns{display:none}
+#splash.inv-velo-jardin .splash-modal{position:relative;z-index:3}
+/* La pista cae justo donde está el follaje, y ahí un texto suelto se
+   pierde entre las hojas: va en una pastilla del color del papel. */
+#splash.inv-velo-jardin .inv-sobre-pista{z-index:5;bottom:20px;width:max-content;max-width:86%;
+  margin-inline:auto;padding:7px 16px;border-radius:999px;
+  background:color-mix(in srgb,var(--inv-surface) 84%,transparent)}
+.inv-jardin{position:absolute;bottom:-4%;z-index:1;width:min(56vw,255px);aspect-ratio:.72;pointer-events:none;
+  background:var(--inv-jardin-izq,none) bottom center/contain no-repeat;
+  transform-origin:50% 100%;animation:invMeceIzq 7s ease-in-out infinite}
+.inv-jardin-izq{left:-13%}
+.inv-jardin-der{right:-13%;transform:scaleX(-1);
+  background-image:var(--inv-jardin-der,var(--inv-jardin-izq,none));
+  animation-name:invMeceDer;animation-duration:8.6s}
+@keyframes invMeceIzq{0%,100%{transform:rotate(-1.6deg)}50%{transform:rotate(1.5deg)}}
+@keyframes invMeceDer{0%,100%{transform:scaleX(-1) rotate(1.6deg)}50%{transform:scaleX(-1) rotate(-1.5deg)}}
+/* El velo se va en fundido, no de un corte: eso es lo que deja ver la foto
+   de la portada apareciendo por debajo mientras la mariposa todavia vuela. */
+#splash.inv-velo-jardin.abriendo{opacity:0;transition:opacity .9s ease .35s}
+#splash.inv-velo-jardin.abriendo .inv-jardin-izq{animation:invMataIzq 1.2s ease forwards}
+#splash.inv-velo-jardin.abriendo .inv-jardin-der{animation:invMataDer 1.2s ease forwards}
+@keyframes invMataIzq{to{transform:translateX(-24%) rotate(-7deg)}}
+@keyframes invMataDer{to{transform:scaleX(-1) translateX(-24%) rotate(-7deg)}}
+
 /* ── Cuenta atrás con alas ──
    Cada número se posa entre dos alas que respiran; al cambiar, baten una
    vez. Son dos seudoelementos por casilla, con dos elipses cada uno. */
@@ -894,6 +984,37 @@ html:not(.js) .inv-ev-constelacion .inv-dato{opacity:1;transform:none}
   38%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(2.6)}}
 #splash.inv-velo-anillos.abriendo{transform:translateY(-102%);opacity:0}
 
+/* ── Galería y foto «papel rasgado» ──
+   La foto sin marco ni esquinas, rota a mano por los cuatro lados: debajo
+   se ve el papel del diseño, que es lo que hace el efecto. La máscara se
+   reparte por posición, así que tres fotos seguidas se rompen distinto.
+   El recorte se lleva la sombra por delante —una máscara recorta todo lo
+   pintado, sombra incluida—, y por eso estas fotos no llevan. */
+:root{--inv-rasgado-1:${rasgado(7)};
+  --inv-rasgado-2:${rasgado(19)};
+  --inv-rasgado-3:${rasgado(42)}}
+.inv-ga-rasgada{display:flex;flex-direction:column;gap:30px;margin-top:26px}
+.inv-ga-rasgada .gallery-item,.inv-foto-rasgada .gallery-item{width:100%;border:0;border-radius:0;padding:0;
+  background:none;box-shadow:none;overflow:hidden;
+  -webkit-mask:var(--inv-rasgado-1) center/100% 100% no-repeat;mask:var(--inv-rasgado-1) center/100% 100% no-repeat}
+.inv-ga-rasgada .gallery-item{aspect-ratio:4/5}
+.inv-ga-rasgada .gallery-item:nth-child(3n+2){-webkit-mask-image:var(--inv-rasgado-2);mask-image:var(--inv-rasgado-2)}
+.inv-ga-rasgada .gallery-item:nth-child(3n+3){-webkit-mask-image:var(--inv-rasgado-3);mask-image:var(--inv-rasgado-3)}
+.inv-ga-rasgada .gallery-ph,.inv-foto-rasgada .gallery-ph{width:100%;height:100%}
+.inv-foto-rasgada .gallery-item{max-width:360px;margin:26px auto 0;aspect-ratio:3/4}
+
+/* ── Párrafo «cita» ──
+   Una frase en su tarjeta y la firma debajo, dentro. El antetítulo hace de
+   firma: es el único campo suelto que tiene el bloque de párrafo, y una
+   cita sin quién la dijo no es una cita. */
+.inv-pa-cita{position:relative;max-width:480px;margin:26px auto 0;padding:36px 30px 28px;text-align:center;
+  border-radius:var(--inv-radius);background:var(--inv-surface);
+  box-shadow:0 18px 34px -28px rgba(0,0,0,.5),inset 0 0 0 1px color-mix(in srgb,var(--inv-accent) 16%,transparent)}
+.inv-pa-cita::before{content:"“";position:absolute;top:6px;left:20px;font-size:58px;line-height:1;
+  color:var(--inv-accent);opacity:.26}
+.inv-cita-texto{margin:0;font-style:italic}
+.inv-cita-firma{display:block;margin-top:16px;opacity:.9}
+
 @media (prefers-reduced-motion:reduce){
   .inv-sobre,.inv-sobre-sello,.inv-sobre-pista,.inv-deseo-pista,
   .inv-cd-orbitas .countdown-ring::after{animation:none}
@@ -919,6 +1040,9 @@ html:not(.js) .inv-ev-constelacion .inv-dato{opacity:1;transform:none}
   .js .inv-ev-naipes .event-card{opacity:1;translate:none;transform:none}
   .inv-cd-cristales .countdown-ring::after{animation:none}
   .inv-mariposa,.inv-ala,.inv-cd-alas .countdown-ring::before,.inv-cd-alas .countdown-ring::after{animation:none}
+  .inv-jardin{animation:none}
+  .inv-jardin-der{transform:scaleX(-1)}
+  #splash.inv-velo-jardin.abriendo{transition:none}
   #splash.inv-velo-claqueta.abriendo,.inv-claqueta::after,.inv-cd-marquesina .countdown-ring::before,
   .inv-cd-marquesina .countdown-ring::after{animation:none}
   .js .inv-ev-cinta .event-card,.js .inv-ev-postales .event-card{opacity:1;translate:none;animation:none}
@@ -1348,7 +1472,7 @@ export const LLEGAN_JS = `
 /** La mariposa: se toca, bate las alas deprisa y sale volando; detrás, la invitación. */
 export const MARIPOSA_JS = `
 (function(){
-  var velo = document.querySelector('#splash.inv-velo-mariposa');
+  var velo = document.querySelector('#splash.inv-velo-mariposa,#splash.inv-velo-jardin');
   if (!velo) return;
   var quieto = matchMedia('(prefers-reduced-motion: reduce)').matches;
   var hecho = false;

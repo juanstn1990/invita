@@ -1582,6 +1582,29 @@ for (const [nombre, tocar] of CASOS) {
           { kind: "Misa", title: "Acción de gracias", time: "5:00" }, { kind: "Vals", title: "El baile", time: "8:00" }] };
       },
       (doc) => doc.querySelectorAll(".inv-ev-naipes .event-card").length === 2 && conScript(doc, "inv-ev-naipes")],
+    ["jardín: las dos matas, la mariposa y el script de la mariposa",
+      (d) => { d.splash = { ...d.splash, enabled: true, apertura: "jardin" }; },
+      (doc) => doc.querySelectorAll("#splash.inv-velo-jardin .inv-jardin").length === 2 &&
+        doc.querySelectorAll("#splash.inv-velo-jardin .inv-mariposa .inv-ala").length === 2 &&
+        conScript(doc, "inv-velo-jardin")],
+    ["galería en papel rasgado: cuatro fotos, cada una con su máscara",
+      (d) => { d.layout = { blocks: [{ id: "gallery-0", type: "gallery", variant: "rasgada" }] }; },
+      (doc) => doc.querySelectorAll(".inv-ga-rasgada .gallery-item").length === 4],
+    ["foto en papel rasgado: el marco con la máscara",
+      (d) => { d.layout = { blocks: [{ id: "photo-1", type: "photo", variant: "rasgada",
+        data: { enabled: true, url: "/api/media/2026/09/f.jpg", caption: "Nosotros" } }] }; },
+      (doc) => {
+        const ph: any = doc.querySelector(".inv-foto-rasgada .gallery-item .gallery-ph");
+        return !!ph && /background-image/.test(ph.getAttribute("style") || "");
+      }],
+    ["cita: la frase en su tarjeta y el antetítulo de firma",
+      (d) => { d.layout = { blocks: [{ id: "paragraph-1", type: "paragraph", variant: "cita",
+        data: { enabled: true, label: "Mario Benedetti", title: "", text: "Coincidir con gente." } }] }; },
+      (doc) => {
+        const t: any = doc.querySelector(".inv-pa-cita .inv-cita-texto");
+        const f: any = doc.querySelector(".inv-pa-cita .inv-cita-firma");
+        return t?.textContent.trim() === "Coincidir con gente." && f?.textContent.trim() === "Mario Benedetti";
+      }],
     ["pases: tarjeta con el número y sin preguntar cuántos van",
       (d) => { d.confirm = { ...d.confirm, enabled: true, mode: "form" }; },
       (doc) => {
