@@ -205,6 +205,24 @@ const base = () => JSON.parse(JSON.stringify(defaultData()));
       },
     ],
     [
+      "el arte que trae la app pasa: existe en disco aunque no esté en la biblioteca",
+      () => !fusionar(TPL, base(), {
+        splash: { sello: "/disenos/lacres/terracota.png" },
+      }, BIB).errores.length,
+    ],
+    [
+      "pero un adorno del diseño con una errata se sigue rechazando",
+      () => fusionar(TPL, base(), {
+        splash: { sello: "/disenos/lacres/terracotta.png" },
+      }, BIB).errores.length === 1,
+    ],
+    [
+      "y una ruta que se sale de /disenos, también",
+      () => fusionar(TPL, base(), {
+        splash: { sello: "/disenos/../../etc/passwd" },
+      }, BIB).errores.length === 1,
+    ],
+    [
       "una de la biblioteca pasa, y entera se guarda como ruta",
       () => {
         const r = fusionar(TPL, base(), {

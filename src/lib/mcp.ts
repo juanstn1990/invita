@@ -25,6 +25,9 @@
  * turno. Un silencio es una mentira que se descubre tarde.
  */
 
+import fs from "fs";
+import path from "path";
+
 import {
   ADORNOS, ALINEACIONES, ANIMACIONES, SECTIONS, SECTION_BY_KEY,
   type FieldSpec, type SectionSpec,
@@ -117,6 +120,28 @@ export interface SeccionResumen {
  * se rechazan como antes.
  */
 const DE_ARCHIVO = new Set(["image", "video", "audio", "medio"]);
+
+/**
+ * El arte que viene con la app: los adornos de los diseños, en `/disenos`.
+ *
+ * No están en la biblioteca —nadie los subió, se despliegan con el código—,
+ * pero son justo lo contrario de una ruta inventada: existen mientras exista
+ * la app, y son los que tienen sentido reutilizar en otra invitación (un
+ * lacre de cera, un ramo, un sello). Se aceptan comprobando el archivo en
+ * disco, así que una ruta con una errata se sigue rechazando.
+ *
+ * Copiarlos a la biblioteca también funcionaba, pero deja dos ficheros
+ * iguales y una invitación apuntando a la copia: cuando se retoca el original
+ * —y se retocan—, la copia se queda con la versión vieja.
+ */
+const esArteDelDiseno = (v: string) => {
+  if (!/^\/disenos\/[\w./-]+$/.test(v) || v.includes("..")) return false;
+  try {
+    return fs.existsSync(path.join(process.cwd(), "public", v));
+  } catch {
+    return false;
+  }
+};
 /** La galería es una lista de fotos con su propio editor: sigue fuera. */
 const NO_RELLENABLES = new Set(["gallery"]);
 
@@ -130,7 +155,7 @@ function revisarArchivo(f: FieldSpec, valor: unknown, biblioteca?: Set<string>):
   if (!biblioteca) {
     return `"${f.label}" es un archivo (${f.type}) y aquí no se puede comprobar que exista.`;
   }
-  if (!biblioteca.has(v)) {
+  if (!biblioteca.has(v) && !esArteDelDiseno(v)) {
     return (
       `"${v}" no está en la biblioteca, así que "${f.label}" saldría roto. ` +
       `Súbela antes con \`subir\`, o elige una de las que da \`biblioteca\`.`
