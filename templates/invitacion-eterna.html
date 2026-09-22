@@ -465,11 +465,18 @@ body{background:var(--bg)}
    El componente tiñe el sobre con el acento, y con una paleta cálida salía
    rosado. Aquí el papel manda —lino marfil— y el lacre es el sello de oro
    que ya preside la mesa de regalos, no un botón de color. */
-.inv-sobre-cuerpo{background:var(--et-lino);
+#splash .inv-sobre-cuerpo{background:var(--et-lino);
   box-shadow:0 30px 70px -22px rgba(0,0,0,.45),
     inset 0 0 0 1px color-mix(in srgb,var(--brand-2) 34%,transparent)}
-.inv-sobre-bolsillo::before,.inv-sobre-bolsillo::after{background:color-mix(in srgb,var(--et-lino) 93%,#000)}
-.inv-sobre-solapa{background:color-mix(in srgb,var(--et-lino) 96%,#fff)}
+#splash .inv-sobre-bolsillo::before,#splash .inv-sobre-bolsillo::after{
+  background:color-mix(in srgb,var(--et-lino) 93%,#000)}
+#splash .inv-sobre-solapa{background:color-mix(in srgb,var(--et-lino) 96%,#fff)}
+/* El lacre del diseño, mientras la invitación no suba el suyo: el mismo
+   sello de oro que preside la mesa de regalos. Imagen y no máscara teñida
+   con el acento: dentro del sobre —que vive en un contexto 3D, con
+   perspectiva y su propia animación— la máscara no llega a pintarse.
+   Un lacre de otro color se pone por invitación, en «Imagen del sello»
+   (hay lacres listos en /disenos/lacres). */
 .inv-sobre-sello:not(.con-imagen){background:url(/disenos/eterna/sello.png) center/contain no-repeat;
   color:transparent;box-shadow:none;border:0;filter:drop-shadow(0 5px 11px rgba(0,0,0,.32))}
 #splash .inv-sobre-ante{color:var(--brand)}
