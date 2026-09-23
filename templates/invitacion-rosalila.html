@@ -9,59 +9,59 @@
 <title>Juan &amp; María · Nuestra boda</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Parisienne&family=Italiana&family=Questrial&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400..700&family=Gwendolyn:wght@400;700&family=Lobster&family=Questrial&family=Rakkas&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#faf8f6; --bg-alt:#edeaea; --card:#fdfcfb;
-  --ink:#3c3545; --muted:#6d6871; --line:#d9d7d7;
-  --brand:#73628e; --brand-2:#b9a3c9; --brand-2-ink:#3c3545;
-  --accent:#7c6a99; --on-accent:#ffffff;
-  --footer-bg:#3c3545; --footer-ink:#edeaea;
+  --bg:#faf4ec; --bg-alt:#f0eae3; --card:#fdfaf6;
+  --ink:#686868; --muted:#6c6a68; --line:#dbd5cf;
+  --brand:#626d47; --brand-2:#c47a6c; --brand-2-ink:#686868;
+  --accent:#6f7957; --on-accent:#ffffff;
+  --footer-bg:#686868; --footer-ink:#f0eae3;
 
-  --display:'Italiana', Georgia, serif; --sans:'Cormorant Garamond', Georgia, serif;
-  --display-weight:400;
+  --display:'Dancing Script', cursive; --sans:'Questrial', system-ui, sans-serif;
+  --display-weight:600;
   --display-leading:1.1;
-  --display-tracking:0.02em;
-  --tracking:0.3em;
+  --display-tracking:0;
+  --tracking:0.24em;
   --caps:uppercase;
   --quote-style:italic;
 
-  --fs-micro:12.4px;
-  --fs-small:14.1px;
-  --fs-body:17.5px;
-  --fs-lead:19.9px;
-  --fs-h3:clamp(21.7px,4.4vw,25.8px);
-  --fs-h2:clamp(26.9px,7vw,41.4px);
-  --fs-display:clamp(41.4px,13vw,63.6px);
-  --fs-number:clamp(24.7px,6.4vw,33.4px);
+  --fs-micro:12.7px;
+  --fs-small:14.2px;
+  --fs-body:17px;
+  --fs-lead:19px;
+  --fs-h3:clamp(20.4px,4.4vw,23.6px);
+  --fs-h2:clamp(24.5px,7vw,35.3px);
+  --fs-display:clamp(35.3px,13vw,50.8px);
+  --fs-number:clamp(22.8px,6.4vw,29.4px);
 
-  --radius:3px; --radius-sm:3px;
+  --radius:22px; --radius-sm:14px;
   --btn-radius:999px;
   --border:1px;
-  --shadow:none;
+  --shadow:0 2px 4px rgba(0,0,0,.03), 0 16px 36px -24px rgba(0,0,0,.2);
 
   --pad-y:64px; --pad-y-alt:78px;
   --gap:16px;
 
-  --panel-rgb:253,252,251;
+  --panel-rgb:253,250,246;
   --panel-alpha:0.88;
-  --hero-bg:linear-gradient(165deg,#edeaea 0%,#faf8f6 55%,#efeaed 130%);
-  --splash-bg:linear-gradient(165deg,#edeaea 0%,#faf8f6 55%,#efeaed 130%);
-  --hero-ink:#3c3545;
-  --hero-ink-soft:#6d6871;
-  --hero-line:#d9d7d7;
-  --hero-brand:#73628e;
-  --hero-accent:#7c6a99;
+  --hero-bg:linear-gradient(165deg,#f0eae3 0%,#faf4ec 55%,#f4e9e0 130%);
+  --splash-bg:linear-gradient(165deg,#f0eae3 0%,#faf4ec 55%,#f4e9e0 130%);
+  --hero-ink:#686868;
+  --hero-ink-soft:#6c6a68;
+  --hero-line:#dbd5cf;
+  --hero-brand:#626d47;
+  --hero-accent:#6f7957;
   --hero-on-accent:#ffffff;
 
   /* Los componentes que inyecta el renderer. Mismos valores, otro prefijo. */
-  --inv-accent:#7c6a99; --inv-on-accent:#ffffff;
-  --inv-ink:#3c3545; --inv-surface:#fdfcfb;
-  --inv-field-bg:#fdfcfb; --inv-field-ink:#3c3545; --inv-field-border:#d9d7d7;
-  --inv-focus:rgba(124,106,153,0.24);
-  --inv-radius:3px; --inv-btn-radius:999px;
-  --inv-font-ui:'Cormorant Garamond', Georgia, serif; --inv-font-title:'Italiana', Georgia, serif;
-  --inv-tracking:0.3em; --inv-caps:uppercase;
+  --inv-accent:#6f7957; --inv-on-accent:#ffffff;
+  --inv-ink:#686868; --inv-surface:#fdfaf6;
+  --inv-field-bg:#fdfaf6; --inv-field-ink:#686868; --inv-field-border:#dbd5cf;
+  --inv-focus:rgba(111,121,87,0.24);
+  --inv-radius:14px; --inv-btn-radius:999px;
+  --inv-font-ui:'Questrial', system-ui, sans-serif; --inv-font-title:'Dancing Script', cursive;
+  --inv-tracking:0.24em; --inv-caps:uppercase;
 }
 
 *{margin:0;padding:0;box-sizing:border-box}
@@ -416,157 +416,200 @@ section.alt .event-card,section.alt .feature-card,section.alt .gift-card,section
   .hero-content{padding:34px 22px}
   .splash-modal{padding:34px 22px}
 }
-:root{--rl-script:'Parisienne',cursive;--rl-caps:'Questrial',system-ui,sans-serif;
-  --rl-tit:'Italiana',Georgia,serif;
-  --rl-papel:color-mix(in srgb,var(--bg) 84%,#fff);
-  --rl-lila-suave:color-mix(in srgb,var(--brand) 12%,var(--bg));
-  --rl-filete:color-mix(in srgb,var(--brand) 32%,transparent)}
+:root{--rl-script:'Dancing Script',cursive;--rl-mono:'Gwendolyn',cursive;
+  --rl-fecha:'Lobster',cursive;--rl-ui:'Questrial',system-ui,sans-serif;
+  --rl-foto:'Rakkas',Georgia,serif;
+  --rl-ficha:color-mix(in srgb,var(--bg) 62%,#fff);
+  --rl-banda:color-mix(in srgb,var(--brand-2) 74%,#e2bb8e);
+  --rl-banda-suave:color-mix(in srgb,var(--brand-2) 42%,#fff);
+  --rl-sombra:0 12px 28px -20px rgba(90,78,64,.65)}
 body{background:var(--bg)}
 
 /* ── Letras ──
-   Italiana para los títulos —una romana de asta finísima, que es lo que da
-   el aire de participación impresa—, Questrial para lo que es interfaz y
-   Parisienne sólo para los nombres. */
-.section-label,.hero-label,.splash-subtitle,.event-type,.gifts-bank,.ring-label,.event-time,
-.hero-btn,.splash-btn,.confirm-btn,.gifts-btn,.event-map-btn,.social-ig,.footer-copy,.feature-title,
-.inv-mapa-btn,.inv-rsvp-btn,.inv-rsvp-lab,.inv-sobre-pista,.inv-sobre-ante{font-family:var(--rl-caps)}
-.section-label{font-size:11px;letter-spacing:.38em;padding-left:.38em;color:var(--brand);text-transform:uppercase}
-.section-title{font-family:var(--rl-tit);font-weight:400;font-size:clamp(38px,10.5vw,52px);
-  line-height:1.1;letter-spacing:.02em;color:var(--ink)}
-.section-body,.guests-text,.confirmation-text,.gifts-text,.gallery-text,.social-sub{font-size:18px;line-height:1.75}
-.hero-name,.splash-name,.footer-names,.inv-sobre-nombre{font-family:var(--rl-script);font-weight:400}
-.hero-amp,.splash-amp,.footer-names .amp{display:block;font-size:.5em;line-height:1.4;color:var(--brand-2)}
-@keyframes rlFlota{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+   Dancing Script lo escribe casi todo —títulos y textos, como en el
+   original—, Questrial es lo que se pulsa y Lobster sólo la fecha. */
+.section-title,.hero-sub,.event-title,.gifts-bank{font-family:var(--rl-script);font-weight:600}
+.section-title{font-size:clamp(30px,8.6vw,38px);line-height:1.25;color:var(--ink)}
+.section-label,.hero-label,.splash-subtitle,.ring-label,.event-type,.feature-title,.social-ig,
+.footer-copy,.hero-btn,.splash-btn,.confirm-btn,.gifts-btn,.event-map-btn,.inv-mapa-btn,
+.inv-rsvp-btn,.inv-rsvp-lab,.inv-sobre-pista,.inv-sobre-ante{font-family:var(--rl-ui)}
+.section-label{font-size:11.5px;letter-spacing:.24em;padding-left:.24em;text-transform:uppercase;color:var(--brand)}
+.section-body,.guests-text,.confirmation-text,.gifts-text,.gallery-text,.social-sub,.event-place,
+.feature-text{font-family:var(--rl-script);font-weight:500;font-size:20px;line-height:1.5}
+.hero-name,.splash-name,.footer-names,.inv-sobre-nombre{font-family:var(--rl-script);font-weight:700}
+.hero-date,.footer-date,.countdown .section-title{font-family:var(--rl-fecha);font-weight:400;letter-spacing:.02em}
 
-/* La flor bajo cada título, que es el separador de toda la invitación. */
-.ornament{margin:6px auto 22px}
-.rl-flor{display:block;width:min(24vw,96px);margin:0 auto;pointer-events:none}
+/* Las rosas de las esquinas y la ramita de flores, que es lo que da el aire
+   de papel pintado a mano. */
+.ornament{margin:0 auto 14px}
+.rl-ramita{display:block;width:min(20vw,74px);margin:0 auto;pointer-events:none}
 
-/* ── Bienvenida: el sobre con lacre lila ── */
+/* ── Fichas: cada sección es una tarjeta de papel ──
+   El original no maqueta secciones, maqueta tarjetas: una detrás de otra
+   sobre el mismo papel. Aquí se hace con el .container, que ya envuelve el
+   contenido de todas, y así vale para las secciones y para los bloques
+   nuevos sin tocar el marcado de ninguna. */
+section{padding:20px 14px;background:var(--bg)}
+section.alt{background:var(--bg)}
+section .container,.inv-block .container{position:relative;z-index:2;
+  padding:40px 22px 36px;border-radius:22px;background:var(--rl-ficha);box-shadow:var(--rl-sombra)}
+
+/* ── Bienvenida: el sobre con su lacre, entre rosas ── */
 #splash{background:
-  url(/disenos/rosalila/rama.png) right -54px bottom -30px/min(46vw,190px) no-repeat,
-  radial-gradient(120% 80% at 50% 16%,var(--rl-papel),var(--bg))}
-.splash-name{font-size:clamp(56px,17vw,80px);line-height:1.05;color:var(--brand)}
-.splash-subtitle{color:var(--brand);letter-spacing:.34em;font-size:10.5px;text-transform:uppercase}
-.splash-date{font-family:var(--rl-caps);letter-spacing:.2em;color:var(--muted)}
-.inv-sobre-sello:not(.con-imagen){background:url(/disenos/lacres/lila.png) center/contain no-repeat;
-  color:transparent;box-shadow:none;border:0;filter:drop-shadow(0 5px 10px rgba(50,40,60,.32))}
-#splash .inv-sobre-cuerpo{background:var(--rl-papel)}
-#splash .inv-sobre-nombre{font-size:clamp(40px,12vw,54px);color:var(--brand)}
-#splash .inv-sobre-ante{color:var(--brand);letter-spacing:.28em}
-#splash .inv-sobre-pista{color:var(--brand)}
+  url(/disenos/rosalila/rosa.png) left -44px top -30px/min(46vw,190px) no-repeat,
+  url(/disenos/rosalila/ramita.png) right -16px bottom 8%/min(26vw,110px) no-repeat,
+  var(--bg)}
+#splash .splash-modal{background:var(--rl-ficha);border-radius:22px;box-shadow:var(--rl-sombra)}
+.splash-subtitle{font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--brand)}
+.splash-name{font-size:clamp(46px,14vw,62px);line-height:1.1;color:var(--ink)}
+.splash-date{font-family:var(--rl-fecha);font-size:18px;letter-spacing:0;color:var(--muted)}
+.inv-sobre-sello:not(.con-imagen){background:url(/disenos/lacres/oro.png) center/contain no-repeat;
+  filter:hue-rotate(28deg) saturate(.75) drop-shadow(0 5px 10px rgba(80,75,50,.3));
+  color:transparent;box-shadow:none;border:0}
+#splash .inv-sobre-cuerpo{background:#f2f1ec}
+#splash .inv-sobre-nombre{font-size:clamp(36px,11vw,48px);color:var(--ink)}
+#splash .inv-sobre-ante{color:var(--brand);letter-spacing:.24em}
+#splash .inv-sobre-pista{color:var(--muted);font-size:12px}
 
-/* ── Portada: la ilustración a sangre y los nombres encima ── */
-#hero{place-items:end center;padding:0 24px calc(54px + env(safe-area-inset-bottom));background:#6a6070;
-  --hero-ink:#fffdfb;--hero-ink-soft:rgba(255,253,251,.9);--hero-line:rgba(255,253,251,.34);
-  --hero-brand:color-mix(in srgb,var(--brand) 22%,#fff)}
-.hero-bg{background-image:url(/disenos/rosalila/portada.jpg);background-position:center 28%}
-#hero::after,#hero.con-foto::after{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;
-  background:linear-gradient(to bottom,rgba(0,0,0,.05),transparent 30%,rgba(48,40,56,.5) 62%,#2f2838 98%)}
-.hero-content{box-shadow:none;width:min(560px,100%);padding:0;background:none}
-.hero-label{font-size:11px;letter-spacing:.44em;padding-left:.44em;margin:0}
-.hero-name{font-size:clamp(66px,20vw,104px);line-height:1;margin:0;text-shadow:0 2px 18px rgba(0,0,0,.4)}
-.hero-sub{font-size:18px}
-.hero-date{border-top:0;padding-top:0;margin-top:8px;font-family:var(--rl-caps);font-size:12px;letter-spacing:.3em}
-.hero-quote{font-style:italic;font-size:19px;line-height:1.55;max-width:30ch;margin:14px auto 0}
+/* ── Portada: papel crema y las rosas en dos esquinas ──
+   Sin foto por defecto, como la referencia: el ramo arriba, el ramo abajo y
+   los nombres en medio. La foto que suba la pareja entra igual y manda. */
+#hero{place-items:center;padding:110px 24px;background:
+  url(/disenos/rosalila/rosa.png) left -64px top -58px/min(48vw,196px) no-repeat,
+  url(/disenos/rosalila/rosa.png) right -52px bottom -34px/min(46vw,190px) no-repeat,
+  var(--bg);
+  --hero-ink:var(--ink);--hero-ink-soft:var(--muted);--hero-line:color-mix(in srgb,var(--brand) 30%,transparent);
+  --hero-brand:var(--brand)}
+#hero.con-foto{background:none}
+.hero-content{box-shadow:none;width:min(520px,100%);padding:0 16px;background:none}
+.hero-label{font-size:11.5px;letter-spacing:.34em;text-transform:uppercase;margin:0 0 10px}
+.hero-name{font-size:clamp(52px,16vw,74px);line-height:1.12;margin:0}
+.hero-amp{font-size:.62em}
+.hero-date{margin-top:14px;border-top:0;padding-top:0;font-size:17px;letter-spacing:.06em}
+.hero-quote{font-family:var(--rl-script);font-weight:500;font-size:21px;line-height:1.45;max-width:26ch;margin:16px auto 0}
+.hero-btn{margin-top:18px}
 
-/* ── El papel, con la rama asomando por un borde ── */
-section{padding:88px 24px;background:var(--bg)}
-section.alt{background:var(--rl-papel)}
-section .container{position:relative;z-index:2}
-#guests{padding-top:98px;background:
-  url(/disenos/rosalila/rama.png) left -58px top -20px/min(40vw,170px) no-repeat,var(--rl-papel)}
-#guests [data-inv="guests.text"]{max-width:32ch;margin-inline:auto}
-/* Los padres bajan aquí desde la portada, con un filete en medio. */
-.inv-padres-invitados{display:grid;grid-template-columns:1fr 1fr;max-width:440px;margin:24px auto 0}
-.inv-padres-invitados .hero-padres-col{max-width:none;padding:0 12px;text-align:center}
-.inv-padres-invitados .hero-padres-col + .hero-padres-col{border-left:1px solid var(--rl-filete)}
-.inv-padres-invitados .hero-padres-tit{font-family:var(--rl-caps);font-size:10.5px;letter-spacing:.26em;
+/* ── El mensaje de los novios, con el monograma al pie ──
+   El monograma es la inicial de cada uno en Gwendolyn: el «&» lo pone el
+   propio diseño y las letras salen de los nombres, así que no hay que
+   dibujar una imagen por pareja. */
+#guests .container{padding-bottom:26px}
+#guests [data-inv="guests.text"],#guests [data-inv="guests.textSecondary"]{max-width:30ch;margin-inline:auto}
+#guests .container::after{content:"";display:block;width:min(34vw,130px);aspect-ratio:1.1;margin:14px auto -6px;
+  background:url(/disenos/rosalila/ramita.png) center/contain no-repeat}
+.inv-padres-invitados{display:grid;grid-template-columns:1fr 1fr;max-width:420px;margin:22px auto 0}
+.inv-padres-invitados .hero-padres-col{max-width:none;padding:0 10px;text-align:center}
+.inv-padres-invitados .hero-padres-tit{font-family:var(--rl-ui);font-size:10.5px;letter-spacing:.2em;
   text-transform:uppercase;color:var(--brand);margin:0}
-.inv-padres-invitados .hero-padres-nom{margin-top:6px;font-size:17px;line-height:1.5;color:var(--ink);white-space:pre-line}
+.inv-padres-invitados .hero-padres-nom{margin-top:5px;font-family:var(--rl-script);font-size:20px;
+  line-height:1.4;color:var(--ink);white-space:pre-line}
 
-/* ── Cuenta atrás: cuatro casillas de filete ── */
-#countdown,.inv-block-countdown{background:var(--rl-lila-suave)}
-.countdown-grid{max-width:430px;margin:22px auto 0;gap:10px}
-.countdown-ring{background:transparent;border:0;border-radius:2px;box-shadow:inset 0 0 0 1px var(--rl-filete)}
-.ring-number{font-family:var(--rl-tit);font-weight:400;font-size:34px;color:var(--brand)}
-.ring-label{font-family:var(--rl-caps);font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted)}
+/* ── Cuenta atrás: la fecha en Lobster y cuatro números sin caja ── */
+#countdown .container,.inv-block-countdown .container{padding-top:34px}
+#countdown .section-label,.inv-block-countdown .section-label{order:2;color:var(--brand);margin-top:6px}
+#countdown .section-title,.inv-block-countdown .section-title{font-size:23px;color:var(--ink)}
+.countdown-grid{max-width:390px;margin:14px auto 0;gap:6px}
+.countdown-ring{background:none;border:0;border-radius:0;box-shadow:none;padding:6px 2px}
+.ring-number{font-family:var(--rl-ui);font-size:23px;color:var(--muted)}
+.ring-label{font-family:var(--rl-ui);font-size:10px;letter-spacing:.04em;text-transform:none;color:var(--muted)}
 
-/* ── Ceremonia y recepción: una sola ficha, con la capilla encima ──
-   Una y no dos: en la referencia la ceremonia y la fiesta son el mismo
-   sitio y la misma hora, y partirlo en dos tarjetas obliga a repetir el
-   lugar. Si la invitación agrega un segundo momento, entra igual debajo. */
-#events .events-grid{display:grid;grid-template-columns:1fr;gap:16px;max-width:430px;margin:24px auto 0}
-#events .event-card{padding:30px 22px 26px;text-align:center;border:0;border-radius:3px;background:var(--card);
-  box-shadow:0 16px 30px -24px rgba(60,53,69,.7),inset 0 0 0 1px var(--rl-filete)}
+/* ── Ceremonia y recepción: una sola ficha ──
+   Una y no dos: en la referencia la ceremonia y la fiesta son el mismo sitio
+   y la misma hora, y partirlo obliga a repetir el lugar. Si la invitación
+   agrega un segundo momento, entra debajo con la misma pinta. */
+#events .events-grid{display:grid;grid-template-columns:1fr;gap:22px;margin-top:18px}
+#events .event-card{padding:0;border:0;border-radius:0;background:none;box-shadow:none;text-align:center}
 #events .event-card:hover{transform:none}
-#events .event-card:first-child .event-icon{display:block;width:96px;height:104px;margin:0 auto 10px;font-size:0;
-  background:url(/disenos/rosalila/ceremonia.png) center/contain no-repeat}
-#events .event-type{font-size:10.5px;letter-spacing:.3em;text-transform:uppercase;color:var(--brand)}
-#events .event-title{font-family:var(--rl-tit);font-weight:400;font-size:30px;line-height:1.2;color:var(--ink)}
-#events .event-time{font-size:12px;letter-spacing:.24em;color:var(--brand)}
-#events .event-place{font-size:16.5px;line-height:1.5}
+#events .event-icon{display:none}
+#events .event-type{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--brand)}
+#events .event-title{font-size:26px;line-height:1.3;color:var(--ink)}
+#events .event-time{font-family:var(--rl-ui);font-size:14px;letter-spacing:.04em;color:var(--muted)}
+#events .event-place{font-size:19px;line-height:1.45}
 
-/* ── Galería en papel rasgado, y la cita en su tarjeta ── */
-#gallery,.inv-block-gallery{background:var(--bg)}
-.inv-ga-rasgada .gallery-item{filter:drop-shadow(0 14px 22px rgba(60,53,69,.22))}
-.inv-pa-cita{background:var(--card);box-shadow:0 16px 30px -26px rgba(60,53,69,.6),inset 0 0 0 1px var(--rl-filete)}
-.inv-pa-cita::after{content:"";position:absolute;right:-4px;top:-46px;width:min(22vw,92px);aspect-ratio:1;
-  background:url(/disenos/rosalila/flor.png) center/contain no-repeat;pointer-events:none}
-.inv-cita-texto{font-style:italic}
-.inv-cita-firma{font-family:var(--rl-script);font-size:26px;letter-spacing:0;padding:0;text-transform:none;color:var(--brand)}
+/* ── Galería: la banda de color, la cámara dibujada y las fotos rasgadas ── */
+#gallery,.inv-block-gallery{padding:0;background:var(--rl-banda)}
+#gallery .container,.inv-block-gallery .container{background:none;box-shadow:none;border-radius:0;
+  padding:56px 18px 60px}
+#gallery .section-title,.inv-block-gallery .section-title{color:#fff}
+#gallery .section-label,.inv-block-gallery .section-label,
+#gallery .gallery-text,.inv-block-gallery .gallery-text{color:rgba(255,255,255,.92)}
+#gallery .container::before,.inv-block-gallery .container::before{content:"";display:block;
+  width:min(52vw,200px);aspect-ratio:1.37;margin:2px auto 10px;
+  background:url(/disenos/rosalila/camara.png) center/contain no-repeat}
+#gallery .ornament,.inv-block-gallery .ornament{display:none}
+.inv-ga-rasgada .gallery-item{filter:drop-shadow(0 14px 22px rgba(70,55,45,.3))}
 
-/* ── Dress code: los novios dibujados, y las fichas en dos columnas ── */
-#features{background:var(--rl-papel)}
-#features .ornament{width:min(40vw,150px);aspect-ratio:.73;margin-bottom:12px;
+/* ── La cita: la ramita asomando por la esquina ── */
+.inv-pa-cita{background:var(--rl-ficha);box-shadow:var(--rl-sombra);border-radius:22px;padding:44px 26px 34px}
+.inv-block-paragraph .container{padding:0;background:none;box-shadow:none}
+.inv-pa-cita::before{content:"";position:absolute;left:22px;top:14px;width:54px;aspect-ratio:1;
+  background:url(/disenos/rosalila/ramita.png) center/contain no-repeat;opacity:.9}
+.inv-cita-texto{font-family:var(--rl-script);font-weight:500;font-size:20px;line-height:1.5;color:var(--muted)}
+.inv-cita-firma{font-family:var(--rl-script);font-weight:600;font-size:22px;letter-spacing:0;
+  padding:0;text-transform:none;color:var(--muted)}
+
+/* ── Dress code: los novios dibujados y dos columnas ── */
+#features .ornament{width:min(40vw,150px);aspect-ratio:.86;margin:4px auto 16px;
   background:url(/disenos/rosalila/novios.png) center/contain no-repeat}
 #features .ornament img{visibility:hidden}
-#features .features-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:440px;margin-inline:auto}
-#features .feature-card{padding:22px 14px;border:0;border-radius:3px;background:var(--card);
-  box-shadow:inset 0 0 0 1px var(--rl-filete)}
-#features .feature-card:last-child:nth-child(odd){grid-column:1/-1}
-.feature-icon{color:var(--brand)}
-.feature-title{font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--brand)}
+#features .features-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 18px;max-width:420px;margin-inline:auto}
+#features .feature-card{padding:0;border:0;border-radius:0;background:none;box-shadow:none;text-align:center}
+#features .feature-card:last-child:nth-child(odd){grid-column:1/-1;margin-top:4px}
+#features .feature-icon{display:none}
+.feature-title{font-size:19px;letter-spacing:0;text-transform:none;color:var(--brand)}
+.feature-text{font-size:19px;color:var(--muted)}
 
-/* ── Lluvia de sobres: el sobre con su lazo ── */
-#gifts .container::before,.inv-block-gifts .container::before{content:"";display:block;width:min(46vw,180px);
-  aspect-ratio:1.5;margin:0 auto 4px;background:url(/disenos/rosalila/regalo.png) center/contain no-repeat;
-  animation:rlFlota 7s ease-in-out infinite}
-.gifts-account{background:var(--card);border:1px solid var(--rl-filete);border-radius:3px}
-.gifts-bank{color:var(--brand)}
-
-/* ── Confirmar: aquí va la canción, que en la referencia era su sección de
-   música. Por eso la preside el gramófono. ── */
-#confirmation{padding-bottom:110px;background:var(--bg)}
-#confirmation .container::before{content:"";display:block;width:min(44vw,180px);aspect-ratio:1.3;
-  margin:0 auto 2px;background:url(/disenos/rosalila/musica.png) center/contain no-repeat}
+/* ── Lluvia de sobres y confirmar ── */
+#gifts .ornament,.inv-block-gifts .ornament{width:min(44vw,170px);aspect-ratio:1.38;margin:8px auto 12px;
+  background:url(/disenos/rosalila/sobre.png) center/contain no-repeat}
+#gifts .ornament img,.inv-block-gifts .ornament img{visibility:hidden}
+#events .ornament{width:min(42vw,160px);aspect-ratio:1.42;margin:8px auto 10px;
+  background:url(/disenos/rosalila/anillos.png) center/contain no-repeat}
+#events .ornament img{visibility:hidden}
+.gifts-account{background:color-mix(in srgb,var(--brand) 8%,transparent);border:0;border-radius:14px}
+.gifts-bank{font-size:19px;color:var(--brand)}
+#confirmation{padding:0;background:var(--rl-banda-suave)}
+#confirmation .ornament{display:none}
+#confirmation .container{background:none;box-shadow:none;border-radius:0;padding:56px 20px 64px}
+#confirmation .section-title{font-family:var(--rl-ui);font-size:clamp(26px,7.4vw,32px);color:#fff}
+#confirmation .section-label,#confirmation .confirmation-text{color:rgba(255,255,255,.94)}
 #confirmation .confirmation-deadline{display:none}
-.inv-rsvp-lab{font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--brand);opacity:1;text-align:left}
-/* Donde ya preside una ilustración, la flor del título sobra. */
-#gifts .ornament,.inv-block-gifts .ornament,#confirmation .ornament{display:none}
-.inv-rsvp-lab .inv-rsvp-input{text-transform:none;letter-spacing:0;font-weight:400}
+.inv-rsvp-lab{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#fff;opacity:.95;text-align:left}
+.inv-rsvp-lab .inv-rsvp-input{text-transform:none;letter-spacing:0;color:var(--ink)}
+.inv-rsvp-input,.inv-rsvp-area{background:rgba(255,255,255,.92);border-color:transparent}
 
-/* ── Botones: lila liso y su contorno ── */
+/* ── La música, donde la referencia la tenía: junto a la canción del RSVP ── */
+#confirmation .inv-rsvp-lab:has(input[name="cancion"])::after{content:"";display:block;width:110px;
+  aspect-ratio:1.6;margin:6px auto 0;background:url(/disenos/rosalila/musica.png) center/contain no-repeat;
+  filter:brightness(2.4) saturate(0)}
+
+/* ── Hashtag: la foto a sangre con el título encima ── */
+#social{padding:0;background:var(--rl-banda-suave)}
+#social .container{background:none;box-shadow:none;border-radius:0;padding:64px 22px}
+#social .section-title{font-family:var(--rl-foto);font-weight:400;font-size:clamp(28px,8vw,34px);color:#fff}
+#social .section-label,#social .social-sub{color:rgba(255,255,255,.92)}
+.social-hashtag{font-family:var(--rl-foto);font-size:26px;color:#fff}
+
+/* ── Botones: píldora oliva ── */
 .hero-btn,.splash-btn-primary,.confirm-btn,.gifts-btn,.inv-rsvp-btn:not(.inv-rsvp-no),
-.inv-mapa-btn:not(.inv-agendar){border:0;background:var(--accent);color:var(--on-accent);
-  font-size:11px;letter-spacing:.24em;text-transform:uppercase;
-  box-shadow:0 12px 22px -16px color-mix(in srgb,var(--accent) 90%,#000);transition:filter .3s,transform .2s}
-.hero-btn:hover,.confirm-btn:hover,.gifts-btn:hover{filter:brightness(1.08)}
-.event-map-btn,.inv-rsvp-no{background:transparent;color:var(--brand);box-shadow:inset 0 0 0 1px var(--accent)}
+.inv-mapa-btn:not(.inv-agendar),.event-map-btn,.social-ig{border:0;background:var(--accent);color:#fff;
+  font-size:14px;letter-spacing:.02em;text-transform:none;box-shadow:0 8px 18px -12px rgba(80,90,60,.9);
+  transition:filter .3s}
+.hero-btn:hover,.confirm-btn:hover,.gifts-btn:hover{filter:brightness(1.06)}
+.inv-rsvp-no{background:rgba(255,255,255,.85);color:var(--ink);box-shadow:none}
 
-/* ── Hashtag y pie ── */
-#social{background:var(--rl-lila-suave)}
-.social-hashtag{font-family:var(--rl-script);font-size:34px;color:var(--brand)}
-footer{padding:72px 24px calc(66px + env(safe-area-inset-bottom));background:var(--rl-papel)}
-footer .container{position:relative;z-index:2}
-footer .container::before{content:"";display:block;width:min(24vw,96px);aspect-ratio:1;margin:0 auto 2px;
-  background:url(/disenos/rosalila/flor.png) center/contain no-repeat}
-.footer-names{font-family:var(--rl-script);font-size:62px;line-height:1.1;color:var(--brand)}
-.footer-date{font-family:var(--rl-caps);letter-spacing:.24em}
-.footer-copy{letter-spacing:.3em;color:var(--brand)}
+/* ── Pie ── */
+footer{padding:26px 14px calc(30px + env(safe-area-inset-bottom));background:var(--bg)}
+footer .container{position:relative;z-index:2;padding:40px 22px;border-radius:22px;
+  background:var(--rl-ficha);box-shadow:var(--rl-sombra)}
+footer .container::before{content:"";display:block;width:min(26vw,100px);aspect-ratio:1.1;margin:0 auto 8px;
+  background:url(/disenos/rosalila/ramita.png) center/contain no-repeat}
+.footer-names{font-size:40px;line-height:1.2;color:var(--ink)}
+.footer-date{font-size:17px;color:var(--muted)}
+.footer-copy{font-size:11px;letter-spacing:.16em;color:var(--brand)}
 
-@media (prefers-reduced-motion:reduce){
-  #gifts .container::before,.inv-block-gifts .container::before{animation:none}
+@media (max-width:380px){
+  section .container,.inv-block .container{padding:34px 16px 30px}
 }</style>
 </head>
 <body>
@@ -629,7 +672,7 @@ footer .container::before{content:"";display:block;width:min(24vw,96px);aspect-r
 <section id="countdown" class="reveal" data-inv-section="countdown">
   <div class="container">
     <p class="section-label" data-inv="countdown.label">El gran día</p>
-    <h2 class="section-title" data-inv="countdown.title">Falta muy poco</h2><div class="ornament"><img class="rl-flor" src="/disenos/rosalila/flor.png" alt=""></div>
+    <h2 class="section-title" data-inv="countdown.title">Falta muy poco</h2><div class="ornament"><img class="rl-ramita" src="/disenos/rosalila/ramita.png" alt=""></div>
     <p class="section-body" data-inv="countdown.text">Estamos contando los días para verte allí.</p>
     <div class="countdown-grid">
       <div class="countdown-ring"><div class="ring-inner"><span class="ring-number" data-cd="days">--</span><span class="ring-label">Días</span></div></div>
@@ -643,7 +686,7 @@ footer .container::before{content:"";display:block;width:min(24vw,96px);aspect-r
 <section id="guests" class="reveal alt" data-inv-section="guests">
   <div class="container">
     <p class="section-label" data-inv="guests.label">Con todo nuestro amor</p>
-    <h2 class="section-title" data-inv="guests.title">Queridos invitados</h2><div class="ornament"><img class="rl-flor" src="/disenos/rosalila/flor.png" alt=""></div>
+    <h2 class="section-title" data-inv="guests.title">Queridos invitados</h2><div class="ornament"><img class="rl-ramita" src="/disenos/rosalila/ramita.png" alt=""></div>
     <p class="guests-text" data-inv="guests.text">Queremos compartir con ustedes el día más importante de nuestras vidas. Su presencia lo hará inolvidable.</p>
     <p class="guests-text" data-inv="guests.textSecondary">Los esperamos con los brazos abiertos.</p>
     <p class="guests-address" data-inv="guests.address">Bogotá · Colombia</p>
@@ -670,7 +713,7 @@ footer .container::before{content:"";display:block;width:min(24vw,96px);aspect-r
 <section id="events" class="reveal" data-inv-section="events">
   <div class="container">
     <p class="section-label" data-inv="events.label">El programa</p>
-    <h2 class="section-title" data-inv="events.title">Cómo será el día</h2><div class="ornament"><img class="rl-flor" src="/disenos/rosalila/flor.png" alt=""></div>
+    <h2 class="section-title" data-inv="events.title">Cómo será el día</h2><div class="ornament"><img class="rl-ramita" src="/disenos/rosalila/ramita.png" alt=""></div>
     <p class="section-body" data-inv="events.text">Dos momentos y el mismo día. Aquí los detalles de cada uno.</p>
     <div class="events-grid" data-inv-list="events">
       <article class="event-card" data-inv-item>
@@ -698,7 +741,7 @@ footer .container::before{content:"";display:block;width:min(24vw,96px);aspect-r
 <section id="confirmation" class="reveal alt" data-inv-section="confirm">
   <div class="container">
     <p class="section-label" data-inv="confirm.label">¿Nos acompañas?</p>
-    <h2 class="section-title" data-inv="confirm.title">Confirma tu asistencia</h2><div class="ornament"><img class="rl-flor" src="/disenos/rosalila/flor.png" alt=""></div>
+    <h2 class="section-title" data-inv="confirm.title">Confirma tu asistencia</h2><div class="ornament"><img class="rl-ramita" src="/disenos/rosalila/ramita.png" alt=""></div>
     <p class="confirmation-text" data-inv="confirm.text">Por favor confirma tu asistencia. Nos ayudará a planear el mejor día posible para todos.</p>
     <p class="confirmation-deadline" data-inv="confirm.deadlineText">Antes del 15 de octubre</p>
     <p class="confirmation-text" data-inv="confirm.note">Si vienes con alguien, cuéntanos aquí mismo.</p>
@@ -719,7 +762,7 @@ footer .container::before{content:"";display:block;width:min(24vw,96px);aspect-r
 <section id="gallery" class="reveal" data-inv-section="gallery">
   <div class="container">
     <p class="section-label" data-inv="gallery.label">Nuestra historia</p>
-    <h2 class="section-title" data-inv="gallery.title">Momentos juntos</h2><div class="ornament"><img class="rl-flor" src="/disenos/rosalila/flor.png" alt=""></div>
+    <h2 class="section-title" data-inv="gallery.title">Momentos juntos</h2><div class="ornament"><img class="rl-ramita" src="/disenos/rosalila/ramita.png" alt=""></div>
     <p class="gallery-text" data-inv="gallery.text">Unas cuantas fotos de lo que nos trajo hasta aquí.</p>
     <div class="gallery-grid" data-inv-list="gallery">
       <div class="gallery-item" data-inv-item><div class="gallery-ph" data-inv="gallery.items.url"><span class="gallery-ph-text">Foto 1</span></div></div>
@@ -735,7 +778,7 @@ footer .container::before{content:"";display:block;width:min(24vw,96px);aspect-r
 <section id="features" class="reveal alt" data-inv-section="features">
   <div class="container">
     <p class="section-label" data-inv="features.label">Información útil</p>
-    <h2 class="section-title" data-inv="features.title">Todo lo que necesitas saber</h2><div class="ornament"><img class="rl-flor" src="/disenos/rosalila/flor.png" alt=""></div>
+    <h2 class="section-title" data-inv="features.title">Todo lo que necesitas saber</h2><div class="ornament"><img class="rl-ramita" src="/disenos/rosalila/ramita.png" alt=""></div>
     <div class="features-grid" data-inv-list="features">
       <div class="feature-card" data-inv-item>
         <span class="feature-icon" data-inv="features.items.icon">👗</span>
@@ -759,7 +802,7 @@ footer .container::before{content:"";display:block;width:min(24vw,96px);aspect-r
 <section id="gifts" class="reveal" data-inv-section="gifts">
   <div class="container">
     <p class="section-label" data-inv="gifts.label">Con mucho cariño</p>
-    <h2 class="section-title" data-inv="gifts.title">Mesa de regalos</h2><div class="ornament"><img class="rl-flor" src="/disenos/rosalila/flor.png" alt=""></div>
+    <h2 class="section-title" data-inv="gifts.title">Mesa de regalos</h2><div class="ornament"><img class="rl-ramita" src="/disenos/rosalila/ramita.png" alt=""></div>
     <p class="gifts-text" data-inv="gifts.text">Su presencia es nuestro mejor regalo. Si desean acompañarnos con un detalle, aquí dejamos los datos.</p>
     <div class="gifts-account">
       <p class="gifts-bank" data-inv="gifts.bankLabel">Transferencia</p>
@@ -787,7 +830,7 @@ footer .container::before{content:"";display:block;width:min(24vw,96px);aspect-r
 <section id="social" class="reveal alt" data-inv-section="social">
   <div class="container">
     <p class="section-label" data-inv="social.label">Compártelo</p>
-    <h2 class="section-title" data-inv="social.title">Sube tus fotos</h2><div class="ornament"><img class="rl-flor" src="/disenos/rosalila/flor.png" alt=""></div>
+    <h2 class="section-title" data-inv="social.title">Sube tus fotos</h2><div class="ornament"><img class="rl-ramita" src="/disenos/rosalila/ramita.png" alt=""></div>
     <p class="social-sub" data-inv="social.text">Etiquétalas con nuestro hashtag para que no se pierda ninguna.</p>
     <span class="social-hashtag" data-inv="social.hashtag">#JuanYMaria2027</span>
     <a class="social-ig" href="#" data-inv="social.instagram">@juanymaria</a>
