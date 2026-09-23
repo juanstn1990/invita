@@ -1587,6 +1587,16 @@ for (const [nombre, tocar] of CASOS) {
       (doc) => doc.querySelectorAll("#splash.inv-velo-jardin .inv-jardin").length === 2 &&
         doc.querySelectorAll("#splash.inv-velo-jardin .inv-mariposa .inv-ala").length === 2 &&
         conScript(doc, "inv-velo-jardin")],
+    ["portada sin texto: la tapa se queda, el bloque de texto no",
+      (d) => { d.hero = { ...d.hero, enabled: true, contenido: "limpia" }; },
+      (doc) => {
+        const hero: any = doc.querySelector("#hero");
+        return !!hero && /hero-limpia/.test(hero.getAttribute("class") || "") &&
+          !!doc.querySelector("#hero .hero-scroll");
+      }],
+    ["y con la portada de siempre no se marca nada",
+      (d) => { d.hero = { ...d.hero, enabled: true }; },
+      (doc) => !doc.querySelector("#hero.hero-limpia")],
     ["galería tres y dos: cinco fotos, tres arriba y dos abajo",
       (d) => { d.layout = { blocks: [{ id: "gallery-0", type: "gallery", variant: "tresydos" }] }; },
       (doc) => doc.querySelectorAll(".inv-ga-tresydos .gallery-item").length === 5],

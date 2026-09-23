@@ -1057,6 +1057,27 @@ export const SECTIONS: SectionSpec[] = [
         options: HERO_DISPOSICIONES.map((d) => ({ value: d.id, label: d.name })),
         help: "A sangre detrás de todo, o recortada en una forma sobre los nombres.",
       },
+      {
+        /*
+         * Una portada puede no querer decir nada.
+         *
+         * Con un vídeo o una foto que ya lo cuenta todo, el bloque de nombres
+         * y fecha encima estorba: tapa justo lo que se quería enseñar. Y el
+         * dato no se pierde —los nombres y la fecha siguen en la cuenta atrás,
+         * en el programa y en el pie—, así que esconderlos aquí no deja a
+         * nadie sin saber de quién es la boda ni cuándo.
+         */
+        key: "contenido",
+        label: "Qué se ve encima",
+        type: "select",
+        span: 2,
+        fallback: 0,
+        options: [
+          { value: "", label: "La portada con su texto" },
+          { value: "limpia", label: "Sólo la foto o el vídeo, sin texto" },
+        ],
+        help: "Con «sólo la foto» la portada queda como una tapa: la imagen o el vídeo a pantalla completa y la flecha para bajar.",
+      },
       textColor,
     ],
   },

@@ -2555,6 +2555,13 @@ a.inv-rsvp-btn{display:flex;width:max-content;max-width:100%;margin:28px auto 0;
 .inv-ga-polaroid .gallery-item:nth-child(even){transform:rotate(1.6deg)}
 .inv-ga-polaroid .gallery-ph{width:100%;height:100%}
 
+/* Portada «sólo la foto»: la tapa y la flecha, y nada encima.
+   Lleva !important porque cada diseño coloca .hero-content con su propia
+   regla y varias son más específicas que ésta: es la excepción donde gana
+   el ajuste de la invitación sobre el diseño. */
+#hero.hero-limpia .hero-content,#hero.hero-limpia .hero-foto{display:none !important}
+#hero.hero-limpia::before,#hero.hero-limpia::after{opacity:.35}
+
 /* Galería · Tres y dos
    La rejilla de un álbum de boda: tres verticales arriba, dos apaisadas
    debajo y vuelta a empezar. Seis columnas y no tres, que es lo que deja
@@ -4423,6 +4430,16 @@ export function renderInvitation(opts: RenderOptions): string {
     for (const caja of pickAll(regalos || document.body, [".gifts-account", ".gifts-accounts"])) {
       caja.remove();
     }
+  }
+
+  /* 4 · bis · La portada sin texto: una tapa, y nada más.
+     Se esconde el bloque entero en vez de vaciar campo por campo, porque lo
+     que sobra no es el texto sino su sitio: el panel, el velo que lo hacía
+     legible y el botón. La flecha de bajar se queda, que es lo único que
+     dice que hay más abajo. */
+  if (String(data.hero?.contenido || "") === "limpia") {
+    const hero = document.querySelector("#hero") as El | null;
+    if (hero) hero.setAttribute("class", `${hero.getAttribute("class") || ""} hero-limpia`.trim());
   }
 
   /* 4 · bis · Los padres, donde el diseño los quiere. Se mueve el nodo ya
