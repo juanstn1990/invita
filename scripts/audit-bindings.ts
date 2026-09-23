@@ -47,6 +47,8 @@ for (const s of SECTIONS) {
  *   `event.names`, que respeta la estructura del "&" de cada diseño.
  * - `city` sólo alimenta la línea del pie (ver `footer.dateLine`).
  * - `panelOpacity` no escribe texto: inyecta una regla CSS.
+ * - `hero.contenido` tampoco: elige si la portada lleva texto encima, y lo
+ *   que hace es poner una clase en la sección.
  * - `mapSrc` es un campo calculado del bloque de Ubicación, que sólo existe
  *   como marcado sintetizado.
  * - `splash.mapUrl` es el href del botón secundario del velo, y ese elemento
@@ -62,6 +64,7 @@ for (const s of SECTIONS) {
   "event.name2",
   "event.city",
   "hero.panelOpacity",
+  "hero.contenido",
   "ubicacion.mapSrc",
   "splash.mapUrl",
   "splash.nombres",
