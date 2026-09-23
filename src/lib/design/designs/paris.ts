@@ -71,9 +71,7 @@ body{background:var(--bg)}
 /* ── Bienvenida: la noche de París detrás de la ventana ── */
 #splash{background:radial-gradient(90% 60% at 50% 40%,color-mix(in srgb,var(--pa-noche) 80%,var(--brand)),var(--pa-noche))}
 .splash-modal{background:transparent;box-shadow:none;color:var(--pa-noche-ink)}
-.splash-modal::before{content:"";display:block;width:92px;aspect-ratio:.55;margin:0 auto 6px;
-  background:url(${A}/torre.png) center/contain no-repeat;
-  filter:drop-shadow(0 0 16px color-mix(in srgb,var(--brand-2) 45%,transparent))}
+
 .splash-name{font-size:clamp(78px,24vw,120px);line-height:1;color:color-mix(in srgb,var(--brand) 18%,#fff);
   text-shadow:0 0 24px color-mix(in srgb,var(--brand) 50%,transparent)}
 .splash-subtitle{color:var(--pa-oro-claro);letter-spacing:.34em}
@@ -101,8 +99,7 @@ section.alt{background:linear-gradient(var(--bg),var(--pa-rosa))}
 #guests{padding-top:108px;padding-bottom:124px;background:linear-gradient(var(--bg),var(--pa-rosa))}
 #guests::after{content:"";position:absolute;right:8px;bottom:8px;width:min(32vw,160px);aspect-ratio:1;
   background:url(${A}/esquina.png) center/contain no-repeat;rotate:180deg;pointer-events:none}
-#guests .container::before{content:"";display:block;width:min(58vw,240px);aspect-ratio:1.33;margin:0 auto 10px;
-  background:url(${A}/bicicleta.png) center/contain no-repeat}
+
 #guests [data-inv="guests.text"]{font-style:italic;font-size:clamp(22px,6vw,27px);line-height:1.5;
   max-width:27ch;margin-inline:auto;color:var(--brand)}
 .inv-padres-invitados{display:grid;grid-template-columns:1fr 1fr;max-width:440px;margin:24px auto 0}
@@ -120,8 +117,7 @@ section.alt{background:linear-gradient(var(--bg),var(--pa-rosa))}
 .feature-icon{color:var(--brand)}
 .feature-title{font-weight:400;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--brand)}
 #confirmation{padding-bottom:130px}
-#confirmation .container::before{content:"";display:block;width:96px;aspect-ratio:1;margin:0 auto 10px;
-  background:url(${A}/sello.png) center/contain no-repeat;filter:drop-shadow(0 6px 14px rgba(0,0,0,.3))}
+
 #confirmation::after{content:"";position:absolute;right:8px;bottom:8px;width:min(30vw,150px);aspect-ratio:1;
   background:url(${A}/esquina.png) center/contain no-repeat;rotate:180deg;pointer-events:none}
 #confirmation .confirmation-deadline{display:none}
@@ -144,13 +140,10 @@ ${NOCHE} .section-label{color:var(--pa-oro-claro)}
 ${NOCHE} .section-title{color:#fff6f2}
 ${NOCHE} :is(.section-body,.gifts-text,.gifts-note,.inv-mapa-dir){color:color-mix(in srgb,var(--pa-noche-ink) 80%,transparent)}
 /* La torre preside el tablero de salidas. */
-#countdown .container::before,.inv-block-countdown .container::before{content:"";display:block;
-  width:min(30vw,120px);aspect-ratio:.55;margin:0 auto 6px;background:url(${A}/torre.png) center/contain no-repeat;
-  filter:drop-shadow(0 0 18px color-mix(in srgb,var(--brand-2) 45%,transparent))}
+
 ${NOCHE} .inv-cd-paletas .ring-number{color:#fff6f2}
 ${NOCHE} .ring-label{font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--pa-oro-claro)}
-#gifts .container::before,.inv-block-gifts .container::before{content:"";display:block;width:min(32vw,130px);
-  aspect-ratio:.82;margin:0 auto 8px;background:url(${A}/macarons.png) center/contain no-repeat}
+
 .gifts-account{background:transparent;border:1px solid color-mix(in srgb,var(--brand-2) 45%,transparent);border-radius:14px}
 .gifts-bank{color:var(--pa-oro-claro)}
 ${NOCHE} .inv-mapa-datos{background:rgba(255,255,255,.05);color:var(--pa-noche-ink)}
@@ -166,8 +159,7 @@ ${NOCHE} .inv-mapa-datos{background:rgba(255,255,255,.05);color:var(--pa-noche-i
 /* ── Pie ── */
 footer{padding:76px 24px calc(72px + env(safe-area-inset-bottom));background:var(--pa-noche)}
 footer .container{position:relative;z-index:2}
-footer .container::before{content:"";display:block;width:110px;aspect-ratio:.55;margin:0 auto 4px;
-  background:url(${A}/torre.png) center/contain no-repeat}
+
 .footer-names{font-size:96px;line-height:1;color:color-mix(in srgb,var(--brand) 30%,#fff)}
 .footer-date{font-family:var(--pa-caps);letter-spacing:.26em}
 .footer-copy{letter-spacing:.32em;color:var(--pa-oro-claro)}
@@ -204,6 +196,12 @@ export const paris: Design = {
    * en el CSS de la sección y no había manera de tocarlos.
    */
   adornos: [
+    { seccion: "splash", url: `${A}/torre.png`, sitio: "cabecera", tamano: 26 },
+    { seccion: "guests", url: `${A}/bicicleta.png`, sitio: "cabecera", tamano: 58 },
+    { seccion: "confirm", url: `${A}/sello.png`, sitio: "cabecera", tamano: 27 },
+    { seccion: "countdown", url: `${A}/torre.png`, sitio: "cabecera", tamano: 30 },
+    { seccion: "gifts", url: `${A}/macarons.png`, sitio: "cabecera", tamano: 32 },
+    { seccion: "footer", url: `${A}/torre.png`, sitio: "cabecera", tamano: 31 },
     /* La filigrana que va bajo cada título. Como adorno y no sólo en el
        CSS: así se puede mover, encoger o quitar de una sección suelta. */
     { seccion: "*", url: `${A}/divisor.png`, sitio: "titulo", tamano: 70 },

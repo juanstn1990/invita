@@ -140,9 +140,7 @@ body{background:var(--bg)}
   backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
   border:1px solid color-mix(in srgb,var(--far-oro) 40%,transparent);
   box-shadow:0 30px 60px -30px rgba(0,0,0,.6);color:#fff}
-.splash-modal::before{content:"";display:block;width:62px;height:62px;margin:0 auto 10px;
-  background:url(${A}/sol.png) center/contain no-repeat;
-  filter:drop-shadow(0 0 16px rgba(241,217,160,.55));animation:farGira 60s linear infinite}
+
 .splash-subtitle{color:var(--far-oro-claro);font-size:12px;letter-spacing:.4em}
 .splash-name{color:#fff;font-size:clamp(64px,19vw,96px);font-weight:400;
   text-shadow:0 0 28px rgba(241,217,160,.45)}
@@ -166,9 +164,7 @@ body{background:var(--bg)}
 .hero-content{box-shadow:none;width:min(560px,100%);padding:0;
   background:radial-gradient(closest-side,color-mix(in srgb,var(--far-noche) 52%,transparent),
     transparent) center/130% 115% no-repeat}
-.hero-content::before{content:"";display:block;width:74px;height:74px;margin:0 auto 12px;
-  background:url(${A}/sol.png) center/contain no-repeat;
-  filter:drop-shadow(0 0 18px rgba(241,217,160,.55));animation:farGira 60s linear infinite}
+
 .hero-label{font-size:14px;letter-spacing:.5em;padding-left:.5em;margin-bottom:0;
   text-shadow:0 1px 14px rgba(0,0,0,.55)}
 /* La S de Great Vibes sube muy por encima de su renglón: sin este aire
@@ -229,9 +225,7 @@ section.alt{background:linear-gradient(var(--bg-alt),var(--bg))}
   animation:farSube 17s linear infinite}
 #gifts::before{left:3%}
 #gifts::after{right:4%;width:24px;animation-duration:21s;animation-delay:-8s}
-#gifts .container::before{content:"";display:block;width:84px;height:95px;margin:0 auto 6px;
-  background:url(${A}/farolillo.png) center/contain no-repeat;
-  filter:drop-shadow(0 0 14px rgba(241,217,160,.5))}
+
 .gifts-account{background:rgba(255,255,255,.05);border-color:var(--far-oro)}
 .gifts-bank{color:var(--far-oro)}
 
@@ -285,9 +279,7 @@ section.alt{background:linear-gradient(var(--bg-alt),var(--bg))}
 /* ── Pie ── */
 footer{padding:80px 24px calc(64px + env(safe-area-inset-bottom));background:var(--far-noche)}
 footer .container{position:relative;z-index:2}
-footer .container::before{content:"";display:block;width:64px;height:64px;margin:0 auto 10px;
-  background:url(${A}/sol.png) center/contain no-repeat;
-  filter:drop-shadow(0 0 16px rgba(241,217,160,.5));animation:farGira 60s linear infinite}
+
 .footer-names{font-size:64px;color:#fff}
 .footer-date{font-family:var(--far-cinzel);letter-spacing:.24em}
 .footer-copy{letter-spacing:.3em;opacity:.8}
@@ -328,6 +320,10 @@ export const farolillos: Design = {
    * en el CSS de la sección y no había manera de tocarlos.
    */
   adornos: [
+    { seccion: "splash", url: `${A}/sol.png`, sitio: "cabecera", tamano: 17 },
+    { seccion: "hero", url: `${A}/sol.png`, sitio: "cabecera", tamano: 21 },
+    { seccion: "gifts", url: `${A}/farolillo.png`, sitio: "cabecera", tamano: 23 },
+    { seccion: "footer", url: `${A}/sol.png`, sitio: "cabecera", tamano: 18 },
     { seccion: "guests", url: `${A}/esquina.png`, sitio: "arriba-izq", tamano: 40 },
     { seccion: "guests", url: `${A}/esquina-abajo.png`, sitio: "abajo-der", tamano: 40 },
     { seccion: "confirm", url: `${A}/esquina-abajo.png`, sitio: "abajo-der", tamano: 40 },

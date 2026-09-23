@@ -76,8 +76,7 @@ body{background:var(--bg)}
 /* ── Bienvenida: el cielo cerrado ── */
 #splash{background:linear-gradient(var(--bg-alt),var(--bg));--inv-nube-img:url(${A}/nube.png)}
 .splash-modal{background:transparent;box-shadow:none;color:var(--ink)}
-.splash-modal::before{content:"";display:block;width:min(46vw,190px);aspect-ratio:1.75;margin:0 auto 10px;
-  background:url(${A}/corona.png) center/contain no-repeat;animation:celFlota 6s ease-in-out infinite}
+
 .splash-name{font-size:clamp(62px,19vw,96px);line-height:1.05;padding-top:.06em}
 .splash-subtitle{color:var(--muted);letter-spacing:.4em}
 .splash-date{font-family:var(--cel-caps);letter-spacing:.24em}
@@ -94,9 +93,7 @@ body{background:var(--bg)}
 .hero-content{box-shadow:none;width:min(560px,100%);padding:0;
   background:radial-gradient(closest-side,color-mix(in srgb,var(--cel-hondo) 40%,transparent),
     transparent) center/130% 115% no-repeat}
-.hero-content::before{content:"";display:block;width:min(50vw,208px);aspect-ratio:1.75;margin:0 auto 12px;
-  background:url(${A}/corona.png) center/contain no-repeat;animation:celFlota 5.5s ease-in-out infinite;
-  filter:drop-shadow(0 6px 18px color-mix(in srgb,var(--brand-2) 55%,transparent))}
+
 .hero-label{font-size:13px;letter-spacing:.55em;padding-left:.55em;margin:0}
 .hero-name{font-size:clamp(80px,25vw,138px);line-height:1.05;margin:0;padding:.06em .08em 0;
   filter:drop-shadow(0 2px 12px rgba(0,0,0,.45))}
@@ -111,8 +108,7 @@ body{background:var(--bg)}
 section{padding:100px 26px}
 section.alt{background:linear-gradient(var(--bg-alt),var(--bg))}
 #guests{padding-top:116px;padding-bottom:124px;background:linear-gradient(var(--bg-alt),var(--bg))}
-#guests .container::before{content:"";display:block;width:min(52vw,210px);aspect-ratio:.7;margin:0 auto 12px;
-  background:url(${A}/ramo.png) center/contain no-repeat}
+
 #confirmation{padding-bottom:132px;background:linear-gradient(var(--bg-alt),var(--bg))}
 #features{padding-top:120px;background:linear-gradient(var(--bg-alt),var(--bg))}
 .feature-card{background:var(--card);border-radius:18px;
@@ -140,9 +136,7 @@ ${AZUL}::before,${AZUL}::after{content:"";position:absolute;left:-8%;right:-8%;h
   pointer-events:none;background:url(${A}/nube.png) center/contain no-repeat;opacity:.8}
 ${AZUL}::before{top:-34px}
 ${AZUL}::after{bottom:-34px;transform:scaleY(-1)}
-#gifts .container::before{content:"";display:block;width:110px;aspect-ratio:1.1;margin:0 auto 10px;
-  background:url(${A}/sello.png) center/contain no-repeat;
-  filter:drop-shadow(0 6px 16px color-mix(in srgb,var(--brand-2) 50%,transparent))}
+
 /* La cuenta atrás, en cuatro cápsulas de nube. */
 .countdown-grid{max-width:430px;margin:24px auto 0;gap:10px}
 ${AZUL} .countdown-ring{border:0;border-radius:999px;padding:18px 4px 14px;
@@ -205,8 +199,7 @@ ${AZUL} :is(.gifts-btn,.inv-mapa-btn:not(.inv-agendar),.inv-rsvp-btn:not(.inv-rs
 /* ── Pie ── */
 footer{padding:86px 24px calc(76px + env(safe-area-inset-bottom));background:var(--cel-hondo)}
 footer .container{position:relative;z-index:2}
-footer .container::before{content:"";display:block;width:170px;aspect-ratio:1.75;margin:0 auto 4px;
-  background:url(${A}/corona.png) center/contain no-repeat}
+
 .footer-names{font-size:92px;line-height:1.05;padding-top:.06em}
 .footer-date{font-family:var(--cel-caps);letter-spacing:.24em}
 .footer-copy{letter-spacing:.34em;color:var(--cel-claro);opacity:.9}
@@ -245,6 +238,11 @@ export const celeste: Design = {
    * en el CSS de la sección y no había manera de tocarlos.
    */
   adornos: [
+    { seccion: "splash", url: `${A}/corona.png`, sitio: "cabecera", tamano: 46 },
+    { seccion: "hero", url: `${A}/corona.png`, sitio: "cabecera", tamano: 50 },
+    { seccion: "guests", url: `${A}/ramo.png`, sitio: "cabecera", tamano: 52 },
+    { seccion: "gifts", url: `${A}/sello.png`, sitio: "cabecera", tamano: 31 },
+    { seccion: "footer", url: `${A}/corona.png`, sitio: "cabecera", tamano: 47 },
     /* La filigrana que va bajo cada título. Como adorno y no sólo en el
        CSS: así se puede mover, encoger o quitar de una sección suelta. */
     { seccion: "*", url: `${A}/divisor.png`, sitio: "titulo", tamano: 72 },

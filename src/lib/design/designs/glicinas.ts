@@ -81,8 +81,7 @@ body{background:var(--bg)}
 #splash::before{content:"";position:absolute;top:-10px;left:-6%;right:-6%;height:min(38vw,190px);z-index:1;
   pointer-events:none;background:url(${A}/guirnalda.png) center top/contain no-repeat}
 .splash-modal{background:transparent;box-shadow:none;color:var(--ink)}
-.splash-modal::before{content:"";display:block;width:min(44vw,180px);aspect-ratio:1.3;margin:0 auto 10px;
-  background:url(${A}/corona.png) center/contain no-repeat;animation:gliFlota 6s ease-in-out infinite}
+
 .splash-name{font-size:clamp(56px,17vw,86px);line-height:1.12;padding-top:.06em}
 .splash-subtitle{color:var(--muted);letter-spacing:.4em}
 .splash-date{font-family:var(--gli-caps);letter-spacing:.24em}
@@ -99,9 +98,7 @@ body{background:var(--bg)}
 .hero-content{box-shadow:none;width:min(560px,100%);padding:0;
   background:radial-gradient(closest-side,color-mix(in srgb,var(--gli-noche) 42%,transparent),
     transparent) center/130% 115% no-repeat}
-.hero-content::before{content:"";display:block;width:min(48vw,200px);aspect-ratio:1.3;margin:0 auto 12px;
-  background:url(${A}/corona.png) center/contain no-repeat;animation:gliFlota 5.5s ease-in-out infinite;
-  filter:drop-shadow(0 6px 18px color-mix(in srgb,var(--brand-2) 55%,transparent))}
+
 .hero-label{font-size:13px;letter-spacing:.55em;padding-left:.55em;margin:0}
 .hero-name{font-size:clamp(62px,19vw,104px);line-height:1.15;margin:0;padding:.06em .08em 0;
   filter:drop-shadow(0 2px 12px rgba(0,0,0,.45))}
@@ -120,8 +117,7 @@ section.alt{background:linear-gradient(var(--bg-alt),var(--bg))}
   height:min(38vw,190px);z-index:1;pointer-events:none;
   background:url(${A}/guirnalda.png) center top/contain no-repeat}
 #guests .container,#confirmation .container{position:relative;z-index:2}
-#guests .container::before{content:"";display:block;width:min(34vw,140px);aspect-ratio:.46;margin:0 auto 12px;
-  background:url(${A}/racimo.png) center/contain no-repeat}
+
 #features{padding-top:120px;background:linear-gradient(var(--bg-alt),var(--bg))}
 #gallery{background:var(--bg)}
 .feature-card{background:var(--card);border-radius:18px;
@@ -143,12 +139,7 @@ ${NOCHE} .section-label{color:var(--gli-lila)}
 ${NOCHE} .section-title{color:#fff}
 ${NOCHE} :is(.section-body,.gifts-text,.gifts-note){
   color:color-mix(in srgb,var(--gli-noche-ink) 86%,transparent)}
-#countdown .container::before{content:"";display:block;width:120px;aspect-ratio:.67;margin:0 auto 6px;
-  background:url(${A}/farol.png) center/contain no-repeat;animation:gliFlota 6s ease-in-out infinite;
-  filter:drop-shadow(0 0 22px color-mix(in srgb,var(--brand-2) 45%,transparent))}
-#gifts .container::before{content:"";display:block;width:110px;aspect-ratio:1;margin:0 auto 10px;
-  background:url(${A}/sello.png) center/contain no-repeat;
-  filter:drop-shadow(0 6px 16px color-mix(in srgb,var(--brand-2) 50%,transparent))}
+
 .countdown-grid{max-width:430px;margin:24px auto 0;gap:11px}
 ${NOCHE} .countdown-ring{border:0;border-radius:16px;padding:16px 4px 12px;
   background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--gli-claro) 45%,transparent)}
@@ -193,8 +184,7 @@ ${NOCHE} :is(.gifts-btn,.inv-mapa-btn:not(.inv-agendar),.inv-rsvp-btn:not(.inv-r
 /* ── Pie ── */
 footer{padding:86px 24px calc(76px + env(safe-area-inset-bottom));background:var(--gli-noche)}
 footer .container{position:relative;z-index:2}
-footer .container::before{content:"";display:block;width:170px;aspect-ratio:1.3;margin:0 auto 4px;
-  background:url(${A}/corona.png) center/contain no-repeat}
+
 .footer-names{font-size:74px;line-height:1.15;padding-top:.06em}
 .footer-date{font-family:var(--gli-caps);letter-spacing:.24em}
 .footer-copy{letter-spacing:.34em;color:var(--gli-claro);opacity:.9}
@@ -235,6 +225,12 @@ export const glicinas: Design = {
    * en el CSS de la sección y no había manera de tocarlos.
    */
   adornos: [
+    { seccion: "splash", url: `${A}/corona.png`, sitio: "cabecera", tamano: 44 },
+    { seccion: "hero", url: `${A}/corona.png`, sitio: "cabecera", tamano: 48 },
+    { seccion: "guests", url: `${A}/racimo.png`, sitio: "cabecera", tamano: 34 },
+    { seccion: "countdown", url: `${A}/farol.png`, sitio: "cabecera", tamano: 33 },
+    { seccion: "gifts", url: `${A}/sello.png`, sitio: "cabecera", tamano: 31 },
+    { seccion: "footer", url: `${A}/corona.png`, sitio: "cabecera", tamano: 47 },
     /* La filigrana que va bajo cada título. Como adorno y no sólo en el
        CSS: así se puede mover, encoger o quitar de una sección suelta. */
     { seccion: "*", url: `${A}/divisor.png`, sitio: "titulo", tamano: 72 },

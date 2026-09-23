@@ -1074,7 +1074,15 @@ function ponerAdornos(
     }
     caja.setAttribute(
       "style",
-      (sitio === "sangre" ? "" : `width:${tamano}%;`) +
+      /* El ancho: en % de la sección para los anclados, y en % de la
+         pantalla para los del flujo. Dentro del contenedor —que mide 520 px
+         como mucho— un 50 % no es el mismo 50 % que ve quien lo elige, y la
+         pieza salía bastante más pequeña de lo declarado. */
+      (sitio === "sangre"
+        ? ""
+        : sitio === "titulo" || sitio === "cabecera"
+          ? `width:min(${tamano}vw,100%);`
+          : `width:${tamano}%;`) +
         (sitio === "libre" ? `--inv-ad-x:${cx}%;--inv-ad-y:${cy}%;` : "") +
         /* La opacidad elegida va en una variable porque la animación de
            entrada tiene que terminar justo en ella, no en 1.
@@ -1169,16 +1177,28 @@ function ponerAdornos(
 
     mov.appendChild(pieza);
     caja.appendChild(mov);
-    /* «Bajo el título» es el único sitio que no va encima de la sección sino
-       dentro de ella, justo debajo del título: es donde los diseños ponen su
-       filigrana. Y si el diseño ya traía una horneada, se quita — si no, se
-       verían las dos. */
-    if (sitio === "titulo") {
-      const caja2 = (seccion.querySelector(".container") as El | null) || seccion;
-      const titulo = caja2.querySelector(".section-title") as El | null;
-      caja2.querySelector(".ornament")?.remove();
-      if (titulo?.parentNode) titulo.parentNode.insertBefore(caja, titulo.nextSibling);
-      else caja2.insertBefore(caja, caja2.firstChild);
+    /* Dos sitios no van encima de la sección sino dentro, en el flujo:
+         · «bajo el título», donde los diseños ponen su filigrana;
+         · «cabecera», arriba del todo, que es donde va la corona, el ramo o
+           el sello que preside la sección.
+       El cuerpo donde meterse no siempre es el .container: la portada
+       escribe en .hero-content y el velo en .splash-modal, y colgar el
+       adorno de la sección lo dejaría detrás de la foto. */
+    if (sitio === "titulo" || sitio === "cabecera") {
+      const cuerpo =
+        (seccion.querySelector(".container") as El | null) ||
+        (seccion.querySelector(".hero-content") as El | null) ||
+        (seccion.querySelector(".splash-modal") as El | null) ||
+        seccion;
+      const titulo = cuerpo.querySelector(".section-title") as El | null;
+      /* La filigrana horneada del diseño se quita: si la invitación trae la
+         suya, se verían las dos. */
+      if (sitio === "titulo") cuerpo.querySelector(".ornament")?.remove();
+      if (sitio === "titulo" && titulo?.parentNode) {
+        titulo.parentNode.insertBefore(caja, titulo.nextSibling);
+      } else {
+        cuerpo.insertBefore(caja, cuerpo.firstChild);
+      }
     } else {
       seccion.appendChild(caja);
     }
@@ -2315,8 +2335,10 @@ a.inv-rsvp-btn{display:flex;width:max-content;max-width:100%;margin:28px auto 0;
   .inv-ad-luz{display:none}
 }
 
-/* Bajo el título: en el flujo, centrado y empujando lo que viene debajo. */
+/* En el flujo, centrados y empujando lo que viene debajo: el de bajo el
+   título y el que preside la sección desde arriba. */
 .inv-adorno.inv-ad-titulo{position:static;margin:2px auto 18px}
+.inv-adorno.inv-ad-cabecera{position:static;margin:0 auto 14px}
 .inv-ad-arriba-izq{top:0;left:0}
 .inv-ad-arriba{top:0;left:50%;translate:-50% 0}
 .inv-ad-arriba-der{top:0;right:0}

@@ -84,9 +84,7 @@ body{background:var(--bg)}
 .splash-modal{background:var(--card);color:var(--ink);border-radius:8px;
   box-shadow:0 30px 70px -22px rgba(0,0,0,.7),
     inset 0 0 0 1px color-mix(in srgb,var(--dor-oro) 45%,transparent)}
-.splash-modal::before{content:"";display:block;width:120px;height:76px;margin:0 auto 8px;
-  background:url(${A}/corona.png) center/contain no-repeat;
-  filter:drop-shadow(0 4px 14px color-mix(in srgb,var(--dor-oro) 45%,transparent))}
+
 .splash-name{font-size:clamp(64px,19vw,96px);line-height:1.15;padding-top:.08em}
 .splash-subtitle{letter-spacing:.4em}
 .splash-date{font-family:var(--dor-caps);letter-spacing:.24em}
@@ -107,10 +105,7 @@ body{background:var(--bg)}
 .hero-content{box-shadow:none;width:min(560px,100%);padding:0;
   background:radial-gradient(closest-side,color-mix(in srgb,var(--dor-noche) 45%,transparent),
     transparent) center/130% 115% no-repeat}
-.hero-content::before{content:"";display:block;width:min(44vw,190px);aspect-ratio:1.6;
-  margin:0 auto 4px;background:url(${A}/corona.png) center/contain no-repeat;
-  filter:drop-shadow(0 6px 22px color-mix(in srgb,var(--dor-oro) 45%,transparent));
-  animation:dorFlota 5s ease-in-out infinite}
+
 .hero-label{font-size:13px;letter-spacing:.55em;padding-left:.55em;
   text-shadow:0 1px 12px rgba(0,0,0,.5)}
 .hero-name{font-size:clamp(78px,24vw,132px);line-height:1.15;margin:0;padding:.18em .1em 0;
@@ -203,9 +198,7 @@ ${NOCHE} .inv-cd-paletas .ring-number{color:var(--dor-oro-claro);
   text-transform:uppercase;color:var(--brand)}
 
 /* ── Regalos ── */
-#gifts .container::before{content:"";display:block;width:110px;height:110px;margin:0 auto 10px;
-  background:url(${A}/sello.png) center/contain no-repeat;
-  filter:drop-shadow(0 0 18px color-mix(in srgb,var(--dor-oro) 35%,transparent))}
+
 .gifts-account{background:rgba(255,255,255,.05);border-color:var(--dor-oro)}
 .gifts-bank{color:var(--dor-oro)}
 
@@ -227,8 +220,7 @@ ${NOCHE} .inv-cd-paletas .ring-number{color:var(--dor-oro-claro);
 /* ── Pie ── */
 footer{padding:90px 24px calc(70px + env(safe-area-inset-bottom));background:var(--dor-noche)}
 footer .container{position:relative;z-index:2}
-footer .container::before{content:"";display:block;width:120px;height:76px;margin:0 auto 6px;
-  background:url(${A}/corona.png) center/contain no-repeat}
+
 .footer-names{font-size:74px;line-height:1.2;padding-top:.1em}
 .footer-date{font-family:var(--dor-caps);letter-spacing:.24em}
 .footer-copy{letter-spacing:.34em;opacity:.85;color:var(--dor-oro-claro)}
@@ -273,6 +265,10 @@ export const dorado: Design = {
    * en el CSS de la sección y no había manera de tocarlos.
    */
   adornos: [
+    { seccion: "splash", url: `${A}/corona.png`, sitio: "cabecera", tamano: 33 },
+    { seccion: "hero", url: `${A}/corona.png`, sitio: "cabecera", tamano: 44 },
+    { seccion: "gifts", url: `${A}/sello.png`, sitio: "cabecera", tamano: 31 },
+    { seccion: "footer", url: `${A}/corona.png`, sitio: "cabecera", tamano: 33 },
     /* La filigrana que va bajo cada título. Como adorno y no sólo en el
        CSS: así se puede mover, encoger o quitar de una sección suelta. */
     { seccion: "*", url: `${A}/divisor.png`, sitio: "titulo", tamano: 68 },

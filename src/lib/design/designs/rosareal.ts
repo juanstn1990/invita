@@ -72,9 +72,7 @@ body{background:var(--bg)}
   color-mix(in srgb,var(--rr-noche) 80%,var(--brand-2)),var(--rr-noche))}
 .splash-modal{background:var(--card);color:var(--ink);border-radius:10px;
   box-shadow:0 30px 70px -22px rgba(0,0,0,.6),inset 0 0 0 1px color-mix(in srgb,var(--rr-rosa) 45%,transparent)}
-.splash-modal::before{content:"";display:block;width:150px;height:78px;margin:0 auto 6px;
-  background:url(${A}/corona.png) center/contain no-repeat;
-  filter:drop-shadow(0 4px 14px color-mix(in srgb,var(--rr-rosa) 45%,transparent))}
+
 .splash-name{font-size:clamp(66px,20vw,104px);line-height:1.1;padding-top:.06em}
 .splash-subtitle{letter-spacing:.4em}
 .splash-date{font-family:var(--rr-caps);letter-spacing:.24em}
@@ -97,9 +95,7 @@ body{background:var(--bg)}
     transparent) center/130% 115% no-repeat}
 /* La corona, con aire debajo: Parisienne tiene unas mayúsculas altísimas y
    sin margen la primera letra del nombre se le mete dentro. */
-.hero-content::before{content:"";display:block;width:min(48vw,200px);aspect-ratio:1.57;margin:0 auto 14px;
-  background:url(${A}/corona.png) center/contain no-repeat;animation:rrFlota 5.5s ease-in-out infinite;
-  filter:drop-shadow(0 6px 20px color-mix(in srgb,var(--rr-rosa) 50%,transparent))}
+
 .hero-label{font-size:13px;letter-spacing:.55em;padding-left:.55em;margin:0;
   text-shadow:0 1px 12px rgba(0,0,0,.45)}
 .hero-name{font-size:clamp(74px,22vw,122px);line-height:1.12;margin:0;padding:.08em .1em 0;
@@ -115,8 +111,7 @@ body{background:var(--bg)}
 section{padding:100px 26px}
 section.alt{background:linear-gradient(var(--bg-alt),var(--bg))}
 #guests{padding-top:116px;padding-bottom:124px;background:linear-gradient(var(--bg-alt),var(--bg))}
-#guests .container::before{content:"";display:block;width:min(52vw,210px);aspect-ratio:.75;margin:0 auto 12px;
-  background:url(${A}/ramo.png) center/contain no-repeat}
+
 #confirmation{padding-bottom:132px;background:linear-gradient(var(--bg-alt),var(--bg))}
 #features{padding-top:120px;background:linear-gradient(var(--bg-alt),var(--bg))}
 .feature-card{background:var(--card);border-radius:18px;
@@ -138,12 +133,7 @@ ${NOCHE} .section-label{color:var(--rr-rosa)}
 ${NOCHE} .section-title{color:#fff4f6}
 ${NOCHE} :is(.section-body,.gifts-text,.gifts-note){
   color:color-mix(in srgb,var(--rr-noche-ink) 84%,transparent)}
-#countdown .container::before{content:"";display:block;width:150px;aspect-ratio:1.57;margin:0 auto 6px;
-  background:url(${A}/corona.png) center/contain no-repeat;
-  filter:drop-shadow(0 0 22px color-mix(in srgb,var(--brand-2) 40%,transparent))}
-#gifts .container::before{content:"";display:block;width:110px;aspect-ratio:1;margin:0 auto 10px;
-  background:url(${A}/sello.png) center/contain no-repeat;
-  filter:drop-shadow(0 0 20px color-mix(in srgb,var(--brand-2) 35%,transparent))}
+
 /* Los medallones de perla de la cuenta atrás. */
 .countdown-grid{max-width:430px;margin:24px auto 0;gap:12px}
 ${NOCHE} .countdown-ring{border:0;border-radius:50%;aspect-ratio:1;display:grid;place-content:center;
@@ -190,8 +180,7 @@ ${NOCHE} .ring-label{font-size:9.5px;letter-spacing:.2em;
 /* ── Pie ── */
 footer{padding:86px 24px calc(76px + env(safe-area-inset-bottom));background:var(--rr-noche)}
 footer .container{position:relative;z-index:2}
-footer .container::before{content:"";display:block;width:170px;height:108px;margin:0 auto 2px;
-  background:url(${A}/corona.png) center/contain no-repeat}
+
 .footer-names{font-size:88px;line-height:1.1;padding-top:.06em}
 .footer-date{font-family:var(--rr-caps);letter-spacing:.24em}
 .footer-copy{letter-spacing:.34em;color:var(--rr-claro);opacity:.9}
@@ -229,6 +218,12 @@ export const rosareal: Design = {
    * en el CSS de la sección y no había manera de tocarlos.
    */
   adornos: [
+    { seccion: "splash", url: `${A}/corona.png`, sitio: "cabecera", tamano: 42 },
+    { seccion: "hero", url: `${A}/corona.png`, sitio: "cabecera", tamano: 48 },
+    { seccion: "guests", url: `${A}/ramo.png`, sitio: "cabecera", tamano: 52 },
+    { seccion: "countdown", url: `${A}/corona.png`, sitio: "cabecera", tamano: 42 },
+    { seccion: "gifts", url: `${A}/sello.png`, sitio: "cabecera", tamano: 31 },
+    { seccion: "footer", url: `${A}/corona.png`, sitio: "cabecera", tamano: 47 },
     /* La filigrana que va bajo cada título. Como adorno y no sólo en el
        CSS: así se puede mover, encoger o quitar de una sección suelta. */
     { seccion: "*", url: `${A}/divisor.png`, sitio: "titulo", tamano: 72 },

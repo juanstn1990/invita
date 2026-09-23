@@ -98,8 +98,7 @@ body{background:var(--bg)}
 #hero::after,#hero.con-foto::after{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;
   background:linear-gradient(to bottom,rgba(0,0,0,.04),transparent 32%,rgba(60,54,44,.5) 64%,#3c362c 98%)}
 .hero-content{box-shadow:none;width:min(560px,100%);padding:0;background:none}
-.hero-content::before{content:"";display:block;width:min(46vw,190px);aspect-ratio:2.4;margin:0 auto 2px;
-  background:url(${A}/anillos.png) center/contain no-repeat;animation:roFlota 6s ease-in-out infinite}
+
 .hero-label{font-size:12.5px;letter-spacing:.42em;padding-left:.42em;margin:0}
 .hero-name{font-size:clamp(78px,24vw,124px);line-height:1;margin:0;text-shadow:0 2px 16px rgba(0,0,0,.4)}
 .hero-sub{font-style:italic;font-size:19px}
@@ -111,8 +110,7 @@ section{padding:92px 24px;background:var(--bg)}
 section.alt{background:var(--ro-crema)}
 section .container{position:relative;z-index:2}
 #guests{padding-top:104px;padding-bottom:116px;background:var(--ro-crema)}
-#guests .container::before{content:"";display:block;width:min(50vw,200px);aspect-ratio:.82;margin:0 auto 8px;
-  background:url(${A}/ramo.png) center/contain no-repeat}
+
 #guests [data-inv="guests.text"]{max-width:30ch;margin-inline:auto}
 /* Los padres, bajados de la portada, con un filete de salvia en medio. */
 .inv-padres-invitados{display:grid;grid-template-columns:1fr 1fr;max-width:440px;margin:22px auto 0}
@@ -125,8 +123,7 @@ section .container{position:relative;z-index:2}
 
 /* ── La cuenta atrás: la fecha primero, como en una participación ── */
 #countdown,.inv-block-countdown{background:var(--ro-arena)}
-#countdown .container::before,.inv-block-countdown .container::before{content:"";display:block;width:min(64vw,280px);
-  aspect-ratio:2.28;margin:0 auto 4px;background:url(${A}/divisor.png) center/contain no-repeat}
+
 .countdown-grid{max-width:420px;margin-inline:auto}
 .countdown-ring{background:var(--card);border:0;border-radius:4px;
   box-shadow:0 10px 20px -16px rgba(74,64,56,.6),inset 0 0 0 1px color-mix(in srgb,var(--brand) 22%,transparent)}
@@ -170,9 +167,7 @@ section .container{position:relative;z-index:2}
 #features .feature-card:last-child:nth-child(odd){grid-column:1/-1}
 .feature-icon{color:var(--brand)}
 .feature-title{font-weight:600;font-size:11.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--brand)}
-#gifts .container::before,.inv-block-gifts .container::before{content:"";display:block;width:min(30vw,120px);aspect-ratio:1;
-  margin:0 auto 6px;background:url(${A}/sello.png) center/contain no-repeat;
-  filter:drop-shadow(0 6px 12px rgba(60,55,45,.3))}
+
 .gifts-account{background:var(--card);border:1px solid color-mix(in srgb,var(--brand) 30%,transparent);border-radius:4px}
 .gifts-bank{color:var(--brand)}
 
@@ -193,8 +188,7 @@ section .container{position:relative;z-index:2}
 /* ── Pie ── */
 footer{padding:78px 24px calc(70px + env(safe-area-inset-bottom));background:var(--ro-arena)}
 footer .container{position:relative;z-index:2}
-footer .container::before{content:"";display:block;width:min(56vw,240px);aspect-ratio:2.28;margin:0 auto -2px;
-  background:url(${A}/divisor.png) center/contain no-repeat}
+
 .footer-names{font-family:var(--ro-script);font-size:78px;line-height:1;color:var(--brand)}
 .footer-date{font-family:var(--ro-caps);font-weight:600;letter-spacing:.26em}
 .footer-copy{letter-spacing:.3em;color:var(--brand)}
@@ -234,6 +228,11 @@ export const rosal: Design = {
    * en el CSS de la sección y no había manera de tocarlos.
    */
   adornos: [
+    { seccion: "hero", url: `${A}/anillos.png`, sitio: "cabecera", tamano: 46 },
+    { seccion: "guests", url: `${A}/ramo.png`, sitio: "cabecera", tamano: 50 },
+    { seccion: "countdown", url: `${A}/divisor.png`, sitio: "cabecera", tamano: 64 },
+    { seccion: "gifts", url: `${A}/sello.png`, sitio: "cabecera", tamano: 30 },
+    { seccion: "footer", url: `${A}/divisor.png`, sitio: "cabecera", tamano: 56 },
     /* La filigrana que va bajo cada título. Como adorno y no sólo en el
        CSS: así se puede mover, encoger o quitar de una sección suelta. */
     { seccion: "*", url: `${A}/ramita.png`, sitio: "titulo", tamano: 47 },

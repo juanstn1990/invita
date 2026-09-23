@@ -94,9 +94,7 @@ body{background:var(--bg)}
   background:linear-gradient(to bottom,rgba(0,0,0,.1),transparent 30%,
     color-mix(in srgb,var(--bg) 60%,transparent) 62%,var(--bg) 97%)}
 .hero-content{box-shadow:none;width:min(560px,100%);padding:0;background:none}
-.hero-content::before{content:"";display:block;width:min(48vw,200px);aspect-ratio:2.1;margin:0 auto 2px;
-  background:url(${A}/corona.png) center/contain no-repeat;animation:bqFlota 6s ease-in-out infinite;
-  filter:drop-shadow(0 4px 16px color-mix(in srgb,var(--brand) 40%,transparent))}
+
 .hero-label{font-size:12.5px;letter-spacing:.42em;padding-left:.42em;margin:0;color:var(--bq-lila)}
 .hero-name{font-size:clamp(80px,25vw,132px);line-height:1;margin:4px 0 0}
 .hero-sub{font-style:italic;font-size:19px}
@@ -111,9 +109,7 @@ section.alt{background:linear-gradient(var(--bg),var(--bq-hondo) 40%,var(--bg))}
 ${CLARO}{background:radial-gradient(120% 80% at 50% 0%,var(--bq-musgo),var(--bq-hondo) 60%,var(--bg))}
 section .container{position:relative;z-index:2}
 #guests{padding-bottom:124px;background:radial-gradient(120% 80% at 50% 0%,var(--bq-musgo),var(--bq-hondo) 60%,var(--bg))}
-#guests .container::before{content:"";display:block;width:min(52vw,210px);aspect-ratio:1;margin:0 auto 6px;
-  background:url(${A}/ciervo.png) center/contain no-repeat;
-  filter:drop-shadow(0 0 22px color-mix(in srgb,var(--accent) 25%,transparent))}
+
 #guests [data-inv="guests.text"]{font-style:italic;font-size:clamp(22px,6vw,27px);line-height:1.5;
   max-width:27ch;margin-inline:auto;color:var(--bq-oro-claro)}
 /* La esquina de abajo es la misma de arriba girada: un fondo no se puede
@@ -140,9 +136,7 @@ section .container{position:relative;z-index:2}
 .feature-title{font-family:var(--bq-caps);font-weight:400;font-size:11.5px;letter-spacing:.18em;color:var(--bq-lila)}
 
 /* ── La cuenta atrás: los hongos presiden el reloj de luciérnagas ── */
-#countdown .container::before,.inv-block-countdown .container::before{content:"";display:block;
-  width:min(38vw,150px);aspect-ratio:1;margin:0 auto 4px;background:url(${A}/hongos.png) center/contain no-repeat;
-  filter:drop-shadow(0 0 24px color-mix(in srgb,var(--accent) 35%,transparent))}
+
 .inv-cd-luciernagas .ring-number{color:var(--bq-oro-claro)}
 .inv-cd-luciernagas .ring-label{color:color-mix(in srgb,var(--ink) 72%,transparent)}
 
@@ -156,10 +150,7 @@ section .container{position:relative;z-index:2}
   border-bottom:1px solid color-mix(in srgb,var(--accent) 50%,transparent)}
 
 /* ── Regalos: el frasco de luciérnagas ── */
-#gifts .container::before,.inv-block-gifts .container::before{content:"";display:block;width:min(34vw,130px);
-  aspect-ratio:.66;margin:0 auto 8px;background:url(${A}/frasco.png) center/contain no-repeat;
-  animation:bqFlota 6s ease-in-out infinite;
-  filter:drop-shadow(0 0 26px color-mix(in srgb,var(--accent) 40%,transparent))}
+
 .gifts-account{background:transparent;border:1px solid color-mix(in srgb,var(--accent) 45%,transparent);border-radius:18px}
 .gifts-bank{color:var(--bq-oro)}
 
@@ -181,9 +172,7 @@ section .container{position:relative;z-index:2}
 footer{padding:70px 24px calc(72px + env(safe-area-inset-bottom));
   background:linear-gradient(var(--bg),color-mix(in srgb,var(--bg) 70%,#000))}
 footer .container{position:relative;z-index:2}
-footer .container::before{content:"";display:block;width:min(56vw,230px);aspect-ratio:1;margin:0 auto 4px;
-  background:url(${A}/castillo.png) center/contain no-repeat;
-  filter:drop-shadow(0 0 26px color-mix(in srgb,var(--accent) 25%,transparent))}
+
 .footer-names{font-size:80px;line-height:1.05}
 .footer-date{font-family:var(--bq-caps);letter-spacing:.24em}
 .footer-copy{letter-spacing:.28em;color:var(--bq-lila)}
@@ -224,6 +213,11 @@ export const bosque: Design = {
    * en el CSS de la sección y no había manera de tocarlos.
    */
   adornos: [
+    { seccion: "hero", url: `${A}/corona.png`, sitio: "cabecera", tamano: 48 },
+    { seccion: "guests", url: `${A}/ciervo.png`, sitio: "cabecera", tamano: 52 },
+    { seccion: "countdown", url: `${A}/hongos.png`, sitio: "cabecera", tamano: 38 },
+    { seccion: "gifts", url: `${A}/frasco.png`, sitio: "cabecera", tamano: 34 },
+    { seccion: "footer", url: `${A}/castillo.png`, sitio: "cabecera", tamano: 56 },
     /* La filigrana que va bajo cada título. Como adorno y no sólo en el
        CSS: así se puede mover, encoger o quitar de una sección suelta. */
     { seccion: "*", url: `${A}/divisor.png`, sitio: "titulo", tamano: 70 },

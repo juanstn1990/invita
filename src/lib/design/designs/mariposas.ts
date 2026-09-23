@@ -81,8 +81,7 @@ body{background:var(--bg)}
   background:linear-gradient(to bottom,rgba(0,0,0,.04),transparent 34%,
     color-mix(in srgb,var(--mp-noche) 55%,transparent) 64%,var(--mp-noche) 97%)}
 .hero-content{box-shadow:none;width:min(560px,100%);padding:0;background:none}
-.hero-content::before{content:"";display:block;width:min(56vw,230px);aspect-ratio:2.2;margin:0 auto 2px;
-  background:url(${A}/corona.png) center/contain no-repeat;animation:mpFlota 6s ease-in-out infinite}
+
 .hero-label{font-size:12.5px;letter-spacing:.4em;padding-left:.4em;margin:0}
 .hero-name{font-size:clamp(66px,20vw,104px);line-height:1.1;margin:0;text-shadow:0 2px 18px rgba(0,0,0,.45)}
 .hero-date{border-top:0;padding-top:0;margin-top:6px;font-family:var(--mp-caps);font-weight:600;font-size:13px;letter-spacing:.3em}
@@ -94,8 +93,7 @@ section.alt{background:linear-gradient(var(--bg),var(--mp-claro))}
 #guests{padding-top:104px;padding-bottom:124px;background:linear-gradient(var(--bg),var(--mp-claro))}
 #guests::after{content:"";position:absolute;right:0;bottom:0;width:min(34vw,170px);aspect-ratio:1;
   background:url(${A}/esquina.png) center/contain no-repeat;rotate:180deg;pointer-events:none}
-#guests .container::before{content:"";display:block;width:min(46vw,180px);aspect-ratio:.8;margin:0 auto 10px;
-  background:url(${A}/ramo.png) center/contain no-repeat}
+
 #guests [data-inv="guests.text"]{font-style:italic;font-size:clamp(22px,6vw,27px);line-height:1.5;
   max-width:27ch;margin-inline:auto;color:var(--brand)}
 .inv-padres-invitados{display:grid;grid-template-columns:1fr 1fr;max-width:440px;margin:24px auto 0}
@@ -115,8 +113,7 @@ section.alt{background:linear-gradient(var(--bg),var(--mp-claro))}
 .feature-icon{color:var(--brand)}
 .feature-title{font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--brand)}
 #confirmation{padding-bottom:130px}
-#confirmation .container::before{content:"";display:block;width:92px;aspect-ratio:1;margin:0 auto 10px;
-  background:url(${A}/sello.png) center/contain no-repeat;filter:drop-shadow(0 6px 14px rgba(0,0,0,.25))}
+
 #confirmation::after{content:"";position:absolute;right:0;bottom:0;width:min(30vw,150px);aspect-ratio:1;
   background:url(${A}/esquina.png) center/contain no-repeat;rotate:180deg;pointer-events:none}
 #confirmation .confirmation-deadline{display:none}
@@ -141,8 +138,7 @@ ${OSCURO} .container{position:relative;z-index:2}
 ${OSCURO} .section-label{color:color-mix(in srgb,var(--brand) 30%,#fff)}
 ${OSCURO} .section-title{color:#fff}
 ${OSCURO} :is(.section-body,.gifts-text,.gifts-note,.inv-mapa-dir){color:color-mix(in srgb,var(--mp-noche-ink) 80%,transparent)}
-#gifts .container::before,.inv-block-gifts .container::before{content:"";display:block;width:min(34vw,130px);aspect-ratio:.72;
-  margin:0 auto 8px;background:url(${A}/frasco.png) center/contain no-repeat}
+
 .gifts-account{background:transparent;border:1px solid color-mix(in srgb,var(--mp-noche-ink) 35%,transparent);border-radius:18px}
 .gifts-bank{color:color-mix(in srgb,var(--brand) 30%,#fff)}
 ${OSCURO} .inv-mapa-datos{background:rgba(255,255,255,.06);color:var(--mp-noche-ink)}
@@ -158,8 +154,7 @@ ${OSCURO} .inv-mapa-datos{background:rgba(255,255,255,.06);color:var(--mp-noche-
 /* ── Pie: la mariposa grande ── */
 footer{padding:76px 24px calc(72px + env(safe-area-inset-bottom));background:var(--mp-noche)}
 footer .container{position:relative;z-index:2}
-footer .container::before{content:"";display:block;width:min(40vw,160px);aspect-ratio:1.2;margin:0 auto 4px;
-  background:url(${A}/mariposa.png) center/contain no-repeat;animation:mpFlota 5s ease-in-out infinite}
+
 .footer-names{font-size:64px;line-height:1.1;color:color-mix(in srgb,var(--brand) 20%,#fff)}
 .footer-date{font-family:var(--mp-caps);font-weight:600;letter-spacing:.26em}
 .footer-copy{letter-spacing:.3em;color:color-mix(in srgb,var(--brand) 30%,#fff)}
@@ -199,6 +194,11 @@ export const mariposas: Design = {
    * en el CSS de la sección y no había manera de tocarlos.
    */
   adornos: [
+    { seccion: "hero", url: `${A}/corona.png`, sitio: "cabecera", tamano: 56 },
+    { seccion: "guests", url: `${A}/ramo.png`, sitio: "cabecera", tamano: 46 },
+    { seccion: "confirm", url: `${A}/sello.png`, sitio: "cabecera", tamano: 26 },
+    { seccion: "gifts", url: `${A}/frasco.png`, sitio: "cabecera", tamano: 34 },
+    { seccion: "footer", url: `${A}/mariposa.png`, sitio: "cabecera", tamano: 40 },
     /* La filigrana que va bajo cada título. Como adorno y no sólo en el
        CSS: así se puede mover, encoger o quitar de una sección suelta. */
     { seccion: "*", url: `${A}/divisor.png`, sitio: "titulo", tamano: 70 },

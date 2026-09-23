@@ -79,9 +79,7 @@ body{background:var(--bg)}
   color-mix(in srgb,var(--ros-noche) 82%,var(--brand-2)),var(--ros-noche))}
 .splash-modal{background:var(--card);color:var(--ink);border-radius:8px;
   box-shadow:0 30px 70px -22px rgba(0,0,0,.7),inset 0 0 0 1px color-mix(in srgb,var(--ros-oro) 40%,transparent)}
-.splash-modal::before{content:"";display:block;width:150px;height:78px;margin:0 auto 6px;
-  background:url(${A}/corona.png) center/contain no-repeat;
-  filter:drop-shadow(0 4px 14px color-mix(in srgb,var(--ros-oro) 45%,transparent))}
+
 .splash-name{font-size:clamp(84px,25vw,120px);line-height:.95;padding-top:.06em}
 .splash-subtitle{letter-spacing:.4em}
 .splash-date{font-family:var(--ros-caps);letter-spacing:.24em}
@@ -100,9 +98,7 @@ body{background:var(--bg)}
 .hero-content{box-shadow:none;width:min(560px,100%);padding:0;
   background:radial-gradient(closest-side,color-mix(in srgb,var(--ros-noche) 45%,transparent),
     transparent) center/130% 115% no-repeat}
-.hero-content::before{content:"";display:block;width:min(56vw,230px);aspect-ratio:1.9;margin:0 auto 2px;
-  background:url(${A}/corona.png) center/contain no-repeat;animation:rosFlota 5.5s ease-in-out infinite;
-  filter:drop-shadow(0 6px 20px color-mix(in srgb,var(--ros-oro) 50%,transparent))}
+
 .hero-label{font-size:13px;letter-spacing:.55em;padding-left:.55em;margin:0;
   text-shadow:0 1px 12px rgba(0,0,0,.5)}
 .hero-name{font-size:clamp(96px,30vw,164px);line-height:.92;margin:0;padding:.06em .08em 0;
@@ -118,8 +114,7 @@ body{background:var(--bg)}
 section{padding:100px 26px}
 section.alt{background:linear-gradient(var(--bg-alt),var(--bg))}
 #guests{padding-top:116px;padding-bottom:124px;background:linear-gradient(var(--bg-alt),var(--bg))}
-#guests .container::before{content:"";display:block;width:min(52vw,210px);aspect-ratio:.84;margin:0 auto 12px;
-  background:url(${A}/ramo.png) center/contain no-repeat}
+
 #confirmation{padding-bottom:132px;background:linear-gradient(var(--bg-alt),var(--bg))}
 #features{padding-top:120px;background:linear-gradient(var(--bg-alt),var(--bg))}
 .feature-card{background:var(--card);border-radius:18px;
@@ -172,10 +167,7 @@ ${NOCHE} .section-title{color:#fff8e6}
 ${NOCHE} :is(.section-body,.gifts-text,.gifts-note){
   color:color-mix(in srgb,var(--ros-noche-ink) 84%,transparent)}
 /* La rosa bajo la campana, con su resplandor que late. */
-#countdown .container::before,#gifts .container::before{content:"";display:block;
-  width:min(58vw,240px);aspect-ratio:.66;margin:0 auto 4px;
-  background:url(${A}/rosa.png) center/contain no-repeat;
-  filter:drop-shadow(0 0 34px color-mix(in srgb,var(--brand-2) 40%,transparent))}
+
 #gifts .container::before{width:120px}
 /* El resplandor va en la propia rosa y no en una capa aparte: puesta a una
    altura fija se descuadraba en cuanto el título ocupaba dos renglones. */
@@ -205,8 +197,7 @@ ${NOCHE} .ring-label{font-size:10px;letter-spacing:.2em;
 /* ── Pie ── */
 footer{padding:86px 24px calc(76px + env(safe-area-inset-bottom));background:var(--ros-noche)}
 footer .container{position:relative;z-index:2}
-footer .container::before{content:"";display:block;width:170px;height:88px;margin:0 auto 2px;
-  background:url(${A}/corona.png) center/contain no-repeat}
+
 .footer-names{font-size:104px;line-height:.95;padding-top:.06em}
 .footer-date{font-family:var(--ros-caps);letter-spacing:.24em}
 .footer-copy{letter-spacing:.34em;color:var(--ros-oro-claro);opacity:.9}
@@ -247,6 +238,12 @@ export const rosa: Design = {
    * en el CSS de la sección y no había manera de tocarlos.
    */
   adornos: [
+    { seccion: "splash", url: `${A}/corona.png`, sitio: "cabecera", tamano: 42 },
+    { seccion: "hero", url: `${A}/corona.png`, sitio: "cabecera", tamano: 56 },
+    { seccion: "guests", url: `${A}/ramo.png`, sitio: "cabecera", tamano: 52 },
+    { seccion: "countdown", url: `${A}/rosa.png`, sitio: "cabecera", tamano: 58 },
+    { seccion: "gifts", url: `${A}/rosa.png`, sitio: "cabecera", tamano: 58 },
+    { seccion: "footer", url: `${A}/corona.png`, sitio: "cabecera", tamano: 47 },
     /* La filigrana que va bajo cada título. Como adorno y no sólo en el
        CSS: así se puede mover, encoger o quitar de una sección suelta. */
     { seccion: "*", url: `${A}/divisor.png`, sitio: "titulo", tamano: 72 },

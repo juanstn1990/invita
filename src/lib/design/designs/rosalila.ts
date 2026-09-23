@@ -122,8 +122,7 @@ section .container,.inv-block .container{position:relative;z-index:2;
    dibujar una imagen por pareja. */
 #guests .container{padding-bottom:26px}
 #guests [data-inv="guests.text"],#guests [data-inv="guests.textSecondary"]{max-width:30ch;margin-inline:auto}
-#guests .container::after{content:"";display:block;width:min(34vw,130px);aspect-ratio:1.1;margin:14px auto -6px;
-  background:url(${A}/ramita.png) center/contain no-repeat}
+
 .inv-padres-invitados{display:grid;grid-template-columns:1fr 1fr;max-width:420px;margin:22px auto 0}
 .inv-padres-invitados .hero-padres-col{max-width:none;padding:0 10px;text-align:center}
 .inv-padres-invitados .hero-padres-tit{font-family:var(--rl-ui);font-size:10.5px;letter-spacing:.2em;
@@ -193,9 +192,6 @@ section .container,.inv-block .container{position:relative;z-index:2;
 .inv-rsvp-input,.inv-rsvp-area{background:rgba(255,255,255,.92);border-color:transparent}
 
 /* ── La música, donde la referencia la tenía: junto a la canción del RSVP ── */
-#confirmation .inv-rsvp-lab:has(input[name="cancion"])::after{content:"";display:block;width:110px;
-  aspect-ratio:1.6;margin:6px auto 0;background:url(${A}/musica.png) center/contain no-repeat;
-  filter:brightness(2.4) saturate(0)}
 
 /* ── Hashtag: la foto a sangre con el título encima ── */
 #social{padding:0;background:var(--rl-banda-suave)}
@@ -263,6 +259,8 @@ export const rosalila: Design = {
    * la sección, son la sección.
    */
   adornos: [
+    { seccion: "guests", url: `${A}/ramita.png`, sitio: "titulo", tamano: 34 },
+    { seccion: "confirm", url: `${A}/musica.png`, sitio: "titulo", tamano: 31 },
     /* Un dibujo por sección, bajo su título: la ramita donde sólo hace de
        filete, y el que toca donde la sección tiene el suyo —los anillos en
        la ceremonia, la cámara en la galería, los novios en el dress code, el

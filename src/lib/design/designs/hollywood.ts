@@ -88,9 +88,7 @@ body{background:var(--bg)}
 #hero::after,#hero.con-foto::after{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;
   background:linear-gradient(to bottom,rgba(0,0,0,.1),transparent 30%,color-mix(in srgb,var(--bg) 55%,transparent) 60%,var(--bg) 97%)}
 .hero-content{box-shadow:none;width:min(560px,100%);padding:0;background:none}
-.hero-content::before{content:"";display:block;width:min(22vw,90px);aspect-ratio:1;margin:0 auto 4px;
-  background:url(${A}/estrella.png) center/contain no-repeat;animation:hwGira 7s ease-in-out infinite;
-  filter:drop-shadow(0 0 18px color-mix(in srgb,var(--accent) 60%,transparent))}
+
 .hero-label{font-size:12.5px;letter-spacing:.42em;padding-left:.42em;margin:0;color:var(--hw-oro)}
 .hero-name{font-size:clamp(100px,31vw,156px);line-height:1;margin:0;filter:drop-shadow(0 2px 12px rgba(0,0,0,.6))}
 .hero-date{border-top:0;padding-top:0;margin-top:0;font-family:var(--hw-titulo);font-size:15px;letter-spacing:.2em}
@@ -104,8 +102,7 @@ section .container{position:relative;z-index:2}
 #guests{padding-bottom:124px;background:radial-gradient(120% 80% at 50% 0%,var(--hw-sala),var(--bg))}
 #guests::after{content:"";position:absolute;right:8px;bottom:8px;width:min(30vw,150px);aspect-ratio:1;
   background:url(${A}/esquina.png) center/contain no-repeat;rotate:180deg;pointer-events:none}
-#guests .container::before{content:"";display:block;width:min(70vw,290px);aspect-ratio:1.9;margin:0 auto 12px;
-  background:url(${A}/boleto.png) center/contain no-repeat;rotate:-4deg;filter:drop-shadow(0 12px 22px rgba(0,0,0,.6))}
+
 #guests [data-inv="guests.text"]{font-style:italic;font-size:clamp(22px,6vw,27px);line-height:1.5;
   max-width:27ch;margin-inline:auto;color:var(--hw-oro-claro)}
 .inv-padres-invitados{display:grid;grid-template-columns:1fr 1fr;max-width:440px;margin:24px auto 0}
@@ -114,16 +111,11 @@ section .container{position:relative;z-index:2}
 .inv-padres-invitados .hero-padres-tit{font-family:var(--hw-caps);font-weight:600;font-size:10.5px;letter-spacing:.24em;
   text-transform:uppercase;color:var(--hw-oro);margin:0}
 .inv-padres-invitados .hero-padres-nom{margin-top:6px;font-size:17.5px;line-height:1.5;color:var(--ink);white-space:pre-line}
-#events .container::before,.inv-block-events .container::before{content:"";display:block;width:min(40vw,160px);aspect-ratio:1;
-  margin:0 auto 6px;background:url(${A}/camara.png) center/contain no-repeat}
-#gifts .container::before,.inv-block-gifts .container::before{content:"";display:block;width:min(34vw,130px);aspect-ratio:.9;
-  margin:0 auto 8px;background:url(${A}/palomitas.png) center/contain no-repeat;
-  filter:drop-shadow(0 0 22px color-mix(in srgb,var(--accent) 30%,transparent))}
+
 .gifts-account{background:transparent;border:1px solid color-mix(in srgb,var(--accent) 45%,transparent);border-radius:8px}
 .gifts-bank{color:var(--hw-oro)}
 #confirmation{padding-bottom:130px}
-#confirmation .container::before{content:"";display:block;width:min(26vw,100px);aspect-ratio:1;margin:0 auto 8px;
-  background:url(${A}/estrella.png) center/contain no-repeat;filter:drop-shadow(0 0 20px color-mix(in srgb,var(--accent) 40%,transparent))}
+
 #confirmation::after{content:"";position:absolute;right:8px;bottom:8px;width:min(30vw,150px);aspect-ratio:1;
   background:url(${A}/esquina.png) center/contain no-repeat;rotate:180deg;pointer-events:none}
 #confirmation .confirmation-deadline{display:none}
@@ -161,8 +153,7 @@ ${ALFOMBRA} .section-label{color:var(--hw-oro-claro)}
 /* ── Pie: el foco ── */
 footer{padding:74px 24px calc(72px + env(safe-area-inset-bottom));background:color-mix(in srgb,var(--bg) 70%,#000)}
 footer .container{position:relative;z-index:2}
-footer .container::before{content:"";display:block;width:min(40vw,160px);aspect-ratio:1.1;margin:0 auto -6px;
-  background:url(${A}/foco.png) center/contain no-repeat}
+
 .footer-names{font-size:100px;line-height:1}
 .footer-date{font-family:var(--hw-titulo);letter-spacing:.2em}
 .footer-copy{letter-spacing:.3em;color:var(--hw-oro)}
@@ -202,6 +193,12 @@ export const hollywood: Design = {
    * en el CSS de la sección y no había manera de tocarlos.
    */
   adornos: [
+    { seccion: "hero", url: `${A}/estrella.png`, sitio: "cabecera", tamano: 22 },
+    { seccion: "guests", url: `${A}/boleto.png`, sitio: "cabecera", tamano: 70 },
+    { seccion: "events", url: `${A}/camara.png`, sitio: "cabecera", tamano: 40 },
+    { seccion: "gifts", url: `${A}/palomitas.png`, sitio: "cabecera", tamano: 34 },
+    { seccion: "confirm", url: `${A}/estrella.png`, sitio: "cabecera", tamano: 26 },
+    { seccion: "footer", url: `${A}/foco.png`, sitio: "cabecera", tamano: 40 },
     /* La filigrana que va bajo cada título. Como adorno y no sólo en el
        CSS: así se puede mover, encoger o quitar de una sección suelta. */
     { seccion: "*", url: `${A}/divisor.png`, sitio: "titulo", tamano: 68 },

@@ -451,9 +451,7 @@ body{background:radial-gradient(1.2px 1.2px at 12% 18%,rgba(255,255,255,.9) 50%,
 #splash{background:radial-gradient(1.2px 1.2px at 12% 18%,rgba(255,255,255,.9) 50%,transparent 100%),radial-gradient(0.8px 0.8px at 44% 62%,rgba(255,255,255,.9) 50%,transparent 100%),radial-gradient(1.4px 1.4px at 70% 30%,rgba(255,255,255,.9) 50%,transparent 100%),radial-gradient(0.9px 0.9px at 88% 80%,rgba(255,255,255,.9) 50%,transparent 100%),radial-gradient(1px 1px at 26% 88%,rgba(255,255,255,.9) 50%,transparent 100%),radial-gradient(0.7px 0.7px at 58% 8%,rgba(255,255,255,.9) 50%,transparent 100%),radial-gradient(0.8px 0.8px at 8% 50%,rgba(255,255,255,.9) 50%,transparent 100%),radial-gradient(0.6px 0.6px at 36% 40%,rgba(255,255,255,.9) 50%,transparent 100%),radial-gradient(1.1px 1.1px at 80% 52%,rgba(255,255,255,.9) 50%,transparent 100%),radial-gradient(0.7px 0.7px at 64% 92%,rgba(255,255,255,.9) 50%,transparent 100%),radial-gradient(0.8px 0.8px at 94% 14%,rgba(255,255,255,.9) 50%,transparent 100%),radial-gradient(0.6px 0.6px at 18% 70%,rgba(255,255,255,.9) 50%,transparent 100%) 0 0/320px 320px repeat,
   radial-gradient(110% 80% at 50% 30%,color-mix(in srgb,var(--bg) 75%,var(--brand-2)),var(--bg) 70%)}
 .splash-modal{background:transparent;box-shadow:none;color:var(--ink)}
-.splash-modal::before{content:"";display:block;width:min(42vw,170px);aspect-ratio:1;margin:0 auto 14px;
-  background:url(/disenos/estrellada/luna.png) center/contain no-repeat;animation:estFlota 6s ease-in-out infinite;
-  filter:drop-shadow(0 0 30px color-mix(in srgb,var(--brand) 35%,transparent))}
+
 .splash-name{font-size:clamp(70px,21vw,110px);line-height:1.1;padding-top:.1em}
 .splash-subtitle{color:var(--brand);letter-spacing:.45em}
 .splash-date{font-family:var(--est-caps);letter-spacing:.24em}
@@ -478,12 +476,7 @@ body{background:radial-gradient(1.2px 1.2px at 12% 18%,rgba(255,255,255,.9) 50%,
 /* ── La noche: transparente, para que se vea el cielo ── */
 section,section.alt,footer{background:transparent}
 section{padding:100px 26px}
-:is(#countdown,.inv-block-countdown) .container::before{content:"";display:block;width:110px;aspect-ratio:1;margin:0 auto 12px;
-  background:url(/disenos/estrellada/luna.png) center/contain no-repeat;animation:estFlota 6s ease-in-out infinite;
-  filter:drop-shadow(0 0 24px color-mix(in srgb,var(--brand) 30%,transparent))}
-:is(#gifts,.inv-block-gifts) .container::before{content:"";display:block;width:110px;aspect-ratio:1;margin:0 auto 12px;
-  background:url(/disenos/estrellada/sello.png) center/contain no-repeat;
-  filter:drop-shadow(0 0 20px color-mix(in srgb,var(--brand-2) 35%,transparent))}
+
 #confirmation::after,.inv-block-confirm::after{content:"";position:absolute;left:-10%;right:-10%;bottom:-20px;height:160px;z-index:0;
   background:url(/disenos/estrellada/nubes.png) center bottom/contain no-repeat;opacity:.55;pointer-events:none;
   animation:estDeriva 30s ease-in-out infinite alternate}
@@ -514,8 +507,7 @@ section{padding:100px 26px}
 :is(#guests,#features,#gallery,.inv-block-features,.inv-block-gallery,.inv-block-paragraph,.inv-block-ubicacion) .section-title{color:var(--bg)}
 :is(#guests,#features,#gallery,.inv-block-features,.inv-block-gallery,.inv-block-paragraph,.inv-block-ubicacion) :is(.section-body,.guests-text,.gallery-text,.feature-text,.inv-mapa-dir){color:var(--muted)}
 #guests{padding-top:110px;padding-bottom:130px;background:linear-gradient(var(--est-bruma),var(--est-bruma-2))}
-#guests .container::before{content:"";display:block;width:min(64vw,260px);aspect-ratio:1.06;margin:0 auto 18px;
-  background:url(/disenos/estrellada/constelacion.png) center/contain no-repeat;filter:brightness(.5) saturate(1.4)}
+
 #features{background:linear-gradient(var(--est-bruma),var(--est-bruma-2));padding-top:120px}
 :is(#guests,#features,#gallery,.inv-block-features,.inv-block-gallery,.inv-block-paragraph,.inv-block-ubicacion) .feature-card{background:#fff;border-radius:18px;
   box-shadow:0 16px 30px -22px color-mix(in srgb,var(--bg) 50%,transparent),
@@ -538,8 +530,7 @@ section{padding:100px 26px}
 /* ── Pie ── */
 footer{padding:90px 24px calc(80px + env(safe-area-inset-bottom));color:var(--ink)}
 footer .container{position:relative;z-index:2}
-footer .container::before{content:"";display:block;width:120px;aspect-ratio:1;margin:0 auto 6px;
-  background:url(/disenos/estrellada/luna.png) center/contain no-repeat}
+
 .footer-names{font-size:84px;line-height:1.2;padding-top:.1em}
 .footer-date{font-family:var(--est-caps);letter-spacing:.24em}
 .footer-copy{letter-spacing:.34em;color:var(--accent);opacity:.9}

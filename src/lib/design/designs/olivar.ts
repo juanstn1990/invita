@@ -90,9 +90,7 @@ body{background:var(--bg)}
   background:linear-gradient(to bottom,rgba(0,0,0,.08) 0%,transparent 26%,
     color-mix(in srgb,var(--ol-noche) 55%,transparent) 60%,var(--ol-noche) 97%)}
 .hero-content{box-shadow:none;width:min(560px,100%);padding:0;background:none}
-.hero-content::before{content:"";display:block;width:min(40vw,160px);aspect-ratio:1;margin:0 auto 4px;
-  background:url(${A}/corona.png) center/contain no-repeat;animation:olFlota 7s ease-in-out infinite;
-  filter:drop-shadow(0 4px 14px rgba(0,0,0,.35))}
+
 .hero-label{font-size:12.5px;letter-spacing:.46em;padding-left:.46em;margin:0;color:var(--ol-oro-claro)}
 .hero-name{font-size:clamp(60px,17.5vw,98px);line-height:1.08;margin:2px 0 0;
   text-shadow:0 2px 18px rgba(0,0,0,.45)}
@@ -108,8 +106,7 @@ section.alt{background:linear-gradient(var(--bg),var(--bg-alt))}
 #guests{padding-top:108px;padding-bottom:124px;background:linear-gradient(var(--bg),var(--bg-alt))}
 #guests::after{content:"";position:absolute;right:6px;bottom:6px;width:min(32vw,160px);aspect-ratio:.82;
   background:url(${A}/esquina.png) center/contain no-repeat;rotate:180deg;pointer-events:none}
-#guests .container::before{content:"";display:block;width:min(46vw,180px);aspect-ratio:.74;margin:0 auto 10px;
-  background:url(${A}/ramo.png) center/contain no-repeat}
+
 #guests [data-inv="guests.text"]{font-style:italic;font-size:clamp(23px,6.2vw,29px);line-height:1.5;
   max-width:27ch;margin-inline:auto;color:var(--brand)}
 .inv-padres-invitados{display:grid;grid-template-columns:1fr 1fr;max-width:440px;margin:24px auto 0}
@@ -187,8 +184,7 @@ ${NOCHE} :is([data-cd],.ring-number){font-family:'Cormorant Garamond',Georgia,se
   font-size:clamp(40px,12.5vw,58px);line-height:1;color:var(--ol-oro-claro);font-variant-numeric:lining-nums tabular-nums}
 ${NOCHE} .ring-label{margin-top:8px;font-size:10px;letter-spacing:.24em;
   color:color-mix(in srgb,var(--ol-noche-ink) 70%,transparent)}
-#gifts .container::before{content:"";display:block;width:96px;aspect-ratio:1;margin:0 auto 10px;
-  background:url(${A}/sello.png) center/contain no-repeat;filter:drop-shadow(0 6px 14px rgba(0,0,0,.4))}
+
 .inv-block-ubicacion .container::before{content:"";display:block;width:min(34vw,140px);aspect-ratio:1.1;
   margin:0 auto 8px;background:url(${A}/copas.png) center/contain no-repeat}
 .gifts-account{background:transparent;border:1px solid color-mix(in srgb,var(--brand-2) 50%,transparent);border-radius:14px}
@@ -213,8 +209,7 @@ ${NOCHE} :is(.gifts-btn,.inv-mapa-btn:not(.inv-agendar),.inv-rsvp-btn:not(.inv-r
 /* ── Pie: la corona con el monograma ── */
 footer{padding:80px 24px calc(72px + env(safe-area-inset-bottom));background:var(--ol-noche)}
 footer .container{position:relative;z-index:2}
-footer .container::before{content:"";display:block;width:150px;aspect-ratio:1;margin:0 auto -118px;
-  background:url(${A}/corona.png) center/contain no-repeat}
+
 .footer-names{font-size:44px;line-height:1.1;padding:38px 0 34px;color:var(--ol-oro-claro)}
 .footer-date{font-family:var(--ol-caps);letter-spacing:.26em;margin-top:10px}
 .footer-copy{letter-spacing:.32em;color:var(--ol-oro-claro);opacity:.9}
@@ -253,6 +248,10 @@ export const olivar: Design = {
    * en el CSS de la sección y no había manera de tocarlos.
    */
   adornos: [
+    { seccion: "hero", url: `${A}/corona.png`, sitio: "cabecera", tamano: 40 },
+    { seccion: "guests", url: `${A}/ramo.png`, sitio: "cabecera", tamano: 46 },
+    { seccion: "gifts", url: `${A}/sello.png`, sitio: "cabecera", tamano: 27 },
+    { seccion: "footer", url: `${A}/corona.png`, sitio: "cabecera", tamano: 42 },
     /* La filigrana que va bajo cada título. Como adorno y no sólo en el
        CSS: así se puede mover, encoger o quitar de una sección suelta. */
     { seccion: "*", url: `${A}/rama.png`, sitio: "titulo", tamano: 63 },

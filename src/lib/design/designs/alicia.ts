@@ -99,8 +99,7 @@ section,section.alt{padding:64px 16px;background:none}
 ${PAPEL} > .container{position:relative;max-width:520px;padding:54px 26px 50px;clip-path:${RASGADO};
   background:radial-gradient(120% 90% at 50% 40%,var(--al-papel) 40%,var(--al-papel-2) 100%);
   filter:drop-shadow(0 12px 18px rgba(60,35,15,.35))}
-#guests > .container::before{content:"";display:block;width:min(40vw,160px);aspect-ratio:.68;margin:0 auto 6px;
-  background:url(${A}/conejo.png) center/contain no-repeat}
+
 #guests > .container::after{content:"";position:absolute;left:12px;top:14px;width:min(24vw,110px);aspect-ratio:.95;
   background:url(${A}/esquina.png) center/contain no-repeat;pointer-events:none}
 #guests .section-title{font-size:clamp(34px,9.6vw,44px);max-width:15ch;margin-inline:auto}
@@ -110,8 +109,7 @@ ${PAPEL} > .container{position:relative;max-width:520px;padding:54px 26px 50px;c
 .inv-padres-invitados .hero-padres-col{max-width:none;padding:0;border:0!important}
 .inv-padres-invitados .hero-padres-tit{font-family:var(--al-script);font-size:38px;line-height:1.2;letter-spacing:0;text-transform:none;color:var(--al-hondo);margin:0}
 .inv-padres-invitados .hero-padres-nom{margin-top:2px;font-style:italic;font-size:18px;line-height:1.5;color:var(--muted);white-space:pre-line}
-#countdown > .container::before,.inv-block-countdown > .container::before{content:"";display:block;width:min(36vw,140px);aspect-ratio:1;
-  margin:0 auto 4px;background:url(${A}/reloj.png) center/contain no-repeat}
+
 .inv-cd-bolsillo .ring-number{font-weight:700}
 #features .features-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:440px;margin-inline:auto}
 #features .feature-card{padding:18px 10px;border:0;border-radius:12px;background:rgba(255,255,255,.4);
@@ -120,11 +118,9 @@ ${PAPEL} > .container{position:relative;max-width:520px;padding:54px 26px 50px;c
 .feature-icon{color:var(--al-hondo)}
 .feature-title{font-weight:400;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--brand)}
 #features .feature-card:nth-child(-n+2) .feature-text{font-family:var(--al-script);font-size:32px;line-height:1.1;color:var(--al-hondo)}
-#gifts > .container::after,.inv-block-gifts > .container::after{content:"";display:block;width:min(40vw,160px);aspect-ratio:.93;
-  margin:14px auto 0;background:url(${A}/gato.png) center/contain no-repeat}
+
 #gifts .gifts-text{font-family:var(--al-script);font-size:clamp(28px,8vw,34px);line-height:1.3;color:var(--al-hondo);max-width:20ch;margin-inline:auto}
-#confirmation > .container::before{content:"";display:block;width:84px;aspect-ratio:1;margin:0 auto 8px;
-  background:url(${A}/sello.png) center/contain no-repeat;filter:drop-shadow(0 6px 12px rgba(0,0,0,.35))}
+
 #confirmation .confirmation-deadline{display:none}
 .inv-rsvp-lab{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--brand);opacity:1;text-align:left}
 .inv-rsvp-lab .inv-rsvp-input{text-transform:none;letter-spacing:0}
@@ -146,8 +142,7 @@ ${PAPEL} > .container{position:relative;max-width:520px;padding:54px 26px 50px;c
 footer{padding:60px 24px calc(64px + env(safe-area-inset-bottom));
   background:radial-gradient(90% 70% at 50% 30%,color-mix(in srgb,var(--al-hondo) 75%,var(--brand)),color-mix(in srgb,var(--al-hondo) 55%,#000))}
 footer .container{position:relative;z-index:2}
-footer .container::before{content:"";display:block;width:min(46vw,180px);aspect-ratio:1.33;margin:0 auto 4px;
-  background:url(${A}/tetera.png) center/contain no-repeat}
+
 .footer-names{font-size:96px;line-height:1;color:#f3e6c8}
 .footer-date{font-family:var(--al-caps);letter-spacing:.2em;color:#f0d9ad}
 .footer-copy{letter-spacing:.24em;color:#f0d9ad}
@@ -181,6 +176,11 @@ export const alicia: Design = {
    * invitación, así que se mueven, se encogen o se borran desde el editor.
    */
   adornos: [
+    { seccion: "guests", url: `${A}/conejo.png`, sitio: "cabecera", tamano: 40 },
+    { seccion: "countdown", url: `${A}/reloj.png`, sitio: "cabecera", tamano: 36 },
+    { seccion: "gifts", url: `${A}/gato.png`, sitio: "titulo", tamano: 40 },
+    { seccion: "confirm", url: `${A}/sello.png`, sitio: "cabecera", tamano: 23 },
+    { seccion: "footer", url: `${A}/tetera.png`, sitio: "cabecera", tamano: 46 },
     /* La filigrana que va bajo cada título. Como adorno y no sólo en el
        CSS: así se puede mover, encoger o quitar de una sección suelta. */
     { seccion: "*", url: `${A}/divisor.png`, sitio: "titulo", tamano: 70 },

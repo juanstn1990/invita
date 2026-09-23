@@ -120,9 +120,7 @@ body{background:var(--bg)}
   background:linear-gradient(to bottom,rgba(0,0,0,.06) 0%,transparent 30%,
     color-mix(in srgb,var(--et-noche) 50%,transparent) 64%,var(--et-noche) 98%)}
 .hero-content{box-shadow:none;width:min(560px,100%);padding:0;background:none}
-.hero-content::before{content:"";display:block;width:min(32vw,130px);aspect-ratio:1;margin:0 auto 10px;
-  background:url(${A}/anillos.png) center/contain no-repeat;animation:etFlota 6s ease-in-out infinite;
-  filter:drop-shadow(0 6px 18px color-mix(in srgb,var(--brand-2) 50%,transparent))}
+
 .hero-label{font-size:12.5px;letter-spacing:.5em;padding-left:.5em;margin:0;color:var(--et-oro-claro)}
 .hero-name{font-size:clamp(58px,17vw,96px);line-height:1.12;margin:0;padding:.06em .08em 0;
   filter:drop-shadow(0 2px 12px rgba(0,0,0,.45))}
@@ -136,8 +134,7 @@ body{background:var(--bg)}
 section{padding:96px 26px}
 section.alt{background:linear-gradient(var(--bg),var(--bg-alt))}
 #guests{padding-top:112px;padding-bottom:120px;background:linear-gradient(var(--bg),var(--bg-alt))}
-#guests .container::before{content:"";display:block;width:min(48vw,190px);aspect-ratio:1;margin:0 auto 12px;
-  background:url(${A}/ramo.png) center/contain no-repeat}
+
 #guests [data-inv="guests.text"]{font-style:italic;font-size:clamp(22px,6vw,27px);line-height:1.5;
   max-width:27ch;margin-inline:auto}
 /* Los padres, bajados de la portada (padresEn), en dos columnas con un
@@ -191,9 +188,7 @@ ${NOCHE} .section-label{color:var(--et-oro-claro)}
 ${NOCHE} .section-title{color:#fdfbf7}
 ${NOCHE} :is(.section-body,.gifts-text,.gifts-note,.inv-mapa-dir){
   color:color-mix(in srgb,var(--et-noche-ink) 80%,transparent)}
-#gifts .container::before{content:"";display:block;width:104px;aspect-ratio:1;margin:0 auto 10px;
-  background:url(${A}/sello.png) center/contain no-repeat;
-  filter:drop-shadow(0 6px 16px color-mix(in srgb,var(--brand-2) 45%,transparent))}
+
 .inv-block-ubicacion .container::before{content:"";display:block;width:min(34vw,140px);aspect-ratio:.87;
   margin:0 auto 8px;background:url(${A}/copas.png) center/contain no-repeat}
 /* El reloj: cuatro casillas unidas por un hilo de oro, sin cajas sueltas. */
@@ -249,8 +244,7 @@ ${NOCHE} :is(.gifts-btn,.inv-mapa-btn:not(.inv-agendar),.inv-rsvp-btn:not(.inv-r
 /* ── Pie: la paloma y el monograma ── */
 footer{padding:82px 24px calc(74px + env(safe-area-inset-bottom));background:var(--et-noche)}
 footer .container{position:relative;z-index:2}
-footer .container::before{content:"";display:block;width:120px;aspect-ratio:1;margin:0 auto 6px;
-  background:url(${A}/paloma.png) center/contain no-repeat}
+
 /* Con una foto en el pie, la paloma sobra: cae en el centro, que es justo
    donde está la gente de la foto. El adorno es del diseño y la foto es de
    quien se casa; manda la foto. */
@@ -293,6 +287,10 @@ export const eterna: Design = {
    * en el CSS de la sección y no había manera de tocarlos.
    */
   adornos: [
+    { seccion: "hero", url: `${A}/anillos.png`, sitio: "cabecera", tamano: 32 },
+    { seccion: "guests", url: `${A}/ramo.png`, sitio: "cabecera", tamano: 48 },
+    { seccion: "gifts", url: `${A}/sello.png`, sitio: "cabecera", tamano: 29 },
+    { seccion: "footer", url: `${A}/paloma.png`, sitio: "cabecera", tamano: 33 },
     /* La filigrana que va bajo cada título. Como adorno y no sólo en el
        CSS: así se puede mover, encoger o quitar de una sección suelta. */
     { seccion: "*", url: `${A}/divisor.png`, sitio: "titulo", tamano: 68 },
