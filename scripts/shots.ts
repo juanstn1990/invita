@@ -46,6 +46,35 @@ const targets = ids.length ? TEMPLATES.filter((t) => ids.includes(t.id)) : TEMPL
   await page.route(`https://invitacion.local/`, (ruta) =>
     ruta.fulfill({ status: 200, contentType: "text/html; charset=utf-8", body: paginaHtml })
   );
+  /* Y el arte del diseño, desde `public/`.
+     Sin esto la captura salía sin una sola imagen —la portada, las esquinas,
+     los adornos— porque sólo se servía el HTML, y el fallo no se veía: los
+     seudoelementos reservan su alto aunque la imagen no llegue, así que la
+     página medía lo mismo y parecía correcta. */
+  const TIPOS: Record<string, string> = {
+    ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
+    ".webp": "image/webp", ".gif": "image/gif", ".svg": "image/svg+xml",
+    ".mp4": "video/mp4", ".avif": "image/avif",
+  };
+  await page.route(`https://invitacion.local/**`, (ruta) => {
+    const ruta2 = new URL(ruta.request().url()).pathname;
+    // La página misma la sirve el manejador de arriba (Playwright prueba el
+    // último registrado primero, así que hay que devolverle el turno).
+    if (ruta2 === "/") return ruta.fallback();
+    const archivo = path.join(process.cwd(), "public", decodeURIComponent(ruta2));
+    if (
+      !archivo.startsWith(path.join(process.cwd(), "public")) ||
+      !fs.existsSync(archivo) ||
+      !fs.statSync(archivo).isFile()
+    ) {
+      return ruta.fulfill({ status: 404, body: "" });
+    }
+    return ruta.fulfill({
+      status: 200,
+      contentType: TIPOS[path.extname(archivo).toLowerCase()] || "application/octet-stream",
+      body: fs.readFileSync(archivo),
+    });
+  });
 
   for (const tpl of targets) {
     const html = renderInvitation({
@@ -73,13 +102,20 @@ const targets = ids.length ? TEMPLATES.filter((t) => ids.includes(t.id)) : TEMPL
       .then(() => 0)
       .catch(async () => page.evaluate(() => document.querySelectorAll(".reveal:not(.in)").length));
     if (pending) console.log(`  ⚠ ${pending} secciones no se revelaron`);
-    /* Y esperar a las imágenes: las de los adornos son `lazy`, así que
-       bajando deprisa la captura salía sin ellas y parecía que faltaban. */
+    /* Y las imágenes: las de los adornos y las fotos son `lazy`, y una
+       captura de página entera no las despierta —Chromium pinta lo que hay
+       fuera de la pantalla sin cargarlas—. Se les quita el `lazy` y se
+       espera a que estén, que si no la captura miente. */
+    await page.evaluate(() => {
+      document.querySelectorAll("img[loading='lazy']").forEach((i) => {
+        (i as HTMLImageElement).loading = "eager";
+      });
+    });
     await page
       .waitForFunction(
-        () => Array.from(document.images).every((i) => i.complete),
+        () => Array.from(document.images).every((i) => i.complete && i.naturalWidth > 0),
         undefined,
-        { timeout: 8000 }
+        { timeout: 10000 }
       )
       .catch(() => console.log("  ⚠ alguna imagen no cargó a tiempo"));
     await page.evaluate(() => window.scrollTo(0, 0));
