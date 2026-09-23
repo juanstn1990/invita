@@ -124,8 +124,7 @@ section .container{position:relative;z-index:2}
   color:var(--bq-lila);margin:0}
 .inv-padres-invitados .hero-padres-nom{margin-top:6px;font-size:17px;line-height:1.5;color:var(--ink);
   white-space:pre-line}
-#confirmation::after{content:"";position:absolute;right:0;bottom:0;width:min(32vw,160px);aspect-ratio:1.05;
-  background:url(${A}/esquina.png) center/contain no-repeat;rotate:180deg;pointer-events:none}
+
 #features{padding-top:112px;background:radial-gradient(120% 80% at 50% 0%,var(--bq-musgo),var(--bq-hondo) 60%,var(--bg))}
 #features .features-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:440px;margin-inline:auto}
 #features .feature-card{padding:20px 14px;border:0;border-radius:18px;
@@ -213,6 +212,7 @@ export const bosque: Design = {
    * en el CSS de la sección y no había manera de tocarlos.
    */
   adornos: [
+    { seccion: "confirm", url: `${A}/esquina.png`, sitio: "abajo-der", tamano: 32, giro: 180 },
     { seccion: "hero", url: `${A}/corona.png`, sitio: "cabecera", tamano: 48 },
     { seccion: "guests", url: `${A}/ciervo.png`, sitio: "cabecera", tamano: 52 },
     { seccion: "countdown", url: `${A}/hongos.png`, sitio: "cabecera", tamano: 38 },

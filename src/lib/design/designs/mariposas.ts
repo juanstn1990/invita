@@ -91,8 +91,7 @@ body{background:var(--bg)}
 section{padding:96px 26px}
 section.alt{background:linear-gradient(var(--bg),var(--mp-claro))}
 #guests{padding-top:104px;padding-bottom:124px;background:linear-gradient(var(--bg),var(--mp-claro))}
-#guests::after{content:"";position:absolute;right:0;bottom:0;width:min(34vw,170px);aspect-ratio:1;
-  background:url(${A}/esquina.png) center/contain no-repeat;rotate:180deg;pointer-events:none}
+
 
 #guests [data-inv="guests.text"]{font-style:italic;font-size:clamp(22px,6vw,27px);line-height:1.5;
   max-width:27ch;margin-inline:auto;color:var(--brand)}
@@ -114,8 +113,7 @@ section.alt{background:linear-gradient(var(--bg),var(--mp-claro))}
 .feature-title{font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--brand)}
 #confirmation{padding-bottom:130px}
 
-#confirmation::after{content:"";position:absolute;right:0;bottom:0;width:min(30vw,150px);aspect-ratio:1;
-  background:url(${A}/esquina.png) center/contain no-repeat;rotate:180deg;pointer-events:none}
+
 #confirmation .confirmation-deadline{display:none}
 .inv-rsvp-lab{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--brand);opacity:1;text-align:left}
 .inv-rsvp-lab .inv-rsvp-input{text-transform:none;letter-spacing:0;font-weight:400}
@@ -194,6 +192,8 @@ export const mariposas: Design = {
    * en el CSS de la sección y no había manera de tocarlos.
    */
   adornos: [
+    { seccion: "guests", url: `${A}/esquina.png`, sitio: "abajo-der", tamano: 34, giro: 180 },
+    { seccion: "confirm", url: `${A}/esquina.png`, sitio: "abajo-der", tamano: 30, giro: 180 },
     { seccion: "hero", url: `${A}/corona.png`, sitio: "cabecera", tamano: 56 },
     { seccion: "guests", url: `${A}/ramo.png`, sitio: "cabecera", tamano: 46 },
     { seccion: "confirm", url: `${A}/sello.png`, sitio: "cabecera", tamano: 26 },

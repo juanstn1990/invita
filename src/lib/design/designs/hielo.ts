@@ -93,8 +93,7 @@ body{background:var(--bg)}
 section{padding:96px 26px}
 section.alt{background:linear-gradient(var(--bg),var(--hi-claro))}
 #guests{padding-bottom:124px;background:linear-gradient(var(--bg),var(--hi-claro))}
-#guests::after{content:"";position:absolute;right:0;bottom:0;width:min(34vw,170px);aspect-ratio:1;
-  background:url(${A}/esquina.png) center/contain no-repeat;rotate:180deg;pointer-events:none}
+
 
 #guests [data-inv="guests.text"]{font-style:italic;font-size:clamp(22px,6vw,27px);line-height:1.5;
   max-width:27ch;margin-inline:auto;color:var(--brand)}
@@ -195,6 +194,7 @@ export const hielo: Design = {
    * en el CSS de la sección y no había manera de tocarlos.
    */
   adornos: [
+    { seccion: "guests", url: `${A}/esquina.png`, sitio: "abajo-der", tamano: 34, giro: 180 },
     { seccion: "hero", url: `${A}/tiara.png`, sitio: "cabecera", tamano: 54 },
     { seccion: "guests", url: `${A}/rosa.png`, sitio: "cabecera", tamano: 36 },
     { seccion: "gifts", url: `${A}/farol.png`, sitio: "cabecera", tamano: 28 },

@@ -73,8 +73,7 @@ body{background:var(--bg)}
 
 /* ── Bienvenida: el sobre con su lacre ── */
 #splash{background:radial-gradient(120% 80% at 50% 20%,var(--ro-crema),var(--bg))}
-#splash::after{content:"";position:absolute;right:-30px;bottom:-20px;width:min(52vw,230px);aspect-ratio:1;
-  background:url(${A}/esquina.png) center/contain no-repeat;rotate:180deg;pointer-events:none;z-index:0}
+
 .splash-name{font-size:clamp(64px,20vw,96px);line-height:1;color:var(--brand)}
 .splash-subtitle{color:var(--brand);letter-spacing:.3em}
 .splash-date{font-family:var(--ro-caps);letter-spacing:.24em;color:var(--muted)}
@@ -156,11 +155,6 @@ section .container{position:relative;z-index:2}
 
 /* ── Dress code, música y regalos ── */
 #features{background:var(--ro-crema)}
-/* Aquí la filigrana son los novios dibujados, como en las invitaciones de
-   papel: la ramita del resto de las secciones se esconde y queda el dibujo. */
-#features .ornament{width:min(44vw,170px);aspect-ratio:.73;margin-bottom:10px;
-  background:url(${A}/novios.png) center/contain no-repeat}
-#features .ornament img{visibility:hidden}
 #features .features-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:440px;margin-inline:auto}
 #features .feature-card{padding:20px 14px;border:0;border-radius:4px;background:var(--card);
   box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--brand) 20%,transparent)}
@@ -228,14 +222,23 @@ export const rosal: Design = {
    * en el CSS de la sección y no había manera de tocarlos.
    */
   adornos: [
+    { seccion: "splash", url: `${A}/esquina.png`, sitio: "abajo-der", tamano: 52, giro: 180 },
     { seccion: "hero", url: `${A}/anillos.png`, sitio: "cabecera", tamano: 46 },
     { seccion: "guests", url: `${A}/ramo.png`, sitio: "cabecera", tamano: 50 },
     { seccion: "countdown", url: `${A}/divisor.png`, sitio: "cabecera", tamano: 64 },
     { seccion: "gifts", url: `${A}/sello.png`, sitio: "cabecera", tamano: 30 },
     { seccion: "footer", url: `${A}/divisor.png`, sitio: "cabecera", tamano: 56 },
-    /* La filigrana que va bajo cada título. Como adorno y no sólo en el
-       CSS: así se puede mover, encoger o quitar de una sección suelta. */
-    { seccion: "*", url: `${A}/ramita.png`, sitio: "titulo", tamano: 47 },
+    /* La ramita que va bajo cada título, sección por sección y no con el
+       comodín: en «dress code» ese hueco lo ocupan los novios dibujados, y
+       el comodín los borraba. */
+    { seccion: "countdown", url: `${A}/ramita.png`, sitio: "titulo", tamano: 47 },
+    { seccion: "guests", url: `${A}/ramita.png`, sitio: "titulo", tamano: 47 },
+    { seccion: "events", url: `${A}/ramita.png`, sitio: "titulo", tamano: 47 },
+    { seccion: "gallery", url: `${A}/ramita.png`, sitio: "titulo", tamano: 47 },
+    { seccion: "features", url: `${A}/novios.png`, sitio: "titulo", tamano: 44 },
+    { seccion: "gifts", url: `${A}/ramita.png`, sitio: "titulo", tamano: 47 },
+    { seccion: "social", url: `${A}/ramita.png`, sitio: "titulo", tamano: 47 },
+    { seccion: "confirm", url: `${A}/ramita.png`, sitio: "titulo", tamano: 47 },
     { seccion: "splash", url: `${A}/esquina.png`, sitio: "arriba-izq", tamano: 52 },
     { seccion: "guests", url: `${A}/rama.png`, sitio: "arriba-der", tamano: 34 },
     { seccion: "events", url: `${A}/rama.png`, sitio: "abajo-izq", tamano: 34 },

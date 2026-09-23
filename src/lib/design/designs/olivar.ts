@@ -104,8 +104,7 @@ body{background:var(--bg)}
 section{padding:92px 26px}
 section.alt{background:linear-gradient(var(--bg),var(--bg-alt))}
 #guests{padding-top:108px;padding-bottom:124px;background:linear-gradient(var(--bg),var(--bg-alt))}
-#guests::after{content:"";position:absolute;right:6px;bottom:6px;width:min(32vw,160px);aspect-ratio:.82;
-  background:url(${A}/esquina.png) center/contain no-repeat;rotate:180deg;pointer-events:none}
+
 
 #guests [data-inv="guests.text"]{font-style:italic;font-size:clamp(23px,6.2vw,29px);line-height:1.5;
   max-width:27ch;margin-inline:auto;color:var(--brand)}
@@ -118,8 +117,7 @@ section.alt{background:linear-gradient(var(--bg),var(--bg-alt))}
 .inv-padres-invitados .hero-padres-nom{margin-top:6px;font-size:17px;line-height:1.5;color:var(--ink);
   white-space:pre-line}
 #confirmation{padding-bottom:130px;position:relative}
-#confirmation::after{content:"";position:absolute;right:6px;bottom:6px;width:min(30vw,150px);aspect-ratio:.82;
-  background:url(${A}/esquina.png) center/contain no-repeat;rotate:180deg;pointer-events:none}
+
 #features{padding-top:112px;background:linear-gradient(var(--bg),var(--bg-alt))}
 #features .features-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:440px;margin-inline:auto}
 #features .feature-card{padding:20px 14px;background:var(--card);border:0;border-radius:14px;
@@ -248,6 +246,8 @@ export const olivar: Design = {
    * en el CSS de la sección y no había manera de tocarlos.
    */
   adornos: [
+    { seccion: "guests", url: `${A}/esquina.png`, sitio: "abajo-der", tamano: 32, giro: 180 },
+    { seccion: "confirm", url: `${A}/esquina.png`, sitio: "abajo-der", tamano: 30, giro: 180 },
     { seccion: "hero", url: `${A}/corona.png`, sitio: "cabecera", tamano: 40 },
     { seccion: "guests", url: `${A}/ramo.png`, sitio: "cabecera", tamano: 46 },
     { seccion: "gifts", url: `${A}/sello.png`, sitio: "cabecera", tamano: 27 },

@@ -100,8 +100,7 @@ ${PAPEL} > .container{position:relative;max-width:520px;padding:54px 26px 50px;c
   background:radial-gradient(120% 90% at 50% 40%,var(--al-papel) 40%,var(--al-papel-2) 100%);
   filter:drop-shadow(0 12px 18px rgba(60,35,15,.35))}
 
-#guests > .container::after{content:"";position:absolute;left:12px;top:14px;width:min(24vw,110px);aspect-ratio:.95;
-  background:url(${A}/esquina.png) center/contain no-repeat;pointer-events:none}
+
 #guests .section-title{font-size:clamp(34px,9.6vw,44px);max-width:15ch;margin-inline:auto}
 #guests [data-inv="guests.text"]{font-style:italic;font-size:clamp(21px,5.8vw,25px);line-height:1.5;max-width:26ch;margin-inline:auto;color:var(--brand)}
 /* Los padres: una sola columna, el nombre en caligrafía y la frase debajo. */
@@ -176,6 +175,7 @@ export const alicia: Design = {
    * invitación, así que se mueven, se encogen o se borran desde el editor.
    */
   adornos: [
+    { seccion: "guests", url: `${A}/esquina.png`, sitio: "arriba-izq", tamano: 24 },
     { seccion: "guests", url: `${A}/conejo.png`, sitio: "cabecera", tamano: 40 },
     { seccion: "countdown", url: `${A}/reloj.png`, sitio: "cabecera", tamano: 36 },
     { seccion: "gifts", url: `${A}/gato.png`, sitio: "titulo", tamano: 40 },

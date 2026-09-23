@@ -78,8 +78,7 @@ body{background:var(--bg)}
 /* ── Bienvenida ── */
 #splash{background:linear-gradient(var(--bg-alt),var(--bg))}
 /* La guirnalda cuelga del borde de arriba del velo. */
-#splash::before{content:"";position:absolute;top:-10px;left:-6%;right:-6%;height:min(38vw,190px);z-index:1;
-  pointer-events:none;background:url(${A}/guirnalda.png) center top/contain no-repeat}
+
 .splash-modal{background:transparent;box-shadow:none;color:var(--ink)}
 
 .splash-name{font-size:clamp(56px,17vw,86px);line-height:1.12;padding-top:.06em}
@@ -113,9 +112,7 @@ body{background:var(--bg)}
 section{padding:100px 26px}
 section.alt{background:linear-gradient(var(--bg-alt),var(--bg))}
 :is(#guests,#confirmation){padding-top:150px}
-#guests::before,#confirmation::before{content:"";position:absolute;top:-10px;left:-6%;right:-6%;
-  height:min(38vw,190px);z-index:1;pointer-events:none;
-  background:url(${A}/guirnalda.png) center top/contain no-repeat}
+
 #guests .container,#confirmation .container{position:relative;z-index:2}
 
 #features{padding-top:120px;background:linear-gradient(var(--bg-alt),var(--bg))}
@@ -225,6 +222,9 @@ export const glicinas: Design = {
    * en el CSS de la sección y no había manera de tocarlos.
    */
   adornos: [
+    { seccion: "splash", url: `${A}/guirnalda.png`, sitio: "arriba", tamano: 100 },
+    { seccion: "guests", url: `${A}/guirnalda.png`, sitio: "arriba", tamano: 100 },
+    { seccion: "confirm", url: `${A}/guirnalda.png`, sitio: "arriba", tamano: 100 },
     { seccion: "splash", url: `${A}/corona.png`, sitio: "cabecera", tamano: 44 },
     { seccion: "hero", url: `${A}/corona.png`, sitio: "cabecera", tamano: 48 },
     { seccion: "guests", url: `${A}/racimo.png`, sitio: "cabecera", tamano: 34 },

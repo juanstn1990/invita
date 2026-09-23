@@ -100,8 +100,7 @@ section{padding:96px 26px;background:radial-gradient(120% 80% at 50% 0%,var(--hw
 section.alt{background:radial-gradient(120% 80% at 50% 0%,var(--hw-sala),var(--bg))}
 section .container{position:relative;z-index:2}
 #guests{padding-bottom:124px;background:radial-gradient(120% 80% at 50% 0%,var(--hw-sala),var(--bg))}
-#guests::after{content:"";position:absolute;right:8px;bottom:8px;width:min(30vw,150px);aspect-ratio:1;
-  background:url(${A}/esquina.png) center/contain no-repeat;rotate:180deg;pointer-events:none}
+
 
 #guests [data-inv="guests.text"]{font-style:italic;font-size:clamp(22px,6vw,27px);line-height:1.5;
   max-width:27ch;margin-inline:auto;color:var(--hw-oro-claro)}
@@ -116,8 +115,7 @@ section .container{position:relative;z-index:2}
 .gifts-bank{color:var(--hw-oro)}
 #confirmation{padding-bottom:130px}
 
-#confirmation::after{content:"";position:absolute;right:8px;bottom:8px;width:min(30vw,150px);aspect-ratio:1;
-  background:url(${A}/esquina.png) center/contain no-repeat;rotate:180deg;pointer-events:none}
+
 #confirmation .confirmation-deadline{display:none}
 .inv-rsvp-lab{font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--hw-oro);opacity:1;text-align:left}
 .inv-rsvp-lab .inv-rsvp-input{text-transform:none;letter-spacing:0;font-weight:400}
@@ -193,6 +191,8 @@ export const hollywood: Design = {
    * en el CSS de la sección y no había manera de tocarlos.
    */
   adornos: [
+    { seccion: "guests", url: `${A}/esquina.png`, sitio: "abajo-der", tamano: 30, giro: 180 },
+    { seccion: "confirm", url: `${A}/esquina.png`, sitio: "abajo-der", tamano: 30, giro: 180 },
     { seccion: "hero", url: `${A}/estrella.png`, sitio: "cabecera", tamano: 22 },
     { seccion: "guests", url: `${A}/boleto.png`, sitio: "cabecera", tamano: 70 },
     { seccion: "events", url: `${A}/camara.png`, sitio: "cabecera", tamano: 40 },
