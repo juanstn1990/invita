@@ -15,6 +15,7 @@
     "docker:backup": "sh scripts/docker-backup.sh",
     "docker:restore": "sh scripts/docker-restore.sh",
     "audit:bindings": "tsx scripts/audit-bindings.ts",
+    "audit:disenos": "tsx scripts/audit-disenos.ts",
     "audit:render": "tsx scripts/smoke-render.ts",
     "templates:build": "tsx scripts/build-templates.ts",
     "iconos:build": "tsx scripts/build-iconos.ts",
