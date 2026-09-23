@@ -98,9 +98,7 @@ body{background:var(--bg)}
 /* ── El papel rosa ── */
 section{padding:96px 26px}
 section.alt{background:linear-gradient(var(--bg),var(--pa-rosa))}
-#guests{padding-top:108px;padding-bottom:124px;background:
-  url(${A}/esquina.png) left 8px top 8px/min(32vw,160px) no-repeat,
-  linear-gradient(var(--bg),var(--pa-rosa))}
+#guests{padding-top:108px;padding-bottom:124px;background:linear-gradient(var(--bg),var(--pa-rosa))}
 #guests::after{content:"";position:absolute;right:8px;bottom:8px;width:min(32vw,160px);aspect-ratio:1;
   background:url(${A}/esquina.png) center/contain no-repeat;rotate:180deg;pointer-events:none}
 #guests .container::before{content:"";display:block;width:min(58vw,240px);aspect-ratio:1.33;margin:0 auto 10px;
@@ -114,9 +112,7 @@ section.alt{background:linear-gradient(var(--bg),var(--pa-rosa))}
 .inv-padres-invitados .hero-padres-tit{font-family:var(--pa-caps);font-size:11.5px;letter-spacing:.22em;color:var(--brand);margin:0}
 .inv-padres-invitados .hero-padres-nom{margin-top:6px;font-size:17.5px;line-height:1.5;color:var(--ink);white-space:pre-line}
 #events,.inv-block-events{background:var(--pa-rosa)}
-#features{padding-top:112px;background:
-  url(${A}/esquina.png) left 8px top 8px/min(30vw,150px) no-repeat,
-  linear-gradient(var(--bg),var(--pa-rosa))}
+#features{padding-top:112px;background:linear-gradient(var(--bg),var(--pa-rosa))}
 #features .features-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:440px;margin-inline:auto}
 #features .feature-card{padding:20px 14px;border:0;border-radius:14px;background:var(--card);
   box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--brand) 25%,transparent)}
@@ -200,6 +196,17 @@ export const paris: Design = {
   variantes: { countdown: "paletas", events: "postales" },
   padresEn: "guests",
   css,
+  /*
+   * Los adornos que trae puestos.
+   *
+   * Entran en los datos al crear la invitación, así que se mueven, se
+   * encogen o se borran desde el editor. Antes eran capas de `background`
+   * en el CSS de la sección y no había manera de tocarlos.
+   */
+  adornos: [
+    { seccion: "guests", url: `${A}/esquina.png`, sitio: "arriba-izq", tamano: 32 },
+    { seccion: "features", url: `${A}/esquina.png`, sitio: "arriba-izq", tamano: 30 },
+  ],
   deco: {
     ornament: () => `<img class="pa-divisor" src="${A}/divisor.png" alt="">`,
   },

@@ -156,14 +156,10 @@ ${BRUMA}{background:linear-gradient(var(--est-bruma),var(--est-bruma-2));
   color:var(--bg)}
 ${BRUMA} .section-title{color:var(--bg)}
 ${BRUMA} :is(.section-body,.guests-text,.gallery-text,.feature-text,.inv-mapa-dir){color:var(--muted)}
-#guests{padding-top:110px;padding-bottom:130px;background:
-  url(${A}/esquina.png) left 10px top 10px/min(34vw,170px) no-repeat,
-  url(${A}/esquina-abajo.png) right 10px bottom 10px/min(34vw,170px) no-repeat,
-  linear-gradient(var(--est-bruma),var(--est-bruma-2))}
+#guests{padding-top:110px;padding-bottom:130px;background:linear-gradient(var(--est-bruma),var(--est-bruma-2))}
 #guests .container::before{content:"";display:block;width:min(64vw,260px);aspect-ratio:1.06;margin:0 auto 18px;
   background:url(${A}/constelacion.png) center/contain no-repeat;filter:brightness(.5) saturate(1.4)}
-#features{background:url(${A}/esquina.png) left 10px top 10px/min(30vw,150px) no-repeat,
-  linear-gradient(var(--est-bruma),var(--est-bruma-2));padding-top:120px}
+#features{background:linear-gradient(var(--est-bruma),var(--est-bruma-2));padding-top:120px}
 ${BRUMA} .feature-card{background:#fff;border-radius:18px;
   box-shadow:0 16px 30px -22px color-mix(in srgb,var(--bg) 50%,transparent),
     inset 0 0 0 1px color-mix(in srgb,var(--bg) 14%,transparent)}
@@ -218,6 +214,18 @@ export const estrellada: Design = {
      como en la invitación de la que nació. Se pueden cambiar en el editor. */
   variantes: { countdown: "orbitas", events: "constelacion" },
   css,
+  /*
+   * Los adornos que trae puestos.
+   *
+   * Entran en los datos al crear la invitación, así que se mueven, se
+   * encogen o se borran desde el editor. Antes eran capas de `background`
+   * en el CSS de la sección y no había manera de tocarlos.
+   */
+  adornos: [
+    { seccion: "guests", url: `${A}/esquina.png`, sitio: "arriba-izq", tamano: 34 },
+    { seccion: "guests", url: `${A}/esquina-abajo.png`, sitio: "abajo-der", tamano: 34 },
+    { seccion: "features", url: `${A}/esquina.png`, sitio: "arriba-izq", tamano: 30 },
+  ],
   deco: {
     ornament: () => `<img class="est-divisor" src="${A}/divisor.png" alt="">`,
   },

@@ -189,15 +189,9 @@ body{background:var(--bg)}
 section{padding:96px 26px}
 section.alt{background:linear-gradient(var(--bg-alt),var(--bg))}
 #guests,#confirmation{padding-top:150px}
-#guests{padding-bottom:120px;background:
-  url(${A}/esquina.png) left -14px top -10px/min(40vw,210px) no-repeat,
-  url(${A}/esquina-abajo.png) right -14px bottom -10px/min(40vw,210px) no-repeat,
-  linear-gradient(var(--bg-alt),var(--bg))}
-#confirmation{padding-bottom:150px;background:
-  url(${A}/esquina-abajo.png) right -14px bottom -10px/min(40vw,210px) no-repeat,
-  linear-gradient(var(--bg-alt),var(--bg))}
-#gallery{background:
-  url(${A}/esquina.png) left -14px top -10px/min(34vw,170px) no-repeat,var(--bg)}
+#guests{padding-bottom:120px;background:linear-gradient(var(--bg-alt),var(--bg))}
+#confirmation{padding-bottom:150px;background:linear-gradient(var(--bg-alt),var(--bg))}
+#gallery{background:var(--bg)}
 #gallery{padding-top:140px}
 
 /* ── Noche ──
@@ -326,6 +320,19 @@ export const farolillos: Design = {
   shape: { radius: 18, radiusSm: 14, btnRadius: "pill", shadow: "none" },
   palettes: [FAROLILLOS, ROSA_ORO, CELESTE_ORO, VERDE_ORO],
   css,
+  /*
+   * Los adornos que trae puestos.
+   *
+   * Entran en los datos al crear la invitación, así que se mueven, se
+   * encogen o se borran desde el editor. Antes eran capas de `background`
+   * en el CSS de la sección y no había manera de tocarlos.
+   */
+  adornos: [
+    { seccion: "guests", url: `${A}/esquina.png`, sitio: "arriba-izq", tamano: 40 },
+    { seccion: "guests", url: `${A}/esquina-abajo.png`, sitio: "abajo-der", tamano: 40 },
+    { seccion: "confirm", url: `${A}/esquina-abajo.png`, sitio: "abajo-der", tamano: 40 },
+    { seccion: "gallery", url: `${A}/esquina.png`, sitio: "arriba-izq", tamano: 34 },
+  ],
   deco: {
     splash: () => cielo("far-cielo-velo", 12, false),
     hero: () => cielo("far-cielo-portada", 14, false),

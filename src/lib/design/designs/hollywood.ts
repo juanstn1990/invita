@@ -101,9 +101,7 @@ body{background:var(--bg)}
 section{padding:96px 26px;background:radial-gradient(120% 80% at 50% 0%,var(--hw-sala),var(--bg))}
 section.alt{background:radial-gradient(120% 80% at 50% 0%,var(--hw-sala),var(--bg))}
 section .container{position:relative;z-index:2}
-#guests{padding-bottom:124px;background:
-  url(${A}/esquina.png) left 8px top 8px/min(30vw,150px) no-repeat,
-  radial-gradient(120% 80% at 50% 0%,var(--hw-sala),var(--bg))}
+#guests{padding-bottom:124px;background:radial-gradient(120% 80% at 50% 0%,var(--hw-sala),var(--bg))}
 #guests::after{content:"";position:absolute;right:8px;bottom:8px;width:min(30vw,150px);aspect-ratio:1;
   background:url(${A}/esquina.png) center/contain no-repeat;rotate:180deg;pointer-events:none}
 #guests .container::before{content:"";display:block;width:min(70vw,290px);aspect-ratio:1.9;margin:0 auto 12px;
@@ -196,6 +194,16 @@ export const hollywood: Design = {
   variantes: { countdown: "marquesina", events: "cinta" },
   padresEn: "guests",
   css,
+  /*
+   * Los adornos que trae puestos.
+   *
+   * Entran en los datos al crear la invitación, así que se mueven, se
+   * encogen o se borran desde el editor. Antes eran capas de `background`
+   * en el CSS de la sección y no había manera de tocarlos.
+   */
+  adornos: [
+    { seccion: "guests", url: `${A}/esquina.png`, sitio: "arriba-izq", tamano: 30 },
+  ],
   deco: {
     ornament: () => `<img class="hw-divisor" src="${A}/divisor.png" alt="">`,
   },

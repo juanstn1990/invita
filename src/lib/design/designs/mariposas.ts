@@ -91,8 +91,7 @@ body{background:var(--bg)}
 /* ── El jardín ── */
 section{padding:96px 26px}
 section.alt{background:linear-gradient(var(--bg),var(--mp-claro))}
-#guests{padding-top:104px;padding-bottom:124px;background:
-  url(${A}/esquina.png) left 0 top 0/min(34vw,170px) no-repeat,linear-gradient(var(--bg),var(--mp-claro))}
+#guests{padding-top:104px;padding-bottom:124px;background:linear-gradient(var(--bg),var(--mp-claro))}
 #guests::after{content:"";position:absolute;right:0;bottom:0;width:min(34vw,170px);aspect-ratio:1;
   background:url(${A}/esquina.png) center/contain no-repeat;rotate:180deg;pointer-events:none}
 #guests .container::before{content:"";display:block;width:min(46vw,180px);aspect-ratio:.8;margin:0 auto 10px;
@@ -108,8 +107,7 @@ section.alt{background:linear-gradient(var(--bg),var(--mp-claro))}
 #countdown,.inv-block-countdown{background:linear-gradient(var(--mp-rosa),var(--mp-claro))}
 .inv-cd-alas .ring-number{font-weight:500;color:var(--ink)}
 .inv-cd-alas .ring-label{color:var(--brand)}
-#features{padding-top:112px;background:
-  url(${A}/esquina.png) left 0 top 0/min(30vw,150px) no-repeat,linear-gradient(var(--mp-rosa),var(--mp-claro))}
+#features{padding-top:112px;background:linear-gradient(var(--mp-rosa),var(--mp-claro))}
 #features .features-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:440px;margin-inline:auto}
 #features .feature-card{padding:20px 14px;border:0;border-radius:18px;background:var(--card);
   box-shadow:0 14px 26px -20px color-mix(in srgb,var(--ink) 50%,transparent),inset 0 0 0 1px color-mix(in srgb,var(--brand) 22%,transparent)}
@@ -193,6 +191,17 @@ export const mariposas: Design = {
   variantes: { countdown: "alas", events: "viaje" },
   padresEn: "guests",
   css,
+  /*
+   * Los adornos que trae puestos.
+   *
+   * Entran en los datos al crear la invitación, así que se mueven, se
+   * encogen o se borran desde el editor. Antes eran capas de `background`
+   * en el CSS de la sección y no había manera de tocarlos.
+   */
+  adornos: [
+    { seccion: "guests", url: `${A}/esquina.png`, sitio: "arriba-izq", tamano: 34 },
+    { seccion: "features", url: `${A}/esquina.png`, sitio: "arriba-izq", tamano: 30 },
+  ],
   deco: {
     ornament: () => `<img class="mp-divisor" src="${A}/divisor.png" alt="">`,
   },

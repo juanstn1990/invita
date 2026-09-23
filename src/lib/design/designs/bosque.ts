@@ -110,9 +110,7 @@ section{padding:96px 26px;background:linear-gradient(var(--bg),var(--bq-hondo) 4
 section.alt{background:linear-gradient(var(--bg),var(--bq-hondo) 40%,var(--bg))}
 ${CLARO}{background:radial-gradient(120% 80% at 50% 0%,var(--bq-musgo),var(--bq-hondo) 60%,var(--bg))}
 section .container{position:relative;z-index:2}
-#guests{padding-bottom:124px;background:
-  url(${A}/esquina.png) left 0 top 0/min(34vw,170px) no-repeat,
-  radial-gradient(120% 80% at 50% 0%,var(--bq-musgo),var(--bq-hondo) 60%,var(--bg))}
+#guests{padding-bottom:124px;background:radial-gradient(120% 80% at 50% 0%,var(--bq-musgo),var(--bq-hondo) 60%,var(--bg))}
 #guests .container::before{content:"";display:block;width:min(52vw,210px);aspect-ratio:1;margin:0 auto 6px;
   background:url(${A}/ciervo.png) center/contain no-repeat;
   filter:drop-shadow(0 0 22px color-mix(in srgb,var(--accent) 25%,transparent))}
@@ -132,9 +130,7 @@ section .container{position:relative;z-index:2}
   white-space:pre-line}
 #confirmation::after{content:"";position:absolute;right:0;bottom:0;width:min(32vw,160px);aspect-ratio:1.05;
   background:url(${A}/esquina.png) center/contain no-repeat;rotate:180deg;pointer-events:none}
-#features{padding-top:112px;background:
-  url(${A}/esquina.png) left 0 top 0/min(30vw,150px) no-repeat,
-  radial-gradient(120% 80% at 50% 0%,var(--bq-musgo),var(--bq-hondo) 60%,var(--bg))}
+#features{padding-top:112px;background:radial-gradient(120% 80% at 50% 0%,var(--bq-musgo),var(--bq-hondo) 60%,var(--bg))}
 #features .features-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:440px;margin-inline:auto}
 #features .feature-card{padding:20px 14px;border:0;border-radius:18px;
   background:color-mix(in srgb,var(--ink) 5%,transparent);
@@ -220,6 +216,17 @@ export const bosque: Design = {
   variantes: { countdown: "luciernagas", events: "sendero" },
   padresEn: "guests",
   css,
+  /*
+   * Los adornos que trae puestos.
+   *
+   * Entran en los datos al crear la invitación, así que se mueven, se
+   * encogen o se borran desde el editor. Antes eran capas de `background`
+   * en el CSS de la sección y no había manera de tocarlos.
+   */
+  adornos: [
+    { seccion: "guests", url: `${A}/esquina.png`, sitio: "arriba-izq", tamano: 34 },
+    { seccion: "features", url: `${A}/esquina.png`, sitio: "arriba-izq", tamano: 30 },
+  ],
   deco: {
     ornament: () => `<img class="bq-divisor" src="${A}/divisor.png" alt="">`,
   },

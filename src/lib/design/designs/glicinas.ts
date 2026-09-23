@@ -122,10 +122,8 @@ section.alt{background:linear-gradient(var(--bg-alt),var(--bg))}
 #guests .container,#confirmation .container{position:relative;z-index:2}
 #guests .container::before{content:"";display:block;width:min(34vw,140px);aspect-ratio:.46;margin:0 auto 12px;
   background:url(${A}/racimo.png) center/contain no-repeat}
-#features{padding-top:120px;background:
-  url(${A}/esquina.png) left 8px top 8px/min(30vw,150px) no-repeat,
-  linear-gradient(var(--bg-alt),var(--bg))}
-#gallery{background:url(${A}/esquina-abajo.png) right 8px bottom 8px/min(30vw,150px) no-repeat,var(--bg)}
+#features{padding-top:120px;background:linear-gradient(var(--bg-alt),var(--bg))}
+#gallery{background:var(--bg)}
 .feature-card{background:var(--card);border-radius:18px;
   box-shadow:0 16px 30px -22px color-mix(in srgb,var(--ink) 50%,transparent),
     inset 0 0 0 1px color-mix(in srgb,var(--brand-2) 32%,transparent)}
@@ -229,6 +227,17 @@ export const glicinas: Design = {
   /* La galería del jardín es un paseo: una foto grande a la vez. */
   variantes: { gallery: "carrusel" },
   css,
+  /*
+   * Los adornos que trae puestos.
+   *
+   * Entran en los datos al crear la invitación, así que se mueven, se
+   * encogen o se borran desde el editor. Antes eran capas de `background`
+   * en el CSS de la sección y no había manera de tocarlos.
+   */
+  adornos: [
+    { seccion: "features", url: `${A}/esquina.png`, sitio: "arriba-izq", tamano: 30 },
+    { seccion: "gallery", url: `${A}/esquina-abajo.png`, sitio: "abajo-der", tamano: 30 },
+  ],
   deco: {
     ornament: () => `<img class="gli-divisor" src="${A}/divisor.png" alt="">`,
   },

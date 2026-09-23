@@ -105,9 +105,7 @@ body{background:var(--bg)}
 /* ── El lino ── */
 section{padding:92px 26px}
 section.alt{background:linear-gradient(var(--bg),var(--bg-alt))}
-#guests{padding-top:108px;padding-bottom:124px;background:
-  url(${A}/esquina.png) left 6px top 6px/min(32vw,160px) no-repeat,
-  linear-gradient(var(--bg),var(--bg-alt))}
+#guests{padding-top:108px;padding-bottom:124px;background:linear-gradient(var(--bg),var(--bg-alt))}
 #guests::after{content:"";position:absolute;right:6px;bottom:6px;width:min(32vw,160px);aspect-ratio:.82;
   background:url(${A}/esquina.png) center/contain no-repeat;rotate:180deg;pointer-events:none}
 #guests .container::before{content:"";display:block;width:min(46vw,180px);aspect-ratio:.74;margin:0 auto 10px;
@@ -125,9 +123,7 @@ section.alt{background:linear-gradient(var(--bg),var(--bg-alt))}
 #confirmation{padding-bottom:130px;position:relative}
 #confirmation::after{content:"";position:absolute;right:6px;bottom:6px;width:min(30vw,150px);aspect-ratio:.82;
   background:url(${A}/esquina.png) center/contain no-repeat;rotate:180deg;pointer-events:none}
-#features{padding-top:112px;background:
-  url(${A}/esquina.png) left 6px top 6px/min(28vw,140px) no-repeat,
-  linear-gradient(var(--bg),var(--bg-alt))}
+#features{padding-top:112px;background:linear-gradient(var(--bg),var(--bg-alt))}
 #features .features-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:440px;margin-inline:auto}
 #features .feature-card{padding:20px 14px;background:var(--card);border:0;border-radius:14px;
   box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--brand) 22%,transparent)}
@@ -249,6 +245,17 @@ export const olivar: Design = {
   palettes: [OLIVAR, SALVIA, TERRACOTA, NOCHE_OLIVO],
   padresEn: "guests",
   css,
+  /*
+   * Los adornos que trae puestos.
+   *
+   * Entran en los datos al crear la invitación, así que se mueven, se
+   * encogen o se borran desde el editor. Antes eran capas de `background`
+   * en el CSS de la sección y no había manera de tocarlos.
+   */
+  adornos: [
+    { seccion: "guests", url: `${A}/esquina.png`, sitio: "arriba-izq", tamano: 32 },
+    { seccion: "features", url: `${A}/esquina.png`, sitio: "arriba-izq", tamano: 28 },
+  ],
   deco: {
     ornament: () => `<img class="ol-rama" src="${A}/rama.png" alt="">`,
   },

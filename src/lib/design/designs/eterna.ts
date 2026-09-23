@@ -135,10 +135,7 @@ body{background:var(--bg)}
 /* ── El papel ── */
 section{padding:96px 26px}
 section.alt{background:linear-gradient(var(--bg),var(--bg-alt))}
-#guests{padding-top:112px;padding-bottom:120px;background:
-  url(${A}/esquina.png) left 8px top 8px/min(30vw,155px) no-repeat,
-  url(${A}/esquina-abajo.png) right 8px bottom 8px/min(30vw,155px) no-repeat,
-  linear-gradient(var(--bg),var(--bg-alt))}
+#guests{padding-top:112px;padding-bottom:120px;background:linear-gradient(var(--bg),var(--bg-alt))}
 #guests .container::before{content:"";display:block;width:min(48vw,190px);aspect-ratio:1;margin:0 auto 12px;
   background:url(${A}/ramo.png) center/contain no-repeat}
 #guests [data-inv="guests.text"]{font-style:italic;font-size:clamp(22px,6vw,27px);line-height:1.5;
@@ -153,12 +150,8 @@ section.alt{background:linear-gradient(var(--bg),var(--bg-alt))}
   text-transform:uppercase;color:var(--brand);margin:0}
 .inv-padres-invitados .hero-padres-nom{margin-top:6px;font-size:16.5px;line-height:1.5;color:var(--ink);
   white-space:pre-line}
-#confirmation{padding-bottom:132px;background:
-  url(${A}/esquina-abajo.png) right 8px bottom 8px/min(30vw,155px) no-repeat,
-  linear-gradient(var(--bg),var(--bg-alt))}
-#events{background:
-  url(${A}/esquina.png) left 8px top 8px/min(28vw,140px) no-repeat,
-  color-mix(in srgb,var(--brand-2) 12%,var(--bg))}
+#confirmation{padding-bottom:132px;background:linear-gradient(var(--bg),var(--bg-alt))}
+#events{background:color-mix(in srgb,var(--brand-2) 12%,var(--bg))}
 #features .feature-card,#events .event-card{background:var(--card);border-radius:2px;border:0;
   box-shadow:0 18px 34px -26px color-mix(in srgb,var(--ink) 60%,transparent),
     inset 0 0 0 1px color-mix(in srgb,var(--brand-2) 30%,transparent)}
@@ -292,6 +285,19 @@ export const eterna: Design = {
   palettes: [ETERNA, CHAMPAN, PERLA, NOCHE_ORO],
   padresEn: "guests",
   css,
+  /*
+   * Los adornos que trae puestos.
+   *
+   * Entran en los datos al crear la invitación, así que se mueven, se
+   * encogen o se borran desde el editor. Antes eran capas de `background`
+   * en el CSS de la sección y no había manera de tocarlos.
+   */
+  adornos: [
+    { seccion: "guests", url: `${A}/esquina.png`, sitio: "arriba-izq", tamano: 30 },
+    { seccion: "guests", url: `${A}/esquina-abajo.png`, sitio: "abajo-der", tamano: 30 },
+    { seccion: "confirm", url: `${A}/esquina-abajo.png`, sitio: "abajo-der", tamano: 30 },
+    { seccion: "events", url: `${A}/esquina.png`, sitio: "arriba-izq", tamano: 28 },
+  ],
   deco: {
     ornament: () => `<img class="et-divisor" src="${A}/divisor.png" alt="">`,
   },

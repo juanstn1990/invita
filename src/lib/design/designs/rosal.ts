@@ -72,9 +72,7 @@ body{background:var(--bg)}
 .ro-divisor{display:block;width:min(52%,210px);margin:0 auto;pointer-events:none}
 
 /* ── Bienvenida: el sobre con su lacre ── */
-#splash{background:
-  url(${A}/esquina.png) left -30px top -20px/min(52vw,230px) no-repeat,
-  radial-gradient(120% 80% at 50% 20%,var(--ro-crema),var(--bg))}
+#splash{background:radial-gradient(120% 80% at 50% 20%,var(--ro-crema),var(--bg))}
 #splash::after{content:"";position:absolute;right:-30px;bottom:-20px;width:min(52vw,230px);aspect-ratio:1;
   background:url(${A}/esquina.png) center/contain no-repeat;rotate:180deg;pointer-events:none;z-index:0}
 .splash-name{font-size:clamp(64px,20vw,96px);line-height:1;color:var(--brand)}
@@ -112,8 +110,7 @@ body{background:var(--bg)}
 section{padding:92px 24px;background:var(--bg)}
 section.alt{background:var(--ro-crema)}
 section .container{position:relative;z-index:2}
-#guests{padding-top:104px;padding-bottom:116px;background:
-  url(${A}/rama.png) right -46px top 10px/min(34vw,150px) no-repeat,var(--ro-crema)}
+#guests{padding-top:104px;padding-bottom:116px;background:var(--ro-crema)}
 #guests .container::before{content:"";display:block;width:min(50vw,200px);aspect-ratio:.82;margin:0 auto 8px;
   background:url(${A}/ramo.png) center/contain no-repeat}
 #guests [data-inv="guests.text"]{max-width:30ch;margin-inline:auto}
@@ -137,8 +134,7 @@ section .container{position:relative;z-index:2}
 .ring-label{font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
 
 /* ── Ceremonia y recepción: dos fichas de papel ── */
-#events{background:
-  url(${A}/rama.png) left -46px bottom 10px/min(34vw,150px) no-repeat;background-color:var(--bg)}
+#events{;background-color:var(--bg)}
 #events .events-grid{display:grid;grid-template-columns:1fr;gap:14px;max-width:430px;margin:20px auto 0}
 #events .event-card{padding:26px 20px;text-align:center;border:0;border-radius:4px;background:var(--card);
   box-shadow:0 14px 28px -22px rgba(74,64,56,.7),inset 0 0 0 1px color-mix(in srgb,var(--brand) 20%,transparent)}
@@ -181,8 +177,7 @@ section .container{position:relative;z-index:2}
 .gifts-bank{color:var(--brand)}
 
 /* ── Confirmar: aquí va la canción que pide cada invitado ── */
-#confirmation{padding-bottom:120px;background:
-  url(${A}/esquina.png) right -40px bottom -30px/min(44vw,190px) no-repeat;background-color:var(--bg)}
+#confirmation{padding-bottom:120px;;background-color:var(--bg)}
 #confirmation .confirmation-deadline{display:none}
 .inv-rsvp-lab{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--brand);opacity:1;text-align:left}
 .inv-rsvp-lab .inv-rsvp-input{text-transform:none;letter-spacing:0;font-weight:400}
@@ -231,6 +226,19 @@ export const rosal: Design = {
   palettes: [ROSAL, BLUSH, ARENA, LAVANDA],
   padresEn: "guests",
   css,
+  /*
+   * Los adornos que trae puestos.
+   *
+   * Entran en los datos al crear la invitación, así que se mueven, se
+   * encogen o se borran desde el editor. Antes eran capas de `background`
+   * en el CSS de la sección y no había manera de tocarlos.
+   */
+  adornos: [
+    { seccion: "splash", url: `${A}/esquina.png`, sitio: "arriba-izq", tamano: 52 },
+    { seccion: "guests", url: `${A}/rama.png`, sitio: "arriba-der", tamano: 34 },
+    { seccion: "events", url: `${A}/rama.png`, sitio: "abajo-izq", tamano: 34 },
+    { seccion: "confirm", url: `${A}/esquina.png`, sitio: "abajo-der", tamano: 44 },
+  ],
   deco: {
     ornament: () => `<img class="ro-divisor" src="${A}/ramita.png" alt="">`,
   },

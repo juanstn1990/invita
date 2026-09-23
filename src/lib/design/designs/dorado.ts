@@ -126,15 +126,9 @@ body{background:var(--bg)}
 section{padding:100px 26px}
 section.alt{background:linear-gradient(var(--bg-alt),var(--bg))}
 #guests,#confirmation,#gallery{background-repeat:no-repeat}
-#guests{padding-top:120px;padding-bottom:130px;background:
-  url(${A}/filigrana.png) left 10px top 10px/min(34vw,170px) no-repeat,
-  url(${A}/filigrana-abajo.png) right 10px bottom 10px/min(34vw,170px) no-repeat,
-  linear-gradient(var(--bg-alt),var(--bg))}
-#confirmation{padding-bottom:140px;background:
-  url(${A}/filigrana-abajo.png) right 10px bottom 10px/min(34vw,170px) no-repeat,
-  linear-gradient(var(--bg-alt),var(--bg))}
-#gallery{padding-top:130px;background:
-  url(${A}/filigrana.png) left 10px top 10px/min(30vw,150px) no-repeat,var(--bg)}
+#guests{padding-top:120px;padding-bottom:130px;background:linear-gradient(var(--bg-alt),var(--bg))}
+#confirmation{padding-bottom:140px;background:linear-gradient(var(--bg-alt),var(--bg))}
+#gallery{padding-top:130px;background:var(--bg)}
 /* El medallón de laurel con el XV, sobre los invitados. */
 #guests .container::before{content:"XV";display:grid;place-items:center;
   width:min(52vw,210px);aspect-ratio:1;margin:0 auto 22px;
@@ -271,6 +265,19 @@ export const dorado: Design = {
   /* El reloj de paletas de la invitación original. */
   variantes: { countdown: "paletas" },
   css,
+  /*
+   * Los adornos que trae puestos.
+   *
+   * Entran en los datos al crear la invitación, así que se mueven, se
+   * encogen o se borran desde el editor. Antes eran capas de `background`
+   * en el CSS de la sección y no había manera de tocarlos.
+   */
+  adornos: [
+    { seccion: "guests", url: `${A}/filigrana.png`, sitio: "arriba-izq", tamano: 34 },
+    { seccion: "guests", url: `${A}/filigrana-abajo.png`, sitio: "abajo-der", tamano: 34 },
+    { seccion: "confirm", url: `${A}/filigrana-abajo.png`, sitio: "abajo-der", tamano: 34 },
+    { seccion: "gallery", url: `${A}/filigrana.png`, sitio: "arriba-izq", tamano: 30 },
+  ],
   deco: {
     ornament: () => `<img class="dor-divisor" src="${A}/divisor.png" alt="">`,
   },

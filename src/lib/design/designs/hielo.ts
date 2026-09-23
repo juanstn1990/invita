@@ -94,8 +94,7 @@ body{background:var(--bg)}
 /* ── El hielo claro ── */
 section{padding:96px 26px}
 section.alt{background:linear-gradient(var(--bg),var(--hi-claro))}
-#guests{padding-bottom:124px;background:
-  url(${A}/esquina.png) left 0 top 0/min(34vw,170px) no-repeat,linear-gradient(var(--bg),var(--hi-claro))}
+#guests{padding-bottom:124px;background:linear-gradient(var(--bg),var(--hi-claro))}
 #guests::after{content:"";position:absolute;right:0;bottom:0;width:min(34vw,170px);aspect-ratio:1;
   background:url(${A}/esquina.png) center/contain no-repeat;rotate:180deg;pointer-events:none}
 #guests .container::before{content:"";display:block;width:min(36vw,140px);aspect-ratio:.9;margin:0 auto 10px;
@@ -197,6 +196,16 @@ export const hielo: Design = {
   variantes: { countdown: "cristales", events: "viaje" },
   padresEn: "guests",
   css,
+  /*
+   * Los adornos que trae puestos.
+   *
+   * Entran en los datos al crear la invitación, así que se mueven, se
+   * encogen o se borran desde el editor. Antes eran capas de `background`
+   * en el CSS de la sección y no había manera de tocarlos.
+   */
+  adornos: [
+    { seccion: "guests", url: `${A}/esquina.png`, sitio: "arriba-izq", tamano: 34 },
+  ],
   deco: {
     ornament: () => `<img class="hi-divisor" src="${A}/divisor.png" alt="">`,
   },
