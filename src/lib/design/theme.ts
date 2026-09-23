@@ -196,6 +196,32 @@ export interface Theme {
  * marcado**: nada de aquí cambia el DOM, así que los bindings, el reordenado
  * de bloques y las variantes siguen funcionando igual en los 27.
  */
+/**
+ * Un adorno con el que nace la invitación.
+ *
+ * Los campos son los del esquema (`ADORNOS`) y valen sus mismos valores por
+ * defecto: aquí sólo se escribe lo que se aparta de ellos.
+ */
+export interface AdornoDeDiseno {
+  /** La sección donde vive: "hero", "splash", "footer", "guests"… */
+  seccion: string;
+  /** El arte, en /disenos. */
+  url: string;
+  /** Uno de los nueve anclajes, "sangre", o "libre" con x/y. */
+  sitio?: string;
+  /** El centro de la pieza, en % de la sección. Sólo con "libre". */
+  x?: number;
+  y?: number;
+  /** Ancho, en % de la sección. */
+  tamano?: number;
+  capa?: "" | "encima";
+  opacidad?: number;
+  giro?: number;
+  espejo?: "" | "h" | "v" | "hv";
+  entrada?: string;
+  movimiento?: string;
+}
+
 export interface Layout {
   /** Dónde y cómo se apoya el bloque de los nombres sobre la portada. */
   hero:
@@ -286,6 +312,21 @@ export interface Design {
    * lo guardado gana.
    */
   variantes?: Record<string, string>;
+  /**
+   * Los adornos que el diseño trae puestos.
+   *
+   * Adornos de verdad —de los de `seccion.adornos`—, no un fondo escrito en
+   * el CSS: entran en los datos al crear la invitación, salen en el editor
+   * con su sitio y su tamaño, y quien la arma los mueve, los encoge o los
+   * borra. Es la diferencia entre «el diseño lleva una rosa en la esquina» y
+   * «lleva una rosa en la esquina y no hay manera de quitarla», que es lo que
+   * pasaba con una regla `background`.
+   *
+   * Lo que no cambia de invitación a invitación —el papel de las fichas, el
+   * dibujo que va debajo de un título— sigue en el CSS: eso no es un adorno
+   * puesto encima, es la sección.
+   */
+  adornos?: AdornoDeDiseno[];
   /**
    * Dónde van los padres. Los campos son de la portada (`hero.padresA`…) y
    * ahí se quedan en el editor, pero una portada con foto a sangre no tiene

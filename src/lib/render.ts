@@ -2345,10 +2345,14 @@ a.inv-rsvp-btn{display:flex;width:max-content;max-width:100%;margin:28px auto 0;
 .inv-hero-label{display:block;margin:0 0 10px;font-size:11px;letter-spacing:.22em;
   text-transform:uppercase;opacity:.72}
 
-.inv-block{position:relative;padding:64px 22px;text-align:center}
+/* El relleno y el centrado son de la sección **suelta**: la que nace al lado
+   porque el diseño no tiene esa sección o porque se agregó una de más. Un
+   bloque que entra dentro de una sección del diseño no los quiere —ahí manda
+   la maquetación del diseño, que puede ir alineada a la izquierda—. */
+.inv-block-suelto{position:relative;padding:64px 22px;text-align:center}
 /* Centrado siempre: algunos diseños alinean a la izquierda desde un selector
    de id, que gana a cualquier clase nuestra. */
-.inv-block :is(p,h1,h2,h3,h4,h5,li,span,div,figcaption,label,time){text-align:center !important}
+.inv-block-suelto :is(p,h1,h2,h3,h4,h5,li,span,div,figcaption,label,time){text-align:center !important}
 /* El adorno que trae el diseño bajo el título se descoloca en nuestra
    maquetación; en los bloques nuestros no se pinta. */
 .inv-block .ornament{display:none}
@@ -2698,7 +2702,7 @@ a.inv-rsvp-btn{display:flex;width:max-content;max-width:100%;margin:28px auto 0;
 .inv-foto{margin:0}
 .inv-foto-pie{margin-top:10px;text-align:center;font-size:12.5px;opacity:.68}
 .inv-foto .gallery-item{overflow:hidden}
-.inv-block.inv-v-completa{padding:0}
+.inv-block-suelto.inv-v-completa{padding:0}
 .inv-foto-completa .gallery-item{aspect-ratio:16/10;border-radius:0}
 .inv-foto-completa .inv-foto-pie{padding:10px 22px 26px}
 .inv-foto-marco-centrado .gallery-item{max-width:520px;margin:26px auto 0;aspect-ratio:4/3;border-radius:8px}
@@ -2751,7 +2755,7 @@ a.inv-rsvp-btn{display:flex;width:max-content;max-width:100%;margin:28px auto 0;
   border-radius:var(--inv-btn-radius);transition:transform .2s}
 .inv-mapa-btn:hover{transform:translateY(-2px)}
 
-.inv-block.inv-v-ancho{padding:0}
+.inv-block-suelto.inv-v-ancho{padding:0}
 .inv-mapa-ancho{position:relative;margin:0}
 .inv-mapa-ancho .inv-mapa-lienzo{border-radius:0;border-left:0;border-right:0}
 .inv-mapa-ancho .inv-mapa-lienzo::before{padding-top:70%}
@@ -3918,29 +3922,64 @@ export function renderInvitation(opts: RenderOptions): string {
       // por el template que se haya elegido.
     }
 
-    // Marcado nuestro, con las clases canónicas para que lo estilice el CSS
-    // del template. Si el bloque sustituye a una sección que existe, la
-    // original se quita.
-    if (primero && spec.section) {
-      const original = pick(document, map.sections[sectionKey] || []);
-      if (original) { ocultar(divisorDe(original)); ocultar(original); }
-    }
     const armar = variante.build || spec.variants.find((v) => v.build)?.build;
     if (!armar) continue;
 
-    const seccion = document.createElement("section");
-    seccion.setAttribute("id", `inv-${block.id}`);
-    seccion.setAttribute(
-      "class",
-      `inv-block inv-block-${block.type} inv-v-${variante.id || "propia"} reveal`
-    );
-    // Las variantes a sangre no llevan el contenedor que limita el ancho.
-    seccion.innerHTML = variante.bare ? armar() : `<div class="container">${armar()}</div>`;
-    padre.appendChild(seccion);
-    sintetizados += 1;
+    /* Marcado nuestro, con las clases canónicas para que lo estilice el CSS
+       del template.
+
+       Y si el bloque sustituye a una sección que el diseño trae, se escribe
+       **dentro de ella**, no en otra sección al lado: así conserva su id, su
+       sitio en el documento, su divisor y —lo que de verdad importa— todo el
+       CSS que el diseño le tiene escrito por `#id`. Antes se escondía la
+       original y el bloque nacía como `.inv-block-events`: 18 de los 25
+       diseños estilan sus secciones por id, así que elegir otra variante
+       hacía desaparecer el arte de esa sección —la capilla de la ficha, el
+       fondo de la galería— y no había manera de recuperarlo. */
+    const anfitrion =
+      primero && spec.section ? pickWithSel(document, map.sections[sectionKey] || []) : null;
+
+    let seccion: El;
+    let sel: string;
+    if (anfitrion) {
+      [seccion, sel] = anfitrion;
+      const caja = seccion.querySelector(".container") as El | null;
+      /* La filigrana que el diseño pone bajo el título se guarda antes de
+         reescribir y se devuelve después: el marcado de los bloques no la
+         trae —en una sección suelta quedaba descolocada— pero aquí la
+         maquetación es la del propio diseño, que es donde encaja. Se clona
+         del marcado horneado, así que no hace falta el tema. */
+      const filigrana = seccion.querySelector(".ornament")?.cloneNode(true) as El | undefined;
+      // Las variantes a sangre se comen el contenedor que limita el ancho.
+      if (variante.bare || !caja) seccion.innerHTML = armar();
+      else caja.innerHTML = armar();
+      const titulo = (caja || seccion).querySelector(".section-title") as El | null;
+      if (filigrana && titulo?.parentNode) {
+        titulo.parentNode.insertBefore(filigrana, titulo.nextSibling);
+      }
+      seccion.setAttribute(
+        "class",
+        `${seccion.getAttribute("class") || ""} inv-block inv-block-${block.type} inv-v-${
+          variante.id || "propia"
+        }`.trim()
+      );
+    } else {
+      seccion = document.createElement("section");
+      seccion.setAttribute("id", `inv-${block.id}`);
+      seccion.setAttribute(
+        "class",
+        `inv-block inv-block-suelto inv-block-${block.type} inv-v-${
+          variante.id || "propia"
+        } reveal`
+      );
+      seccion.innerHTML = variante.bare ? armar() : `<div class="container">${armar()}</div>`;
+      padre.appendChild(seccion);
+      sel = `#inv-${block.id}`;
+      sintetizados += 1;
+    }
     resueltos.push({
-      block, el: seccion, sel: `#inv-${block.id}`, key: sectionKey,
-      data: blockData, sintetizado: true,
+      block, el: seccion, sel, key: sectionKey,
+      data: blockData, sintetizado: !anfitrion,
     });
   }
 

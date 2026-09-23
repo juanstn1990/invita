@@ -37,6 +37,32 @@ const ACTA = {
   cierre: "Queremos compartir con ustedes este día\ntan especial y esperado, nuestra boda.",
 };
 
+/**
+ * Los adornos que el diseño trae puestos, ya como datos de la invitación.
+ *
+ * Se copian al crearla y desde ese momento son suyos: se mueven, se encogen o
+ * se borran en el editor como cualquier otro adorno. El diseño no vuelve a
+ * mandar sobre ellos —cambiarlo después no los toca—, que es justo lo que se
+ * quiere: lo que ya se colocó a mano no debería moverse solo.
+ */
+function conAdornosDelDiseno(d: InvitationData, slug?: string): InvitationData {
+  const adornos = slug ? DESIGN_BY_SLUG[slug]?.adornos : undefined;
+  if (!adornos?.length) return d;
+  for (const a of adornos) {
+    const { seccion, ...campos } = a;
+    const sec = (d[seccion] ||= {} as InvitationData[string]);
+    const lista = (sec.adornos as Record<string, unknown>[] | undefined) || [];
+    /* Como texto: es lo que guarda el editor y lo que espera el renderer, que
+       lee los números con Number() y no distingue 40 de "40". Guardarlos como
+       números dejaba la lista escrita de dos maneras según de dónde saliera. */
+    lista.push(
+      Object.fromEntries(Object.entries(campos).map(([k, v]) => [k, String(v)]))
+    );
+    sec.adornos = lista;
+  }
+  return d;
+}
+
 export function presetFor(target: Target | TemplateInfo["kind"]): InvitationData {
   const { kind, paleta, design } =
     typeof target === "string"
@@ -71,7 +97,7 @@ export function presetFor(target: Target | TemplateInfo["kind"]): InvitationData
       { icon: "🍽️", title: "Cena", text: "Menú de tres tiempos servido a la mesa." },
       { icon: "corbatin", title: "Dresscode", text: "Formal. Por favor evitar el color de la quinceañera." },
     ];
-    return d;
+    return conAdornosDelDiseno(d, design);
   }
 
   if (kind === "comunion") {
@@ -95,7 +121,7 @@ export function presetFor(target: Target | TemplateInfo["kind"]): InvitationData
       { icon: "🎂", title: "Almuerzo", text: "Celebramos en familia justo después de la misa." },
       { icon: "📸", title: "Recuerdos", text: "Habrá fotógrafo y souvenirs para todos." },
     ];
-    return d;
+    return conAdornosDelDiseno(d, design);
   }
 
   if (kind === "grado") {
@@ -121,7 +147,7 @@ export function presetFor(target: Target | TemplateInfo["kind"]): InvitationData
       { icon: "🎟️", title: "Cupos de la ceremonia", text: "La universidad da un número limitado por graduando. Escríbeme y te confirmo." },
       { icon: "🚗", title: "Cómo llegar", text: "Hay parqueadero en el campus y la casa queda a diez minutos." },
     ];
-    return d;
+    return conAdornosDelDiseno(d, design);
   }
 
   if (kind === "primer-ano") {
@@ -166,7 +192,7 @@ export function presetFor(target: Target | TemplateInfo["kind"]): InvitationData
       title: "Sube tus fotos", text: "Etiquétalas con nuestro hashtag para que no se pierda ninguna.",
       hashtag: nino ? "#MartinCumple1" : "#EmiliaCumple1",
     });
-    return d;
+    return conAdornosDelDiseno(d, design);
   }
 
   if (kind === "baby-shower") {
@@ -213,8 +239,8 @@ export function presetFor(target: Target | TemplateInfo["kind"]): InvitationData
       title: "Sube tus fotos", text: "Etiquétalas con nuestro hashtag para que no se pierda ninguna.",
       hashtag: `#Esperando${nino ? "AMartin" : "AEmilia"}`,
     });
-    return d;
+    return conAdornosDelDiseno(d, design);
   }
 
-  return d;
+  return conAdornosDelDiseno(d, design);
 }

@@ -84,11 +84,11 @@ section.alt{background:var(--bg)}
 section .container,.inv-block .container{position:relative;z-index:2;
   padding:40px 22px 36px;border-radius:22px;background:var(--rl-ficha);box-shadow:var(--rl-sombra)}
 
-/* ── Bienvenida: el sobre con su lacre, entre rosas ── */
-#splash{background:
-  url(${A}/rosa.png) left -44px top -30px/min(46vw,190px) no-repeat,
-  url(${A}/ramita.png) right -16px bottom 8%/min(26vw,110px) no-repeat,
-  var(--bg)}
+/* ── Bienvenida: el sobre con su lacre ──
+   Las rosas de las esquinas no están aquí: nacen como adornos de la
+   invitación —ver la lista de adornos, al final del archivo—, y así se
+   pueden mover o quitar desde el editor. */
+#splash{background:var(--bg)}
 #splash .splash-modal{background:var(--rl-ficha);border-radius:22px;box-shadow:var(--rl-sombra)}
 .splash-subtitle{font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--brand)}
 .splash-name{font-size:clamp(46px,14vw,62px);line-height:1.1;color:var(--ink)}
@@ -104,10 +104,7 @@ section .container,.inv-block .container{position:relative;z-index:2;
 /* ── Portada: papel crema y las rosas en dos esquinas ──
    Sin foto por defecto, como la referencia: el ramo arriba, el ramo abajo y
    los nombres en medio. La foto que suba la pareja entra igual y manda. */
-#hero{place-items:center;padding:110px 24px;background:
-  url(${A}/rosa.png) left -64px top -58px/min(48vw,196px) no-repeat,
-  url(${A}/rosa.png) right -52px bottom -34px/min(46vw,190px) no-repeat,
-  var(--bg);
+#hero{place-items:center;padding:110px 24px;background:var(--bg);
   --hero-ink:var(--ink);--hero-ink-soft:var(--muted);--hero-line:color-mix(in srgb,var(--brand) 30%,transparent);
   --hero-brand:var(--brand)}
 #hero.con-foto{background:none}
@@ -238,8 +235,6 @@ section .container,.inv-block .container{position:relative;z-index:2;
 footer{padding:26px 14px calc(30px + env(safe-area-inset-bottom));background:var(--bg)}
 footer .container{position:relative;z-index:2;padding:40px 22px;border-radius:22px;
   background:var(--rl-ficha);box-shadow:var(--rl-sombra)}
-footer .container::before{content:"";display:block;width:min(26vw,100px);aspect-ratio:1.1;margin:0 auto 8px;
-  background:url(${A}/ramita.png) center/contain no-repeat}
 .footer-names{font-size:40px;line-height:1.2;color:var(--ink)}
 .footer-date{font-size:17px;color:var(--muted)}
 .footer-copy{font-size:11px;letter-spacing:.16em;color:var(--brand)}
@@ -274,4 +269,23 @@ export const rosalila: Design = {
   deco: {
     ornament: () => `<img class="rl-ramita" src="${A}/ramita.png" alt="">`,
   },
+  /*
+   * Las rosas y la ramita, puestas como adornos y no como fondo.
+   *
+   * Son lo único de este diseño que se coloca «encima»: van en una esquina,
+   * y en una esquina es donde estorban cuando la pareja sube su propia foto
+   * de portada o alarga el texto. Naciendo como adornos, el editor las
+   * arrastra, las encoge o las borra sin tocar el diseño.
+   *
+   * Los dibujos que van debajo de un título —los novios, la cámara, el
+   * sobre— se quedan en el CSS a propósito: ésos no están puestos encima de
+   * la sección, son la sección.
+   */
+  adornos: [
+    { seccion: "splash", url: `${A}/rosa.png`, sitio: "arriba-izq", tamano: 34 },
+    { seccion: "splash", url: `${A}/ramita.png`, sitio: "abajo-der", tamano: 20 },
+    { seccion: "hero", url: `${A}/rosa.png`, sitio: "arriba-izq", tamano: 36 },
+    { seccion: "hero", url: `${A}/rosa.png`, sitio: "abajo-der", tamano: 34, espejo: "h" },
+    { seccion: "footer", url: `${A}/ramita.png`, sitio: "arriba", tamano: 18 },
+  ],
 };

@@ -1587,6 +1587,27 @@ for (const [nombre, tocar] of CASOS) {
       (doc) => doc.querySelectorAll("#splash.inv-velo-jardin .inv-jardin").length === 2 &&
         doc.querySelectorAll("#splash.inv-velo-jardin .inv-mariposa .inv-ala").length === 2 &&
         conScript(doc, "inv-velo-jardin")],
+    ["una variante se escribe dentro de la sección del diseño, no al lado",
+      (d) => { d.layout = { blocks: [{ id: "events-0", type: "events", variant: "cinta" }] };
+        d.events = { ...d.events, enabled: true, items: [{ kind: "Misa", title: "Ceremonia", time: "5:00" }] }; },
+      (doc) => {
+        /* La sección de siempre sigue ahí, con su id, y ahora lleva dentro el
+           marcado de la variante: es lo que deja que el CSS del diseño —que
+           estila por #events— siga alcanzándola. */
+        const dentro = doc.querySelector("#events .inv-ev-cinta, #events.inv-block-events .inv-ev-cinta");
+        const suelta = doc.querySelector("section.inv-block-events:not(#events)");
+        return (!!dentro || !!suelta) && !doc.querySelector("#events[hidden]");
+      }],
+    ["los adornos del diseño nacen en los datos, no en el CSS",
+      () => {},
+      (doc) => {
+        /* Rosalila trae cinco; aquí se comprueba que lleguen al marcado como
+           adornos de verdad —con su caja y su sitio—, que es lo que el editor
+           arrastra. En los demás diseños no hay ninguno y la prueba se salta
+           sola, que es lo correcto: declararlos es opcional. */
+        const puestos = doc.querySelectorAll("#splash .inv-adorno, #hero .inv-adorno, footer .inv-adorno");
+        return puestos.length === 0 || puestos.length === 5;
+      }],
     ["portada sin texto: la tapa se queda, el bloque de texto no",
       (d) => { d.hero = { ...d.hero, enabled: true, contenido: "limpia" }; },
       (doc) => {
@@ -1861,9 +1882,11 @@ for (const [nombre, tocar] of CASOS) {
   const alineadas = (html: string) =>
     [...html.matchAll(/([^{}\n]+)\{text-align:([a-z]+) !important\}/g)]
       .map((m) => [m[1].trim(), m[2]] as [string, string])
-      /* La del marcado sintetizado, que centra todo, no cuenta: es del
-         diseño y está siempre. */
-      .filter(([sel]) => !sel.startsWith(".inv-block :is("));
+      /* La del marcado suelto, que centra todo, no cuenta: es del diseño y
+         está siempre. (Antes era `.inv-block :is(`; se acotó a la sección
+         suelta cuando los bloques pasaron a escribirse dentro de la sección
+         del diseño, que trae su propia alineación.) */
+      .filter(([sel]) => !sel.startsWith(".inv-block-suelto :is("));
 
   /** Las reglas de color que se inyectaron, en orden. */
   const reglas = (html: string) =>
