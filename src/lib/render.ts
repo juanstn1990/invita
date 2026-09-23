@@ -1169,7 +1169,19 @@ function ponerAdornos(
 
     mov.appendChild(pieza);
     caja.appendChild(mov);
-    seccion.appendChild(caja);
+    /* «Bajo el título» es el único sitio que no va encima de la sección sino
+       dentro de ella, justo debajo del título: es donde los diseños ponen su
+       filigrana. Y si el diseño ya traía una horneada, se quita — si no, se
+       verían las dos. */
+    if (sitio === "titulo") {
+      const caja2 = (seccion.querySelector(".container") as El | null) || seccion;
+      const titulo = caja2.querySelector(".section-title") as El | null;
+      caja2.querySelector(".ornament")?.remove();
+      if (titulo?.parentNode) titulo.parentNode.insertBefore(caja, titulo.nextSibling);
+      else caja2.insertBefore(caja, caja2.firstChild);
+    } else {
+      seccion.appendChild(caja);
+    }
     puestos += 1;
   }
 
@@ -2303,6 +2315,8 @@ a.inv-rsvp-btn{display:flex;width:max-content;max-width:100%;margin:28px auto 0;
   .inv-ad-luz{display:none}
 }
 
+/* Bajo el título: en el flujo, centrado y empujando lo que viene debajo. */
+.inv-adorno.inv-ad-titulo{position:static;margin:2px auto 18px}
 .inv-ad-arriba-izq{top:0;left:0}
 .inv-ad-arriba{top:0;left:50%;translate:-50% 0}
 .inv-ad-arriba-der{top:0;right:0}

@@ -234,6 +234,9 @@ export const rosal: Design = {
    * en el CSS de la sección y no había manera de tocarlos.
    */
   adornos: [
+    /* La filigrana que va bajo cada título. Como adorno y no sólo en el
+       CSS: así se puede mover, encoger o quitar de una sección suelta. */
+    { seccion: "*", url: `${A}/ramita.png`, sitio: "titulo", tamano: 47 },
     { seccion: "splash", url: `${A}/esquina.png`, sitio: "arriba-izq", tamano: 52 },
     { seccion: "guests", url: `${A}/rama.png`, sitio: "arriba-der", tamano: 34 },
     { seccion: "events", url: `${A}/rama.png`, sitio: "abajo-izq", tamano: 34 },

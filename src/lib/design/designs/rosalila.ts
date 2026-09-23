@@ -160,10 +160,6 @@ section .container,.inv-block .container{position:relative;z-index:2;
 #gallery .section-title,.inv-block-gallery .section-title{color:#fff}
 #gallery .section-label,.inv-block-gallery .section-label,
 #gallery .gallery-text,.inv-block-gallery .gallery-text{color:rgba(255,255,255,.92)}
-#gallery .container::before,.inv-block-gallery .container::before{content:"";display:block;
-  width:min(52vw,200px);aspect-ratio:1.37;margin:2px auto 10px;
-  background:url(${A}/camara.png) center/contain no-repeat}
-#gallery .ornament,.inv-block-gallery .ornament{display:none}
 .inv-ga-rasgada .gallery-item{filter:drop-shadow(0 14px 22px rgba(70,55,45,.3))}
 .inv-ga-tresydos{gap:10px;margin-top:20px}
 
@@ -177,9 +173,6 @@ section .container,.inv-block .container{position:relative;z-index:2;
   padding:0;text-transform:none;color:var(--muted)}
 
 /* ── Dress code: los novios dibujados y dos columnas ── */
-#features .ornament{width:min(40vw,150px);aspect-ratio:.86;margin:4px auto 16px;
-  background:url(${A}/novios.png) center/contain no-repeat}
-#features .ornament img{visibility:hidden}
 #features .features-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 18px;max-width:420px;margin-inline:auto}
 #features .feature-card{padding:0;border:0;border-radius:0;background:none;box-shadow:none;text-align:center}
 #features .feature-card:last-child:nth-child(odd){grid-column:1/-1;margin-top:4px}
@@ -188,16 +181,9 @@ section .container,.inv-block .container{position:relative;z-index:2;
 .feature-text{font-size:19px;color:var(--muted)}
 
 /* ── Lluvia de sobres y confirmar ── */
-#gifts .ornament,.inv-block-gifts .ornament{width:min(44vw,170px);aspect-ratio:1.38;margin:8px auto 12px;
-  background:url(${A}/sobre.png) center/contain no-repeat}
-#gifts .ornament img,.inv-block-gifts .ornament img{visibility:hidden}
-#events .ornament{width:min(42vw,160px);aspect-ratio:1.42;margin:8px auto 10px;
-  background:url(${A}/anillos.png) center/contain no-repeat}
-#events .ornament img{visibility:hidden}
 .gifts-account{background:color-mix(in srgb,var(--brand) 8%,transparent);border:0;border-radius:14px}
 .gifts-bank{font-size:19px;color:var(--brand)}
 #confirmation{padding:0;background:var(--rl-banda-suave)}
-#confirmation .ornament{display:none}
 #confirmation .container{background:none;box-shadow:none;border-radius:0;padding:56px 20px 64px}
 #confirmation .section-title{font-family:var(--rl-ui);font-size:clamp(26px,7.4vw,32px);color:#fff}
 #confirmation .section-label,#confirmation .confirmation-text{color:rgba(255,255,255,.94)}
@@ -215,11 +201,6 @@ section .container,.inv-block .container{position:relative;z-index:2;
 #social{padding:0;background:var(--rl-banda-suave)}
 #social .container{background:none;box-shadow:none;border-radius:0;padding:64px 22px}
 #social .section-title{font-family:var(--rl-foto);font-weight:400;font-size:clamp(28px,8vw,34px);color:#fff}
-/* Aquí también manda la cámara, no la ramita: la sección es «comparte las
-   fotos», y es el mismo dibujo que preside la galería. */
-#social .ornament{width:min(46vw,180px);aspect-ratio:1.37;margin:10px auto 6px;
-  background:url(${A}/camara.png) center/contain no-repeat}
-#social .ornament img{visibility:hidden}
 #social .section-label,#social .social-sub{color:rgba(255,255,255,.92)}
 .social-hashtag{font-family:var(--rl-foto);font-size:26px;color:#fff}
 
@@ -282,6 +263,18 @@ export const rosalila: Design = {
    * la sección, son la sección.
    */
   adornos: [
+    /* Un dibujo por sección, bajo su título: la ramita donde sólo hace de
+       filete, y el que toca donde la sección tiene el suyo —los anillos en
+       la ceremonia, la cámara en la galería, los novios en el dress code, el
+       sobre en la lluvia—. Como adornos y no como CSS: se cambian, se
+       encogen, se mueven o se quitan sin tocar el diseño. */
+    { seccion: "countdown", url: `${A}/ramita.png`, sitio: "titulo", tamano: 20 },
+    { seccion: "guests", url: `${A}/ramita.png`, sitio: "titulo", tamano: 20 },
+    { seccion: "events", url: `${A}/anillos.png`, sitio: "titulo", tamano: 42 },
+    { seccion: "gallery", url: `${A}/camara.png`, sitio: "titulo", tamano: 52 },
+    { seccion: "features", url: `${A}/novios.png`, sitio: "titulo", tamano: 40 },
+    { seccion: "gifts", url: `${A}/sobre.png`, sitio: "titulo", tamano: 44 },
+    { seccion: "social", url: `${A}/camara.png`, sitio: "titulo", tamano: 46 },
     { seccion: "splash", url: `${A}/rosa.png`, sitio: "arriba-izq", tamano: 34 },
     { seccion: "splash", url: `${A}/ramita.png`, sitio: "abajo-der", tamano: 20 },
     { seccion: "hero", url: `${A}/rosa.png`, sitio: "arriba-izq", tamano: 36 },

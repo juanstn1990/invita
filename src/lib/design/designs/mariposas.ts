@@ -199,6 +199,9 @@ export const mariposas: Design = {
    * en el CSS de la sección y no había manera de tocarlos.
    */
   adornos: [
+    /* La filigrana que va bajo cada título. Como adorno y no sólo en el
+       CSS: así se puede mover, encoger o quitar de una sección suelta. */
+    { seccion: "*", url: `${A}/divisor.png`, sitio: "titulo", tamano: 70 },
     { seccion: "guests", url: `${A}/esquina.png`, sitio: "arriba-izq", tamano: 34 },
     { seccion: "features", url: `${A}/esquina.png`, sitio: "arriba-izq", tamano: 30 },
   ],

@@ -176,6 +176,15 @@ export const alicia: Design = {
   variantes: { countdown: "bolsillo", events: "naipes" },
   padresEn: "guests",
   css,
+  /*
+   * Los adornos que trae puestos: entran en los datos al crear la
+   * invitación, así que se mueven, se encogen o se borran desde el editor.
+   */
+  adornos: [
+    /* La filigrana que va bajo cada título. Como adorno y no sólo en el
+       CSS: así se puede mover, encoger o quitar de una sección suelta. */
+    { seccion: "*", url: `${A}/divisor.png`, sitio: "titulo", tamano: 70 },
+  ],
   deco: {
     ornament: () => `<img class="al-divisor" src="${A}/divisor.png" alt="">`,
   },

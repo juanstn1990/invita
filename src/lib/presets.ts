@@ -48,7 +48,16 @@ const ACTA = {
 function conAdornosDelDiseno(d: InvitationData, slug?: string): InvitationData {
   const adornos = slug ? DESIGN_BY_SLUG[slug]?.adornos : undefined;
   if (!adornos?.length) return d;
-  for (const a of adornos) {
+  /* Las secciones que llevan título y, por tanto, filigrana debajo. El
+     comodín «*» del diseño se reparte entre ellas: escribir diez líneas
+     iguales en cada diseño era pedir que una se quedara sin poner. */
+  const CON_TITULO = [
+    "countdown", "guests", "events", "gallery", "features", "gifts", "social", "confirm",
+  ];
+  const lista = adornos.flatMap((a) =>
+    a.seccion === "*" ? CON_TITULO.map((seccion) => ({ ...a, seccion })) : [a]
+  );
+  for (const a of lista) {
     const { seccion, ...campos } = a;
     const sec = (d[seccion] ||= {} as InvitationData[string]);
     const lista = (sec.adornos as Record<string, unknown>[] | undefined) || [];

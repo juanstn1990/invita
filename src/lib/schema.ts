@@ -368,6 +368,10 @@ export const SITIOS: { value: string; label: string }[] = [
   { value: "abajo", label: "Abajo al centro" },
   { value: "abajo-der", label: "Abajo a la derecha" },
   { value: "sangre", label: "A sangre (cubre la sección)" },
+  /* En el flujo y no encima: es el sitio de la filigrana que casi todos los
+     diseños ponen bajo el título, y ahí no vale colocarla con dos números
+     —el texto de arriba crece y la deja descolgada—. */
+  { value: "titulo", label: "Bajo el título, empujando el texto" },
   /* Va al final a propósito: los nueve anclajes son la vía rápida para lo
      normal —una esquina, el centro— y bajar a dos números es lo que se elige
      cuando ninguno de los nueve sirve. */

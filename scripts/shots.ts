@@ -73,6 +73,15 @@ const targets = ids.length ? TEMPLATES.filter((t) => ids.includes(t.id)) : TEMPL
       .then(() => 0)
       .catch(async () => page.evaluate(() => document.querySelectorAll(".reveal:not(.in)").length));
     if (pending) console.log(`  ⚠ ${pending} secciones no se revelaron`);
+    /* Y esperar a las imágenes: las de los adornos son `lazy`, así que
+       bajando deprisa la captura salía sin ellas y parecía que faltaban. */
+    await page
+      .waitForFunction(
+        () => Array.from(document.images).every((i) => i.complete),
+        undefined,
+        { timeout: 8000 }
+      )
+      .catch(() => console.log("  ⚠ alguna imagen no cargó a tiempo"));
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.waitForTimeout(900);
     const file = path.join(out, `${tpl.id}.png`);

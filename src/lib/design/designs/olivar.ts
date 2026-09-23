@@ -253,6 +253,9 @@ export const olivar: Design = {
    * en el CSS de la sección y no había manera de tocarlos.
    */
   adornos: [
+    /* La filigrana que va bajo cada título. Como adorno y no sólo en el
+       CSS: así se puede mover, encoger o quitar de una sección suelta. */
+    { seccion: "*", url: `${A}/rama.png`, sitio: "titulo", tamano: 63 },
     { seccion: "guests", url: `${A}/esquina.png`, sitio: "arriba-izq", tamano: 32 },
     { seccion: "features", url: `${A}/esquina.png`, sitio: "arriba-izq", tamano: 28 },
   ],
