@@ -1036,9 +1036,22 @@ function ponerAdornos(
   d: InvitationData[string],
   sel: string,
   ctx: Ctx,
-  clave = ""
+  clave = "",
+  filigranaEnLosDatos = false
 ) {
   const items = (d.adornos as Record<string, string>[]) || [];
+  /* La filigrana que el template trae horneada se quita en cuanto la
+     invitación la lleva en sus datos, **aunque la lista esté vacía**: si sólo
+     se quitara cuando hay un adorno puesto, borrar el adorno haría reaparecer
+     la del diseño y parecería que no se puede quitar. Que es justo lo que
+     pasaba.
+
+     Las invitaciones de antes no traen la lista, así que no entran aquí y
+     conservan su filigrana tal cual. */
+  if (filigranaEnLosDatos && Array.isArray(d.adornos)) {
+    const cuerpo = (seccion.querySelector(".container") as El | null) || seccion;
+    cuerpo.querySelector(".ornament")?.remove();
+  }
   if (!Array.isArray(items) || !items.length) return;
 
   let puestos = 0;
@@ -1191,9 +1204,6 @@ function ponerAdornos(
         (seccion.querySelector(".splash-modal") as El | null) ||
         seccion;
       const titulo = cuerpo.querySelector(".section-title") as El | null;
-      /* La filigrana horneada del diseño se quita: si la invitación trae la
-         suya, se verían las dos. */
-      if (sitio === "titulo") cuerpo.querySelector(".ornament")?.remove();
       if (sitio === "titulo" && titulo?.parentNode) {
         titulo.parentNode.insertBefore(caja, titulo.nextSibling);
       } else {
@@ -4465,7 +4475,12 @@ export function renderInvitation(opts: RenderOptions): string {
 
     // El fondo va detrás de todo y los adornos donde el organizador diga.
     ponerFondo(root, sectionData, sectionSel, ctx);
-    ponerAdornos(root, sectionData, sectionSel, ctx, r.key);
+    ponerAdornos(
+      root, sectionData, sectionSel, ctx, r.key,
+      (designOf(templateId)?.adornos || []).some(
+        (a) => a.sitio === "titulo" && (a.seccion === r.key || a.seccion === "*")
+      )
+    );
     ponerEntrada(root, String(sectionData.entrada || ""));
 
     /* Un bloque de vídeo sin vídeo se esconde, y entonces no hay nada más

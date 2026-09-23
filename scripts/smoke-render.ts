@@ -1611,6 +1611,27 @@ for (const [nombre, tocar] of CASOS) {
         const suelta = doc.querySelector("section.inv-block-events:not(#events)");
         return (!!dentro || !!suelta) && !doc.querySelector("#events[hidden]");
       }],
+    ["borrar la filigrana la borra de verdad",
+      (d) => { d.countdown = { ...d.countdown, enabled: true, adornos: [] }; },
+      (doc) => {
+        /* Con la lista puesta —aunque esté vacía— la filigrana horneada del
+           template no vuelve: si volviera, borrar el adorno no serviría de
+           nada y parecería que el diseño manda.
+
+           Sólo aplica a los diseños que declaran la suya; en los demás la
+           filigrana sigue siendo del template y no hay nada que borrar. */
+        const declara = !!doc.querySelector(".inv-ad-titulo");
+        const cd: any = doc.querySelector("#countdown, .inv-block-countdown");
+        return !declara || !cd || !cd.querySelector(".ornament");
+      }],
+    ["y una invitación de antes conserva la suya",
+      (d) => { d.countdown = { ...d.countdown, enabled: true }; delete (d.countdown as any).adornos; },
+      (doc) => {
+        const cd: any = doc.querySelector("#countdown, .inv-block-countdown");
+        const orn = cd?.querySelector(".ornament");
+        /* Sólo los diseños que la traen: los demás no tienen qué conservar. */
+        return !cd || !!orn || !doc.querySelector(".ornament");
+      }],
     ["los adornos del diseño nacen en los datos, no en el CSS",
       () => {},
       (doc) => {
