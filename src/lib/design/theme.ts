@@ -222,6 +222,30 @@ export interface AdornoDeDiseno {
   movimiento?: string;
 }
 
+/**
+ * Las secciones que llevan título y, por tanto, filigrana debajo. Es a lo
+ * que se reparte el comodín «*» de un diseño.
+ */
+export const SECCIONES_CON_TITULO = [
+  "countdown", "guests", "events", "gallery", "features", "gifts", "social", "confirm",
+];
+
+/**
+ * Los adornos que el diseño declara para una sección, con el comodín ya
+ * repartido.
+ *
+ * Lo usan dos sitios y por eso vive aquí: el preset, que los copia a los
+ * datos al crear la invitación, y el renderer, que los dibuja cuando la
+ * invitación no trae lista propia —las de antes de que esto existiera—.
+ */
+export function adornosDeclarados(d: Design | undefined, seccion: string): AdornoDeDiseno[] {
+  return (d?.adornos || []).flatMap((a) =>
+    a.seccion === seccion || (a.seccion === "*" && SECCIONES_CON_TITULO.includes(seccion))
+      ? [{ ...a, seccion }]
+      : []
+  );
+}
+
 export interface Layout {
   /** Dónde y cómo se apoya el bloque de los nombres sobre la portada. */
   hero:

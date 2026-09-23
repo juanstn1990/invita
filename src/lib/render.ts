@@ -20,7 +20,7 @@ import { FONT_BY_ID, googleHref } from "./fonts";
 import { pesoIconos } from "./design/designs";
 import { ANCHOS } from "./storage";
 import { variablesDePaleta } from "./design/css";
-import { alpha } from "./design/theme";
+import { adornosDeclarados, alpha } from "./design/theme";
 import { piel } from "./design/theme";
 import { iconoHtml, type Peso } from "./iconos";
 import { FONT_ALIAS, fontableOp } from "./support";
@@ -1037,9 +1037,18 @@ function ponerAdornos(
   sel: string,
   ctx: Ctx,
   clave = "",
-  filigranaEnLosDatos = false
+  filigranaEnLosDatos = false,
+  declarados: Record<string, string>[] = []
 ) {
-  const items = (d.adornos as Record<string, string>[]) || [];
+  /* La lista de la invitación manda; si no la trae, se dibuja la que declara
+     el diseño.
+
+     Las invitaciones creadas antes de que los adornos existieran no tienen
+     lista, y su arte ya no está en el CSS: sin esta línea, publicar una
+     versión nueva las dejaría sin corona, sin ramo y sin esquinas. Con ella
+     se ven exactamente igual que siempre, y en cuanto alguien toca los
+     adornos de esa sección pasa a mandar lo que guardó. */
+  const items = (d.adornos as Record<string, string>[]) || declarados;
   /* La filigrana que el template trae horneada se quita en cuanto la
      invitación la lleva en sus datos, **aunque la lista esté vacía**: si sólo
      se quitara cuando hay un adorno puesto, borrar el adorno haría reaparecer
@@ -1048,7 +1057,7 @@ function ponerAdornos(
 
      Las invitaciones de antes no traen la lista, así que no entran aquí y
      conservan su filigrana tal cual. */
-  if (filigranaEnLosDatos && Array.isArray(d.adornos)) {
+  if (filigranaEnLosDatos && (Array.isArray(d.adornos) || declarados.length)) {
     const cuerpo = (seccion.querySelector(".container") as El | null) || seccion;
     cuerpo.querySelector(".ornament")?.remove();
   }
@@ -4475,11 +4484,16 @@ export function renderInvitation(opts: RenderOptions): string {
 
     // El fondo va detrás de todo y los adornos donde el organizador diga.
     ponerFondo(root, sectionData, sectionSel, ctx);
+    const declarados = adornosDeclarados(designOf(templateId), r.key);
     ponerAdornos(
       root, sectionData, sectionSel, ctx, r.key,
-      (designOf(templateId)?.adornos || []).some(
-        (a) => a.sitio === "titulo" && (a.seccion === r.key || a.seccion === "*")
-      )
+      declarados.some((a) => a.sitio === "titulo"),
+      declarados.map((a) => {
+        const { seccion, ...campos } = a;
+        return Object.fromEntries(
+          Object.entries(campos).map(([k, v]) => [k, String(v)])
+        ) as Record<string, string>;
+      })
     );
     ponerEntrada(root, String(sectionData.entrada || ""));
 

@@ -1611,6 +1611,20 @@ for (const [nombre, tocar] of CASOS) {
         const suelta = doc.querySelector("section.inv-block-events:not(#events)");
         return (!!dentro || !!suelta) && !doc.querySelector("#events[hidden]");
       }],
+    ["una invitación de antes conserva el arte del diseño",
+      (d) => { for (const k of Object.keys(d)) {
+        const sec: any = (d as any)[k];
+        if (sec && typeof sec === "object") delete sec.adornos;
+      } },
+      (doc) => {
+        /* Sin lista propia se dibuja la que declara el diseño. Antes el arte
+           vivía en el CSS de la sección; al sacarlo de ahí, una invitación
+           publicada hace meses se habría quedado sin corona ni esquinas en
+           cuanto se subiera una versión nueva. */
+        const decl = doc.querySelector(".inv-adorno");
+        const conAdornos = doc.querySelectorAll(".inv-adorno").length;
+        return !!decl === conAdornos > 0;
+      }],
     ["borrar la filigrana la borra de verdad",
       (d) => { d.countdown = { ...d.countdown, enabled: true, adornos: [] }; },
       (doc) => {
@@ -1632,15 +1646,15 @@ for (const [nombre, tocar] of CASOS) {
         /* Sólo los diseños que la traen: los demás no tienen qué conservar. */
         return !cd || !!orn || !doc.querySelector(".ornament");
       }],
-    ["los adornos del diseño nacen en los datos, no en el CSS",
+    ["los adornos del diseño llegan al marcado con su sitio",
       () => {},
       (doc) => {
-        /* Rosalila trae cinco; aquí se comprueba que lleguen al marcado como
-           adornos de verdad —con su caja y su sitio—, que es lo que el editor
-           arrastra. En los demás diseños no hay ninguno y la prueba se salta
-           sola, que es lo correcto: declararlos es opcional. */
-        const puestos = doc.querySelectorAll("#splash .inv-adorno, #hero .inv-adorno, footer .inv-adorno");
-        return puestos.length === 0 || puestos.length === 5;
+        /* Que los declarados salgan como adornos de verdad —con su caja y su
+           clase de sitio—, que es lo que el editor arrastra. */
+        const puestos = Array.from(doc.querySelectorAll(".inv-adorno"));
+        return puestos.every((a: any) =>
+          /inv-ad-[\w-]+/.test(a.getAttribute("class") || "") && !!a.querySelector("img,video")
+        );
       }],
     ["portada sin texto: la tapa se queda, el bloque de texto no",
       (d) => { d.hero = { ...d.hero, enabled: true, contenido: "limpia" }; },
@@ -2241,7 +2255,12 @@ for (const [nombre, tocar] of CASOS) {
           templateHtml: readTemplate(tpl.id), templateId: tpl.id, data: d, slug: "demo",
         })
       );
-      const a = document.querySelector(".inv-adorno") as any;
+      /* Dentro de la galería, que es donde lo puso la prueba: el primero del
+         documento puede ser uno de los que el diseño declara para el velo o
+         la portada. */
+      const a = document.querySelector(
+        "#gallery .inv-adorno, .inv-block-gallery .inv-adorno"
+      ) as any;
       if (!a) mal.push(`${tpl.id} (sin adorno)`);
       else if (!comprueba(a)) mal.push(tpl.id);
     }
