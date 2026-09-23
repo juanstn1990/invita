@@ -1587,6 +1587,9 @@ for (const [nombre, tocar] of CASOS) {
       (doc) => doc.querySelectorAll("#splash.inv-velo-jardin .inv-jardin").length === 2 &&
         doc.querySelectorAll("#splash.inv-velo-jardin .inv-mariposa .inv-ala").length === 2 &&
         conScript(doc, "inv-velo-jardin")],
+    ["galería tres y dos: cinco fotos, tres arriba y dos abajo",
+      (d) => { d.layout = { blocks: [{ id: "gallery-0", type: "gallery", variant: "tresydos" }] }; },
+      (doc) => doc.querySelectorAll(".inv-ga-tresydos .gallery-item").length === 5],
     ["galería en papel rasgado: cuatro fotos, cada una con su máscara",
       (d) => { d.layout = { blocks: [{ id: "gallery-0", type: "gallery", variant: "rasgada" }] }; },
       (doc) => doc.querySelectorAll(".inv-ga-rasgada .gallery-item").length === 4],

@@ -508,6 +508,18 @@ const gallery: BlockSpec = {
     </div>
     <div class="inv-puntos" aria-hidden="true"></div>`,
     },
+    /* Tres y dos: la rejilla de los álbumes de boda. Tres verticales
+       arriba y dos apaisadas debajo, y vuelta a empezar cada cinco. */
+    {
+      id: "tresydos",
+      name: "Tres y dos",
+      hint: "Tres verticales arriba y dos apaisadas debajo, como un álbum",
+      build: () => `${head()}
+    <p class="gallery-text">Mensaje</p>
+    <div class="gallery-grid inv-ga-tresydos">
+      ${galleryItems(5)}
+    </div>`,
+    },
     /* El papel rasgado: la foto sin marco, rota a mano por los cuatro
        lados. Va una debajo de otra y grande, que es como luce el borde. */
     {

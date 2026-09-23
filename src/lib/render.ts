@@ -2555,6 +2555,19 @@ a.inv-rsvp-btn{display:flex;width:max-content;max-width:100%;margin:28px auto 0;
 .inv-ga-polaroid .gallery-item:nth-child(even){transform:rotate(1.6deg)}
 .inv-ga-polaroid .gallery-ph{width:100%;height:100%}
 
+/* Galería · Tres y dos
+   La rejilla de un álbum de boda: tres verticales arriba, dos apaisadas
+   debajo y vuelta a empezar. Seis columnas y no tres, que es lo que deja
+   repartir la fila de dos en mitades exactas alineadas con la de tres. */
+.inv-ga-tresydos{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:26px}
+.inv-ga-tresydos .gallery-item{grid-column:span 2;aspect-ratio:2/3;border-radius:2px;overflow:hidden}
+.inv-ga-tresydos .gallery-item:nth-child(5n+4),
+.inv-ga-tresydos .gallery-item:nth-child(5n+5){grid-column:span 3;aspect-ratio:3/2}
+/* Una sola foto en la fila de abajo ocupa el ancho entero, que si no queda
+   media fila vacía; y si sólo hay una o dos en total, mandan ellas. */
+.inv-ga-tresydos .gallery-item:nth-child(5n+4):last-child{grid-column:span 6;aspect-ratio:16/10}
+.inv-ga-tresydos .gallery-ph{width:100%;height:100%}
+
 /* Galería · Arco — el remate de las tarjetas de Comunión Tropical */
 .inv-ga-arco{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:26px}
 .inv-ga-arco .gallery-item{aspect-ratio:3/4;border-radius:999px 999px var(--inv-radius) var(--inv-radius);

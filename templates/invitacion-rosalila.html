@@ -538,6 +538,7 @@ section .container,.inv-block .container{position:relative;z-index:2;
   background:url(/disenos/rosalila/camara.png) center/contain no-repeat}
 #gallery .ornament,.inv-block-gallery .ornament{display:none}
 .inv-ga-rasgada .gallery-item{filter:drop-shadow(0 14px 22px rgba(70,55,45,.3))}
+.inv-ga-tresydos{gap:10px;margin-top:20px}
 
 /* ── La cita: la ramita asomando por la esquina ── */
 .inv-pa-cita{background:var(--rl-ficha);box-shadow:var(--rl-sombra);border-radius:22px;padding:44px 26px 34px}
@@ -587,6 +588,11 @@ section .container,.inv-block .container{position:relative;z-index:2;
 #social{padding:0;background:var(--rl-banda-suave)}
 #social .container{background:none;box-shadow:none;border-radius:0;padding:64px 22px}
 #social .section-title{font-family:var(--rl-foto);font-weight:400;font-size:clamp(28px,8vw,34px);color:#fff}
+/* Aquí también manda la cámara, no la ramita: la sección es «comparte las
+   fotos», y es el mismo dibujo que preside la galería. */
+#social .ornament{width:min(46vw,180px);aspect-ratio:1.37;margin:10px auto 6px;
+  background:url(/disenos/rosalila/camara.png) center/contain no-repeat}
+#social .ornament img{visibility:hidden}
 #social .section-label,#social .social-sub{color:rgba(255,255,255,.92)}
 .social-hashtag{font-family:var(--rl-foto);font-size:26px;color:#fff}
 
