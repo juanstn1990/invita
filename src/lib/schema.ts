@@ -504,6 +504,40 @@ export const ANIM_FICHAS_VALIDAS = new Set(
   ANIM_FICHAS.map((a) => a.value).filter(Boolean)
 );
 
+/**
+ * Cómo entra una sección al asomarse por la pantalla.
+ *
+ * Distinto de «cómo entran las fichas»: aquélla anima las tarjetas de dentro
+ * una por una, ésta mueve la sección entera. Las dos se pueden combinar —la
+ * sección llega desde la derecha y sus fichas se van encadenando— y por eso
+ * son dos campos y no uno.
+ */
+export const ENTRADAS_SECCION: { value: string; label: string }[] = [
+  { value: "", label: "La del diseño (sube al aparecer)" },
+  { value: "derecha", label: "Entra desde la derecha" },
+  { value: "izquierda", label: "Entra desde la izquierda" },
+  { value: "sube", label: "Sube al aparecer" },
+  { value: "baja", label: "Baja al aparecer" },
+  { value: "aparece", label: "Sólo se funde, sin moverse" },
+  { value: "crece", label: "Crece desde pequeña" },
+  { value: "gira", label: "Entra girando un poco" },
+  { value: "ninguna", label: "Sin animación: ya está puesta" },
+];
+
+export const ENTRADAS_SECCION_VALIDAS = new Set(
+  ENTRADAS_SECCION.map((e) => e.value).filter(Boolean)
+);
+
+const entradaSeccionField: FieldSpec = {
+  key: "entrada",
+  label: "Cómo entra la sección",
+  type: "select",
+  span: 2,
+  fallback: 0,
+  options: ENTRADAS_SECCION,
+  help: "Se dispara una vez, cuando la sección se asoma por la pantalla. Quien tenga el móvil con el movimiento reducido no verá ninguna, y está bien así.",
+};
+
 const animFichasField: FieldSpec = {
   key: "animFichas",
   label: "Cómo entran las fichas",
@@ -1646,6 +1680,7 @@ for (const spec of SECTIONS) {
   ) continue;
   spec.adornos = true;
   spec.fondo = true;
+  spec.fields = [...spec.fields, entradaSeccionField];
   /* La capa detrás del texto va con el fondo y por la misma razón: quien pone
      un fondo cargado es quien va a necesitarla, y ofrecerla sólo en algunas
      secciones es garantizar que falte justo en la que hace falta. */

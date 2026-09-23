@@ -32,6 +32,7 @@ import {
   SECTIONS as SPEC,
   ANIMACIONES,
   ANIM_FICHAS_VALIDAS,
+  ENTRADAS_SECCION_VALIDAS,
   RADIO_BOTON,
   ANIM_POR_PARTES,
   CSS_ALINEACION,
@@ -588,6 +589,27 @@ function animarFichas(root: El, binding: ListBinding, valor: string) {
       );
     }
   });
+}
+
+/**
+ * Cómo entra la sección al asomarse.
+ *
+ * El mecanismo ya estaba: `.reveal` empieza corrida y el observador le pone
+ * `.in` cuando la sección aparece. Aquí sólo se elige desde dónde llega, con
+ * una clase; el CSS hace el resto, así que no hay un script más por sección.
+ *
+ * Una sección que el diseño no marcó como `.reveal` —un pie, por ejemplo— la
+ * recibe ahora: sin ella la clase de dirección no haría nada, y quien la
+ * eligió vería que no pasa nada, que es peor que no ofrecerla.
+ */
+function ponerEntrada(seccion: El, valor: string) {
+  if (!valor || !ENTRADAS_SECCION_VALIDAS.has(valor) || !seccion?.setAttribute) return;
+  const clases = seccion.getAttribute("class") || "";
+  const conReveal = valor === "ninguna" || /\breveal\b/.test(clases);
+  seccion.setAttribute(
+    "class",
+    `${clases}${conReveal ? "" : " reveal"} inv-ent-${valor}`.trim()
+  );
 }
 
 /* ── nombres de la pareja ────────────────────────────────────── */
@@ -2559,6 +2581,24 @@ a.inv-rsvp-btn{display:flex;width:max-content;max-width:100%;margin:28px auto 0;
 .inv-ga-polaroid .gallery-item:nth-child(even){transform:rotate(1.6deg)}
 .inv-ga-polaroid .gallery-ph{width:100%;height:100%}
 
+/* ── Cómo entra cada sección ──
+   El mecanismo es el de siempre: la sección empieza corrida y el observador
+   le pone la clase de llegada cuando se asoma. Aquí sólo se cambia desde
+   dónde llega. Las dos reglas de cada dirección van juntas —la de partida y
+   la de llegada— porque la de llegada del diseño se escribe antes que esto
+   y, a igual especificidad, gana la última. */
+.js .reveal.inv-ent-derecha{opacity:0;transform:translateX(44px)}
+.js .reveal.inv-ent-izquierda{opacity:0;transform:translateX(-44px)}
+.js .reveal.inv-ent-sube{opacity:0;transform:translateY(34px)}
+.js .reveal.inv-ent-baja{opacity:0;transform:translateY(-34px)}
+.js .reveal.inv-ent-aparece{opacity:0;transform:none}
+.js .reveal.inv-ent-crece{opacity:0;transform:scale(.9)}
+.js .reveal.inv-ent-gira{opacity:0;transform:rotate(-2.5deg) scale(.96)}
+.js .reveal:is(.inv-ent-derecha,.inv-ent-izquierda,.inv-ent-sube,.inv-ent-baja,
+  .inv-ent-aparece,.inv-ent-crece,.inv-ent-gira).in{opacity:1;transform:none}
+/* «Ninguna» es lo contrario: la sección ya está puesta y no espera a nada. */
+.js .reveal.inv-ent-ninguna{opacity:1;transform:none;transition:none}
+
 /* Portada «sólo la foto»: la tapa y la flecha, y nada encima.
    Lleva !important porque cada diseño coloca .hero-content con su propia
    regla y varias son más específicas que ésta: es la excepción donde gana
@@ -4390,6 +4430,7 @@ export function renderInvitation(opts: RenderOptions): string {
     // El fondo va detrás de todo y los adornos donde el organizador diga.
     ponerFondo(root, sectionData, sectionSel, ctx);
     ponerAdornos(root, sectionData, sectionSel, ctx, r.key);
+    ponerEntrada(root, String(sectionData.entrada || ""));
 
     /* Un bloque de vídeo sin vídeo se esconde, y entonces no hay nada más
        que escribirle dentro. */

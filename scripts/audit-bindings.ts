@@ -49,6 +49,9 @@ for (const s of SECTIONS) {
  * - `panelOpacity` no escribe texto: inyecta una regla CSS.
  * - `hero.contenido` tampoco: elige si la portada lleva texto encima, y lo
  *   que hace es poner una clase en la sección.
+ * - `entrada`, en todas: elige desde dónde entra la sección al asomarse, y
+ *   también es una clase. Va en el bucle de abajo, que es donde se sabe qué
+ *   secciones la llevan.
  * - `mapSrc` es un campo calculado del bloque de Ubicación, que sólo existe
  *   como marcado sintetizado.
  * - `splash.mapUrl` es el href del botón secundario del velo, y ese elemento
@@ -71,6 +74,12 @@ for (const s of SECTIONS) {
   "hero.nombres",
   "footer.nombres",
 ].forEach((k) => esperados.delete(k));
+
+/* La entrada de cada sección: un ajuste, no un texto. La lleva toda sección
+   que se dibuje, así que se quita por el mismo camino por el que se puso. */
+for (const s of SECTIONS) {
+  if (s.fields.some((f) => f.key === "entrada")) esperados.delete(`${s.key}.entrada`);
+}
 
 // La rejilla de invitados no se edita, pero su marcado existe y se vacía.
 ["guests.items.name", "guests.items.role", "guests.items.initial"].forEach((k) =>

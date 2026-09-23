@@ -1587,6 +1587,19 @@ for (const [nombre, tocar] of CASOS) {
       (doc) => doc.querySelectorAll("#splash.inv-velo-jardin .inv-jardin").length === 2 &&
         doc.querySelectorAll("#splash.inv-velo-jardin .inv-mariposa .inv-ala").length === 2 &&
         conScript(doc, "inv-velo-jardin")],
+    ["la sección entra por donde se elija",
+      (d) => { d.events = { ...d.events, enabled: true, entrada: "izquierda" };
+        d.gifts = { ...d.gifts, enabled: true, entrada: "ninguna" }; },
+      (doc) => {
+        const ev: any = doc.querySelector("#events, .inv-block-events");
+        const re: any = doc.querySelector("#gifts, .inv-block-gifts");
+        const clases = (e: any) => (e?.getAttribute("class") || "");
+        return /inv-ent-izquierda/.test(clases(ev)) && /\breveal\b/.test(clases(ev)) &&
+          /inv-ent-ninguna/.test(clases(re));
+      }],
+    ["y una entrada inventada se ignora",
+      (d) => { d.events = { ...d.events, enabled: true, entrada: "voltereta" }; },
+      (doc) => !doc.querySelector("[class*='inv-ent-']")],
     ["una variante se escribe dentro de la sección del diseño, no al lado",
       (d) => { d.layout = { blocks: [{ id: "events-0", type: "events", variant: "cinta" }] };
         d.events = { ...d.events, enabled: true, items: [{ kind: "Misa", title: "Ceremonia", time: "5:00" }] }; },
