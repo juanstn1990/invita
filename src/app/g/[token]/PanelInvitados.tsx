@@ -5,6 +5,16 @@ import { useRouter } from "next/navigation";
 import { limpiarNombres, unir, urlDeLink, type EstadoLink } from "@/lib/invitados";
 import styles from "./panel.module.css";
 
+/** Una respuesta de RSVP, con lo que dejó quien la envió. */
+interface Respuesta {
+  name: string;
+  status: string;
+  partySize: number;
+  phone: string | null;
+  note: string | null;
+  createdAt: string;
+}
+
 interface Fila {
   id: string;
   code: string;
@@ -18,6 +28,8 @@ interface Fila {
   abrieron: number;
   veces: number;
   abiertoEl: string | null;
+  /** El teléfono y el mensaje de cada quien contestó por este enlace. */
+  respuestas: Respuesta[];
 }
 
 /**
@@ -46,6 +58,13 @@ const ETIQUETA: Record<EstadoLink, string> = {
   confirmado: "Confirmado",
   "no asiste": "No asiste",
   parcial: "Vienen algunos",
+};
+
+/** El estado de cada respuesta individual, no el del enlace entero. */
+const ETIQUETA_RESPUESTA: Record<string, string> = {
+  confirmado: "Asiste",
+  rechazado: "No asiste",
+  quiza: "Tal vez",
 };
 
 /**
@@ -115,7 +134,7 @@ export function PanelInvitados({
     setFilas([
       { id: j.id, code: j.code, nombres: previsualizacion, note: nota.trim() || null,
         pases: j.pases ?? null, estado: "sin respuesta", asisten: 0, total: 0, respondidoEl: null,
-        abrieron: 0, veces: 0, abiertoEl: null },
+        abrieron: 0, veces: 0, abiertoEl: null, respuestas: [] },
       ...filas,
     ]);
     setNombres("");
@@ -256,6 +275,40 @@ export function PanelInvitados({
                   /{slug}?invitado=…&amp;g={f.code}
                 </p>
               </div>
+
+              {f.respuestas.length > 0 && (
+                <div className={styles.respuestas}>
+                  <p className={styles.respuestasTitulo}>
+                    {f.respuestas.length === 1 ? "Respuesta" : `${f.respuestas.length} respuestas`}
+                  </p>
+                  <ul className={styles.respuestasLista}>
+                    {f.respuestas.map((r, i) => (
+                      <li key={i} className={styles.respuesta}>
+                        <div className={styles.respuestaTop}>
+                          <span className={styles.respuestaNombre}>
+                            {r.name}
+                            {r.status === "confirmado" && r.partySize > 1 && ` · ${r.partySize} personas`}
+                          </span>
+                          <span className={styles.respuestaEstado} data-estado={r.status}>
+                            {ETIQUETA_RESPUESTA[r.status] ?? r.status}
+                          </span>
+                        </div>
+                        {(r.phone || r.note) && (
+                          <p className={styles.respuestaMeta}>
+                            {r.phone && (
+                              <a href={`tel:${r.phone}`} className={styles.respuestaTelefono}>
+                                {r.phone}
+                              </a>
+                            )}
+                            {r.phone && r.note && " · "}
+                            {r.note && <span className={styles.respuestaNota}>&ldquo;{r.note}&rdquo;</span>}
+                          </p>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
               <div className={styles.filaLado}>
                 <span className={styles.estado} data-estado={f.estado}>
                   {ETIQUETA[f.estado]}

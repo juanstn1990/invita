@@ -3,7 +3,7 @@ import fs from "fs";
 import path from "path";
 import { parseHTML } from "linkedom";
 import { mapFor } from "../src/lib/bindings";
-import { renderInvitation } from "../src/lib/render";
+import { renderInvitation, RSVP_JS } from "../src/lib/render";
 import { defaultData } from "../src/lib/schema";
 import { TEMPLATES, readTemplate } from "../src/lib/templates";
 import { BLOCKS } from "../src/lib/blocks";
@@ -1692,6 +1692,17 @@ for (const [nombre, tocar] of CASOS) {
         const f: any = doc.querySelector(".inv-pa-cita .inv-cita-firma");
         return t?.textContent.trim() === "Coincidir con gente." && f?.textContent.trim() === "Mario Benedetti";
       }],
+    ["el hueco del nombre en «invitados» existe aunque se confirme por WhatsApp",
+      (d) => { d.confirm = { ...d.confirm, enabled: true, mode: "whatsapp", whatsapp: "573000000000" }; },
+      (doc) => {
+        // Con WhatsApp no hay formulario propio —es un enlace, no algo que
+        // montar—, pero el hueco donde se escribe el nombre de quien abre su
+        // link personalizado (?invitado=…) tiene que seguir ahí, y el script
+        // que lo llena tiene que seguir incluido: antes, `if (!form) return`
+        // cortaba el script entero antes de llegar a ese hueco.
+        const sinFormulario = !doc.querySelector("[data-inv-rsvp]") && !!doc.querySelector("[data-inv-wa]");
+        return sinFormulario && !!doc.querySelector("[data-inv-invitado]") && conScript(doc, "data-inv-invitado");
+      }],
     ["pases: tarjeta con el número y sin preguntar cuántos van",
       (d) => { d.confirm = { ...d.confirm, enabled: true, mode: "form" }; },
       (doc) => {
@@ -2523,6 +2534,24 @@ for (const [nombre, tocar] of CASOS) {
         (malas.length ? `  vacías: ${malas.join(", ")}` : `  ${probadas.length} con lista`)
     );
   }
+}
+
+/* ── El orden dentro de RSVP_JS ──────────────────────────────────
+   Los casos de arriba comprueban el marcado; éste comprueba el script en sí,
+   porque `parseHTML` no ejecuta JavaScript y por ahí se coló el fallo real:
+   el guardián `if (!form) return` —que corta todo el script cuando la
+   confirmación es por WhatsApp, que no monta formulario— vivía ANTES de
+   leer los nombres de `?invitado=` y de llenar el hueco de «invitados». Con
+   WhatsApp, el guardián cortaba el script antes de llegar a esa parte y el
+   nombre nunca se mostraba. Aquí se comprueba el orden del texto fuente, que
+   es lo único que puede volver a romperse sin que ningún caso de arriba lo
+   note —linkedom no corre scripts—. */
+{
+  const huecoNombre = RSVP_JS.indexOf("data-inv-invitado");
+  const guardian = RSVP_JS.indexOf("if(!form) return");
+  const ok = huecoNombre > -1 && guardian > -1 && huecoNombre < guardian;
+  console.log(`${ok ? "✓" : "✗"} rsvp · el hueco del nombre se llena antes del guardián del formulario`);
+  if (!ok) botonMal++;
 }
 
 console.log(

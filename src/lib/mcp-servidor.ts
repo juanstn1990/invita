@@ -720,7 +720,7 @@ export function construirServidor({ base, capturar }: OpcionesMcp): McpServer {
           links: {
             orderBy: { createdAt: "desc" },
             include: {
-              rsvps: { select: { status: true, partySize: true, createdAt: true } },
+              rsvps: { select: { name: true, status: true, partySize: true, phone: true, note: true, createdAt: true } },
               aperturas: { select: { veces: true, updatedAt: true } },
             },
           },
@@ -746,6 +746,16 @@ export function construirServidor({ base, capturar }: OpcionesMcp): McpServer {
           abiertaEl: f.abiertoEl?.toISOString() ?? null,
           respondidoEl: f.respondidoEl?.toISOString() ?? null,
           enlace: urlDeLink(base, inv.slug, inv.links[i].names, f.code),
+          // El teléfono y el mensaje que dejó cada quien al confirmar, no
+          // sólo el recuento: es lo que hace falta para llamar o para leer
+          // lo que pidió (una canción, una alergia, con quién se sienta).
+          respuestas: f.respuestas.map((r) => ({
+            nombre: r.name,
+            estado: r.status,
+            personas: r.partySize,
+            telefono: r.phone,
+            mensaje: r.note,
+          })),
         })),
         cuentas: {
           enlaces: filas.length,

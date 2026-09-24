@@ -23,7 +23,7 @@ export default async function PanelPage({ params }: { params: { token: string } 
       links: {
         orderBy: { createdAt: "desc" },
         include: {
-          rsvps: { select: { status: true, partySize: true, createdAt: true } },
+          rsvps: { select: { name: true, status: true, partySize: true, phone: true, note: true, createdAt: true } },
           aperturas: { select: { veces: true, updatedAt: true } },
         },
       },
@@ -51,6 +51,7 @@ export default async function PanelPage({ params }: { params: { token: string } 
         ...f,
         respondidoEl: f.respondidoEl?.toISOString() ?? null,
         abiertoEl: f.abiertoEl?.toISOString() ?? null,
+        respuestas: f.respuestas.map((r) => ({ ...r, createdAt: r.createdAt.toISOString() })),
       }))}
     />
   );

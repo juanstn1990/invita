@@ -2917,10 +2917,6 @@ a.inv-rsvp-btn{display:flex;width:max-content;max-width:100%;margin:28px auto 0;
 
 export const RSVP_JS = `
 (function(){
-  var form = document.querySelector('[data-inv-rsvp]');
-  if(!form) return;
-  var slug = form.getAttribute('data-inv-rsvp');
-
   // Los nombres pueden venir en la dirección, uno o varios separados por coma:
   //   ?invitado=Ana%20G%C3%B3mez,Carlos%20G%C3%B3mez
   var q = new URLSearchParams(location.search);
@@ -2928,39 +2924,18 @@ export const RSVP_JS = `
   var nombres = crudo.split(/[,;|]/).map(function(n){ return n.trim(); })
                      .filter(Boolean).slice(0, 12);
 
-  // Los pases del enlace: lo que quien invita reservó para esta familia.
-  var pases = parseInt(form.getAttribute('data-inv-pases') || '', 10);
-  var lineaPases = form.querySelector('[data-inv-pases-texto]');
-  var numPases = lineaPases && lineaPases.querySelector('.inv-rsvp-pases-n');
-  var txtPases = lineaPases && lineaPases.querySelector('.inv-rsvp-pases-t');
-  if (pases > 0 && lineaPases) {
-    if (numPases) numPases.textContent = String(pases);
-    if (txtPases) txtPases.textContent = pases === 1 ? 'pase reservado' : 'pases reservados';
-    lineaPases.hidden = false;
-  }
-
-  var campoNombre = form.querySelector('[name="name"]');
-  var saludo = form.querySelector('[data-inv-saludo]');
-  var lista = form.querySelector('[data-inv-lista]');
-  var casillas = [];
-
   /** "Ana, Carlos y Sofía" */
   function unir(xs){
     if (xs.length < 2) return xs[0] || '';
     return xs.slice(0, -1).join(', ') + ' y ' + xs[xs.length - 1];
   }
 
-  /** Esconde el control y su etiqueta, ganándole al CSS del diseño. */
-  function esconder(el){
-    if (!el) return;
-    var caja = el.closest('label') || el;
-    caja.hidden = true;
-    caja.style.setProperty('display', 'none', 'important');
-  }
-
-  // Los nombres del link mandan en toda la invitación, no sólo aquí: quien
-  // abre su enlace tiene que verse nombrado también en la sección de
-  // invitados, que es donde antes había una lista de nombres de ejemplo.
+  // Los nombres del link mandan en toda la invitación, no sólo en el
+  // formulario de confirmar: quien abre su enlace tiene que verse nombrado
+  // también en la sección de invitados, que es donde antes había una lista
+  // de nombres de ejemplo. Va antes de que nada dependa del formulario:
+  // con la confirmación por WhatsApp no hay formulario —es un enlace, no
+  // hay nada que montar—, y aun así el nombre tiene que aparecer.
   // El hueco lo pone el render; si el diseño no tiene esa sección, no hay
   // hueco y no pasa nada.
   document.querySelectorAll('[data-inv-invitado]').forEach(function(caja){
@@ -3007,6 +2982,34 @@ export const RSVP_JS = `
       arranca();
     }
   });
+
+  var form = document.querySelector('[data-inv-rsvp]');
+  if(!form) return;
+  var slug = form.getAttribute('data-inv-rsvp');
+
+  // Los pases del enlace: lo que quien invita reservó para esta familia.
+  var pases = parseInt(form.getAttribute('data-inv-pases') || '', 10);
+  var lineaPases = form.querySelector('[data-inv-pases-texto]');
+  var numPases = lineaPases && lineaPases.querySelector('.inv-rsvp-pases-n');
+  var txtPases = lineaPases && lineaPases.querySelector('.inv-rsvp-pases-t');
+  if (pases > 0 && lineaPases) {
+    if (numPases) numPases.textContent = String(pases);
+    if (txtPases) txtPases.textContent = pases === 1 ? 'pase reservado' : 'pases reservados';
+    lineaPases.hidden = false;
+  }
+
+  var campoNombre = form.querySelector('[name="name"]');
+  var saludo = form.querySelector('[data-inv-saludo]');
+  var lista = form.querySelector('[data-inv-lista]');
+  var casillas = [];
+
+  /** Esconde el control y su etiqueta, ganándole al CSS del diseño. */
+  function esconder(el){
+    if (!el) return;
+    var caja = el.closest('label') || el;
+    caja.hidden = true;
+    caja.style.setProperty('display', 'none', 'important');
+  }
 
   if (nombres.length && campoNombre) {
     campoNombre.value = unir(nombres);

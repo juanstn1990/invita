@@ -89,6 +89,18 @@ export function urlDeLink(origen: string, slug: string, names: string, code: str
 
 export type EstadoLink = "sin respuesta" | "confirmado" | "no asiste" | "parcial";
 
+/** Una respuesta de RSVP, tal como la dejó quien la envió. */
+export interface RespuestaInvitado {
+  name: string;
+  status: string;
+  partySize: number;
+  /** El teléfono que dejó al confirmar, si dejó alguno. */
+  phone: string | null;
+  /** El mensaje que escribió —o la canción pedida, que viaja pegada a él. */
+  note: string | null;
+  createdAt: Date;
+}
+
 export interface FilaInvitado {
   id: string;
   code: string;
@@ -108,6 +120,16 @@ export interface FilaInvitado {
   veces: number;
   /** La última vez que alguien lo abrió. */
   abiertoEl: Date | null;
+  /**
+   * Las respuestas de este enlace, con su teléfono y su mensaje.
+   *
+   * El resumen de arriba (`estado`, `asisten`, `total`) es para ver de un
+   * vistazo; esto es para cuando hay que llamar a alguien o leer lo que
+   * pidió. Sin esto, el teléfono y el mensaje que deja quien confirma sólo
+   * se veían en el editor —y el panel de enlaces lo usa a veces otra
+   * persona, que organiza la logística sin tener acceso al editor.
+   */
+  respuestas: RespuestaInvitado[];
 }
 
 /** Estado de cada link a partir de las respuestas que trae. */
@@ -117,7 +139,10 @@ export function resumirLink(link: {
   names: string;
   note: string | null;
   pases?: number | null;
-  rsvps: { status: string; partySize: number; createdAt: Date }[];
+  rsvps: {
+    name: string; status: string; partySize: number;
+    phone: string | null; note: string | null; createdAt: Date;
+  }[];
   aperturas?: { veces: number; updatedAt: Date }[];
 }): FilaInvitado {
   const nombres = limpiarNombres(link.names);
@@ -155,5 +180,7 @@ export function resumirLink(link: {
     abrieron: aperturas.length,
     veces,
     abiertoEl,
+    // Las más recientes primero: es lo que se acaba de recibir.
+    respuestas: [...rsvps].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()),
   };
 }
