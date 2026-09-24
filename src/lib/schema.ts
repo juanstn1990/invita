@@ -963,6 +963,7 @@ export const SECTIONS: SectionSpec[] = [
           { value: "escarcha", label: "Un vidrio congelado que se rompe donde se toca" },
           { value: "naipe", label: "Un As de corazones que se voltea y cae girando" },
           { value: "jardin", label: "Un jardín que se mece y una mariposa que se va" },
+          { value: "velas", label: "Unas velas encendidas: se tocan y la luz lo llena todo" },
         ],
         help: "Lo que pasa al pulsar el botón. Con «sobre con sello» el velo es un sobre cerrado y el sello es lo que se toca.",
       },

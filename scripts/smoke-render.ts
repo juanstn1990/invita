@@ -1582,6 +1582,11 @@ for (const [nombre, tocar] of CASOS) {
           { kind: "Misa", title: "Acción de gracias", time: "5:00" }, { kind: "Vals", title: "El baile", time: "8:00" }] };
       },
       (doc) => doc.querySelectorAll(".inv-ev-naipes .event-card").length === 2 && conScript(doc, "inv-ev-naipes")],
+    ["velas: las cinco encendidas, el resplandor y su script",
+      (d) => { d.splash = { ...d.splash, enabled: true, apertura: "velas" }; },
+      (doc) => doc.querySelectorAll("#splash.inv-velo-velas .inv-velas .inv-vela").length === 5 &&
+        !!doc.querySelector("#splash.inv-velo-velas .inv-resplandor") &&
+        conScript(doc, "inv-velo-velas")],
     ["jardín: las dos matas, la mariposa y el script de la mariposa",
       (d) => { d.splash = { ...d.splash, enabled: true, apertura: "jardin" }; },
       (doc) => doc.querySelectorAll("#splash.inv-velo-jardin .inv-jardin").length === 2 &&

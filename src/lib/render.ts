@@ -3307,7 +3307,7 @@ const FONDO_VIDEO_JS = `
  * inyectado; no hay marcado nuevo, así que funcionan igual en los 49 diseños
  * y en los que vengan.
  */
-const APERTURAS = new Set(["sobre", "sello", "deseo", "libro", "abanico", "nubes", "telon", "anillos", "ventana", "claqueta", "mariposa", "escarcha", "naipe", "jardin"]);
+const APERTURAS = new Set(["sobre", "sello", "deseo", "libro", "abanico", "nubes", "telon", "anillos", "ventana", "claqueta", "mariposa", "escarcha", "naipe", "jardin", "velas"]);
 
 /**
  * Cómo la cortina da paso a la invitación.
@@ -4222,6 +4222,19 @@ export function renderInvitation(opts: RenderOptions): string {
       );
       velo.insertAdjacentHTML?.("beforeend", `<p class="inv-sobre-pista">Toca la mariposa</p>`);
     }
+    /* Las velas: cinco encendidas abajo y el resplandor que las envuelve al
+       tocarlas. Cinco y no tres: con tres, la fila se lee como un adorno
+       centrado; con cinco, como una mesa puesta. */
+    if (velo && apertura === "velas") {
+      velo.insertAdjacentHTML?.(
+        "afterbegin",
+        `<div class="inv-velas" aria-hidden="true">` +
+          `<i class="inv-vela"></i><i class="inv-vela"></i><i class="inv-vela"></i>` +
+          `<i class="inv-vela"></i><i class="inv-vela"></i></div>` +
+          `<i class="inv-resplandor" aria-hidden="true"></i>`
+      );
+      velo.insertAdjacentHTML?.("beforeend", `<p class="inv-sobre-pista">Toca las velas</p>`);
+    }
     if (velo && apertura === "escarcha") {
       velo.insertAdjacentHTML?.("beforeend",
         `<i class="inv-escarcha" aria-hidden="true"></i><p class="inv-sobre-pista">Toca el hielo</p>`);
@@ -4957,7 +4970,7 @@ export function renderInvitation(opts: RenderOptions): string {
      y para encontrarla tiene que estar ya creada. */
   if (document.querySelector(".inv-cortina")) scripts.push(CORTINA_JS);
   /* Los componentes interactivos, cada uno sólo si la página lo usa. */
-  if (document.querySelector("[data-inv-sobre],[data-inv-libro],[data-inv-abanico],[data-inv-agendar],[data-inv-wa],.inv-velo-deseo,.inv-velo-nubes,.inv-velo-telon,.inv-velo-anillos,.inv-velo-claqueta,.inv-velo-mariposa,.inv-velo-jardin,.inv-velo-escarcha,.inv-velo-naipe,.inv-cielo,.inv-rasca-capa")) {
+  if (document.querySelector("[data-inv-sobre],[data-inv-libro],[data-inv-abanico],[data-inv-agendar],[data-inv-wa],.inv-velo-deseo,.inv-velo-nubes,.inv-velo-telon,.inv-velo-anillos,.inv-velo-claqueta,.inv-velo-mariposa,.inv-velo-jardin,.inv-velo-velas,.inv-velo-escarcha,.inv-velo-naipe,.inv-cielo,.inv-rasca-capa")) {
     scripts.push(CONFETI_JS);
   }
   if (document.querySelector(".inv-velo-deseo,.inv-cielo")) scripts.push(FUGAZ_JS);
@@ -4968,7 +4981,7 @@ export function renderInvitation(opts: RenderOptions): string {
   if (document.querySelector(".inv-ev-viaje")) scripts.push(VIAJE_JS);
   if (document.querySelector(".inv-velo-ventana")) scripts.push(VENTANA_JS);
   if (document.querySelector(".inv-velo-claqueta")) scripts.push(CLAQUETA_JS);
-  if (document.querySelector(".inv-velo-mariposa,.inv-velo-jardin")) scripts.push(MARIPOSA_JS);
+  if (document.querySelector(".inv-velo-mariposa,.inv-velo-jardin,.inv-velo-velas")) scripts.push(MARIPOSA_JS);
   if (document.querySelector(".inv-velo-escarcha")) scripts.push(ESCARCHA_JS);
   if (document.querySelector(".inv-velo-naipe")) scripts.push(NAIPE_JS);
   if (document.querySelector(".inv-ev-cinta,.inv-ev-postales,.inv-ev-naipes")) scripts.push(LLEGAN_JS);

@@ -548,6 +548,52 @@ html:not(.js) .inv-ev-sendero .inv-dato{opacity:1;transform:none}
 @keyframes invVuela{40%{transform:translate(-6vw,-6vh) rotate(-10deg)}
   100%{transform:translate(42vw,-72vh) rotate(26deg) scale(.45);opacity:0}}
 
+/* ── Las velas: se encienden y la luz lo llena todo ──
+   El velo empieza a oscuras, con una fila de velas encendidas abajo que
+   laten cada una a su ritmo. Al tocar, las llamas se avivan, el resplandor
+   crece desde la fila hasta llenar la pantalla y el velo se disuelve encima
+   de la portada.
+
+   La vela la pone el diseño en --inv-vela-img; sin ella se dibuja con dos
+   degradados —el cuerpo de cera y la llama—, que sobre un velo oscuro pasa
+   perfectamente por una vela. Lo que no se puede dibujar es el halo, y por
+   eso la imagen se recorta sobre negro: el resplandor viene con ella.
+
+   Late cada una a su ritmo y no todas a la vez: un parpadeo sincronizado se
+   lee como un fallo de pantalla, no como fuego. */
+#splash.inv-velo-velas{cursor:pointer;-webkit-tap-highlight-color:transparent;overflow:hidden}
+#splash.inv-velo-velas .splash-btns{display:none}
+#splash.inv-velo-velas .splash-modal{position:relative;z-index:3}
+.inv-velas{position:absolute;left:0;right:0;bottom:0;z-index:2;display:flex;align-items:flex-end;
+  justify-content:center;gap:min(7vw,38px);padding-bottom:7vh;pointer-events:none}
+.inv-vela{display:block;width:min(13vw,54px);aspect-ratio:.42;transform-origin:50% 100%;
+  background:var(--inv-vela-img,
+    linear-gradient(to bottom,transparent 0 22%,#fdf6e3 22% 100%),
+    radial-gradient(ellipse 34% 12% at 50% 15%,#ffd28a 0 46%,rgba(255,170,60,.5) 62%,transparent 72%))
+    bottom center/contain no-repeat;
+  filter:drop-shadow(0 0 22px rgba(255,180,90,.45));animation:invLlama 3.4s ease-in-out infinite}
+.inv-vela:nth-child(2){animation-duration:2.6s;animation-delay:-.9s;width:min(11vw,46px)}
+.inv-vela:nth-child(3){animation-duration:4s;animation-delay:-1.7s}
+.inv-vela:nth-child(4){animation-duration:3s;animation-delay:-.4s;width:min(11vw,46px)}
+.inv-vela:nth-child(5){animation-duration:3.7s;animation-delay:-2.2s}
+@keyframes invLlama{
+  0%,100%{filter:drop-shadow(0 0 20px rgba(255,180,90,.4)) brightness(1)}
+  38%{filter:drop-shadow(0 0 30px rgba(255,190,110,.62)) brightness(1.08)}
+  64%{filter:drop-shadow(0 0 17px rgba(255,170,80,.34)) brightness(.96)}}
+
+/* Al tocar: las llamas se avivan, el resplandor sube y el velo se va. */
+#splash.inv-velo-velas.abriendo .inv-vela{animation:invLlamarada 1.3s ease forwards}
+@keyframes invLlamarada{
+  40%{filter:drop-shadow(0 0 60px rgba(255,205,140,.9)) brightness(1.35);transform:scaleY(1.06)}
+  100%{filter:drop-shadow(0 0 90px rgba(255,215,160,1)) brightness(1.6);transform:scaleY(1.02);opacity:.15}}
+#splash.inv-velo-velas .inv-resplandor{position:absolute;inset:0;z-index:4;pointer-events:none;opacity:0;
+  background:radial-gradient(70% 46% at 50% 93%,rgba(255,224,178,.98),rgba(255,214,150,.45) 45%,transparent 72%)}
+#splash.inv-velo-velas.abriendo .inv-resplandor{animation:invResplandor 1.4s ease forwards}
+@keyframes invResplandor{0%{opacity:0;transform:scale(.7)}55%{opacity:1;transform:scale(1.25)}
+  100%{opacity:1;transform:scale(2.4)}}
+#splash.inv-velo-velas.abriendo{opacity:0;transition:opacity .7s ease .6s}
+#splash.inv-velo-velas .inv-sobre-pista{z-index:5}
+
 /* ── El jardín: el follaje se mece y la mariposa blanca se va ──
    La mariposa de arriba, pero posada en un jardín. Dos matas de follaje
    ocupan las esquinas del velo y respiran despacio, cada una a su ritmo;
@@ -1040,6 +1086,9 @@ html:not(.js) .inv-ev-constelacion .inv-dato{opacity:1;transform:none}
   .js .inv-ev-naipes .event-card{opacity:1;translate:none;transform:none}
   .inv-cd-cristales .countdown-ring::after{animation:none}
   .inv-mariposa,.inv-ala,.inv-cd-alas .countdown-ring::before,.inv-cd-alas .countdown-ring::after{animation:none}
+  .inv-vela{animation:none}
+  #splash.inv-velo-velas.abriendo{transition:none}
+  #splash.inv-velo-velas .inv-resplandor{opacity:1}
   .inv-jardin{animation:none}
   .inv-jardin-der{transform:scaleX(-1)}
   #splash.inv-velo-jardin.abriendo{transition:none}
@@ -1472,7 +1521,7 @@ export const LLEGAN_JS = `
 /** La mariposa: se toca, bate las alas deprisa y sale volando; detrás, la invitación. */
 export const MARIPOSA_JS = `
 (function(){
-  var velo = document.querySelector('#splash.inv-velo-mariposa,#splash.inv-velo-jardin');
+  var velo = document.querySelector('#splash.inv-velo-mariposa,#splash.inv-velo-jardin,#splash.inv-velo-velas');
   if (!velo) return;
   var quieto = matchMedia('(prefers-reduced-motion: reduce)').matches;
   var hecho = false;

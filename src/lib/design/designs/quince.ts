@@ -24,6 +24,7 @@ import { hollywood } from "./hollywood";
 import { mariposas } from "./mariposas";
 import { hielo } from "./hielo";
 import { alicia } from "./alicia";
+import { xvrojo } from "./xvrojo";
 import {
   CORMORANT_JOST,
   DMSERIF_DMSANS,
@@ -333,4 +334,5 @@ export const QUINCE: Design[] = [
   blanco, burdeos, amanecer, hojas, viaje,
   corona, confeti, vals, jardinXV,
   farolillos, dorado, estrellada, rosa, rosareal, celeste, glicinas, carmesi, bosque, paris, hollywood, mariposas, hielo, alicia,
+  xvrojo,
 ];
