@@ -15,6 +15,7 @@ import type { Design } from "../theme";
 import { paleta } from "../paleta";
 import * as deco from "../deco";
 import { gazul } from "./gazul";
+import { gdorado } from "./gdorado";
 import {
   CORMORANT_INTER,
   CORMORANT_JOST,
@@ -230,4 +231,4 @@ const onix: Design = {
   deco: { ornament: deco.rombo, splash: deco.aros },
 };
 
-export const GRADO: Design[] = [diploma, tesis, cordon, anuario, pergamino, laurel, onix, gazul];
+export const GRADO: Design[] = [diploma, tesis, cordon, anuario, pergamino, laurel, onix, gazul, gdorado];
