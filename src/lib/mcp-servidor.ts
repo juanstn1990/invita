@@ -42,7 +42,7 @@ import { TEMPLATE_BY_ID, readTemplate } from "./templates";
 import { renderInvitation } from "./render";
 import { normalizeSlug } from "./slug";
 import { catalogo, esquemaDe, fusionar } from "./mcp";
-import { ESTADO_POR_ID, estadoDe } from "./tablero";
+import { ESTADO_POR_ID, estadoDe, PAGO_POR_ID, pagoDe } from "./tablero";
 import { actualizarConParche, deshacer } from "./plantillas";
 import { descargar, guardarEnBiblioteca, TIPOS_BIBLIOTECA, urlsUsables } from "./subir";
 import { limpiarNombres, limpiarPases, nuevoCodigo, resumirLink, urlDeLink } from "./invitados";
@@ -589,14 +589,14 @@ export function construirServidor({ base, capturar }: OpcionesMcp): McpServer {
       description:
         "Las invitaciones existentes, con su id, su diseño, en qué punto del " +
         "trabajo están (borrador, demo, en curso, entregada), si están " +
-        "publicadas y si están cobradas.",
+        "publicadas, si están cobradas, quién la lleva y si está archivada.",
       inputSchema: {},
       annotations: { readOnlyHint: true },
     },
     async () => {
       const todas = await prisma.invitation.findMany({
         select: { id: true, slug: true, title: true, templateId: true, published: true,
-          estado: true, pagada: true, updatedAt: true },
+          estado: true, pago: true, responsable: true, archivada: true, updatedAt: true },
         orderBy: { updatedAt: "desc" },
         take: 50,
       });
@@ -608,7 +608,9 @@ export function construirServidor({ base, capturar }: OpcionesMcp): McpServer {
              responde. Una demo se publica para enseñarla. */
           estado: ESTADO_POR_ID[estadoDe(i.estado)].label,
           publicada: i.published,
-          pagada: i.pagada,
+          pago: PAGO_POR_ID[pagoDe(i.pago)].label,
+          responsable: i.responsable || null,
+          archivada: i.archivada,
           ...(TEMPLATE_BY_ID[i.templateId] ? {} : { aviso: "de una versión anterior, no se puede abrir" }),
           editable: estadoDe(i.estado) !== "entregada" && !!TEMPLATE_BY_ID[i.templateId],
           editor: `${base}/editor/${i.id}`,

@@ -2,7 +2,20 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ESTADOS, faltan, urge, resumir, whatsapp, type Estado } from "@/lib/tablero";
+import {
+  ESTADOS,
+  RESPONSABLES,
+  faltan,
+  urge,
+  resumir,
+  whatsapp,
+  pagoDe,
+  siguientePago,
+  PAGO_POR_ID,
+  type Estado,
+  type Pago,
+  type Responsable,
+} from "@/lib/tablero";
 import styles from "./tablero.module.css";
 
 export interface Tarjeta {
@@ -11,7 +24,11 @@ export interface Tarjeta {
   slug: string;
   publicada: boolean;
   estado: Estado;
-  pagada: boolean;
+  pago: Pago;
+  /** Quién la lleva. Sin asignar en lo que ya existía antes de este campo. */
+  responsable: Responsable | null;
+  /** Cerrada y fuera de las columnas, salvo que se pida verla. */
+  archivada: boolean;
   /** ISO del evento, para los días que faltan. */
   fecha: string;
   fechaTexto: string;
@@ -50,8 +67,21 @@ export function Tablero({
   const [abierta, setAbierta] = useState<string | null>(null);
   /* Qué tarjeta acaba de copiar su enlace, para confirmarlo un momento. */
   const [copiado, setCopiado] = useState<string | null>(null);
+  /* Las archivadas están fuera por defecto: es lo que evita que el tablero
+     se llene de trabajo ya cerrado según crece. */
+  const [verArchivadas, setVerArchivadas] = useState(false);
+  /* Por nombre o teléfono. Vacío no filtra nada. */
+  const [busqueda, setBusqueda] = useState("");
 
   const resumen = resumir(tarjetas);
+  const archivadasN = tarjetas.filter((t) => t.archivada).length;
+
+  const q = busqueda.trim().toLowerCase();
+  const visibles = tarjetas.filter((t) => {
+    if (t.archivada && !verArchivadas) return false;
+    if (!q) return true;
+    return t.titulo.toLowerCase().includes(q) || t.telefono.includes(q);
+  });
 
   async function guardar(id: string, cambio: Record<string, unknown>, deshacer: () => void) {
     setError("");
@@ -90,10 +120,25 @@ export function Tablero({
     guardar(id, { [campo]: valor }, () => setTarjetas(antes));
   }
 
-  function cobrar(id: string, pagada: boolean) {
+  function pagar(id: string) {
     const antes = tarjetas;
-    setTarjetas(tarjetas.map((x) => (x.id === id ? { ...x, pagada } : x)));
-    guardar(id, { pagada }, () => setTarjetas(antes));
+    const t = tarjetas.find((x) => x.id === id);
+    if (!t) return;
+    const pago = siguientePago(t.pago);
+    setTarjetas(tarjetas.map((x) => (x.id === id ? { ...x, pago } : x)));
+    guardar(id, { pago }, () => setTarjetas(antes));
+  }
+
+  function asignar(id: string, responsable: Responsable | null) {
+    const antes = tarjetas;
+    setTarjetas(tarjetas.map((x) => (x.id === id ? { ...x, responsable } : x)));
+    guardar(id, { responsable: responsable || "" }, () => setTarjetas(antes));
+  }
+
+  function archivar(id: string, archivada: boolean) {
+    const antes = tarjetas;
+    setTarjetas(tarjetas.map((x) => (x.id === id ? { ...x, archivada } : x)));
+    guardar(id, { archivada }, () => setTarjetas(antes));
   }
 
   return (
@@ -125,13 +170,36 @@ export function Tablero({
             {resumen.sinCobrar === 1 ? "entregada sin cobrar" : "entregadas sin cobrar"}
           </span>
         )}
+
+        {/* Buscar y archivar son la respuesta a lo mismo: que el tablero
+            siga cabiendo de un vistazo aunque haya cien tarjetas y no quince.
+            Buscar encuentra una entre todas sin recorrer columnas; archivar
+            saca del camino lo que ya se cerró sin borrar nada. */}
+        <input
+          type="search"
+          className={styles.buscar}
+          placeholder="Buscar por nombre o teléfono…"
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+        />
+
+        {archivadasN > 0 && (
+          <button
+            type="button"
+            className={styles.toggleArchivadas}
+            aria-pressed={verArchivadas}
+            onClick={() => setVerArchivadas((v) => !v)}
+          >
+            {verArchivadas ? "Ocultar" : "Ver"} {archivadasN} archivada{archivadasN === 1 ? "" : "s"}
+          </button>
+        )}
       </div>
 
       {error && <p className={styles.error} role="alert">{error}</p>}
 
       <div className={styles.columnas}>
         {ESTADOS.map((col) => {
-          const suyas = tarjetas.filter((t) => t.estado === col.id);
+          const suyas = visibles.filter((t) => t.estado === col.id);
           return (
             <section
               key={col.id}
@@ -166,6 +234,7 @@ export function Tablero({
                     draggable
                     data-arrastrando={arrastrando === t.id || undefined}
                     data-urgente={urge(t.fecha, t.estado) || undefined}
+                    data-archivada={t.archivada || undefined}
                     onDragStart={(e) => {
                       e.dataTransfer.setData("text/plain", t.id);
                       e.dataTransfer.effectAllowed = "move";
@@ -209,12 +278,31 @@ export function Tablero({
                       <button
                         type="button"
                         className={styles.pago}
-                        data-pagada={t.pagada || undefined}
-                        onClick={() => cobrar(t.id, !t.pagada)}
-                        title={t.pagada ? "Marcar como no cobrada" : "Marcar como cobrada"}
+                        data-pago={t.pago}
+                        onClick={() => pagar(t.id)}
+                        title={`Clic para: ${PAGO_POR_ID[siguientePago(t.pago)].label}`}
                       >
-                        {t.pagada ? "Pagada" : "Sin cobrar"}
+                        {PAGO_POR_ID[t.pago].label}
                       </button>
+                      )}
+
+                      {/* Quién la lleva: sin asignar por defecto en un select
+                          normal, para no inventar un tercer estado visual
+                          sólo para "nadie todavía". */}
+                      {t.estado !== "catalogo" && (
+                        <select
+                          className={styles.responsable}
+                          value={t.responsable || ""}
+                          onChange={(e) =>
+                            asignar(t.id, (e.target.value || null) as Responsable | null)
+                          }
+                          title="Quién la lleva"
+                        >
+                          <option value="">¿Quién?</option>
+                          {RESPONSABLES.map((r) => (
+                            <option key={r.id} value={r.id}>{r.label}</option>
+                          ))}
+                        </select>
                       )}
 
                       {t.publicada && (
@@ -227,6 +315,17 @@ export function Tablero({
                         >
                           ver ↗
                         </a>
+                      )}
+
+                      {t.estado !== "catalogo" && (
+                        <button
+                          type="button"
+                          className={styles.archivar}
+                          onClick={() => archivar(t.id, !t.archivada)}
+                          title={t.archivada ? "Sacarla del archivo" : "Archivarla: sale de las columnas"}
+                        >
+                          {t.archivada ? "Desarchivar" : "Archivar"}
+                        </button>
                       )}
                     </div>
 

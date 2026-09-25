@@ -22,6 +22,21 @@
 .cobro { background: #fdf8e8; border-color: #ece0bc; color: #7a6320; }
 .cobro strong { color: #7a6320; }
 
+/* Buscar y archivar viven al final de la fila del resumen: son la forma de
+   encontrar una tarjeta entre muchas sin recorrer las columnas. */
+.buscar {
+  margin-left: auto; padding: 6px 10px; min-width: 200px;
+  font: inherit; font-size: 12.5px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 999px; color: var(--text);
+}
+.toggleArchivadas {
+  padding: 5px 11px; font-size: 12.5px; cursor: pointer;
+  background: var(--surface); border: 1px dashed var(--border-strong);
+  border-radius: 999px; color: var(--text-muted);
+}
+.toggleArchivadas:hover { border-color: var(--accent); color: var(--accent-text); }
+
 .error {
   margin: 0; padding: 10px 14px; border-radius: var(--radius);
   background: #fdf1ec; border: 1px solid #f0d5c9; color: var(--danger); font-size: 14px;
@@ -80,6 +95,11 @@
    del tablero que hay que ver sin leer. */
 .tarjeta[data-urgente] { border-left: 3px solid #c26a4a; }
 
+/* Archivada pero visible (se pidió verlas): atenuada, para que se note de
+   un vistazo que es trabajo ya cerrado y no algo que sigue pendiente. */
+.tarjeta[data-archivada] { opacity: .55; }
+.tarjeta[data-archivada]:hover { opacity: 1; }
+
 .nombre {
   font-family: var(--font-display), serif; font-size: 16px; line-height: 1.25;
   color: var(--text); text-decoration: none;
@@ -89,7 +109,7 @@
 .cuando { margin: 0; font-size: 12px; color: var(--text-muted); }
 .faltan { color: var(--text-faint); }
 
-.pie { display: flex; align-items: center; gap: 10px; margin-top: 2px; }
+.pie { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-top: 2px; }
 
 .pago {
   padding: 2px 9px; font-size: 11px; font-weight: 600; letter-spacing: .02em;
@@ -98,9 +118,28 @@
   transition: background .15s, color .15s, border-color .15s;
 }
 .pago:hover { border-color: var(--accent); color: var(--accent-text); }
-.pago[data-pagada] {
+/* Anticipo en ámbar y completo en verde: son dos estados distintos, no el
+   mismo «ya entró algo» con más o menos intensidad. */
+.pago[data-pago="parcial"] {
+  background: #fdf6e3; border: 1px solid #ecd9a0; border-style: solid; color: #8a6a1f;
+}
+.pago[data-pago="completo"] {
   background: #eaf3ec; border: 1px solid #bcd9c3; border-style: solid; color: #3d6b47;
 }
+
+/* Quién la lleva: un select discreto, del mismo tamaño que el sello de pago. */
+.responsable {
+  padding: 2px 8px; font-size: 11px;
+  background: transparent; border: 1px dashed var(--border-strong); border-radius: 999px;
+  color: var(--text-faint); cursor: pointer;
+}
+.responsable:hover { border-color: var(--accent); color: var(--accent-text); }
+
+.archivar {
+  padding: 2px 9px; font-size: 11px; cursor: pointer;
+  background: transparent; border: 0; color: var(--text-faint);
+}
+.archivar:hover { color: var(--danger); }
 
 .enlace { margin-left: auto; font-size: 12px; color: var(--accent-text); text-decoration: none; }
 .enlace:hover { text-decoration: underline; }

@@ -5,7 +5,7 @@ import { coupleName, resolvedDateLabel, type InvitationData } from "@/lib/schema
 import styles from "./home.module.css";
 import { requiereSesion } from "@/lib/auth";
 import { DeleteButton } from "./DeleteButton";
-import { ESTADO_POR_ID, estadoDe } from "@/lib/tablero";
+import { ESTADO_POR_ID, estadoDe, PAGO_POR_ID, pagoDe } from "@/lib/tablero";
 
 export const dynamic = "force-dynamic";
 
@@ -92,7 +92,9 @@ export default async function HomePage() {
                   >
                     {ESTADO_POR_ID[estadoDe(inv.estado)].label}
                   </span>
-                  {inv.pagada && <span className={styles.pagada}>Pagada</span>}
+                  {pagoDe(inv.pago) !== "no" && (
+                    <span className={styles.pagada}>{PAGO_POR_ID[pagoDe(inv.pago)].label}</span>
+                  )}
                   {inv.published ? (
                     <a
                       href={`/${inv.slug}`}

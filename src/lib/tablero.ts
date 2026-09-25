@@ -99,6 +99,58 @@ export function esEstado(valor: unknown): valor is Estado {
   return typeof valor === "string" && !!ESTADO_POR_ID[valor];
 }
 
+/* ── El cobro ─────────────────────────────────────────────────
+   Tres estados y no un sí/no: un anticipo es algo que de verdad pasó, no un
+   paso a medias hacia «pagada». Sin el estado de en medio, la única forma de
+   anotar un anticipo era marcarla como pagada del todo (y perder de vista que
+   falta el resto) o dejarla en «sin cobrar» (y perder que ya entró algo). */
+export type Pago = "no" | "parcial" | "completo";
+
+export interface PagoSpec {
+  id: Pago;
+  /** Lo que dice el botón del tablero. */
+  label: string;
+}
+
+export const PAGOS: PagoSpec[] = [
+  { id: "no", label: "Sin cobrar" },
+  { id: "parcial", label: "Anticipo" },
+  { id: "completo", label: "Pagada" },
+];
+
+export const PAGO_POR_ID: Record<string, PagoSpec> = Object.fromEntries(
+  PAGOS.map((p) => [p.id, p])
+);
+
+/** El pago de una fila, tolerando lo que no reconozca (o lo que no tenga). */
+export function pagoDe(valor: string | null | undefined): Pago {
+  return PAGO_POR_ID[String(valor || "")] ? (valor as Pago) : "no";
+}
+
+export function esPago(valor: unknown): valor is Pago {
+  return typeof valor === "string" && !!PAGO_POR_ID[valor];
+}
+
+/** Un clic recorre los tres: sin cobrar → anticipo → pagada → sin cobrar. */
+export function siguientePago(actual: Pago): Pago {
+  if (actual === "no") return "parcial";
+  if (actual === "parcial") return "completo";
+  return "no";
+}
+
+/* ── Quién la lleva ───────────────────────────────────────────── */
+
+export type Responsable = "valentina" | "juan";
+
+export const RESPONSABLES: { id: Responsable; label: string }[] = [
+  { id: "valentina", label: "Valentina" },
+  { id: "juan", label: "Juan" },
+];
+
+export function esResponsable(valor: unknown): valor is Responsable {
+  return valor === "valentina" || valor === "juan";
+}
+
 /* ── Lo que se muestra en cada tarjeta ───────────────────────── */
 
 /**
@@ -151,32 +203,50 @@ export function urge(iso: string, estado: Estado, ahora = new Date()): boolean {
 
 export interface Resumen {
   porEstado: Record<Estado, number>;
-  /** La pregunta del dinero: entregadas que todavía no se han cobrado. */
+  /** La pregunta del dinero: entregadas que todavía no se han cobrado del todo. */
   sinCobrar: number;
   /** Las que se celebran dentro de dos semanas y no están entregadas. */
   urgentes: number;
-  /** Invitaciones de clientes: todas menos las del catálogo. */
+  /** Invitaciones de clientes activas: ni catálogo ni archivadas. */
   total: number;
   /** Las muestras del catálogo, aparte. */
   muestras: number;
+  /** Trabajo ya cerrado, guardado fuera de las columnas. */
+  archivadas: number;
 }
 
+/**
+ * Recibe todas las filas, archivadas incluidas, y las cuenta aparte —igual
+ * que las muestras del catálogo—: son trabajo real, pero no del que se mira
+ * hoy, y contarlas con las demás inflaría el resumen con algo que ya se
+ * cerró. El tablero decide por su cuenta si además las enseña en las
+ * columnas; este resumen no cambia según esa decisión.
+ */
 export function resumir(
-  filas: { estado: string; pagada: boolean; fecha: string }[],
+  filas: { estado: string; pago: string; fecha: string; archivada?: boolean }[],
   ahora = new Date()
 ): Resumen {
   const porEstado = Object.fromEntries(ESTADOS.map((e) => [e.id, 0])) as Record<Estado, number>;
   let sinCobrar = 0;
   let urgentes = 0;
+  let archivadas = 0;
 
   for (const f of filas) {
+    if (f.archivada) { archivadas++; continue; }
     const e = estadoDe(f.estado);
     porEstado[e]++;
-    if (e === "entregada" && !f.pagada) sinCobrar++;
+    if (e === "entregada" && pagoDe(f.pago) !== "completo") sinCobrar++;
     if (urge(f.fecha, e, ahora)) urgentes++;
   }
   const muestras = porEstado.catalogo || 0;
-  return { porEstado, sinCobrar, urgentes, total: filas.length - muestras, muestras };
+  return {
+    porEstado,
+    sinCobrar,
+    urgentes,
+    total: filas.length - muestras - archivadas,
+    muestras,
+    archivadas,
+  };
 }
 
 /* ── El contacto ─────────────────────────────────────────────── */

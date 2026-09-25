@@ -3450,3 +3450,52 @@ pulsar «Actualizar» se lleva el cambio a todas las que vengan.
 `npm run audit:plantillas` lo prueba contra la base, con una plantilla y una
 invitación de usar y tirar. Quitando el guardado de la versión anterior, falla
 en cinco sitios.
+
+## El tablero crece: cobro por partes, quién la lleva, archivar
+
+### El anticipo es un estado, no una casilla a medias
+
+`pagada` era un sí/no. Un anticipo real —que pasa mucho: se cobra parte al
+encargar y el resto al entregar— no tenía dónde ir: marcarla pagada perdía de
+vista que falta el resto, y dejarla sin marcar perdía que ya entró algo.
+
+Ahora `pago` tiene tres valores —`no | parcial | completo`— y el mismo botón
+de antes los recorre en un clic: sin cobrar → anticipo → pagada → sin cobrar.
+El resumen de arriba («entregadas sin cobrar») cuenta `parcial` como
+pendiente, porque la pregunta que responde es «¿qué falta por cerrar del
+todo?», y un anticipo no la cierra.
+
+`pagada` se queda en el esquema —ninguna columna con datos reales se borra,
+igual que `mode`, la del constructor visual retirado— sólo para poder migrar
+su valor una vez: `npm run db:migrar-pago -- --seco` dice qué filas pasarían
+de `pagada: true` a `pago: "completo"`, y sin `--seco` las mueve. El código ya
+no lee `pagada`.
+
+### Quién la lleva
+
+Un campo, `responsable` (`valentina | juan`), con un selector discreto en la
+tarjeta. Sin asignar por defecto —lo que ya existía no tenía a quién
+preguntarle— y no obligatorio: es información de reparto de trabajo, no un
+requisito para que la tarjeta exista.
+
+### Archivar: la respuesta a que el tablero crezca
+
+Con pocas invitaciones, cuatro columnas caben en una pantalla. Con muchas más
+—cobradas, entregadas, cerradas hace meses—, seguirían ahí para siempre,
+compitiendo por el mismo espacio con lo que sí hay que mirar hoy.
+
+`archivada` las saca de las columnas sin borrar nada. La barra de arriba dice
+cuántas hay («Ver 12 archivadas») y un clic las trae de vuelta, atenuadas, con
+un botón para desarchivar. El resumen —total, urgentes, sin cobrar— las
+excluye siempre, igual que ya excluía las muestras del catálogo: son trabajo
+real, pero no del que se decide qué hacer hoy con él.
+
+Es deliberadamente manual y no una regla automática («archivar sola a los N
+días de entregada y cobrada»): quién archiva sigue siendo quien decide que
+algo está de verdad cerrado, y una entregada y cobrada puede necesitar
+volver —un cambio de última hora, una reimpresión— sin tener que
+«desarchivarla» de un sitio donde nunca debió estar sola.
+
+Junto con archivar, un buscador por nombre o teléfono filtra las columnas sin
+tener que recorrerlas: la otra mitad de «que siga cabiendo de un vistazo»
+es poder ir directo a una tarjeta conocida en vez de mirar las demás.

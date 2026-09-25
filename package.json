@@ -24,6 +24,7 @@
     "audit:browser": "tsx scripts/audit-browser.ts",
     "audit:auth": "tsx scripts/audit-auth.ts",
     "db:migrar-splash": "tsx scripts/migrar-splash-mapa.ts",
+    "db:migrar-pago": "tsx scripts/migrar-pago.ts",
     "rsvp:limpiar": "tsx scripts/rsvp-deduplicar.ts",
     "audit:rsvp": "tsx scripts/audit-rsvp.ts",
     "audit:aperturas": "tsx scripts/audit-aperturas.ts",

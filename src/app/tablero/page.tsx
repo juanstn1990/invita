@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { TEMPLATE_BY_ID } from "@/lib/templates";
 import { coupleName, resolvedDateLabel, type InvitationData } from "@/lib/schema";
 import { requiereSesion } from "@/lib/auth";
-import { estadoDe } from "@/lib/tablero";
+import { estadoDe, pagoDe, esResponsable } from "@/lib/tablero";
 import { Tablero, type Tarjeta } from "./Tablero";
 import styles from "../home.module.css";
 import propio from "./tablero.module.css";
@@ -43,7 +43,9 @@ export default async function TableroPage() {
         slug: i.slug,
         publicada: i.published,
         estado: estadoDe(i.estado),
-        pagada: i.pagada,
+        pago: pagoDe(i.pago),
+        responsable: esResponsable(i.responsable) ? i.responsable : null,
+        archivada: i.archivada,
         fecha: String((data.event as Record<string, unknown>)?.date || ""),
         fechaTexto: resolvedDateLabel(data),
         diseno: tpl.name,

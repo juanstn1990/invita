@@ -37,11 +37,25 @@ model Invitation {
   /// enseñarla, y una entregada puede despublicarse sin dejar de estar
   /// entregada.
   estado     String   @default("borrador")
-  /// Si ya se cobró. Aparte del estado y no como una columna más del tablero
-  /// porque no es el final de una fila: se cobra un anticipo de algo que
-  /// sigue en curso, y se entrega algo que no se ha cobrado —que es justo lo
-  /// que hay que poder ver de un vistazo.
+  /// Si ya se cobró: "no" | "parcial" | "completo". Aparte del estado y no
+  /// como una columna más del tablero porque no es el final de una fila: se
+  /// cobra un anticipo de algo que sigue en curso, y se entrega algo que no
+  /// se ha cobrado —que es justo lo que hay que poder ver de un vistazo—.
+  /// El anticipo es un estado real y no sólo un paso hacia «sí»: hay que
+  /// poder ver que falta el resto, no sólo que falta todo.
+  pago       String   @default("no")
+  /// El booleano de antes de `pago`. Ninguna columna con datos reales se
+  /// borra —ver `mode` arriba—, así que se queda sólo para poder migrar su
+  /// valor una vez (`scripts/migrar-pago.ts`); el código ya no la lee.
   pagada     Boolean  @default(false)
+  /// Quién la está llevando: "valentina" | "juan". Vacío en lo ya hecho,
+  /// porque no había nadie a quien preguntarle cuando se creó.
+  responsable String?
+  /// Fuera del tablero activo sin perder nada: no aparece en las columnas a
+  /// menos que se pida verla, pero se puede recuperar en cualquier momento.
+  /// Es lo que evita que el tablero se llene de trabajo ya cerrado y hace que
+  /// siga cabiendo de un vistazo según crece. Ver `src/lib/tablero.ts`.
+  archivada  Boolean  @default(false)
   /// El contacto de quien encargó la invitación. Va aquí y no en `data`
   /// porque no es contenido de la invitación —no se publica, no se ve—: es
   /// cómo se habla con el cliente, y el sitio para eso es el tablero.

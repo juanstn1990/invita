@@ -14,7 +14,10 @@
  *   de alguien. Sin rescate no sale en ninguna columna y parece borrada.
  */
 
-import { ESTADOS, estadoDe, esEstado, esTrabajo, faltan, urge, resumir, whatsapp } from "../src/lib/tablero";
+import {
+  ESTADOS, estadoDe, esEstado, esTrabajo, faltan, urge, resumir, whatsapp,
+  pagoDe, esPago, siguientePago, esResponsable,
+} from "../src/lib/tablero";
 
 let malos = 0;
 const decir = (ok: boolean, nombre: string, detalle = "") => {
@@ -80,31 +83,72 @@ const dia = (d: string) => `2026-06-${d}T17:00:00`;
   decir(!urge("", "curso", AHORA), "sin fecha no urge");
 }
 
+/* ── El cobro ────────────────────────────────────────────────── */
+
+{
+  decir(pagoDe("parcial") === "parcial", "un pago conocido se respeta");
+  decir(pagoDe("inventado") === "no", "uno que no existe cae en «sin cobrar»");
+  decir(pagoDe("") === "no", "y uno vacío también");
+  decir(pagoDe(null) === "no", "y uno nulo, que es lo que había antes del campo");
+  decir(esPago("completo") && esPago("no") && !esPago("pagada"), "`esPago` distingue los tres, y «pagada» ya no es uno de ellos");
+
+  decir(siguientePago("no") === "parcial", "de sin cobrar, un clic lleva a anticipo");
+  decir(siguientePago("parcial") === "completo", "de anticipo, a pagada del todo");
+  decir(siguientePago("completo") === "no", "y de pagada, vuelve a sin cobrar");
+}
+
+/* ── Quién la lleva ──────────────────────────────────────────── */
+
+{
+  decir(esResponsable("valentina") && esResponsable("juan"), "los dos nombres son válidos");
+  decir(!esResponsable("") && !esResponsable(null) && !esResponsable("otro"), "nada más lo es: sin asignar no es un tercer nombre");
+}
+
 /* ── El resumen ──────────────────────────────────────────────── */
 
 {
   const filas = [
-    { estado: "borrador", pagada: false, fecha: "2026-12-01T17:00:00" },
-    { estado: "demo", pagada: true, fecha: dia("18") },
-    { estado: "curso", pagada: false, fecha: dia("18") },
-    { estado: "entregada", pagada: false, fecha: "2026-07-01T17:00:00" },
-    { estado: "entregada", pagada: true, fecha: "2026-07-01T17:00:00" },
-    { estado: "loquesea", pagada: false, fecha: "" },
+    { estado: "borrador", pago: "no", fecha: "2026-12-01T17:00:00" },
+    { estado: "demo", pago: "completo", fecha: dia("18") },
+    { estado: "curso", pago: "no", fecha: dia("18") },
+    { estado: "entregada", pago: "no", fecha: "2026-07-01T17:00:00" },
+    { estado: "entregada", pago: "parcial", fecha: "2026-07-01T17:00:00" },
+    { estado: "entregada", pago: "completo", fecha: "2026-07-01T17:00:00" },
+    { estado: "loquesea", pago: "no", fecha: "" },
   ];
   const r = resumir(filas, AHORA);
 
-  decir(r.total === 6, "cuenta todas", `${r.total}`);
+  decir(r.total === 7, "cuenta todas", `${r.total}`);
   decir(r.porEstado.borrador === 2, "y la de estado desconocido cae en borrador", `${r.porEstado.borrador}`);
-  decir(r.porEstado.entregada === 2, "dos entregadas", `${r.porEstado.entregada}`);
-  /* La pregunta del dinero: entregadas sin cobrar, no «sin cobrar» a secas.
-     Un borrador sin pagar no es una deuda, es trabajo por hacer. */
-  decir(r.sinCobrar === 1, "una entregada sin cobrar", `${r.sinCobrar}`);
+  decir(r.porEstado.entregada === 3, "tres entregadas", `${r.porEstado.entregada}`);
+  /* La pregunta del dinero: entregadas sin cobrar DEL TODO —un anticipo
+     todavía cuenta como pendiente—, no «sin cobrar» a secas. Un borrador sin
+     pagar no es una deuda, es trabajo por hacer. */
+  decir(r.sinCobrar === 2, "dos entregadas sin cobrar del todo (sin cobrar y con anticipo)", `${r.sinCobrar}`);
   decir(r.urgentes === 2, "dos urgentes", `${r.urgentes}`);
 
   /* Que la suma cuadre: una invitación en ninguna columna es una invitación
      que se perdió, y en el tablero eso no se nota mirando. */
   const suma = Object.values(r.porEstado).reduce((a, b) => a + b, 0);
   decir(suma === r.total, "y ninguna se queda fuera de una columna", `${suma} de ${r.total}`);
+}
+
+/* ── Lo archivado ────────────────────────────────────────────── */
+
+{
+  /* Cerrado y fuera del resumen activo, igual que las muestras del catálogo:
+     es trabajo real, pero no del que se mira hoy. Sin esto, archivar no
+     cumpliría su propósito —el tablero seguiría contándolas como si
+     estuvieran a la vista. */
+  const r = resumir([
+    { estado: "entregada", pago: "no", fecha: dia("12"), archivada: true },
+    { estado: "entregada", pago: "completo", fecha: "2026-01-01T17:00:00", archivada: true },
+    { estado: "curso", pago: "no", fecha: dia("12") },
+  ], AHORA);
+  decir(r.total === 1, "el total no cuenta las archivadas", `${r.total}`);
+  decir(r.archivadas === 2, "las archivadas se cuentan aparte", `${r.archivadas}`);
+  decir(r.urgentes === 1, "una archivada a dos días no sale como urgente", `${r.urgentes}`);
+  decir(r.sinCobrar === 0, "ni como pendiente de cobro, aunque esté entregada y sin pagar", `${r.sinCobrar}`);
 }
 
 /* ── El catálogo ─────────────────────────────────────────────── */
@@ -119,9 +163,9 @@ const dia = (d: string) => `2026-06-${d}T17:00:00`;
     "una muestra con fecha a dos días no sale como urgente");
 
   const r = resumir([
-    { estado: "catalogo", pagada: false, fecha: dia("12") },
-    { estado: "catalogo", pagada: false, fecha: dia("13") },
-    { estado: "curso", pagada: false, fecha: dia("12") },
+    { estado: "catalogo", pago: "no", fecha: dia("12") },
+    { estado: "catalogo", pago: "no", fecha: dia("13") },
+    { estado: "curso", pago: "no", fecha: dia("12") },
   ], AHORA);
   decir(r.total === 1, "el total de invitaciones no cuenta las muestras", `${r.total}`);
   decir(r.muestras === 2, "las muestras se cuentan aparte", `${r.muestras}`);

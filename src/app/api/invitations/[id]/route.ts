@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { TEMPLATE_BY_ID } from "@/lib/templates";
 import { normalizeSlug, slugError } from "@/lib/slug";
 import { noAutorizado } from "@/lib/auth";
-import { ESTADOS, esEstado } from "@/lib/tablero";
+import { ESTADOS, esEstado, esPago, esResponsable, PAGOS } from "@/lib/tablero";
 
 export async function PATCH(
   request: Request,
@@ -55,7 +55,32 @@ export async function PATCH(
     update.estado = body.estado;
   }
 
-  if (typeof body.pagada === "boolean") update.pagada = body.pagada;
+  /* Igual que el estado: no se acepta lo que llegue, porque un valor
+     inventado dejaría la tarjeta con un sello que ningún botón sabe
+     interpretar ni volver a cambiar. */
+  if (typeof body.pago === "string") {
+    if (!esPago(body.pago)) {
+      return NextResponse.json(
+        { error: `"${body.pago}" no es un pago. Los que hay: ${PAGOS.map((p) => p.id).join(", ")}.` },
+        { status: 400 }
+      );
+    }
+    update.pago = body.pago;
+  }
+
+  /* Quién la lleva: vacío para «sin asignar», que es distinto de no mandar
+     el campo —ahí no se toca lo que ya había—. */
+  if (typeof body.responsable === "string") {
+    if (body.responsable && !esResponsable(body.responsable)) {
+      return NextResponse.json(
+        { error: `"${body.responsable}" no es quien la lleva. Los que hay: valentina, juan.` },
+        { status: 400 }
+      );
+    }
+    update.responsable = body.responsable || null;
+  }
+
+  if (typeof body.archivada === "boolean") update.archivada = body.archivada;
 
   /* El contacto y las notas del tablero. Se recortan porque son campos
      libres que se rellenan a mano y nadie quiere una nota de un megabyte en
@@ -79,7 +104,9 @@ export async function PATCH(
       slug: invitation.slug,
       published: invitation.published,
       estado: invitation.estado,
-      pagada: invitation.pagada,
+      pago: invitation.pago,
+      responsable: invitation.responsable,
+      archivada: invitation.archivada,
       telefono: invitation.telefono,
       notas: invitation.notas,
       updatedAt: invitation.updatedAt,
