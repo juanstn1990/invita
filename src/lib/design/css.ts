@@ -685,6 +685,9 @@ footer{position:relative;padding:56px 22px;text-align:center;
 .footer-date{margin-top:12px;font-size:var(--fs-small);letter-spacing:.16em;opacity:.8}
 .footer-copy{margin-top:20px;font-size:var(--fs-micro);letter-spacing:var(--tracking);
   text-transform:var(--caps);opacity:.6}
+.footer-credit{margin-top:14px;font-size:var(--fs-micro);letter-spacing:var(--tracking);opacity:.5}
+.footer-credit a{color:inherit;font-weight:600;text-decoration:underline;text-underline-offset:2px}
+.footer-credit a:hover{opacity:1}
 
 /* ── Barra de progreso de lectura ── */
 .progress{position:fixed;top:0;left:0;right:0;z-index:9998;height:2px;

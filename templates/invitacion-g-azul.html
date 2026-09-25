@@ -291,6 +291,9 @@ footer{position:relative;padding:56px 22px;text-align:center;
 .footer-date{margin-top:12px;font-size:var(--fs-small);letter-spacing:.16em;opacity:.8}
 .footer-copy{margin-top:20px;font-size:var(--fs-micro);letter-spacing:var(--tracking);
   text-transform:var(--caps);opacity:.6}
+.footer-credit{margin-top:14px;font-size:var(--fs-micro);letter-spacing:var(--tracking);opacity:.5}
+.footer-credit a{color:inherit;font-weight:600;text-decoration:underline;text-underline-offset:2px}
+.footer-credit a:hover{opacity:1}
 
 /* ── Barra de progreso de lectura ── */
 .progress{position:fixed;top:0;left:0;right:0;z-index:9998;height:2px;
@@ -760,6 +763,12 @@ footer .container{position:relative;z-index:2}
     <p class="footer-names" data-inv="event.names">Camila</p>
     <p class="footer-date" data-inv="footer.dateLine">26 · Noviembre · 2027</p>
     <p class="footer-copy" data-inv="footer.note">Con gratitud · Camila</p>
+    <!-- Fija, igual en las 70+ plantillas y no editable desde el esquema:
+         es la firma del negocio que hace las invitaciones, no contenido de
+         quien organiza el evento. Por eso va aquí y no en «data.footer». -->
+    <p class="footer-credit">Hecho con amor <span aria-hidden="true">♥</span> por
+      <a href="https://wa.me/573118259656?text=Hola%2C%20quiero%20saber%20m%C3%A1s" target="_blank" rel="noopener">Invita</a>
+    </p>
   </div>
 </footer>
 

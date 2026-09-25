@@ -300,6 +300,12 @@ export function page(d: Design, t: Theme, c: Content): string {
     <p class="footer-names" data-inv="event.names">${nombres(c, "amp")}</p>
     <p class="footer-date" data-inv="footer.dateLine">${e(c.dateLabel)}</p>
     <p class="footer-copy" data-inv="footer.note">${e(c.footer)}</p>
+    <!-- Fija, igual en las 70+ plantillas y no editable desde el esquema:
+         es la firma del negocio que hace las invitaciones, no contenido de
+         quien organiza el evento. Por eso va aquí y no en «data.footer». -->
+    <p class="footer-credit">Hecho con amor <span aria-hidden="true">♥</span> por
+      <a href="https://wa.me/573118259656?text=Hola%2C%20quiero%20saber%20m%C3%A1s" target="_blank" rel="noopener">Invita</a>
+    </p>
   </div>
 </footer>
 
