@@ -5,6 +5,7 @@ import Link from "next/link";
 import {
   ESTADOS,
   RESPONSABLES,
+  PAGOS,
   faltan,
   urge,
   resumir,
@@ -16,6 +17,7 @@ import {
   type Pago,
   type Responsable,
 } from "@/lib/tablero";
+import type { Occasion } from "@/lib/design/theme";
 import styles from "./tablero.module.css";
 
 export interface Tarjeta {
@@ -23,6 +25,11 @@ export interface Tarjeta {
   titulo: string;
   slug: string;
   publicada: boolean;
+  /** Boda, quince, grado… lo que se elige al crearla, no se cambia después. */
+  tipo: Occasion;
+  /** Su nombre en español, resuelto en el servidor: `templates.ts` lee
+      archivos y este componente es de cliente, así que no puede traerlo. */
+  tipoLabel: string;
   estado: Estado;
   pago: Pago;
   /** Quién la lleva. Sin asignar en lo que ya existía antes de este campo. */
@@ -72,15 +79,34 @@ export function Tablero({
   const [verArchivadas, setVerArchivadas] = useState(false);
   /* Por nombre o teléfono. Vacío no filtra nada. */
   const [busqueda, setBusqueda] = useState("");
+  /* Los tres filtros de arriba: vacío es "cualquiera", igual que la
+     búsqueda. "" para responsable no puede significar "sin asignar" —ese
+     valor lo necesita el select para su propia opción vacía "Cualquiera"—,
+     así que "sin asignar" es una cadena propia que no colisiona con ningún
+     id real. */
+  const [filtroTipo, setFiltroTipo] = useState<Occasion | "">("");
+  const [filtroPago, setFiltroPago] = useState<Pago | "">("");
+  const [filtroResp, setFiltroResp] = useState<Responsable | "sin" | "">("");
 
   const resumen = resumir(tarjetas);
   const archivadasN = tarjetas.filter((t) => t.archivada).length;
+  /* Sólo los tipos que de verdad hay: ofrecer "Baby shower" en el filtro
+     cuando nadie tiene una invitación de baby shower sería un hueco que
+     siempre vuelve vacío. Con su etiqueta al lado, para no depender de
+     `KIND_LABEL` aquí —ver por qué en el campo `tipoLabel` de `Tarjeta`. */
+  const tiposPresentes = Array.from(
+    new Map(tarjetas.map((t) => [t.tipo, t.tipoLabel])).entries()
+  ).sort((a, b) => a[1].localeCompare(b[1]));
 
   const q = busqueda.trim().toLowerCase();
   const visibles = tarjetas.filter((t) => {
     if (t.archivada && !verArchivadas) return false;
-    if (!q) return true;
-    return t.titulo.toLowerCase().includes(q) || t.telefono.includes(q);
+    if (q && !(t.titulo.toLowerCase().includes(q) || t.telefono.includes(q))) return false;
+    if (filtroTipo && t.tipo !== filtroTipo) return false;
+    if (filtroPago && t.pago !== filtroPago) return false;
+    if (filtroResp === "sin" && t.responsable) return false;
+    if (filtroResp && filtroResp !== "sin" && t.responsable !== filtroResp) return false;
+    return true;
   });
 
   async function guardar(id: string, cambio: Record<string, unknown>, deshacer: () => void) {
@@ -183,6 +209,40 @@ export function Tablero({
           onChange={(e) => setBusqueda(e.target.value)}
         />
 
+        <select
+          className={styles.filtro}
+          value={filtroTipo}
+          onChange={(e) => setFiltroTipo(e.target.value as Occasion | "")}
+        >
+          <option value="">Cualquier tipo</option>
+          {tiposPresentes.map(([tipo, label]) => (
+            <option key={tipo} value={tipo}>{label}</option>
+          ))}
+        </select>
+
+        <select
+          className={styles.filtro}
+          value={filtroPago}
+          onChange={(e) => setFiltroPago(e.target.value as Pago | "")}
+        >
+          <option value="">Cualquier pago</option>
+          {PAGOS.map((p) => (
+            <option key={p.id} value={p.id}>{p.label}</option>
+          ))}
+        </select>
+
+        <select
+          className={styles.filtro}
+          value={filtroResp}
+          onChange={(e) => setFiltroResp(e.target.value as Responsable | "sin" | "")}
+        >
+          <option value="">Cualquiera</option>
+          {RESPONSABLES.map((r) => (
+            <option key={r.id} value={r.id}>{r.label}</option>
+          ))}
+          <option value="sin">Sin asignar</option>
+        </select>
+
         {archivadasN > 0 && (
           <button
             type="button"
@@ -245,6 +305,7 @@ export function Tablero({
                     <Link href={`/editor/${t.id}`} className={styles.nombre}>
                       {t.titulo}
                     </Link>
+                    <p className={styles.tipo}>{t.tipoLabel}</p>
 
                     <p className={styles.cuando}>
                       {t.fechaTexto}

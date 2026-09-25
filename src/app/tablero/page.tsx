@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { TEMPLATE_BY_ID } from "@/lib/templates";
+import { TEMPLATE_BY_ID, KIND_LABEL } from "@/lib/templates";
 import { coupleName, resolvedDateLabel, type InvitationData } from "@/lib/schema";
 import { requiereSesion } from "@/lib/auth";
 import { estadoDe, pagoDe, esResponsable } from "@/lib/tablero";
@@ -42,6 +42,8 @@ export default async function TableroPage() {
         titulo: coupleName(data) || i.title,
         slug: i.slug,
         publicada: i.published,
+        tipo: tpl.kind,
+        tipoLabel: KIND_LABEL[tpl.kind],
         estado: estadoDe(i.estado),
         pago: pagoDe(i.pago),
         responsable: esResponsable(i.responsable) ? i.responsable : null,
