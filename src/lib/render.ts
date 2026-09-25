@@ -4464,6 +4464,18 @@ export function renderInvitation(opts: RenderOptions): string {
       );
     }
 
+    /* El «Hecho con amor por Invita» del pie: un control propio y no el
+       `textColor` de arriba, porque ese excluye a propósito los enlaces —es
+       el único texto del pie donde el enlace SÍ debe teñirse, ya que la
+       frase entera es una sola pieza de marca y no un párrafo con un enlace
+       suelto dentro. */
+    const credito = String(sectionData.creditColor || "").trim();
+    if (credito && HEX.test(credito)) {
+      // Sin el 50% de opacidad de siempre: quien elige un color lo hace
+      // para que se vea, no para verlo lavado a la mitad.
+      colorCss.push(`${sectionSel} .footer-credit{color:${credito} !important;opacity:1}`);
+    }
+
     /* La capa detrás del texto.
        Se aplica al contenedor y no a un elemento suelto: lo que hay que
        separar del fondo es el bloque de texto entero —antetítulo, título y

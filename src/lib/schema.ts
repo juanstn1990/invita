@@ -1637,6 +1637,18 @@ export const SECTIONS: SectionSpec[] = [
       { key: "dateLine", label: "Línea de fecha", type: "text", span: 2, placeholder: "15 · Noviembre · 2025 · Sevilla" },
       { key: "note", label: "Nota final", type: "text", span: 2, placeholder: "Diseñado con amor" },
       textColor,
+      {
+        /* «Hecho con amor por Invita» es fijo —no es contenido de quien
+           organiza, es la firma del negocio— así que no tiene campo de
+           texto. Pero su color sí hace falta poder tocarlo: al 50% de
+           opacidad se ve bien sobre un fondo claro y se pierde sobre uno
+           oscuro, y no todos los diseños tienen el mismo pie. */
+        key: "creditColor",
+        label: "Color de «Hecho con amor»",
+        type: "color",
+        span: 2,
+        help: "Tiñe la frase entera, enlace incluido. Vacío = el tono suave de siempre.",
+      },
     ],
   },
 ];

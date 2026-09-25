@@ -230,6 +230,9 @@ const APARTE = new Set([
   /* La capa detrás del texto es una regla CSS sobre el contenedor. */
   "panelColor",
   "panelOpacidad",
+  // El color de «Hecho con amor por Invita» es otra regla CSS por sección,
+  // igual que `textColor`, pero sólo sobre esa frase.
+  "creditColor",
   "fondoColor",
   "btnColor",
   /* La forma de los botones es una regla CSS sobre `--btn-radius`. */
