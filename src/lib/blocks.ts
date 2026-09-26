@@ -1211,6 +1211,30 @@ const deseosEvento: BlockSpec = {
     },
     { key: "boton", label: "Texto del botón", type: "text", placeholder: "Escribir mi deseo" },
     { key: "textColor", label: "Color de las letras", type: "color", span: 2 },
+    /* Éstos no pintan nada en la invitación: los lee sólo la página aparte
+       del libro (`/{slug}/deseos`), que no pasa por el motor de plantillas.
+       Van en el mismo bloque y no en un sitio nuevo porque es donde ya
+       vive todo lo demás de "cómo se ve el libro". */
+    {
+      key: "visibilidad",
+      label: "Quién puede leerlo",
+      type: "select",
+      span: 2,
+      options: [
+        { value: "privado", label: "Privado: solo yo lo leo, desde mi panel" },
+        { value: "publico", label: "Público: cualquiera con el link puede hojearlo" },
+      ],
+      help: "Escribir un deseo nuevo siempre funciona igual. Esto sólo decide si además se puede leer lo que ya escribieron los demás.",
+    },
+    {
+      key: "portada",
+      label: "Portada del libro",
+      type: "image",
+      span: 2,
+      help: "Opcional. Sin ella, la portada es un color liso con el título.",
+    },
+    { key: "colorHoja", label: "Color de las hojas", type: "color", help: "Vacío = blanco." },
+    { key: "colorLetra", label: "Color de la letra en las hojas", type: "color", help: "Vacío = tinta oscura." },
   ],
   variants: [
     {
@@ -1354,6 +1378,7 @@ export function blockDefaults(spec: BlockSpec): SectionData {
       enabled: true, label: "", title: "Firma nuestro libro de deseos",
       texto: "Escríbenos un deseo, un consejo, o lo que quieras decirnos de este día.",
       boton: "Escribir mi deseo", textColor: "",
+      visibilidad: "privado", portada: "", colorHoja: "", colorLetra: "",
     };
   }
   return { enabled: true };

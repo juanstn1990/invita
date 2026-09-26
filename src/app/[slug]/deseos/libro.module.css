@@ -1,0 +1,58 @@
+.envoltorio { display: flex; flex-direction: column; align-items: center; gap: 16px; width: 100%; }
+
+.libro {
+  perspective: 1400px; width: 100%; max-width: 340px; aspect-ratio: 3/4;
+  position: relative;
+}
+
+.hoja {
+  position: absolute; inset: 0; border-radius: 14px; overflow: hidden;
+  box-shadow: 0 14px 34px rgba(0,0,0,.16), 0 1px 0 rgba(0,0,0,.08);
+  background: var(--colorHoja, #fffdf8);
+  transition: transform .28s ease, opacity .28s ease;
+  transform: none; opacity: 1;
+}
+.hoja[data-fase="saliendo"] { transform: rotateY(-20deg) translateX(-3%); opacity: 0; }
+.hoja[data-fase="entrando"] { transform: rotateY(20deg) translateX(3%); opacity: 0; }
+
+.portada {
+  width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 8px; padding: 24px; text-align: center;
+  background-color: var(--colorHoja, #fffdf8); background-size: cover; background-position: center;
+  color: var(--colorLetra, #2c2312);
+}
+.portadaTitulo {
+  margin: 0; font-family: Georgia, serif; font-size: 22px; font-weight: 400;
+  text-shadow: 0 1px 3px rgba(255,255,255,.6);
+}
+.portadaEvento {
+  margin: 0; font-size: 12.5px; letter-spacing: .1em; text-transform: uppercase; opacity: .8;
+  text-shadow: 0 1px 3px rgba(255,255,255,.6);
+}
+
+.pagina {
+  width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center;
+  padding: 30px 26px; color: var(--colorLetra, #2c2312);
+}
+.deseoTexto { margin: 0; font-size: 16px; line-height: 1.6; white-space: pre-wrap; }
+.deseoFirma { margin: 16px 0 0; font-family: Georgia, serif; font-style: italic; font-size: 16px; text-align: right; }
+
+.paginaFinal {
+  width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 10px; padding: 24px; text-align: center;
+  color: var(--colorLetra, #2c2312);
+}
+.finTitulo { margin: 0; font-family: Georgia, serif; font-size: 20px; }
+.finTexto { margin: 0; font-size: 13.5px; opacity: .75; }
+.descargar {
+  margin-top: 10px; padding: 12px 20px; font-size: 13.5px; font-weight: 600;
+  background: var(--acento, #8a6a2f); color: #fff; border-radius: 999px; text-decoration: none;
+}
+
+.controles { display: flex; align-items: center; gap: 16px; }
+.controles button {
+  width: 38px; height: 38px; border-radius: 999px; border: 1px solid #e4dfd6;
+  background: #fff; color: #2c2312; font-size: 18px; cursor: pointer;
+}
+.controles button:disabled { opacity: .35; cursor: default; }
+.numero { font-size: 12.5px; color: #8a8177; min-width: 44px; text-align: center; }

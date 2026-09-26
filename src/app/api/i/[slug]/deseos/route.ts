@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { eventoLlego } from "@/lib/disponibilidadEvento";
+import { sesionActual } from "@/lib/auth";
 import type { InvitationData } from "@/lib/schema";
 
 /**
@@ -23,13 +24,14 @@ export async function POST(
     where: { slug: params.slug },
     select: { id: true, published: true, data: true },
   });
-  if (!invitation || !invitation.published) {
+  const esOrganizador = !!(await sesionActual());
+  if (!invitation || (!invitation.published && !esOrganizador)) {
     return NextResponse.json({ error: "Esta invitación no está disponible." }, { status: 404 });
   }
 
   const data = JSON.parse(invitation.data) as InvitationData;
   const fecha = String((data.event as Record<string, unknown>)?.date || "");
-  if (!eventoLlego(fecha)) {
+  if (!eventoLlego(fecha) && !esOrganizador) {
     return NextResponse.json(
       { error: "Todavía no. Esto se abre el día del evento." },
       { status: 403 }

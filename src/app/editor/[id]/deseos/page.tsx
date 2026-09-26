@@ -33,9 +33,14 @@ export default async function DeseosEventoPage({ params }: { params: { id: strin
           <p className={styles.eyebrow}>{invitation.title}</p>
           <h1 className={styles.title}>Libro de deseos</h1>
         </div>
-        <Link href={`/editor/${invitation.id}`} className="btn btn-ghost btn-sm">
-          ← Volver al editor
-        </Link>
+        <div className={styles.headerAcciones}>
+          <a href={`/api/i/${invitation.slug}/deseos/pdf`} className="btn btn-ghost btn-sm" download>
+            Descargar PDF
+          </a>
+          <Link href={`/editor/${invitation.id}`} className="btn btn-ghost btn-sm">
+            ← Volver al editor
+          </Link>
+        </div>
       </header>
 
       {!invitation.published ? (

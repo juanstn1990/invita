@@ -3,6 +3,7 @@ import sharp from "sharp";
 import { prisma } from "@/lib/prisma";
 import { MAX_BYTES, saveEventPhoto } from "@/lib/storage";
 import { eventoLlego } from "@/lib/disponibilidadEvento";
+import { sesionActual } from "@/lib/auth";
 import type { InvitationData } from "@/lib/schema";
 
 /** Sólo lo que el navegador de cualquier invitado puede fotografiar y mandar. */
@@ -36,16 +37,18 @@ export async function POST(
     where: { slug: params.slug },
     select: { id: true, published: true, data: true },
   });
-  if (!invitation || !invitation.published) {
+  const esOrganizador = !!(await sesionActual());
+  if (!invitation || (!invitation.published && !esOrganizador)) {
     return NextResponse.json({ error: "Esta invitación no está disponible." }, { status: 404 });
   }
 
   /* Repite la comprobación de la página: quien llegue directo al endpoint
      —sin pasar por la página, que ya lo dice— no puede subir antes de
-     tiempo. */
+     tiempo. El organizador se lo salta: es lo que hace que la vista previa
+     del editor se pueda probar de verdad, no sólo mirar. */
   const data = JSON.parse(invitation.data) as InvitationData;
   const fecha = String((data.event as Record<string, unknown>)?.date || "");
-  if (!eventoLlego(fecha)) {
+  if (!eventoLlego(fecha) && !esOrganizador) {
     return NextResponse.json(
       { error: "Todavía no. Esto se abre el día del evento." },
       { status: 403 }

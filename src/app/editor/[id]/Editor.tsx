@@ -100,6 +100,11 @@ export function Editor(props: EditorProps) {
 
   const [panel, setPanel] = useState<"content" | "rsvp">(props.openPanel);
   const [device, setDevice] = useState<(typeof DEVICES)[number]["key"]>("phone");
+  /* Qué se ve en el marco: la invitación en vivo (el `srcDoc` de siempre,
+     con los cambios sin guardar) o una de las páginas aparte —fotos,
+     deseos—, que no tienen vista previa propia: se abre la página real,
+     con la sesión de quien edita saltándose el candado de "todavía no". */
+  const [vista, setVista] = useState<"invitacion" | "fotos" | "deseos">("invitacion");
   const [open, setOpen] = useState<string | null>("event");
   const [save, setSave] = useState<SaveState>("idle");
   /* Por qué falló el último guardado, para poder decirlo en vez de dejar un
@@ -564,22 +569,64 @@ export function Editor(props: EditorProps) {
                 </button>
               ))}
             </div>
-            <span className={styles.rendering} data-on={rendering}>
+            {(blocks.some((b) => b.type === "fotos") || blocks.some((b) => b.type === "deseos")) && (
+              <div className={styles.devices}>
+                <button
+                  className={styles.device}
+                  data-active={vista === "invitacion"}
+                  onClick={() => setVista("invitacion")}
+                >
+                  Invitación
+                </button>
+                {blocks.some((b) => b.type === "fotos") && (
+                  <button
+                    className={styles.device}
+                    data-active={vista === "fotos"}
+                    onClick={() => setVista("fotos")}
+                  >
+                    Fotos
+                  </button>
+                )}
+                {blocks.some((b) => b.type === "deseos") && (
+                  <button
+                    className={styles.device}
+                    data-active={vista === "deseos"}
+                    onClick={() => setVista("deseos")}
+                  >
+                    Deseos
+                  </button>
+                )}
+              </div>
+            )}
+            <span className={styles.rendering} data-on={rendering && vista === "invitacion"}>
               actualizando…
             </span>
           </div>
 
           <div className={styles.stageScroll}>
             <div className={styles.frame} style={{ width: deviceWidth }}>
-              <iframe
-                ref={iframe}
-                className={styles.previewFrame}
-                title="Vista previa de la invitación"
-                srcDoc={srcDoc}
-                onLoad={() => {
-                  iframe.current?.contentWindow?.scrollTo(0, scrollY.current);
-                }}
-              />
+              {vista === "invitacion" ? (
+                <iframe
+                  ref={iframe}
+                  className={styles.previewFrame}
+                  title="Vista previa de la invitación"
+                  srcDoc={srcDoc}
+                  onLoad={() => {
+                    iframe.current?.contentWindow?.scrollTo(0, scrollY.current);
+                  }}
+                />
+              ) : (
+                /* Página real y no `srcDoc`: son rutas propias con su propia
+                   base de datos —fotos y deseos ya subidos—, no una vista
+                   sintética del `data` en memoria. Lleva los cambios
+                   guardados, no los que aún no se guardan. */
+                <iframe
+                  key={vista}
+                  className={styles.previewFrame}
+                  title={`Vista previa de ${vista}`}
+                  src={`/${slug}/${vista}`}
+                />
+              )}
             </div>
           </div>
         </section>
