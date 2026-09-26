@@ -294,6 +294,12 @@ const A_MANO: Record<string, Op[]> = {
   "confirm.text": [
     { kind: "html", sel: ['[data-inv="confirm.text"]', ".section-body", ".confirmation-text"] },
   ],
+  /* El mensaje de la sección de invitados: quien organiza puede resaltar una
+     palabra con <strong>, igual que en el bloque de HTML propio — por eso
+     pasa por el mismo filtro y no por texto plano. */
+  "guests.text": [
+    { kind: "htmlSeguro", sel: ['[data-inv="guests.text"]', ".section-body", ".guests-text"] },
+  ],
   "hero.backgroundUrl": [{ kind: "heroPhoto", sel: ['[data-inv="hero.backgroundUrl"]'] }],
   "hero.panelOpacity": [{ kind: "alpha", sel: [".hero-content"] }],
   // Lo guardado es un arroba; el enlace se arma con el prefijo.
