@@ -58,13 +58,22 @@ export default async function DeseosPage({ params }: { params: { slug: string } 
   }
 
   const avisoOrganizador = esOrganizador && (!invitation.published || !eventoLlego(fecha));
-  const aviso = avisoOrganizador && (
+  /* Ver el libro no es lo mismo que verlo público: si sigue en privado, lo
+     que tú ves aquí —el libro entero, para hojear— no es lo que ve un
+     invitado con el mismo link —sólo el formulario para escribir el suyo—.
+     Sin este aviso, "yo lo veo bien" sería la prueba equivocada. */
+  const avisoPrivado = esOrganizador && cfg.visibilidad !== "publico";
+  const aviso = (avisoOrganizador || avisoPrivado) && (
     <p className={styles.avisoOrganizador}>
-      Lo estás viendo como organizador — los invitados todavía no ven esto.
+      {avisoOrganizador && "Lo estás viendo como organizador — los invitados todavía no ven esto. "}
+      {avisoPrivado && "El libro está en privado: un invitado con este link sólo ve el formulario para escribir, no puede hojear los deseos como tú."}
     </p>
   );
 
-  if (cfg.visibilidad === "publico") {
+  /* El organizador ve siempre el libro entero, aunque lo haya dejado
+     privado para los invitados: "privado" decide quién más lo lee, no si
+     tú puedes leerlo. */
+  if (cfg.visibilidad === "publico" || esOrganizador) {
     const deseos = await prisma.wish.findMany({
       where: { invitationId: invitation.id },
       orderBy: { createdAt: "asc" },
