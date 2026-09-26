@@ -306,6 +306,9 @@ export function Editor(props: EditorProps) {
           <Link href={`/editor/${props.id}/fotos`} className="btn btn-ghost btn-sm">
             Fotos del evento
           </Link>
+          <Link href={`/editor/${props.id}/deseos`} className="btn btn-ghost btn-sm">
+            Libro de deseos
+          </Link>
           <GuardarPlantilla
             id={props.id}
             sugerido={coupleName(data) || "Mi plantilla"}

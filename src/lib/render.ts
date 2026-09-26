@@ -4172,6 +4172,14 @@ export function renderInvitation(opts: RenderOptions): string {
     else { btn.removeAttribute("href"); btn.setAttribute("aria-disabled", "true"); }
   }
 
+  /* El botón del libro de deseos: mismo mecanismo exacto que el de fotos. */
+  for (const btn of Array.from(
+    document.querySelectorAll("[data-inv-deseos-btn]")
+  ) as El[]) {
+    if (slug) btn.setAttribute("href", `/${slug}/deseos`);
+    else { btn.removeAttribute("href"); btn.setAttribute("aria-disabled", "true"); }
+  }
+
   /* 3 · quater · Cómo se abre el velo.
      Es una clase sobre `#splash` y nada más: toda la animación vive en el
      CSS inyectado, que llega a los 49 diseños por igual. El velo **cerrado**

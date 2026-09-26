@@ -1188,6 +1188,42 @@ const fotosEvento: BlockSpec = {
   ],
 };
 
+/**
+ * El botón de «firma nuestro libro de deseos»: mismo patrón exacto que el
+ * de fotos, con su propia página y su propio enlace calculado por el
+ * servidor. Las dos abren el día del evento y no antes — eso lo decide la
+ * página de destino, no este bloque.
+ */
+const deseosEvento: BlockSpec = {
+  type: "deseos",
+  label: "Libro de deseos",
+  icon: "✎",
+  repeatable: true,
+  fields: [
+    { key: "label", label: "Antetítulo", type: "text", placeholder: "Opcional" },
+    { key: "title", label: "Título", type: "text", placeholder: "Firma nuestro libro de deseos" },
+    {
+      key: "texto",
+      label: "Mensaje",
+      type: "textarea",
+      span: 2,
+      placeholder: "Escríbenos un deseo, un consejo, o lo que quieras decirnos de este día.",
+    },
+    { key: "boton", label: "Texto del botón", type: "text", placeholder: "Escribir mi deseo" },
+    { key: "textColor", label: "Color de las letras", type: "color", span: 2 },
+  ],
+  variants: [
+    {
+      id: "simple",
+      name: "Botón centrado",
+      hint: "Un botón a la página del libro; el enlace lo pone la invitación sola",
+      build: () => `${head()}
+    <p class="section-body" data-inv="deseos.texto">Mensaje</p>
+    <a class="deseos-btn" href="#" data-inv-deseos-btn data-inv="deseos.boton">Escribir mi deseo</a>`,
+    },
+  ],
+};
+
 /* ── Registro ─────────────────────────────────────────────── */
 
 export const BLOCKS: BlockSpec[] = [
@@ -1205,6 +1241,7 @@ export const BLOCKS: BlockSpec[] = [
   ubicacion,
   htmlPropio,
   fotosEvento,
+  deseosEvento,
 ];
 
 /*
@@ -1310,6 +1347,13 @@ export function blockDefaults(spec: BlockSpec): SectionData {
       enabled: true, label: "", title: "Comparte tus fotos",
       texto: "Ayúdanos a guardar cada momento del día: toma una foto y compártela con nosotros.",
       boton: "Tomar una foto", textColor: "",
+    };
+  }
+  if (spec.type === "deseos") {
+    return {
+      enabled: true, label: "", title: "Firma nuestro libro de deseos",
+      texto: "Escríbenos un deseo, un consejo, o lo que quieras decirnos de este día.",
+      boton: "Escribir mi deseo", textColor: "",
     };
   }
   return { enabled: true };

@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import sharp from "sharp";
 import { prisma } from "@/lib/prisma";
 import { MAX_BYTES, saveEventPhoto } from "@/lib/storage";
+import { eventoLlego } from "@/lib/disponibilidadEvento";
+import type { InvitationData } from "@/lib/schema";
 
 /** Sólo lo que el navegador de cualquier invitado puede fotografiar y mandar. */
 const MIME_POR_FORMATO: Record<string, string> = {
@@ -32,10 +34,22 @@ export async function POST(
 ) {
   const invitation = await prisma.invitation.findUnique({
     where: { slug: params.slug },
-    select: { id: true, published: true },
+    select: { id: true, published: true, data: true },
   });
   if (!invitation || !invitation.published) {
     return NextResponse.json({ error: "Esta invitación no está disponible." }, { status: 404 });
+  }
+
+  /* Repite la comprobación de la página: quien llegue directo al endpoint
+     —sin pasar por la página, que ya lo dice— no puede subir antes de
+     tiempo. */
+  const data = JSON.parse(invitation.data) as InvitationData;
+  const fecha = String((data.event as Record<string, unknown>)?.date || "");
+  if (!eventoLlego(fecha)) {
+    return NextResponse.json(
+      { error: "Todavía no. Esto se abre el día del evento." },
+      { status: 403 }
+    );
   }
 
   const total = await prisma.eventPhoto.count({ where: { invitationId: invitation.id } });

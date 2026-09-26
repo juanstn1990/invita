@@ -79,6 +79,7 @@ model Invitation {
   links     GuestLink[]
   aperturas Apertura[]
   fotos     EventPhoto[]
+  deseos    Wish[]
 }
 
 /// Un link personalizado: los nombres que van a salir en la invitación y un
@@ -134,6 +135,25 @@ model EventPhoto {
   /// pedir nombre antes de dejar tomar la foto es la fricción que hace que
   /// nadie la use.
   autor        String?
+  createdAt    DateTime   @default(now())
+
+  @@index([invitationId])
+}
+
+/// Un deseo que escribió un invitado, firmado con su nombre.
+///
+/// Privado, igual que `EventPhoto` y por la misma razón: es del organizador,
+/// no arte para publicar. Más ligero que una foto —es sólo texto, cabe
+/// entero en la fila— así que no necesita su propia carpeta en disco.
+model Wish {
+  id           String     @id @default(cuid())
+  invitationId String
+  invitation   Invitation @relation(fields: [invitationId], references: [id], onDelete: Cascade)
+  /// La firma. Obligatoria a propósito: un deseo sin quién lo escribió no es
+  /// un deseo, es una nota anónima — y lo que se pidió es un libro de
+  /// firmas.
+  nombre       String
+  texto        String
   createdAt    DateTime   @default(now())
 
   @@index([invitationId])

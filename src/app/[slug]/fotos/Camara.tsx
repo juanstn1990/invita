@@ -13,8 +13,11 @@ const QUALITY = 0.85;
 
 /** El nombre se recuerda entre fotos y entre visitas: pedirlo cada vez es la
  *  fricción que hace que nadie use esto. `localStorage` y no una cookie: no
- *  hace falta que el servidor lo vea, sólo que el formulario lo recuerde. */
-const CLAVE_NOMBRE = "invita-fotos-nombre";
+ *  hace falta que el servidor lo vea, sólo que el formulario lo recuerde.
+ *  Misma llave que el libro de deseos: es la misma persona en el mismo
+ *  evento, así que lo que escribió en un sitio no se le vuelve a pedir en
+ *  el otro. */
+const CLAVE_NOMBRE = "invita-nombre-invitado";
 
 type Estado =
   | "pidiendo" // esperando el permiso de la cámara

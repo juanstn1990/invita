@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { TEMPLATE_BY_ID } from "@/lib/templates";
-import { coupleName, type InvitationData } from "@/lib/schema";
+import { coupleName, resolvedDateLabel, type InvitationData } from "@/lib/schema";
+import { eventoLlego } from "@/lib/disponibilidadEvento";
 import { Camara } from "./Camara";
 import styles from "./fotos.module.css";
 
@@ -34,6 +35,24 @@ export default async function FotosPage({ params }: { params: { slug: string } }
   const data = JSON.parse(invitation.data) as InvitationData;
   const nombre = coupleName(data) || invitation.title;
   const acento = tpl?.palette?.[1] || "#8a6a2f";
+  const fecha = String((data.event as Record<string, unknown>)?.date || "");
+
+  /* Una foto del salón vacío tres semanas antes no es lo que esto pide: se
+     abre el día del evento y no vuelve a cerrarse. Ver `eventoLlego`. */
+  if (!eventoLlego(fecha)) {
+    return (
+      <main className={styles.page} style={{ "--acento": acento } as React.CSSProperties}>
+        <div className={styles.tarjeta}>
+          <p className={styles.eyebrow}>{nombre}</p>
+          <h1 className={styles.titulo}>Todavía no</h1>
+          <p className={styles.texto}>
+            Esto se abre el día del evento{resolvedDateLabel(data) ? `, el ${resolvedDateLabel(data)}` : ""}.
+            Vuelve entonces para dejar tus fotos.
+          </p>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className={styles.page} style={{ "--acento": acento } as React.CSSProperties}>

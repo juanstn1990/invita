@@ -158,6 +158,9 @@ const CLASES: Record<string, string | string[]> = {
   "fotos.label": ".section-label",
   "fotos.title": ".section-title",
   "fotos.texto": ".section-body",
+  "deseos.label": ".section-label",
+  "deseos.title": ".section-title",
+  "deseos.texto": ".section-body",
 };
 
 /** Las clases de los campos de una ficha de lista. */
