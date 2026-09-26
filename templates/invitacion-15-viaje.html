@@ -273,6 +273,12 @@ section.alt{background:var(--bg-alt)}
   color:var(--on-accent);text-decoration:none;font-size:var(--fs-micro);
   letter-spacing:var(--tracking);text-transform:var(--caps)}
 
+/* ── Fotos de los invitados ── */
+.fotos-btn{display:block;width:max-content;max-width:100%;margin:24px auto 0;
+  padding:15px 30px;border-radius:var(--btn-radius);background:var(--accent);
+  color:var(--on-accent);text-decoration:none;font-size:var(--fs-micro);
+  letter-spacing:var(--tracking);text-transform:var(--caps)}
+
 /* ── Redes ── */
 #social .container{text-align:center}
 .social-sub{max-width:46ch;margin:0 auto;color:var(--muted);font-size:var(--fs-lead)}
@@ -394,10 +400,10 @@ footer{position:relative;padding:56px 22px;text-align:center;
 .ring-number.tick{animation:pulse .45s ease}
 @keyframes pulse{0%{transform:scale(1)}35%{transform:scale(1.14)}100%{transform:scale(1)}}
 
-.hero-btn,.gifts-btn,.confirm-btn,.splash-btn,.event-map-btn,.social-ig{
+.hero-btn,.gifts-btn,.confirm-btn,.splash-btn,.event-map-btn,.social-ig,.fotos-btn{
   transition:transform .25s ease,opacity .25s ease,background .25s ease,
     color .25s ease,box-shadow .25s ease}
-.hero-btn:hover,.gifts-btn:hover,.confirm-btn:hover{transform:translateY(-2px)}
+.hero-btn:hover,.gifts-btn:hover,.confirm-btn:hover,.fotos-btn:hover{transform:translateY(-2px)}
 .event-card,.feature-card,.gift-card,.guest-card{
   transition:transform .35s cubic-bezier(.2,.7,.3,1),box-shadow .35s ease}
 .event-card:hover,.feature-card:hover,.gift-card:hover{transform:translateY(-4px)}
@@ -413,7 +419,7 @@ footer{position:relative;padding:56px 22px;text-align:center;
   .ring-number.tick{animation:none}
   .progress{display:none}
   .event-card:hover,.feature-card:hover,.gift-card:hover,
-  .hero-btn:hover,.gifts-btn:hover,.confirm-btn:hover{transform:none}
+  .hero-btn:hover,.gifts-btn:hover,.confirm-btn:hover,.fotos-btn:hover{transform:none}
 }
 
 @media (max-width:430px){

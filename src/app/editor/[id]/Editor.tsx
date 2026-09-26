@@ -303,6 +303,9 @@ export function Editor(props: EditorProps) {
             {save === "error" && "No se pudo guardar"}
             {save === "caducada" && "Sesión cerrada"}
           </span>
+          <Link href={`/editor/${props.id}/fotos`} className="btn btn-ghost btn-sm">
+            Fotos del evento
+          </Link>
           <GuardarPlantilla
             id={props.id}
             sugerido={coupleName(data) || "Mi plantilla"}

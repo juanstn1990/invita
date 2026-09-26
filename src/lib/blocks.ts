@@ -1149,6 +1149,45 @@ const htmlPropio: BlockSpec = {
   ],
 };
 
+/**
+ * El botón de «comparte tus fotos»: abre, en el celular de quien invitas, una
+ * página propia con la cámara para dejar una foto del evento.
+ *
+ * El enlace no es un campo — nadie lo escribe. Sale de la propia invitación
+ * (`/{slug}/fotos`) y lo resuelve el renderer, igual que el mapa de
+ * «Ubicación» resuelve su URL de búsqueda: `data-inv-fotos-btn` marca **cuál**
+ * elemento, y el href lo pone el servidor, que es quien sabe el slug.
+ */
+const fotosEvento: BlockSpec = {
+  type: "fotos",
+  label: "Fotos de los invitados",
+  icon: "▣",
+  repeatable: true,
+  fields: [
+    { key: "label", label: "Antetítulo", type: "text", placeholder: "Opcional" },
+    { key: "title", label: "Título", type: "text", placeholder: "Comparte tus fotos" },
+    {
+      key: "texto",
+      label: "Mensaje",
+      type: "textarea",
+      span: 2,
+      placeholder: "Ayúdanos a guardar cada momento del día: toma una foto y compártela con nosotros.",
+    },
+    { key: "boton", label: "Texto del botón", type: "text", placeholder: "Tomar una foto" },
+    { key: "textColor", label: "Color de las letras", type: "color", span: 2 },
+  ],
+  variants: [
+    {
+      id: "simple",
+      name: "Botón centrado",
+      hint: "Un botón que abre la cámara del celular; el enlace lo pone la invitación sola",
+      build: () => `${head()}
+    <p class="section-body" data-inv="fotos.texto">Mensaje</p>
+    <a class="fotos-btn" href="#" data-inv-fotos-btn data-inv="fotos.boton">Tomar una foto</a>`,
+    },
+  ],
+};
+
 /* ── Registro ─────────────────────────────────────────────── */
 
 export const BLOCKS: BlockSpec[] = [
@@ -1165,6 +1204,7 @@ export const BLOCKS: BlockSpec[] = [
   video,
   ubicacion,
   htmlPropio,
+  fotosEvento,
 ];
 
 /*
@@ -1263,6 +1303,13 @@ export function blockDefaults(spec: BlockSpec): SectionData {
     return {
       enabled: true, label: "Dónde nos vemos", title: "La ubicación", text: "",
       place: "", address: "", query: "", mapUrl: "", buttonText: "Cómo llegar", textColor: "",
+    };
+  }
+  if (spec.type === "fotos") {
+    return {
+      enabled: true, label: "", title: "Comparte tus fotos",
+      texto: "Ayúdanos a guardar cada momento del día: toma una foto y compártela con nosotros.",
+      boton: "Tomar una foto", textColor: "",
     };
   }
   return { enabled: true };

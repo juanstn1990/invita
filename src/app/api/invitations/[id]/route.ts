@@ -4,6 +4,7 @@ import { TEMPLATE_BY_ID } from "@/lib/templates";
 import { normalizeSlug, slugError } from "@/lib/slug";
 import { noAutorizado } from "@/lib/auth";
 import { ESTADOS, esEstado, esPago, esResponsable, PAGOS } from "@/lib/tablero";
+import { deleteEventFolder } from "@/lib/storage";
 
 export async function PATCH(
   request: Request,
@@ -124,5 +125,11 @@ export async function DELETE(
   if (no) return no;
 
   await prisma.invitation.delete({ where: { id: params.id } }).catch(() => null);
+  /* Las fotos de evento no son de nadie más —a diferencia de la biblioteca de
+     diseño, que se reutiliza a propósito— así que aquí sí se borran los
+     bytes, no sólo la fila. Después del borrado en la base: si la carpeta se
+     fuera primero y el borrado de la fila fallara, quedarían filas
+     apuntando a nada. */
+  await deleteEventFolder(params.id);
   return NextResponse.json({ ok: true });
 }

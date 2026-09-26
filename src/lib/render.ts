@@ -4159,6 +4159,19 @@ export function renderInvitation(opts: RenderOptions): string {
     if (btn && !/^https?:\/\//i.test(link)) ocultar(btn);
   }
 
+  /* 3 · quater · El botón de «comparte tus fotos».
+     El enlace no lo escribe nadie: sale de la propia invitación. Sin slug
+     —sólo pasa en la vista previa del editor, que no tiene dirección
+     pública todavía— el botón se deshabilita en vez de apuntar a ningún
+     sitio, porque `/undefined/fotos` sería un enlace que parece funcionar y
+     no lleva a nada. */
+  for (const btn of Array.from(
+    document.querySelectorAll("[data-inv-fotos-btn]")
+  ) as El[]) {
+    if (slug) btn.setAttribute("href", `/${slug}/fotos`);
+    else { btn.removeAttribute("href"); btn.setAttribute("aria-disabled", "true"); }
+  }
+
   /* 3 · quater · Cómo se abre el velo.
      Es una clase sobre `#splash` y nada más: toda la animación vive en el
      CSS inyectado, que llega a los 49 diseños por igual. El velo **cerrado**

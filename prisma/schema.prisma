@@ -78,6 +78,7 @@ model Invitation {
   rsvps     Rsvp[]
   links     GuestLink[]
   aperturas Apertura[]
+  fotos     EventPhoto[]
 }
 
 /// Un link personalizado: los nombres que van a salir en la invitación y un
@@ -106,6 +107,34 @@ model GuestLink {
 
   rsvps     Rsvp[]
   aperturas Apertura[]
+
+  @@index([invitationId])
+}
+
+/// Una foto que subió un invitado desde su celular, en el evento.
+///
+/// Privada: no sale en la invitación pública, sólo en el panel del
+/// organizador. Los bytes viven aparte de la biblioteca de diseño
+/// (`Media`) — en su propia carpeta por invitación, ver `saveEventPhoto`
+/// en `src/lib/storage.ts` — porque no es lo mismo: una imagen de la
+/// biblioteca se reutiliza entre invitaciones a propósito, y una foto de
+/// evento es de una boda concreta y de nadie más. Mezclarlas en el mismo
+/// estante habría hecho imposible "dame sólo las fotos de esta boda".
+model EventPhoto {
+  id           String     @id @default(cuid())
+  invitationId String
+  invitation   Invitation @relation(fields: [invitationId], references: [id], onDelete: Cascade)
+  /// La ruta pública para servirla — pero servida detrás de sesión, no como
+  /// la biblioteca: es una foto de invitados, no arte para publicar.
+  url          String
+  bytes        Int
+  width        Int?
+  height       Int?
+  /// Quién la subió, si lo quiso decir. El campo es opcional a propósito:
+  /// pedir nombre antes de dejar tomar la foto es la fricción que hace que
+  /// nadie la use.
+  autor        String?
+  createdAt    DateTime   @default(now())
 
   @@index([invitationId])
 }

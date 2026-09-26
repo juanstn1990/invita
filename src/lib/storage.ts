@@ -168,6 +168,71 @@ export async function readImage(
   }
 }
 
+/* ── Fotos de evento ──────────────────────────────────────────────
+ *
+ * Aparte de la biblioteca (`saveImage`/`readImage`) y no dentro: una imagen
+ * de la biblioteca se reutiliza a propósito entre invitaciones; una foto que
+ * sube un invitado es de una boda concreta y de nadie más. Guardarlas en el
+ * mismo estante habría hecho imposible "dame sólo las de esta boda" sin una
+ * consulta a la base por cada archivo — aquí lo resuelve la propia carpeta.
+ *
+ * `eventos/<invitationId>/<aleatorio>.ext`: el id de la invitación en la ruta
+ * y no sólo en la base es lo que hace trivial, el día que haga falta, mover
+ * sólo las fotos de un evento a otro disco o borrarlas todas de una vez sin
+ * tocar el resto.
+ */
+
+const EXT_FOTO: Record<string, string> = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+};
+
+/** `eventos/<id cuid>/<24 hex>.ext` — nada más se sirve ni se borra. */
+const SAFE_PATH_EVENTO = new RegExp(
+  `^eventos/[a-z0-9]{10,40}/[a-f0-9]{24}\\.(?:${Object.values(EXT_FOTO).join("|")})$`
+);
+
+export async function saveEventPhoto(
+  bytes: Buffer,
+  mime: string,
+  invitationId: string
+): Promise<string> {
+  const ext = EXT_FOTO[mime];
+  if (!ext) throw new Error("Formato no soportado.");
+
+  const dir = `eventos/${invitationId}`;
+  const name = `${crypto.randomBytes(12).toString("hex")}.${ext}`;
+  await fs.mkdir(path.join(ROOT, dir), { recursive: true });
+  await fs.writeFile(path.join(ROOT, dir, name), bytes);
+
+  return `${dir}/${name}`;
+}
+
+export async function readEventPhoto(
+  relPath: string
+): Promise<{ bytes: Buffer; mime: string } | null> {
+  if (!SAFE_PATH_EVENTO.test(relPath)) return null;
+  try {
+    const bytes = await fs.readFile(path.join(ROOT, relPath));
+    const ext = relPath.slice(relPath.lastIndexOf(".") + 1);
+    return { bytes, mime: TYPE_BY_EXT[ext] };
+  } catch {
+    return null;
+  }
+}
+
+/** Al borrar una foto, o la invitación entera: los bytes no son de nadie más. */
+export async function deleteEventPhoto(relPath: string): Promise<void> {
+  if (!SAFE_PATH_EVENTO.test(relPath)) return;
+  await fs.unlink(path.join(ROOT, relPath)).catch(() => {});
+}
+
+/** Toda la carpeta de una invitación, al borrarla. */
+export async function deleteEventFolder(invitationId: string): Promise<void> {
+  await fs.rm(path.join(ROOT, "eventos", invitationId), { recursive: true, force: true }).catch(() => {});
+}
+
 /**
  * Un archivo abierto por tramos, para vídeo.
  *

@@ -155,6 +155,9 @@ const CLASES: Record<string, string | string[]> = {
   // href="#": el atributo `data-inv` sólo existe en el esqueleto, y este
   // bloque es marcado sintetizado, que se resuelve por clase.
   "ubicacion.mapUrl": ".inv-mapa-btn",
+  "fotos.label": ".section-label",
+  "fotos.title": ".section-title",
+  "fotos.texto": ".section-body",
 };
 
 /** Las clases de los campos de una ficha de lista. */
