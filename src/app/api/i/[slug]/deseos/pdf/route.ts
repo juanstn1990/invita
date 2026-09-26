@@ -1,34 +1,29 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sesionActual } from "@/lib/auth";
-import { eventoLlego } from "@/lib/disponibilidadEvento";
 import { configLibro } from "@/lib/libroDeseos";
 import { readImage } from "@/lib/storage";
 import { generarLibroPdf } from "@/lib/libroPdf";
 import { coupleName, type InvitationData } from "@/lib/schema";
 
 /**
- * El libro entero, en PDF. La misma regla de siempre —organizador siempre,
- * cualquiera sólo si el libro es público y ya llegó el día— porque este
- * enlace no pasa por la página: alguien podría pedirlo directo.
+ * El libro entero, en PDF. Sólo el organizador —"público" decide quién lee
+ * el libro en pantalla, no quién se lo lleva impreso—: es su recuerdo, y un
+ * invitado con el link no debería poder descargarlo aunque el libro esté
+ * abierto para hojear.
  */
 export async function GET(
-  request: Request,
+  _request: Request,
   { params }: { params: { slug: string } }
 ) {
   const invitation = await prisma.invitation.findUnique({ where: { slug: params.slug } });
   if (!invitation) return new NextResponse("No encontrada", { status: 404 });
 
   const esOrganizador = !!(await sesionActual());
+  if (!esOrganizador) return new NextResponse("No disponible", { status: 403 });
+
   const data = JSON.parse(invitation.data) as InvitationData;
   const cfg = configLibro(data);
-  const fecha = String((data.event as Record<string, unknown>)?.date || "");
-
-  if (!esOrganizador) {
-    if (!invitation.published || cfg.visibilidad !== "publico" || !eventoLlego(fecha)) {
-      return new NextResponse("No disponible", { status: 403 });
-    }
-  }
 
   const deseos = await prisma.wish.findMany({
     where: { invitationId: invitation.id },

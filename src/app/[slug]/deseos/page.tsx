@@ -90,6 +90,7 @@ export default async function DeseosPage({ params }: { params: { slug: string } 
             colorHoja={cfg.colorHoja}
             colorLetra={cfg.colorLetra}
             deseos={deseos.map((d) => ({ id: d.id, nombre: d.nombre, texto: d.texto }))}
+            esOrganizador={esOrganizador}
           />
           <details className={styles.escribir}>
             <summary>Escribir mi deseo</summary>
