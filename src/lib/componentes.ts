@@ -219,6 +219,26 @@ export const COMPONENTES_CSS = `
   background-image:var(--inv-ff-img);background-size:var(--inv-ff-size,cover);
   background-position:center;background-repeat:no-repeat}
 
+/* ── Los regalos que se voltean (mismo mecanismo que las fichas) ── */
+.inv-gi-voltea{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.inv-gi-voltea .gift-card{position:relative;min-height:200px;padding:0;
+  perspective:900px;cursor:pointer;background:transparent;box-shadow:none;border:0;
+  -webkit-tap-highlight-color:transparent}
+.inv-gi-voltea .inv-cara{position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:8px;padding:20px 14px;
+  border-radius:var(--inv-radius,16px);backface-visibility:hidden;
+  transition:transform .8s cubic-bezier(.3,.7,.2,1)}
+.inv-gi-voltea .inv-cara-frente{background:var(--inv-surface);color:var(--inv-ink);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--inv-accent) 35%,transparent),
+    0 16px 30px -22px rgba(0,0,0,.5)}
+.inv-gi-voltea .inv-cara-dorso{transform:rotateY(180deg);
+  background:var(--inv-ink);color:var(--inv-surface);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--inv-accent) 55%,transparent)}
+.inv-gi-voltea .gift-card.vuelta .inv-cara-frente{transform:rotateY(-180deg)}
+.inv-gi-voltea .gift-card.vuelta .inv-cara-dorso{transform:none}
+.inv-gi-voltea .gift-desc{margin:0;color:inherit}
+.inv-gi-voltea .gift-link{color:inherit;text-decoration:underline}
+
 /* ── Agendar ── */
 /* Un botón que se ve como el enlace de «Cómo llegar», pero en contorno. */
 .inv-mapa-btn.inv-agendar{margin-left:8px;background:transparent;color:var(--inv-accent);
@@ -1073,7 +1093,7 @@ html:not(.js) .inv-ev-constelacion .inv-dato{opacity:1;transform:none}
   .inv-abanico-texto{opacity:1}
   .js .inv-ev-capitulos .event-card{transform:none;opacity:1;transition:none}
   .inv-ev-constelacion .inv-dato,.inv-luz{opacity:1;transform:none;transition:none}
-  .inv-sobre-carta,.inv-sobre-solapa,.inv-fe-voltea .inv-cara{transition:none}
+  .inv-sobre-carta,.inv-sobre-solapa,.inv-fe-voltea .inv-cara,.inv-gi-voltea .inv-cara{transition:none}
   .inv-cd-paletas .ring-number.tick{animation:none}
   .inv-cd-luciernagas .countdown-ring::before,.inv-cd-luciernagas .countdown-ring::after,
   .inv-cd-luciernagas .ring-number.tick,.inv-luciernaga{animation:none}
@@ -1184,17 +1204,18 @@ export const SOBRE_JS = `
   });
 })();`;
 
-/** Las fichas que se voltean. */
+/** Las fichas de información útil y las tarjetas de regalo que se voltean. */
 export const VOLTEA_JS = `
 (function(){
+  var SEL = '.inv-fe-voltea .feature-card, .inv-gi-voltea .gift-card';
   function girar(c){ c.classList.toggle('vuelta'); c.setAttribute('aria-pressed', c.classList.contains('vuelta')); }
   document.addEventListener('click', function(e){
-    var c = e.target.closest && e.target.closest('.inv-fe-voltea .feature-card');
+    var c = e.target.closest && e.target.closest(SEL);
     if (c && !e.target.closest('a')) girar(c);
   });
   document.addEventListener('keydown', function(e){
     if (e.key !== 'Enter' && e.key !== ' ') return;
-    var c = e.target.closest && e.target.closest('.inv-fe-voltea .feature-card');
+    var c = e.target.closest && e.target.closest(SEL);
     if (c) { e.preventDefault(); girar(c); }
   });
 })();`;

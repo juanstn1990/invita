@@ -5030,7 +5030,7 @@ export function renderInvitation(opts: RenderOptions): string {
   if (document.querySelector(".inv-velo-anillos")) scripts.push(ANILLOS_JS);
   if (document.querySelector(".inv-ev-capitulos")) scripts.push(CAPITULOS_JS);
   if (document.querySelector(".inv-ga-carrusel")) scripts.push(CARRUSEL_JS);
-  if (document.querySelector(".inv-fe-voltea")) scripts.push(VOLTEA_JS);
+  if (document.querySelector(".inv-fe-voltea, .inv-gi-voltea")) scripts.push(VOLTEA_JS);
   if (document.querySelector("[data-inv-agendar]")) scripts.push(AGENDAR_JS);
   if (document.querySelector(".inv-polvo")) scripts.push(POLVO_JS);
   /* Sólo en el editor: en lo publicado sería dejar mover la decoración a

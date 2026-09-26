@@ -766,6 +766,32 @@ const regalos: BlockSpec = {
     <p class="gifts-text">Mensaje</p>
     <a class="gifts-btn inv-boton" href="#">Ver mesa de regalos</a>`,
     },
+    {
+      id: "voltea",
+      name: "Se voltean",
+      hint: "Por delante el ícono y el título; se tocan y por detrás aparece la descripción y el enlace",
+      build: () => `${head()}
+    <p class="gifts-text">Mensaje</p>
+    <div class="gifts-account inv-cuenta">
+      <p class="gifts-bank">Transferencia</p>
+      <p class="gifts-iban">Número de cuenta</p>
+    </div>
+    <p class="gifts-note">Nota</p>
+    <div class="gifts-cards inv-gi-voltea">
+      <div class="gift-card" role="button" tabindex="0" aria-pressed="false">
+        <div class="inv-cara inv-cara-frente">
+          <span class="gift-icon">🎁</span>
+          <h3 class="gift-title">Título</h3>
+          <span class="inv-fe-pista">Toca</span>
+        </div>
+        <div class="inv-cara inv-cara-dorso">
+          <p class="gift-desc">Descripción</p>
+          <a class="gift-link" href="#">Ver</a>
+        </div>
+      </div>
+    </div>
+    <a class="gifts-btn inv-boton" href="#">Ver mesa de regalos</a>`,
+    },
   ],
 };
 
