@@ -34,6 +34,17 @@ export default async function PanelPage({ params }: { params: { token: string } 
   const data = JSON.parse(invitation.data) as InvitationData;
   const filas = invitation.links.map(resumirLink);
 
+  /* Quien confirma sin haber abierto un enlace personalizado —escribió su
+     nombre por su cuenta, o llegó por el link general— no tiene family a la
+     que sumarse: sin esto la confirmación queda guardada pero invisible aquí,
+     aunque en el editor sí aparezca (ese panel lee `Rsvp` directo, sin pasar
+     por los enlaces). */
+  const sinEnlace = await prisma.rsvp.findMany({
+    where: { invitationId: invitation.id, guestLinkId: null },
+    select: { name: true, status: true, partySize: true, phone: true, note: true, createdAt: true },
+    orderBy: { createdAt: "desc" },
+  });
+
   // El origen real, para que los links que se copian sirvan tal cual.
   const h = headers();
   const host = h.get("x-forwarded-host") || h.get("host") || "localhost:3000";
@@ -53,6 +64,7 @@ export default async function PanelPage({ params }: { params: { token: string } 
         abiertoEl: f.abiertoEl?.toISOString() ?? null,
         respuestas: f.respuestas.map((r) => ({ ...r, createdAt: r.createdAt.toISOString() })),
       }))}
+      sinEnlace={sinEnlace.map((r) => ({ ...r, createdAt: r.createdAt.toISOString() }))}
     />
   );
 }

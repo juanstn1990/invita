@@ -75,7 +75,7 @@ const ETIQUETA_RESPUESTA: Record<string, string> = {
  * su nombre en la invitación y confirma sin escribir nada.
  */
 export function PanelInvitados({
-  token, slug, publicada, titulo, fecha, origen, inicial,
+  token, slug, publicada, titulo, fecha, origen, inicial, sinEnlace,
 }: {
   token: string;
   slug: string;
@@ -84,6 +84,8 @@ export function PanelInvitados({
   fecha: string;
   origen: string;
   inicial: Fila[];
+  /** Confirmaron sin abrir un enlace personalizado: no tienen a qué familia sumarse. */
+  sinEnlace: Respuesta[];
 }) {
   const router = useRouter();
   const [filas, setFilas] = useState<Fila[]>(inicial);
@@ -359,7 +361,43 @@ export function PanelInvitados({
         </ul>
       )}
 
-      {filas.length > 0 && (
+      {sinEnlace.length > 0 && (
+        <section className={styles.caja}>
+          <h2 className={styles.cajaTitulo}>Confirmaron sin un enlace</h2>
+          <p className={styles.ayuda}>
+            Escribieron su nombre por su cuenta —no abrieron uno de los enlaces de
+            arriba—, así que no hay a qué familia sumarlos. Igual quedan aquí.
+          </p>
+          <ul className={styles.respuestasLista}>
+            {sinEnlace.map((r, i) => (
+              <li key={i} className={styles.respuesta}>
+                <div className={styles.respuestaTop}>
+                  <span className={styles.respuestaNombre}>
+                    {r.name}
+                    {r.status === "confirmado" && r.partySize > 1 && ` · ${r.partySize} personas`}
+                  </span>
+                  <span className={styles.respuestaEstado} data-estado={r.status}>
+                    {ETIQUETA_RESPUESTA[r.status] ?? r.status}
+                  </span>
+                </div>
+                {(r.phone || r.note) && (
+                  <p className={styles.respuestaMeta}>
+                    {r.phone && (
+                      <a href={`tel:${r.phone}`} className={styles.respuestaTelefono}>
+                        {r.phone}
+                      </a>
+                    )}
+                    {r.phone && r.note && " · "}
+                    {r.note && <span className={styles.respuestaNota}>&ldquo;{r.note}&rdquo;</span>}
+                  </p>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {(filas.length > 0 || sinEnlace.length > 0) && (
         <button className={`btn btn-ghost btn-sm ${styles.refrescar}`} onClick={() => router.refresh()}>
           Actualizar respuestas
         </button>

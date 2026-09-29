@@ -1606,7 +1606,20 @@ function wireRsvp(
     a.setAttribute("class", claseBtn);
     a.setAttribute("data-inv-wa", "1");
     a.textContent = buttonText;
-    reemplazar(a);
+
+    /* Por WhatsApp no hay formulario, pero quien abre su enlace personalizado
+       (?invitado=…) igual necesita ver a quién nombra la tarjeta y cuántos
+       pases tiene antes de escribir por su cuenta — si no, el botón es lo
+       único que se ve y la información de arriba (nombres, pases) se pierde.
+       Sin `data-inv-rsvp`, a propósito: eso marca «hay formulario que
+       montar», y aquí no lo hay — es sólo el saludo y la tarjeta de pases,
+       que el script rellena igual porque no dependen de ese atributo. */
+    const contenedor = doc.createElement("div");
+    contenedor.setAttribute("class", "inv-rsvp");
+    contenedor.innerHTML = andamio(String(c.greeting || "Hola, {nombre}"));
+    contenedor.appendChild(a);
+    if (pases) contenedor.setAttribute("data-inv-pases", String(pases));
+    reemplazar(contenedor);
     return;
   }
 
@@ -2983,23 +2996,33 @@ export const RSVP_JS = `
     }
   });
 
-  var form = document.querySelector('[data-inv-rsvp]');
-  if(!form) return;
-  var slug = form.getAttribute('data-inv-rsvp');
+  // El saludo y la tarjeta de pases no dependen de que haya formulario: por
+  // WhatsApp no hay uno que montar (ver el guardián de abajo), y aun así
+  // quien abre su enlace personalizado tiene que verse nombrado y saber
+  // cuántos pases tiene.
+  var saludo = document.querySelector('[data-inv-saludo]');
+  if (nombres.length && saludo) {
+    saludo.textContent = saludo.getAttribute('data-inv-saludo').replace('{nombre}', unir(nombres));
+    saludo.hidden = false;
+  }
 
   // Los pases del enlace: lo que quien invita reservó para esta familia.
-  var pases = parseInt(form.getAttribute('data-inv-pases') || '', 10);
-  var lineaPases = form.querySelector('[data-inv-pases-texto]');
-  var numPases = lineaPases && lineaPases.querySelector('.inv-rsvp-pases-n');
+  var cajaPases = document.querySelector('[data-inv-pases]');
+  var pases = cajaPases ? parseInt(cajaPases.getAttribute('data-inv-pases') || '', 10) : NaN;
+  var lineaPases = cajaPases && cajaPases.querySelector('[data-inv-pases-texto]');
   var txtPases = lineaPases && lineaPases.querySelector('.inv-rsvp-pases-t');
   if (pases > 0 && lineaPases) {
+    var numPases = lineaPases.querySelector('.inv-rsvp-pases-n');
     if (numPases) numPases.textContent = String(pases);
     if (txtPases) txtPases.textContent = pases === 1 ? 'pase reservado' : 'pases reservados';
     lineaPases.hidden = false;
   }
 
+  var form = document.querySelector('[data-inv-rsvp]');
+  if(!form) return;
+  var slug = form.getAttribute('data-inv-rsvp');
+
   var campoNombre = form.querySelector('[name="name"]');
-  var saludo = form.querySelector('[data-inv-saludo]');
   var lista = form.querySelector('[data-inv-lista]');
   var casillas = [];
 
@@ -3011,19 +3034,19 @@ export const RSVP_JS = `
     caja.style.setProperty('display', 'none', 'important');
   }
 
-  if (nombres.length && campoNombre) {
-    campoNombre.value = unir(nombres);
+  if (nombres.length) {
+    if (campoNombre) campoNombre.value = unir(nombres);
 
-    if (saludo) {
-      saludo.textContent = saludo.getAttribute('data-inv-saludo').replace('{nombre}', unir(nombres));
-      saludo.hidden = false;
+    if (saludo && campoNombre) {
       esconder(campoNombre);
       campoNombre.removeAttribute('required');
     }
 
     // Con varios invitados cada uno dice si viene. Sobran el contador de
     // acompañantes y el desplegable de sí/no: la cuenta sale de las casillas.
-    if (nombres.length > 1 && lista) {
+    // Sólo aplica con formulario propio: por WhatsApp no hay dónde marcar,
+    // así que basta con el saludo y los pases de arriba.
+    if (campoNombre && nombres.length > 1 && lista) {
       lista.innerHTML = '';
       nombres.forEach(function(n){
         var l = document.createElement('label');
