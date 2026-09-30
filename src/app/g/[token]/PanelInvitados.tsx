@@ -380,17 +380,16 @@ export function PanelInvitados({
                     {ETIQUETA_RESPUESTA[r.status] ?? r.status}
                   </span>
                 </div>
-                {(r.phone || r.note) && (
-                  <p className={styles.respuestaMeta}>
-                    {r.phone && (
-                      <a href={`tel:${r.phone}`} className={styles.respuestaTelefono}>
-                        {r.phone}
-                      </a>
-                    )}
-                    {r.phone && r.note && " · "}
-                    {r.note && <span className={styles.respuestaNota}>&ldquo;{r.note}&rdquo;</span>}
-                  </p>
-                )}
+                <p className={styles.respuestaMeta}>
+                  {r.phone && (
+                    <a href={`tel:${r.phone}`} className={styles.respuestaTelefono}>
+                      {r.phone}
+                    </a>
+                  )}
+                  {r.phone && " · "}
+                  {new Date(r.createdAt).toLocaleDateString("es-CO", { day: "numeric", month: "short" })}
+                </p>
+                {r.note && <p className={styles.respuestaNota}>&ldquo;{r.note}&rdquo;</p>}
               </li>
             ))}
           </ul>
