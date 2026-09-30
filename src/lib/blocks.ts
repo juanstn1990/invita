@@ -1262,13 +1262,10 @@ const deseosEvento: BlockSpec = {
       ],
       help: "Escribir un deseo nuevo siempre funciona igual. Esto sólo decide si además se puede leer lo que ya escribieron los demás.",
     },
-    {
-      key: "portada",
-      label: "Portada del libro",
-      type: "image",
-      span: 2,
-      help: "La portada es siempre una imagen, sin letras encima. Vacío = un color liso.",
-    },
+    /* La portada (`portada`, `portadaX`, `portadaY`) no va aquí: tiene su
+       propio control —`PortadaLibroField`, con vista previa y arrastre para
+       ajustar el recorte— puesto por `BlockList` en `extra`. Un campo de
+       imagen genérico más en esta lista habría quedado duplicado. */
     { key: "colorHoja", label: "Color de las hojas", type: "color", help: "Vacío = blanco." },
     { key: "colorLetra", label: "Color de la letra en las hojas", type: "color", help: "Vacío = tinta oscura." },
     {
@@ -1421,7 +1418,8 @@ export function blockDefaults(spec: BlockSpec): SectionData {
       enabled: true, label: "", title: "Firma nuestro libro de deseos",
       texto: "Escríbenos un deseo, un consejo, o lo que quieras decirnos de este día.",
       boton: "Escribir mi deseo", textColor: "",
-      visibilidad: "privado", portada: "", colorHoja: "", colorLetra: "", fechaActivacion: "",
+      visibilidad: "privado", portada: "", portadaX: "50", portadaY: "50",
+      colorHoja: "", colorLetra: "", fechaActivacion: "",
     };
   }
   return { enabled: true };

@@ -4,7 +4,7 @@ import { sesionActual } from "@/lib/auth";
 import { configLibro } from "@/lib/libroDeseos";
 import { readImage } from "@/lib/storage";
 import { generarLibroPdf } from "@/lib/libroPdf";
-import { coupleName, type InvitationData } from "@/lib/schema";
+import type { InvitationData } from "@/lib/schema";
 
 /**
  * El libro entero, en PDF. Sólo quien organiza —"público" decide quién lee
@@ -46,9 +46,10 @@ export async function GET(
   }
 
   const pdf = await generarLibroPdf({
-    nombreEvento: coupleName(data) || invitation.title,
     deseos: deseos.map((d) => ({ nombre: d.nombre, texto: d.texto })),
     portada,
+    portadaX: cfg.portadaX,
+    portadaY: cfg.portadaY,
   });
 
   return new NextResponse(pdf as unknown as BodyInit, {

@@ -281,6 +281,20 @@
 }
 .imagePickedInfo { display: flex; flex-wrap: wrap; gap: 6px; }
 
+/* ── Portada del libro de deseos: vista previa 3:4 y arrastre ── */
+.portadaLibro { display: flex; flex-direction: column; gap: 10px; }
+.portadaLibroCaja {
+  position: relative; width: 100%; max-width: 200px; aspect-ratio: 3/4;
+  border-radius: 10px; border: 1px solid var(--border); overflow: hidden;
+  cursor: grab; touch-action: none;
+}
+.portadaLibroCaja[data-arrastrando] { cursor: grabbing; }
+.portadaLibroMarca {
+  position: absolute; width: 14px; height: 14px; margin: -7px 0 0 -7px;
+  border-radius: 999px; border: 2px solid #fff; background: rgba(0,0,0,.35);
+  box-shadow: 0 0 0 1px rgba(0,0,0,.25); pointer-events: none;
+}
+
 .photoGrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; }
 
 .photo { position: relative; aspect-ratio: 1; border-radius: 7px; overflow: hidden; border: 1px solid var(--border); }

@@ -18,10 +18,13 @@ export interface DeseoLeido {
  * basta con que **se sienta** como pasar una página.
  */
 export function Libro({
-  slug, portada, colorHoja, colorLetra, deseos, esOrganizador, saltarA, token,
+  slug, portada, portadaX, portadaY, colorHoja, colorLetra, deseos, esOrganizador, saltarA, token,
 }: {
   slug: string;
   portada: string;
+  /** Qué parte de la portada queda a la vista, 0-100. 50/50 = centrada. */
+  portadaX: number;
+  portadaY: number;
   colorHoja: string;
   colorLetra: string;
   deseos: DeseoLeido[];
@@ -89,7 +92,14 @@ export function Libro({
               —o, sin ninguna subida, el color liso de las hojas— y nada más.
               El nombre y "libro de deseos" ya se leen arriba, en `eyebrow`. */}
           {esPortada && (
-            <div className={styles.portada} style={portada ? { backgroundImage: `url(${portada})` } : undefined} />
+            <div
+              className={styles.portada}
+              style={
+                portada
+                  ? { backgroundImage: `url(${portada})`, backgroundPosition: `${portadaX}% ${portadaY}%` }
+                  : undefined
+              }
+            />
           )}
 
           {deseo && (

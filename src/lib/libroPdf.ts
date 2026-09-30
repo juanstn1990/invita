@@ -43,19 +43,21 @@ export interface DeseoPdf {
 }
 
 export async function generarLibroPdf(opts: {
-  nombreEvento: string;
   deseos: DeseoPdf[];
   portada?: { bytes: Uint8Array; mime: string } | null;
+  /** Qué parte de la portada queda a la vista, 0-100 — el mismo recorte que
+   *  ve quien hojea el libro en la página. 50/50 = centrada. */
+  portadaX?: number;
+  portadaY?: number;
 }): Promise<Uint8Array> {
   const pdf = await PDFDocument.create();
-  const titulo = await pdf.embedFont(StandardFonts.TimesRomanBold);
   const texto = await pdf.embedFont(StandardFonts.TimesRoman);
   const firma = await pdf.embedFont(StandardFonts.TimesRomanItalic);
 
-  /* La portada: la imagen a sangre con una capa oscura para que el título
-     se lea encima, sea cual sea la foto. Sin imagen, un fondo liso. */
+  /* La portada: la misma imagen y el mismo recorte que ve quien hojea el
+     libro en la página —sin letras encima, la portada es siempre la
+     imagen—. Sin ninguna subida, un color liso. */
   const tapa = pdf.addPage([ANCHO, ALTO]);
-  let colorTapa = TINTA;
   if (opts.portada) {
     try {
       const img = opts.portada.mime === "image/png"
@@ -64,9 +66,17 @@ export async function generarLibroPdf(opts: {
       const escala = Math.max(ANCHO / img.width, ALTO / img.height);
       const w = img.width * escala;
       const h = img.height * escala;
-      tapa.drawImage(img, { x: (ANCHO - w) / 2, y: (ALTO - h) / 2, width: w, height: h });
-      tapa.drawRectangle({ x: 0, y: 0, width: ANCHO, height: ALTO, color: rgb(0, 0, 0), opacity: 0.4 });
-      colorTapa = rgb(1, 1, 1);
+      /* Mismo cálculo que un `background-position` en CSS: 0% deja ver el
+         borde de arriba/izquierda de la imagen, 100% el de abajo/derecha.
+         El eje Y del PDF crece hacia arriba, al revés que el de CSS. */
+      const px = Math.min(100, Math.max(0, opts.portadaX ?? 50)) / 100;
+      const py = Math.min(100, Math.max(0, opts.portadaY ?? 50)) / 100;
+      tapa.drawImage(img, {
+        x: (ANCHO - w) * px,
+        y: (ALTO - h) * (1 - py),
+        width: w,
+        height: h,
+      });
     } catch {
       // Una imagen que pdf-lib no sepa abrir no debe tumbar el libro entero.
       tapa.drawRectangle({ x: 0, y: 0, width: ANCHO, height: ALTO, color: rgb(0.98, 0.96, 0.92) });
@@ -74,8 +84,6 @@ export async function generarLibroPdf(opts: {
   } else {
     tapa.drawRectangle({ x: 0, y: 0, width: ANCHO, height: ALTO, color: rgb(0.98, 0.96, 0.92) });
   }
-  centrado(tapa, "Libro de deseos", titulo, 26, ALTO * 0.56, colorTapa);
-  centrado(tapa, opts.nombreEvento, texto, 14, ALTO * 0.56 - 28, colorTapa);
 
   if (!opts.deseos.length) {
     const vacia = pdf.addPage([ANCHO, ALTO]);

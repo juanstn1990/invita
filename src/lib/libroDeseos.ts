@@ -15,8 +15,18 @@ import type { InvitationData } from "./schema";
 export interface ConfigLibro {
   visibilidad: "privado" | "publico";
   portada: string;
+  /** Qué parte de la portada queda a la vista, 0-100 como un
+   *  `background-position` en porcentaje. 50/50 = centrada. */
+  portadaX: number;
+  portadaY: number;
   colorHoja: string;
   colorLetra: string;
+}
+
+/** Un número entre 0 y 100, o 50 si lo guardado no sirve. */
+function posicion(v: unknown): number {
+  const n = Number(v);
+  return Number.isFinite(n) ? Math.min(100, Math.max(0, n)) : 50;
 }
 
 export function configLibro(data: InvitationData): ConfigLibro {
@@ -25,6 +35,8 @@ export function configLibro(data: InvitationData): ConfigLibro {
   return {
     visibilidad: cfg.visibilidad === "publico" ? "publico" : "privado",
     portada: String(cfg.portada || ""),
+    portadaX: posicion(cfg.portadaX),
+    portadaY: posicion(cfg.portadaY),
     colorHoja: String(cfg.colorHoja || "") || "#fffdf8",
     colorLetra: String(cfg.colorLetra || "") || "#2c2312",
   };

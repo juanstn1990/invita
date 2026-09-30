@@ -8,6 +8,7 @@ import {
 import { SECTION_BY_KEY, type InvitationData, type SectionData, type SectionSpec } from "@/lib/schema";
 import type { TemplateSupport } from "@/lib/support";
 import { Biblioteca } from "./Biblioteca";
+import { PortadaLibroField } from "./PortadaLibroField";
 import { SectionEditor } from "./SectionEditor";
 import styles from "./editor.module.css";
 
@@ -164,6 +165,17 @@ export function BlockList({
               /* Con marcado nuestro no dependemos de lo que traiga el diseño. */
               ignoreSupport={sintetizado}
               compact
+              extra={
+                block.type === "deseos" ? (
+                  <PortadaLibroField
+                    value={String(data.portada ?? "")}
+                    x={Number(data.portadaX ?? 50)}
+                    y={Number(data.portadaY ?? 50)}
+                    colorHoja={String(data.colorHoja ?? "")}
+                    onChange={cambiar}
+                  />
+                ) : undefined
+              }
             />
           </div>
         );

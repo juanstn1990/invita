@@ -15,10 +15,12 @@ import styles from "./deseos.module.css";
  * que quien acaba de escribir vea que ya quedó.
  */
 export function LibroConFormulario({
-  slug, portada, colorHoja, colorLetra, deseosIniciales, esOrganizador, token,
+  slug, portada, portadaX, portadaY, colorHoja, colorLetra, deseosIniciales, esOrganizador, token,
 }: {
   slug: string;
   portada: string;
+  portadaX: number;
+  portadaY: number;
   colorHoja: string;
   colorLetra: string;
   deseosIniciales: DeseoLeido[];
@@ -46,6 +48,8 @@ export function LibroConFormulario({
       <Libro
         slug={slug}
         portada={portada}
+        portadaX={portadaX}
+        portadaY={portadaY}
         colorHoja={colorHoja}
         colorLetra={colorLetra}
         deseos={deseos}

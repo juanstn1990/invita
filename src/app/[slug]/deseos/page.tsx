@@ -97,6 +97,8 @@ export default async function DeseosPage({
           <LibroConFormulario
             slug={invitation.slug}
             portada={cfg.portada}
+            portadaX={cfg.portadaX}
+            portadaY={cfg.portadaY}
             colorHoja={cfg.colorHoja}
             colorLetra={cfg.colorLetra}
             deseosIniciales={deseos.map((d) => ({ id: d.id, nombre: d.nombre, texto: d.texto }))}
