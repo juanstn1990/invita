@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { eventoLlego } from "@/lib/disponibilidadEvento";
+import { eventoLlego, fechaActivacionDe } from "@/lib/disponibilidadEvento";
 import { sesionActual } from "@/lib/auth";
 import type { InvitationData } from "@/lib/schema";
 
@@ -30,7 +30,7 @@ export async function POST(
   }
 
   const data = JSON.parse(invitation.data) as InvitationData;
-  const fecha = String((data.event as Record<string, unknown>)?.date || "");
+  const fecha = fechaActivacionDe(data, "deseos");
   if (!eventoLlego(fecha) && !esOrganizador) {
     return NextResponse.json(
       { error: "Todavía no. Esto se abre el día del evento." },

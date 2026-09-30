@@ -1,0 +1,57 @@
+"use client";
+
+import { useRef, useState } from "react";
+import { Libro, type DeseoLeido } from "./Libro";
+import { Formulario } from "./Formulario";
+import styles from "./deseos.module.css";
+
+/**
+ * Junta el libro y el formulario en un solo componente de cliente porque
+ * tienen que compartir estado: sin esto, firmar un deseo lo guarda en la
+ * base pero el libro que ya está en pantalla —lleno con lo que trajo el
+ * servidor al abrir la página— no se entera, y hacía falta recargar para
+ * verlo. Aquí el deseo entra a la lista en el momento mismo en que el
+ * formulario confirma que se guardó, y el libro salta a esa página para
+ * que quien acaba de escribir vea que ya quedó.
+ */
+export function LibroConFormulario({
+  slug, portada, colorHoja, colorLetra, deseosIniciales, esOrganizador,
+}: {
+  slug: string;
+  portada: string;
+  colorHoja: string;
+  colorLetra: string;
+  deseosIniciales: DeseoLeido[];
+  esOrganizador: boolean;
+}) {
+  const [deseos, setDeseos] = useState<DeseoLeido[]>(deseosIniciales);
+  const [saltarA, setSaltarA] = useState<number | null>(null);
+  const detalleRef = useRef<HTMLDetailsElement>(null);
+
+  function alFirmar(nuevo: { nombre: string; texto: string }) {
+    setDeseos((prev) => {
+      const lista = [...prev, { id: `nuevo-${prev.length}-${Date.now()}`, ...nuevo }];
+      setSaltarA(lista.length); // la página del deseo recién agregado
+      return lista;
+    });
+    if (detalleRef.current) detalleRef.current.open = false;
+  }
+
+  return (
+    <>
+      <Libro
+        slug={slug}
+        portada={portada}
+        colorHoja={colorHoja}
+        colorLetra={colorLetra}
+        deseos={deseos}
+        esOrganizador={esOrganizador}
+        saltarA={saltarA}
+      />
+      <details className={styles.escribir} ref={detalleRef}>
+        <summary>Escribir mi deseo</summary>
+        <Formulario slug={slug} onFirmado={alFirmar} />
+      </details>
+    </>
+  );
+}

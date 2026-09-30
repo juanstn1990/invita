@@ -10,7 +10,13 @@ const CLAVE_NOMBRE = "invita-nombre-invitado";
 
 type Estado = "listo" | "enviando" | "error";
 
-export function Formulario({ slug }: { slug: string }) {
+export function Formulario({
+  slug, onFirmado,
+}: {
+  slug: string;
+  /** Avisa al libro para que sume el deseo sin esperar a recargar. */
+  onFirmado?: (deseo: { nombre: string; texto: string }) => void;
+}) {
   const [nombre, setNombre] = useState("");
   const [texto, setTexto] = useState("");
   const [estado, setEstado] = useState<Estado>("listo");
@@ -42,6 +48,7 @@ export function Formulario({ slug }: { slug: string }) {
       });
       const json = await r.json().catch(() => ({}));
       if (!r.ok) throw new Error(json.error || "No se pudo guardar el deseo.");
+      onFirmado?.({ nombre: nombre.trim(), texto: texto.trim() });
       setTexto("");
       setFirmados((n) => n + 1);
       setEstado("listo");

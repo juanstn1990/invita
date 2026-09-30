@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import styles from "./libro.module.css";
 
 export interface DeseoLeido {
@@ -18,15 +18,18 @@ export interface DeseoLeido {
  * basta con que **se sienta** como pasar una página.
  */
 export function Libro({
-  slug, nombreEvento, portada, colorHoja, colorLetra, deseos, esOrganizador,
+  slug, portada, colorHoja, colorLetra, deseos, esOrganizador, saltarA,
 }: {
   slug: string;
-  nombreEvento: string;
   portada: string;
   colorHoja: string;
   colorLetra: string;
   deseos: DeseoLeido[];
   esOrganizador: boolean;
+  /** Cambia cada vez que se firma un deseo nuevo: el libro salta a esa
+   *  página para que quien acaba de escribir vea que ya quedó, sin tener
+   *  que ir pasando hojas a buscarlo. */
+  saltarA?: number | null;
 }) {
   /* 0 = portada, 1..N = un deseo por página, N+1 = la última (descargar). */
   const total = deseos.length + 2;
@@ -48,6 +51,13 @@ export function Libro({
 
   const siguiente = () => ir(pagina + 1);
   const anterior = () => ir(pagina - 1);
+
+  useEffect(() => {
+    if (saltarA != null) ir(saltarA);
+    // Sólo cuando cambia `saltarA`: `ir` depende de `pagina`/`fase`, que
+    // cambian todo el tiempo por el paso de hojas y no deben repetir el salto.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [saltarA]);
 
   function alTocar(e: React.TouchEvent) {
     inicioX.current = e.touches[0].clientX;
@@ -73,11 +83,11 @@ export function Libro({
         style={{ "--colorHoja": colorHoja, "--colorLetra": colorLetra } as React.CSSProperties}
       >
         <div className={styles.hoja} data-fase={fase}>
+          {/* Sin letras encima, a propósito: la portada es siempre la imagen
+              —o, sin ninguna subida, el color liso de las hojas— y nada más.
+              El nombre y "libro de deseos" ya se leen arriba, en `eyebrow`. */}
           {esPortada && (
-            <div className={styles.portada} style={portada ? { backgroundImage: `url(${portada})` } : undefined}>
-              <p className={styles.portadaTitulo}>Libro de deseos</p>
-              <p className={styles.portadaEvento}>{nombreEvento}</p>
-            </div>
+            <div className={styles.portada} style={portada ? { backgroundImage: `url(${portada})` } : undefined} />
           )}
 
           {deseo && (

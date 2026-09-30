@@ -1201,6 +1201,16 @@ const fotosEvento: BlockSpec = {
     },
     { key: "boton", label: "Texto del botón", type: "text", placeholder: "Tomar una foto" },
     { key: "textColor", label: "Color de las letras", type: "color", span: 2 },
+    /* No pinta nada en la invitación: lo lee sólo la página de la cámara
+       (`/{slug}/fotos`), que no pasa por el motor de plantillas. Va en el
+       mismo bloque porque es donde ya vive todo lo demás de esta función. */
+    {
+      key: "fechaActivacion",
+      label: "Fecha de activación",
+      type: "datetime",
+      span: 2,
+      help: "Desde cuándo se puede subir una foto. Vacío = el día del evento.",
+    },
   ],
   variants: [
     {
@@ -1257,10 +1267,17 @@ const deseosEvento: BlockSpec = {
       label: "Portada del libro",
       type: "image",
       span: 2,
-      help: "Opcional. Sin ella, la portada es un color liso con el título.",
+      help: "La portada es siempre una imagen, sin letras encima. Vacío = un color liso.",
     },
     { key: "colorHoja", label: "Color de las hojas", type: "color", help: "Vacío = blanco." },
     { key: "colorLetra", label: "Color de la letra en las hojas", type: "color", help: "Vacío = tinta oscura." },
+    {
+      key: "fechaActivacion",
+      label: "Fecha de activación",
+      type: "datetime",
+      span: 2,
+      help: "Desde cuándo se puede escribir un deseo. Vacío = el día del evento.",
+    },
   ],
   variants: [
     {
@@ -1396,7 +1413,7 @@ export function blockDefaults(spec: BlockSpec): SectionData {
     return {
       enabled: true, label: "", title: "Comparte tus fotos",
       texto: "Ayúdanos a guardar cada momento del día: toma una foto y compártela con nosotros.",
-      boton: "Tomar una foto", textColor: "",
+      boton: "Tomar una foto", textColor: "", fechaActivacion: "",
     };
   }
   if (spec.type === "deseos") {
@@ -1404,7 +1421,7 @@ export function blockDefaults(spec: BlockSpec): SectionData {
       enabled: true, label: "", title: "Firma nuestro libro de deseos",
       texto: "Escríbenos un deseo, un consejo, o lo que quieras decirnos de este día.",
       boton: "Escribir mi deseo", textColor: "",
-      visibilidad: "privado", portada: "", colorHoja: "", colorLetra: "",
+      visibilidad: "privado", portada: "", colorHoja: "", colorLetra: "", fechaActivacion: "",
     };
   }
   return { enabled: true };

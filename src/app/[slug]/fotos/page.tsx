@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { TEMPLATE_BY_ID } from "@/lib/templates";
 import { coupleName, resolvedDateLabel, type InvitationData } from "@/lib/schema";
-import { eventoLlego } from "@/lib/disponibilidadEvento";
+import { eventoLlego, fechaActivacionDe } from "@/lib/disponibilidadEvento";
 import { sesionActual } from "@/lib/auth";
 import { Camara } from "./Camara";
 import styles from "./fotos.module.css";
@@ -41,7 +41,7 @@ export default async function FotosPage({ params }: { params: { slug: string } }
   const data = JSON.parse(invitation.data) as InvitationData;
   const nombre = coupleName(data) || invitation.title;
   const acento = tpl?.palette?.[1] || "#8a6a2f";
-  const fecha = String((data.event as Record<string, unknown>)?.date || "");
+  const fecha = fechaActivacionDe(data, "fotos");
 
   /* Una foto del salón vacío tres semanas antes no es lo que esto pide: se
      abre el día del evento y no vuelve a cerrarse. Ver `eventoLlego`. */

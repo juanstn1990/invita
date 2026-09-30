@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import sharp from "sharp";
 import { prisma } from "@/lib/prisma";
 import { MAX_BYTES, saveEventPhoto } from "@/lib/storage";
-import { eventoLlego } from "@/lib/disponibilidadEvento";
+import { eventoLlego, fechaActivacionDe } from "@/lib/disponibilidadEvento";
 import { sesionActual } from "@/lib/auth";
 import type { InvitationData } from "@/lib/schema";
 
@@ -47,7 +47,7 @@ export async function POST(
      tiempo. El organizador se lo salta: es lo que hace que la vista previa
      del editor se pueda probar de verdad, no sólo mirar. */
   const data = JSON.parse(invitation.data) as InvitationData;
-  const fecha = String((data.event as Record<string, unknown>)?.date || "");
+  const fecha = fechaActivacionDe(data, "fotos");
   if (!eventoLlego(fecha) && !esOrganizador) {
     return NextResponse.json(
       { error: "Todavía no. Esto se abre el día del evento." },

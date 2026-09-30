@@ -1,11 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import { TEMPLATE_BY_ID } from "@/lib/templates";
 import { coupleName, resolvedDateLabel, type InvitationData } from "@/lib/schema";
-import { eventoLlego } from "@/lib/disponibilidadEvento";
+import { eventoLlego, fechaActivacionDe } from "@/lib/disponibilidadEvento";
 import { configLibro } from "@/lib/libroDeseos";
 import { sesionActual } from "@/lib/auth";
 import { Formulario } from "./Formulario";
-import { Libro } from "./Libro";
+import { LibroConFormulario } from "./LibroConFormulario";
 import styles from "./deseos.module.css";
 
 export const dynamic = "force-dynamic";
@@ -39,7 +39,7 @@ export default async function DeseosPage({ params }: { params: { slug: string } 
   const data = JSON.parse(invitation.data) as InvitationData;
   const nombre = coupleName(data) || invitation.title;
   const acento = tpl?.palette?.[1] || "#8a6a2f";
-  const fecha = String((data.event as Record<string, unknown>)?.date || "");
+  const fecha = fechaActivacionDe(data, "deseos");
   const cfg = configLibro(data);
 
   if (!eventoLlego(fecha) && !esOrganizador) {
@@ -83,19 +83,14 @@ export default async function DeseosPage({ params }: { params: { slug: string } 
         <div className={styles.tarjetaAncha}>
           {aviso}
           <p className={styles.eyebrow}>{nombre}</p>
-          <Libro
+          <LibroConFormulario
             slug={invitation.slug}
-            nombreEvento={nombre}
             portada={cfg.portada}
             colorHoja={cfg.colorHoja}
             colorLetra={cfg.colorLetra}
-            deseos={deseos.map((d) => ({ id: d.id, nombre: d.nombre, texto: d.texto }))}
+            deseosIniciales={deseos.map((d) => ({ id: d.id, nombre: d.nombre, texto: d.texto }))}
             esOrganizador={esOrganizador}
           />
-          <details className={styles.escribir}>
-            <summary>Escribir mi deseo</summary>
-            <Formulario slug={invitation.slug} />
-          </details>
         </div>
       </main>
     );

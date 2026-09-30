@@ -1,3 +1,6 @@
+import { readLayout } from "./blocks";
+import type { InvitationData } from "./schema";
+
 /**
  * Si ya llegó el día del evento.
  *
@@ -21,4 +24,19 @@ export function eventoLlego(fechaIso: string, ahora = new Date()): boolean {
 
   const soloDia = (x: Date) => Date.UTC(x.getFullYear(), x.getMonth(), x.getDate());
   return soloDia(ahora) >= soloDia(evento);
+}
+
+/**
+ * Desde cuándo se activan las fotos o el libro de deseos.
+ *
+ * Cada uno puede traer su propia fecha —quien organiza puede querer que las
+ * fotos se abran el día de antes, o el libro de deseos un día después—, pero
+ * casi nadie va a tocarla: por eso, si el bloque la deja vacía, se usa la
+ * fecha del evento y no hace falta configurar dos veces lo mismo.
+ */
+export function fechaActivacionDe(data: InvitationData, tipo: "fotos" | "deseos"): string {
+  const bloque = readLayout(data).find((b) => b.type === tipo);
+  const propia = String((bloque?.data as Record<string, unknown> | undefined)?.fechaActivacion || "").trim();
+  if (propia) return propia;
+  return String((data.event as Record<string, unknown> | undefined)?.date || "");
 }
