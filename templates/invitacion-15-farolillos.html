@@ -448,32 +448,6 @@ body{background:var(--bg)}
 .section-body,.guests-text,.confirmation-text,.gifts-text,.gallery-text,
 .social-sub{font-size:19px;line-height:1.6}
 
-/* ── El adorno bajo cada título ──
-   Dos imágenes, y cada sección enseña la suya: la guirnalda pintada sobre
-   el papel, el sol dorado sobre la noche. */
-.ornament{margin:6px auto 22px}
-.far-orn{display:block;margin:0 auto;pointer-events:none}
-.far-orn-papel{width:min(78%,300px)}
-.far-orn-noche{display:none;width:58px;filter:drop-shadow(0 0 14px rgba(241,217,160,.55))}
-:is(#countdown,#gifts,.inv-block-countdown,.inv-block-gifts) .far-orn-papel{display:none}
-:is(#countdown,#gifts,.inv-block-countdown,.inv-block-gifts) .far-orn-noche{display:block}
-
-/* ── Los farolillos ── */
-.far-cielo{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden}
-.far-cielo img{position:absolute;bottom:-120px;width:var(--t,46px);opacity:0;
-  filter:drop-shadow(0 0 12px rgba(241,217,160,.6)) blur(var(--b,0));
-  animation:farSube var(--d,16s) linear var(--r,0s) infinite}
-/* En la portada el cielo acaba donde empieza el texto: un farolillo pasando
-   por detrás del nombre lo tapa justo cuando se lee. */
-#hero .far-cielo,#splash .far-cielo{bottom:62%;
-  -webkit-mask-image:linear-gradient(#000 55%,transparent);mask-image:linear-gradient(#000 55%,transparent)}
-#hero .far-cielo img,#splash .far-cielo img{bottom:-60px}
-@keyframes farSube{
-  0%{transform:translate(0,0) rotate(-3deg);opacity:0}
-  10%{opacity:.95}
-  50%{transform:translate(var(--x,20px),-60vh) rotate(3deg)}
-  85%{opacity:.85}
-  100%{transform:translate(calc(var(--x,20px) * -.5),-120vh) rotate(-2deg);opacity:0}}
 @keyframes farGira{to{transform:rotate(360deg)}}
 
 /* ── Bienvenida ── */
@@ -562,15 +536,6 @@ section.alt{background:linear-gradient(var(--bg-alt),var(--bg))}
   color:color-mix(in srgb,var(--far-noche-ink) 80%,transparent)}
 .ring-label{font-size:10px;letter-spacing:.2em;
   color:color-mix(in srgb,var(--far-noche-ink) 75%,transparent)}
-/* Dos farolillos subiendo por los márgenes de los regalos. */
-#gifts::before,#gifts::after{content:"";position:absolute;bottom:-90px;z-index:1;
-  width:30px;height:34px;pointer-events:none;opacity:0;
-  background:url(/disenos/farolillos/farolillo.png) center/contain no-repeat;
-  filter:drop-shadow(0 0 10px rgba(241,217,160,.6));
-  animation:farSube 17s linear infinite}
-#gifts::before{left:3%}
-#gifts::after{right:4%;width:24px;animation-duration:21s;animation-delay:-8s}
-
 .gifts-account{background:rgba(255,255,255,.05);border-color:var(--far-oro)}
 .gifts-bank{color:var(--far-oro)}
 
@@ -630,9 +595,6 @@ footer .container{position:relative;z-index:2}
 .footer-copy{letter-spacing:.3em;opacity:.8}
 
 @media (prefers-reduced-motion:reduce){
-  .far-cielo{display:none}
-  #gifts::before,#gifts::after{display:none}
-  .hero-content::before,.splash-modal::before,footer .container::before,
   #countdown::before{animation:none}
 }</style>
 </head>
@@ -641,7 +603,7 @@ footer .container{position:relative;z-index:2}
 <div class="progress" aria-hidden="true"><i></i></div>
 
 <div id="splash" data-inv-section="splash">
-  <div class="far-cielo far-cielo-velo" aria-hidden="true"><img src="/disenos/farolillos/farolillo.png" alt="" style="left:2.5%;--t:29px;--d:15.2s;--r:-4.2s;--x:-27px;--b:.6px"><img src="/disenos/farolillos/farolillo.png" alt="" style="left:6.8%;--t:50px;--d:17.0s;--r:-16.5s;--x:-21px"><img src="/disenos/farolillos/farolillo.png" alt="" style="left:33.5%;--t:43px;--d:15.6s;--r:-10.8s;--x:-23px"><img src="/disenos/farolillos/farolillo.png" alt="" style="left:30.8%;--t:39px;--d:22.8s;--r:-0.7s;--x:19px"><img src="/disenos/farolillos/farolillo.png" alt="" style="left:86.6%;--t:32px;--d:19.4s;--r:-2.1s;--x:-18px"><img src="/disenos/farolillos/farolillo.png" alt="" style="left:49.5%;--t:53px;--d:22.9s;--r:-5.3s;--x:-19px"><img src="/disenos/farolillos/farolillo.png" alt="" style="left:52.3%;--t:51px;--d:20.3s;--r:-19.5s;--x:11px"><img src="/disenos/farolillos/farolillo.png" alt="" style="left:52.1%;--t:41px;--d:13.5s;--r:-8.6s;--x:26px"><img src="/disenos/farolillos/farolillo.png" alt="" style="left:52.9%;--t:42px;--d:22.1s;--r:-0.1s;--x:10px"><img src="/disenos/farolillos/farolillo.png" alt="" style="left:52.3%;--t:42px;--d:12.7s;--r:-10.0s;--x:29px"><img src="/disenos/farolillos/farolillo.png" alt="" style="left:34.8%;--t:23px;--d:15.4s;--r:-11.5s;--x:22px;--b:.6px"><img src="/disenos/farolillos/farolillo.png" alt="" style="left:84.3%;--t:45px;--d:20.9s;--r:-14.7s;--x:2px"></div>
+  
   <div class="splash-modal">
     <p class="splash-subtitle" data-inv="splash.label">Te invito a celebrar</p>
     <h1 class="splash-name" data-inv="event.names">Valentina</h1>
@@ -658,7 +620,7 @@ footer .container{position:relative;z-index:2}
 
 <section id="hero" data-inv-section="hero">
   <div class="hero-bg" data-inv="hero.backgroundUrl"></div>
-  <div class="far-cielo far-cielo-portada" aria-hidden="true"><img src="/disenos/farolillos/farolillo.png" alt="" style="left:2.5%;--t:29px;--d:15.2s;--r:-4.2s;--x:-27px;--b:.6px"><img src="/disenos/farolillos/farolillo.png" alt="" style="left:6.8%;--t:50px;--d:17.0s;--r:-16.5s;--x:-21px"><img src="/disenos/farolillos/farolillo.png" alt="" style="left:33.5%;--t:43px;--d:15.6s;--r:-10.8s;--x:-23px"><img src="/disenos/farolillos/farolillo.png" alt="" style="left:30.8%;--t:39px;--d:22.8s;--r:-0.7s;--x:19px"><img src="/disenos/farolillos/farolillo.png" alt="" style="left:86.6%;--t:32px;--d:19.4s;--r:-2.1s;--x:-18px"><img src="/disenos/farolillos/farolillo.png" alt="" style="left:49.5%;--t:53px;--d:22.9s;--r:-5.3s;--x:-19px"><img src="/disenos/farolillos/farolillo.png" alt="" style="left:52.3%;--t:51px;--d:20.3s;--r:-19.5s;--x:11px"><img src="/disenos/farolillos/farolillo.png" alt="" style="left:52.1%;--t:41px;--d:13.5s;--r:-8.6s;--x:26px"><img src="/disenos/farolillos/farolillo.png" alt="" style="left:52.9%;--t:42px;--d:22.1s;--r:-0.1s;--x:10px"><img src="/disenos/farolillos/farolillo.png" alt="" style="left:52.3%;--t:42px;--d:12.7s;--r:-10.0s;--x:29px"><img src="/disenos/farolillos/farolillo.png" alt="" style="left:34.8%;--t:23px;--d:15.4s;--r:-11.5s;--x:22px;--b:.6px"><img src="/disenos/farolillos/farolillo.png" alt="" style="left:84.3%;--t:45px;--d:20.9s;--r:-14.7s;--x:2px"><img src="/disenos/farolillos/farolillo.png" alt="" style="left:74.7%;--t:45px;--d:19.6s;--r:-12.6s;--x:25px"><img src="/disenos/farolillos/farolillo.png" alt="" style="left:18.2%;--t:37px;--d:13.6s;--r:-0.4s;--x:2px"></div>
+  
   <div class="hero-content">
     <p class="hero-label" data-inv="hero.label">Mis quince años</p>
     <h1 class="hero-name" data-inv="event.names">Valentina</h1>
@@ -696,7 +658,7 @@ footer .container{position:relative;z-index:2}
 <section id="countdown" class="reveal" data-inv-section="countdown">
   <div class="container">
     <p class="section-label" data-inv="countdown.label">Ya casi</p>
-    <h2 class="section-title" data-inv="countdown.title">Faltan para mi fiesta</h2><div class="ornament"><img class="far-orn far-orn-papel" src="/disenos/farolillos/guirnalda.png" alt=""><img class="far-orn far-orn-noche" src="/disenos/farolillos/sol.png" alt=""></div>
+    <h2 class="section-title" data-inv="countdown.title">Faltan para mi fiesta</h2>
     <p class="section-body" data-inv="countdown.text">Cuento los días para verte llegar.</p>
     <div class="countdown-grid">
       <div class="countdown-ring"><div class="ring-inner"><span class="ring-number" data-cd="days">--</span><span class="ring-label">Días</span></div></div>
@@ -710,7 +672,7 @@ footer .container{position:relative;z-index:2}
 <section id="guests" class="reveal alt" data-inv-section="guests">
   <div class="container">
     <p class="section-label" data-inv="guests.label">Con todo mi cariño</p>
-    <h2 class="section-title" data-inv="guests.title">Mis personas favoritas</h2><div class="ornament"><img class="far-orn far-orn-papel" src="/disenos/farolillos/guirnalda.png" alt=""><img class="far-orn far-orn-noche" src="/disenos/farolillos/sol.png" alt=""></div>
+    <h2 class="section-title" data-inv="guests.title">Mis personas favoritas</h2>
     <p class="guests-text" data-inv="guests.text">Quiero que este día esté lleno de la gente que me acompañó a llegar hasta aquí.</p>
     <p class="guests-text" data-inv="guests.textSecondary">Los espero para bailar hasta el final.</p>
     <p class="guests-address" data-inv="guests.address">Bogotá · Colombia</p>
@@ -737,7 +699,7 @@ footer .container{position:relative;z-index:2}
 <section id="events" class="reveal" data-inv-section="events">
   <div class="container">
     <p class="section-label" data-inv="events.label">El programa</p>
-    <h2 class="section-title" data-inv="events.title">Cómo será la noche</h2><div class="ornament"><img class="far-orn far-orn-papel" src="/disenos/farolillos/guirnalda.png" alt=""><img class="far-orn far-orn-noche" src="/disenos/farolillos/sol.png" alt=""></div>
+    <h2 class="section-title" data-inv="events.title">Cómo será la noche</h2>
     <p class="section-body" data-inv="events.text">Empezamos con la misa y seguimos con la fiesta.</p>
     <div class="events-grid" data-inv-list="events">
       <article class="event-card" data-inv-item>
@@ -765,7 +727,7 @@ footer .container{position:relative;z-index:2}
 <section id="confirmation" class="reveal alt" data-inv-section="confirm">
   <div class="container">
     <p class="section-label" data-inv="confirm.label">¿Nos acompañas?</p>
-    <h2 class="section-title" data-inv="confirm.title">Confirma tu asistencia</h2><div class="ornament"><img class="far-orn far-orn-papel" src="/disenos/farolillos/guirnalda.png" alt=""><img class="far-orn far-orn-noche" src="/disenos/farolillos/sol.png" alt=""></div>
+    <h2 class="section-title" data-inv="confirm.title">Confirma tu asistencia</h2>
     <p class="confirmation-text" data-inv="confirm.text">Confírmame si vienes, así aparto tu puesto en la mesa.</p>
     <p class="confirmation-deadline" data-inv="confirm.deadlineText">Antes del 21 de julio</p>
     <p class="confirmation-text" data-inv="confirm.note">Si vienes con alguien, cuéntame aquí mismo.</p>
@@ -786,7 +748,7 @@ footer .container{position:relative;z-index:2}
 <section id="gallery" class="reveal" data-inv-section="gallery">
   <div class="container">
     <p class="section-label" data-inv="gallery.label">Mis años</p>
-    <h2 class="section-title" data-inv="gallery.title">De niña a quinceañera</h2><div class="ornament"><img class="far-orn far-orn-papel" src="/disenos/farolillos/guirnalda.png" alt=""><img class="far-orn far-orn-noche" src="/disenos/farolillos/sol.png" alt=""></div>
+    <h2 class="section-title" data-inv="gallery.title">De niña a quinceañera</h2>
     <p class="gallery-text" data-inv="gallery.text">Un repaso rápido por estos quince años.</p>
     <div class="gallery-grid" data-inv-list="gallery">
       <div class="gallery-item" data-inv-item><div class="gallery-ph" data-inv="gallery.items.url"><span class="gallery-ph-text">Foto 1</span></div></div>
@@ -802,7 +764,7 @@ footer .container{position:relative;z-index:2}
 <section id="features" class="reveal alt" data-inv-section="features">
   <div class="container">
     <p class="section-label" data-inv="features.label">Información útil</p>
-    <h2 class="section-title" data-inv="features.title">Todo lo que necesitas saber</h2><div class="ornament"><img class="far-orn far-orn-papel" src="/disenos/farolillos/guirnalda.png" alt=""><img class="far-orn far-orn-noche" src="/disenos/farolillos/sol.png" alt=""></div>
+    <h2 class="section-title" data-inv="features.title">Todo lo que necesitas saber</h2>
     <div class="features-grid" data-inv-list="features">
       <div class="feature-card" data-inv-item>
         <span class="feature-icon" data-inv="features.items.icon">👗</span>
@@ -826,7 +788,7 @@ footer .container{position:relative;z-index:2}
 <section id="gifts" class="reveal" data-inv-section="gifts">
   <div class="container">
     <p class="section-label" data-inv="gifts.label">Con mucho cariño</p>
-    <h2 class="section-title" data-inv="gifts.title">Mesa de regalos</h2><div class="ornament"><img class="far-orn far-orn-papel" src="/disenos/farolillos/guirnalda.png" alt=""><img class="far-orn far-orn-noche" src="/disenos/farolillos/sol.png" alt=""></div>
+    <h2 class="section-title" data-inv="gifts.title">Mesa de regalos</h2>
     <p class="gifts-text" data-inv="gifts.text">Tu compañía es mi mejor regalo. Si quieres acompañarme con un detalle, aquí dejo los datos.</p>
     <div class="gifts-account">
       <p class="gifts-bank" data-inv="gifts.bankLabel">Transferencia</p>
@@ -854,7 +816,7 @@ footer .container{position:relative;z-index:2}
 <section id="social" class="reveal alt" data-inv-section="social">
   <div class="container">
     <p class="section-label" data-inv="social.label">Compártelo</p>
-    <h2 class="section-title" data-inv="social.title">Sube tus fotos</h2><div class="ornament"><img class="far-orn far-orn-papel" src="/disenos/farolillos/guirnalda.png" alt=""><img class="far-orn far-orn-noche" src="/disenos/farolillos/sol.png" alt=""></div>
+    <h2 class="section-title" data-inv="social.title">Sube tus fotos</h2>
     <p class="social-sub" data-inv="social.text">Etiquétalas con mi hashtag para que no se pierda ninguna.</p>
     <span class="social-hashtag" data-inv="social.hashtag">#ValentinaXV</span>
     <a class="social-ig" href="#" data-inv="social.instagram">@valentina</a>
@@ -862,7 +824,7 @@ footer .container{position:relative;z-index:2}
 </section>
 
 <footer data-inv-section="footer">
-  <div class="far-cielo far-cielo-pie" aria-hidden="true"><img src="/disenos/farolillos/farolillo.png" alt="" style="left:88.1%;--t:23px;--d:15.2s;--r:-4.2s;--x:-27px;--b:.6px"><img src="/disenos/farolillos/farolillo.png" alt="" style="left:0.3%;--t:30px;--d:17.0s;--r:-16.5s;--x:-21px"><img src="/disenos/farolillos/farolillo.png" alt="" style="left:89.8%;--t:28px;--d:15.6s;--r:-10.8s;--x:-23px;--b:.6px"><img src="/disenos/farolillos/farolillo.png" alt="" style="left:1.3%;--t:26px;--d:22.8s;--r:-0.7s;--x:19px;--b:.6px"><img src="/disenos/farolillos/farolillo.png" alt="" style="left:92.7%;--t:24px;--d:19.4s;--r:-2.1s;--x:-18px;--b:.6px"><img src="/disenos/farolillos/farolillo.png" alt="" style="left:2.2%;--t:32px;--d:22.9s;--r:-5.3s;--x:-19px"><img src="/disenos/farolillos/farolillo.png" alt="" style="left:90.8%;--t:31px;--d:20.3s;--r:-19.5s;--x:11px"><img src="/disenos/farolillos/farolillo.png" alt="" style="left:2.3%;--t:27px;--d:13.5s;--r:-8.6s;--x:26px;--b:.6px"></div>
+  
   <!-- El pie lleva su .container como el resto de las secciones, aunque su
        contenido quepa sin él: es lo que el renderer sube por encima de un
        adorno puesto "debajo del texto". Sin envoltorio posicionado, un adorno

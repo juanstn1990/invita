@@ -4,16 +4,26 @@
  * Sale de una invitación hecha a mano (un HTML suelto con adornos pintados
  * con Grok) y la pasa al sistema, para que sea editable como las otras 50:
  * mismos campos, mismos bloques, paletas elegibles. Lo que la hace ella va
- * todo aquí, en CSS y en cuatro piezas de adorno:
+ * todo aquí, en CSS y en dos piezas que ya son datos:
  *
- * · La portada es una ilustración (la torre y el lago), con farolillos que
- *   suben por el cielo y un degradado a la noche donde se apoya el nombre.
+ * · La portada es una ilustración (la torre y el lago), con un degradado a
+ *   la noche donde se apoya el nombre.
  * · Las secciones alternan papel y noche. La noche es el color del pie de la
  *   paleta, así que al cambiar de paleta la noche cambia con ella y nunca
  *   queda un bloque de otro color suelto.
- * · Lo pintado va sobre el papel (las esquinas de acuarela, la guirnalda) y
- *   lo que brilla sobre la noche (el sol, los farolillos). Es lo que decidió
- *   cada adorno al pintarse, y cambiarlo de fondo se nota.
+ * · Los farolillos que suben son la partícula propia del diseño
+ *   (`particulas`, más abajo): una sola capa fija sobre toda la invitación,
+ *   no una por sección. Antes eran tres cielos de CSS pegados —portada,
+ *   velo y pie— y se quedaban ahí: quien llegaba a "Programa" o a
+ *   "Regalos" dejaba de verlos, y no había manera de apagarlos ni de
+ *   cambiarlos por otra cosa desde el editor. El comentario del propio
+ *   catálogo de partículas (`TIPOS_PARTICULA` en `schema.ts`) ya ponía a
+ *   los farolillos como ejemplo de "la de cada plantilla" — esto es
+ *   dejarlos ser exactamente eso.
+ * · La guirnalda bajo cada título (o el sol, en las secciones de noche) era
+ *   la misma historia: una función `deco.ornament` que la pintaba fija,
+ *   sin que el editor supiera que existía. Ahora es un `adorno` más, con su
+ *   propio control de sitio, tamaño y opacidad.
  *
  * Todas las imágenes están en `public/disenos/farolillos/`. Se sirven desde
  * la propia app y no desde la biblioteca: son del diseño, no de una
@@ -24,8 +34,8 @@
  * La paleta la cambia el renderer sustituyendo las variables de `:root`, sin
  * volver a generar este CSS. Un color escrito aquí se quedaría igual al
  * cambiar de paleta, así que todo sale de `var(--…)`. Las únicas cifras de
- * color son blancos y el brillo de los farolillos, que no dependen de la
- * paleta: son luz.
+ * color son blancos y el brillo del sol de la cuenta atrás, que no depende
+ * de la paleta: es luz.
  */
 
 import type { Design } from "../theme";
@@ -56,33 +66,6 @@ const VERDE_ORO = paleta({
   base: "#f5f7f0", tinta: "#1c2a20", marca: "#4f7a55", acento: "#d9b26a", segundo: "#d9b26a",
 });
 
-/* ── El cielo ───────────────────────────────────────────────────
-   El mismo PNG repetido con tamaño, sitio y ritmo distintos. Los números
-   salen de una semilla y no de Math.random: el diseño se hornea una vez, y
-   con azar cada build movería los farolillos y ensuciaría el diff. */
-
-function azar(i: number, k: number): number {
-  const x = Math.sin(i * 12.9898 + k * 78.233) * 43758.5453;
-  return x - Math.floor(x);
-}
-
-function cielo(clase: string, n: number, bordes: boolean): string {
-  const piezas: string[] = [];
-  for (let i = 0; i < n; i++) {
-    const t = bordes ? 20 + azar(i, 1) * 14 : 22 + azar(i, 1) * 38;
-    const x = bordes ? (i % 2 ? azar(i, 2) * 4 : 88 + azar(i, 2) * 5) : azar(i, 2) * 92;
-    const d = 12 + azar(i, 3) * 12;
-    const r = azar(i, 4) * 20;
-    const deriva = azar(i, 5) * 60 - 30;
-    piezas.push(
-      `<img src="${A}/farolillo.png" alt="" style="left:${x.toFixed(1)}%;` +
-        `--t:${t.toFixed(0)}px;--d:${d.toFixed(1)}s;--r:-${r.toFixed(1)}s;` +
-        `--x:${deriva.toFixed(0)}px${t < 30 ? ";--b:.6px" : ""}">`
-    );
-  }
-  return `<div class="far-cielo ${clase}" aria-hidden="true">${piezas.join("")}</div>`;
-}
-
 /* ── La hoja ────────────────────────────────────────────────── */
 
 const css = () => `
@@ -103,32 +86,6 @@ body{background:var(--bg)}
 .section-body,.guests-text,.confirmation-text,.gifts-text,.gallery-text,
 .social-sub{font-size:19px;line-height:1.6}
 
-/* ── El adorno bajo cada título ──
-   Dos imágenes, y cada sección enseña la suya: la guirnalda pintada sobre
-   el papel, el sol dorado sobre la noche. */
-.ornament{margin:6px auto 22px}
-.far-orn{display:block;margin:0 auto;pointer-events:none}
-.far-orn-papel{width:min(78%,300px)}
-.far-orn-noche{display:none;width:58px;filter:drop-shadow(0 0 14px rgba(241,217,160,.55))}
-:is(#countdown,#gifts,.inv-block-countdown,.inv-block-gifts) .far-orn-papel{display:none}
-:is(#countdown,#gifts,.inv-block-countdown,.inv-block-gifts) .far-orn-noche{display:block}
-
-/* ── Los farolillos ── */
-.far-cielo{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden}
-.far-cielo img{position:absolute;bottom:-120px;width:var(--t,46px);opacity:0;
-  filter:drop-shadow(0 0 12px rgba(241,217,160,.6)) blur(var(--b,0));
-  animation:farSube var(--d,16s) linear var(--r,0s) infinite}
-/* En la portada el cielo acaba donde empieza el texto: un farolillo pasando
-   por detrás del nombre lo tapa justo cuando se lee. */
-#hero .far-cielo,#splash .far-cielo{bottom:62%;
-  -webkit-mask-image:linear-gradient(#000 55%,transparent);mask-image:linear-gradient(#000 55%,transparent)}
-#hero .far-cielo img,#splash .far-cielo img{bottom:-60px}
-@keyframes farSube{
-  0%{transform:translate(0,0) rotate(-3deg);opacity:0}
-  10%{opacity:.95}
-  50%{transform:translate(var(--x,20px),-60vh) rotate(3deg)}
-  85%{opacity:.85}
-  100%{transform:translate(calc(var(--x,20px) * -.5),-120vh) rotate(-2deg);opacity:0}}
 @keyframes farGira{to{transform:rotate(360deg)}}
 
 /* ── Bienvenida ── */
@@ -217,15 +174,6 @@ section.alt{background:linear-gradient(var(--bg-alt),var(--bg))}
   color:color-mix(in srgb,var(--far-noche-ink) 80%,transparent)}
 .ring-label{font-size:10px;letter-spacing:.2em;
   color:color-mix(in srgb,var(--far-noche-ink) 75%,transparent)}
-/* Dos farolillos subiendo por los márgenes de los regalos. */
-#gifts::before,#gifts::after{content:"";position:absolute;bottom:-90px;z-index:1;
-  width:30px;height:34px;pointer-events:none;opacity:0;
-  background:url(${A}/farolillo.png) center/contain no-repeat;
-  filter:drop-shadow(0 0 10px rgba(241,217,160,.6));
-  animation:farSube 17s linear infinite}
-#gifts::before{left:3%}
-#gifts::after{right:4%;width:24px;animation-duration:21s;animation-delay:-8s}
-
 .gifts-account{background:rgba(255,255,255,.05);border-color:var(--far-oro)}
 .gifts-bank{color:var(--far-oro)}
 
@@ -285,9 +233,6 @@ footer .container{position:relative;z-index:2}
 .footer-copy{letter-spacing:.3em;opacity:.8}
 
 @media (prefers-reduced-motion:reduce){
-  .far-cielo{display:none}
-  #gifts::before,#gifts::after{display:none}
-  .hero-content::before,.splash-modal::before,footer .container::before,
   #countdown::before{animation:none}
 }`;
 
@@ -328,13 +273,25 @@ export const farolillos: Design = {
     { seccion: "guests", url: `${A}/esquina-abajo.png`, sitio: "abajo-der", tamano: 40 },
     { seccion: "confirm", url: `${A}/esquina-abajo.png`, sitio: "abajo-der", tamano: 40 },
     { seccion: "gallery", url: `${A}/esquina.png`, sitio: "arriba-izq", tamano: 34 },
+    /* La filigrana bajo cada título: la guirnalda sobre el papel, el sol
+       sobre la noche. Van explícitas y no con el comodín "*" porque no es
+       la misma pieza en las ocho secciones (ver 4.4 de la guía de diseños:
+       el comodín pisaría el sol de las dos de noche con la guirnalda). */
+    { seccion: "guests", url: `${A}/guirnalda.png`, sitio: "titulo", tamano: 68 },
+    { seccion: "events", url: `${A}/guirnalda.png`, sitio: "titulo", tamano: 68 },
+    { seccion: "gallery", url: `${A}/guirnalda.png`, sitio: "titulo", tamano: 68 },
+    { seccion: "features", url: `${A}/guirnalda.png`, sitio: "titulo", tamano: 68 },
+    { seccion: "social", url: `${A}/guirnalda.png`, sitio: "titulo", tamano: 68 },
+    { seccion: "confirm", url: `${A}/guirnalda.png`, sitio: "titulo", tamano: 68 },
+    { seccion: "countdown", url: `${A}/sol.png`, sitio: "titulo", tamano: 14 },
+    { seccion: "gifts", url: `${A}/sol.png`, sitio: "titulo", tamano: 14 },
   ],
-  deco: {
-    splash: () => cielo("far-cielo-velo", 12, false),
-    hero: () => cielo("far-cielo-portada", 14, false),
-    ornament: () =>
-      `<img class="far-orn far-orn-papel" src="${A}/guirnalda.png" alt="">` +
-      `<img class="far-orn far-orn-noche" src="${A}/sol.png" alt="">`,
-    footer: () => cielo("far-cielo-pie", 8, true),
-  },
+  /*
+   * La partícula propia: los farolillos suben por toda la invitación, no
+   * sólo por la portada y el pie. Sigue siendo lo primero que ve la
+   * invitación en cuanto se crea, pero ahora quien organiza puede apagarla,
+   * cambiarla por pétalos o mover la cantidad/el tamaño desde el editor,
+   * igual que en cualquier otro diseño — ver `Design.particulas`.
+   */
+  particulas: { tipo: "imagen", pieza: `${A}/farolillo.png`, rumbo: "sube" },
 };

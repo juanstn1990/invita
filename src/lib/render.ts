@@ -392,9 +392,23 @@ function disperso(i: number, sal: number): number {
  * ni entrar por el velo. Es exactamente el fallo que la marca de agua ya tuvo
  * y que su auditoría vigila desde entonces.
  */
-function ponerParticulas(document: Doc, data: InvitationData) {
-  const d = data.particulas || {};
+function ponerParticulas(document: Doc, data: InvitationData, templateId?: string) {
+  const d: Record<string, unknown> = { ...(data.particulas || {}) };
   if (d.enabled === false) return;
+
+  /* Sin tipo elegido, la partícula del diseño —si trae una— es la que se ve.
+     La invitación manda en cuanto elige algo, aunque sea "vacío" a propósito
+     para no llevar ninguna: por eso esto sólo mira `tipo`, nunca `enabled`
+     ni el resto de campos, que ya tienen su propio valor por defecto más
+     abajo. Ver `Design.particulas`. */
+  if (!String(d.tipo || "").trim()) {
+    const propia = templateId ? designOf(templateId)?.particulas : undefined;
+    if (propia) {
+      d.tipo = propia.tipo;
+      if (propia.pieza && !d.pieza) d.pieza = propia.pieza;
+      if (propia.rumbo && !d.rumbo) d.rumbo = propia.rumbo;
+    }
+  }
 
   const tipo = String(d.tipo || "").trim();
   /* El polvo de oro no son piezas de CSS: es un canvas que dibuja el
@@ -4834,7 +4848,7 @@ export function renderInvitation(opts: RenderOptions): string {
   /* 5 ante · Las partículas, sobre toda la invitación.
      Una capa fija y no una por sección: lo que se quiere es que los pétalos
      caigan **sobre la página**, no que empiecen de cero en cada bloque. */
-  ponerParticulas(document, data);
+  ponerParticulas(document, data, templateId);
 
   /* 5 bis · La marca de agua, encima de todo.
      Su razón de ser es que un borrador no se pueda repartir como si fuera el

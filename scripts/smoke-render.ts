@@ -5,7 +5,7 @@ import { parseHTML } from "linkedom";
 import { mapFor } from "../src/lib/bindings";
 import { renderInvitation, RSVP_JS } from "../src/lib/render";
 import { defaultData } from "../src/lib/schema";
-import { TEMPLATES, readTemplate } from "../src/lib/templates";
+import { TEMPLATES, readTemplate, designOf } from "../src/lib/templates";
 import { BLOCKS } from "../src/lib/blocks";
 import { SECTION_BY_KEY, SECTIONS } from "../src/lib/schema";
 
@@ -1248,8 +1248,13 @@ for (const [nombre, tocar] of CASOS) {
    invitación deja de responder y no se puede ni entrar por el velo — el mismo
    fallo que ya tuvo la marca de agua. */
 {
-  const casos: [string, Record<string, unknown>, (c: any, doc: any) => boolean][] = [
-    ["sin elegir tipo no hay capa", { enabled: true, tipo: "" }, (_c, doc) => !doc.querySelector(".inv-particulas")],
+  const casos: [string, Record<string, unknown>, (c: any, doc: any, tplId?: string) => boolean][] = [
+    /* Salvo que el propio diseño traiga una partícula suya (los farolillos):
+       ahí "sin elegir tipo" no es "sin partícula", es "la que trae puesta",
+       igual que un adorno declarado se ve aunque la invitación no traiga
+       lista propia. Ver `Design.particulas`. */
+    ["sin elegir tipo no hay capa", { enabled: true, tipo: "" }, (_c, doc, tplId) =>
+      (tplId && designOf(tplId)?.particulas) ? !!doc.querySelector(".inv-particulas") : !doc.querySelector(".inv-particulas")],
     ["apagada tampoco", { enabled: false, tipo: "petalos" }, (_c, doc) => !doc.querySelector(".inv-particulas")],
     ["un tipo inventado se ignora", { enabled: true, tipo: "dragones" }, (_c, doc) => !doc.querySelector(".inv-particulas")],
     [
@@ -1348,7 +1353,7 @@ for (const [nombre, tocar] of CASOS) {
       );
       const c = document.querySelector(".inv-particulas") as any;
       try {
-        if (!comprueba(c, document)) mal.push(tpl.id);
+        if (!comprueba(c, document, tpl.id)) mal.push(tpl.id);
       } catch {
         mal.push(`${tpl.id} (excepción)`);
       }

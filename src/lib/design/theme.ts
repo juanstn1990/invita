@@ -352,6 +352,17 @@ export interface Design {
    */
   adornos?: AdornoDeDiseno[];
   /**
+   * La partícula que trae el diseño, si tiene una propia (los farolillos, un
+   * pétalo de un color exacto, un logo). Es el mismo mecanismo que `adornos`
+   * para lo mismo: un valor por defecto que el render usa **sólo si la
+   * invitación no eligió nada** (`particulas.tipo` vacío), y que la
+   * invitación puede pisar en cualquier momento desde el editor —apagarla,
+   * cambiar a pétalos, subir otra imagen—. Sin este mecanismo, la única
+   * forma de que el diseño trajera su partícula puesta era escribirla en el
+   * CSS, fija y sin poder tocarla.
+   */
+  particulas?: { tipo: string; pieza?: string; rumbo?: "sube" | "cae" | "flota" | "revolotea" };
+  /**
    * Dónde van los padres. Los campos son de la portada (`hero.padresA`…) y
    * ahí se quedan en el editor, pero una portada con foto a sangre no tiene
    * sitio para cuatro nombres: con "guests" el render los baja a la sección
