@@ -77,6 +77,11 @@
 }
 .disparo:active { transform: scale(.92); }
 
+.linkGaleria {
+  margin: 0; padding: 0; border: 0; background: none; cursor: pointer;
+  font-size: 13px; color: var(--acento, #8a6a2f); text-decoration: underline;
+}
+
 .accionesFoto { display: flex; gap: 10px; }
 .accionesFoto .boton { flex: 2; }
 .repetir {

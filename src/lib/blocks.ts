@@ -1201,9 +1201,21 @@ const fotosEvento: BlockSpec = {
     },
     { key: "boton", label: "Texto del botón", type: "text", placeholder: "Tomar una foto" },
     { key: "textColor", label: "Color de las letras", type: "color", span: 2 },
-    /* No pinta nada en la invitación: lo lee sólo la página de la cámara
-       (`/{slug}/fotos`), que no pasa por el motor de plantillas. Va en el
+    /* No pintan nada en la invitación: los lee sólo la página de la cámara
+       (`/{slug}/fotos`), que no pasa por el motor de plantillas. Van en el
        mismo bloque porque es donde ya vive todo lo demás de esta función. */
+    {
+      key: "visibilidad",
+      label: "Quién puede ver el álbum",
+      type: "select",
+      span: 2,
+      options: [
+        { value: "privado", label: "Privado: solo yo lo veo, desde mi panel" },
+        { value: "propias", label: "Cada quien ve sólo las suyas" },
+        { value: "publico", label: "Público: cualquiera con el link ve todas" },
+      ],
+      help: "Subir una foto nueva siempre funciona igual. Esto sólo decide si además se puede ver lo que ya se subió.",
+    },
     {
       key: "fechaActivacion",
       label: "Fecha de activación",
@@ -1410,7 +1422,7 @@ export function blockDefaults(spec: BlockSpec): SectionData {
     return {
       enabled: true, label: "", title: "Comparte tus fotos",
       texto: "Ayúdanos a guardar cada momento del día: toma una foto y compártela con nosotros.",
-      boton: "Tomar una foto", textColor: "", fechaActivacion: "",
+      boton: "Tomar una foto", textColor: "", visibilidad: "privado", fechaActivacion: "",
     };
   }
   if (spec.type === "deseos") {

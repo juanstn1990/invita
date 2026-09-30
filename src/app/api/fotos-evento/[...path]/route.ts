@@ -2,18 +2,27 @@ import { NextResponse } from "next/server";
 import { readEventPhoto } from "@/lib/storage";
 import { sesionActual } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { configFotos } from "@/lib/fotosEvento";
+import type { InvitationData } from "@/lib/schema";
 
 /**
  * Sirve una foto de evento. A diferencia de `/api/media/...`, ésta es
- * privada: una foto que subió un invitado es del organizador (y de quien
- * organiza con él), no arte para publicar.
+ * privada por defecto: una foto que subió un invitado es del organizador
+ * (y de quien organiza con él), no arte para publicar.
  *
- * Dos llaves abren la puerta, no una: la sesión de quien inició sesión en el
- * editor, o el `manageToken` de esa misma invitación por `?t=` — el mismo
- * que ya abre `/g/[token]`, para quien organiza pero no tiene cuenta. La
- * ruta siempre empieza por "eventos" y luego el id de la invitación (así se
- * guarda en disco, ver `saveEventPhoto`), así que un token sólo abre las
- * fotos de su propia invitación.
+ * Tres llaves abren la puerta:
+ * · La sesión de quien inició sesión en el editor.
+ * · El `manageToken` de esa misma invitación por `?t=` — el mismo que ya
+ *   abre `/g/[token]`, para quien organiza pero no tiene cuenta.
+ * · El álbum en "propias" o "público" (`configFotos`, en el bloque
+ *   `fotos`): ahí cualquiera puede pedir una foto por su ruta —que ya es un
+ *   nombre al azar, no una lista que se pueda adivinar—; lo que decide cada
+ *   nivel es qué tan fácil es *enterarse* de esa ruta (ver `/fotos/mias` y
+ *   `Galeria.tsx`), no si el archivo en sí se sirve.
+ *
+ * La ruta siempre empieza por "eventos" y luego el id de la invitación (así
+ * se guarda en disco, ver `saveEventPhoto`), así que un token o un álbum
+ * público sólo abren las fotos de su propia invitación.
  */
 export async function GET(
   request: Request,
@@ -23,14 +32,17 @@ export async function GET(
   const invitationId = params.path[1] || "";
 
   let autorizado = !!(await sesionActual());
-  if (!autorizado) {
+  if (!autorizado && invitationId) {
+    const inv = await prisma.invitation.findUnique({
+      where: { id: invitationId },
+      select: { manageToken: true, published: true, data: true },
+    });
     const token = new URL(request.url).searchParams.get("t") || "";
-    if (token && invitationId) {
-      const inv = await prisma.invitation.findUnique({
-        where: { id: invitationId },
-        select: { manageToken: true },
-      });
-      autorizado = !!inv?.manageToken && inv.manageToken === token;
+    if (token && inv?.manageToken && inv.manageToken === token) {
+      autorizado = true;
+    } else if (inv?.published) {
+      const { visibilidad } = configFotos(JSON.parse(inv.data) as InvitationData);
+      autorizado = visibilidad !== "privado";
     }
   }
   if (!autorizado) {

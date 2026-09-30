@@ -91,7 +91,7 @@ export async function POST(
   const autor = String(form?.get("autor") || "").trim().slice(0, 60) || null;
 
   const rel = await saveEventPhoto(bytes, mime, invitation.id);
-  await prisma.eventPhoto.create({
+  const foto = await prisma.eventPhoto.create({
     data: {
       invitationId: invitation.id,
       url: rel,
@@ -102,5 +102,9 @@ export async function POST(
     },
   });
 
-  return NextResponse.json({ ok: true });
+  /* El id vuelve al navegador de quien subió, para que —si el álbum es
+     "cada quien ve sólo las suyas"— pueda recordarlo y pedir después
+     exactamente ésta, sin que el servidor tenga que llevar cuenta de quién
+     es quién. Ver `configFotos` y `/api/i/[slug]/fotos/mias`. */
+  return NextResponse.json({ ok: true, id: foto.id });
 }

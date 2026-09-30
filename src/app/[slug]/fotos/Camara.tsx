@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { recordarFotoPropia } from "./misFotos";
 import styles from "./fotos.module.css";
 
 /**
@@ -53,6 +54,7 @@ export function Camara({ slug }: { slug: string }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const galeriaRef = useRef<HTMLInputElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
   const [estado, setEstado] = useState<Estado>("pidiendo");
@@ -130,20 +132,28 @@ export function Camara({ slug }: { slug: string }) {
     setEstado("camara");
   }
 
+  /** Lo que hacen las tres formas de conseguir una foto —cámara en vivo,
+   *  selector de respaldo, elegir de la galería— en cuanto ya tienen el
+   *  blob que hay que mandar. */
+  async function enviar(blob: Blob): Promise<void> {
+    const form = new FormData();
+    form.append("file", blob, "foto.jpg");
+    if (nombre.trim()) form.append("autor", nombre.trim());
+    const r = await fetch(`/api/i/${slug}/fotos`, { method: "POST", body: form });
+    const json = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(json.error || "No se pudo subir la foto.");
+    if (json.id) recordarFotoPropia(slug, json.id);
+    setSubidas((n) => n + 1);
+  }
+
   async function subir() {
     if (!capturada) return;
     setEstado("subiendo");
     setError("");
     try {
-      const form = new FormData();
-      form.append("file", capturada.blob, "foto.jpg");
-      if (nombre.trim()) form.append("autor", nombre.trim());
-      const r = await fetch(`/api/i/${slug}/fotos`, { method: "POST", body: form });
-      const json = await r.json().catch(() => ({}));
-      if (!r.ok) throw new Error(json.error || "No se pudo subir la foto.");
+      await enviar(capturada.blob);
       URL.revokeObjectURL(capturada.url);
       setCapturada(null);
-      setSubidas((n) => n + 1);
       setEstado("camara");
     } catch (err) {
       setError((err as Error).message);
@@ -162,18 +172,32 @@ export function Camara({ slug }: { slug: string }) {
     setError("");
     setEstado("subiendo");
     try {
-      const blob = await reducirArchivo(file);
-      const form = new FormData();
-      form.append("file", blob, "foto.jpg");
-      if (nombre.trim()) form.append("autor", nombre.trim());
-      const r = await fetch(`/api/i/${slug}/fotos`, { method: "POST", body: form });
-      const json = await r.json().catch(() => ({}));
-      if (!r.ok) throw new Error(json.error || "No se pudo subir la foto.");
-      setSubidas((n) => n + 1);
+      await enviar(await reducirArchivo(file));
       setEstado("sin-camara");
     } catch (err) {
       setError((err as Error).message);
       setEstado("sin-camara");
+    }
+  }
+
+  /* Elegir de la galería mientras la cámara en vivo sigue encendida: no
+     todas las fotos del día se toman ahí mismo —alguien puede traer una que
+     ya tenía en el teléfono—, y pedirle salir de esta página a subirla por
+     otro lado es la fricción que hace que no lo haga. Sin `capture`, a
+     propósito: eso es lo que le dice al selector nativo que abra el álbum y
+     no la cámara. */
+  async function elegirDeGaleria(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setError("");
+    setEstado("subiendo");
+    try {
+      await enviar(await reducirArchivo(file));
+      setEstado("camara");
+    } catch (err) {
+      setError((err as Error).message);
+      setEstado("camara");
     }
   }
 
@@ -237,6 +261,21 @@ export function Camara({ slug }: { slug: string }) {
 
       {estado === "camara" && (
         <button type="button" className={styles.disparo} onClick={capturar} aria-label="Tomar foto" />
+      )}
+
+      {(estado === "camara" || estado === "pidiendo") && (
+        <>
+          <button type="button" className={styles.linkGaleria} onClick={() => galeriaRef.current?.click()}>
+            o elige una foto de tu galería
+          </button>
+          <input
+            ref={galeriaRef}
+            type="file"
+            accept="image/*"
+            onChange={elegirDeGaleria}
+            hidden
+          />
+        </>
       )}
 
       {(estado === "revisando" || estado === "subiendo") && (

@@ -2,9 +2,11 @@ import { prisma } from "@/lib/prisma";
 import { TEMPLATE_BY_ID } from "@/lib/templates";
 import { coupleName, resolvedDateLabel, type InvitationData } from "@/lib/schema";
 import { eventoLlego, fechaActivacionDe } from "@/lib/disponibilidadEvento";
+import { configFotos } from "@/lib/fotosEvento";
 import { sesionActual } from "@/lib/auth";
 import { Galeria } from "../../editor/[id]/fotos/Galeria";
 import { Camara } from "./Camara";
+import { GaleriaPropia } from "./GaleriaPropia";
 import styles from "./fotos.module.css";
 
 export const dynamic = "force-dynamic";
@@ -73,16 +75,22 @@ export default async function FotosPage({
   }
 
   const avisoAcceso = accesoCompleto && (!invitation.published || !eventoLlego(fecha));
+  const { visibilidad } = configFotos(data);
+  /* Quien organiza ve siempre el álbum entero, decida lo que decida para
+     los invitados: "privado"/"propias"/"público" es sobre lo que ve un
+     invitado, no sobre si tú puedes verlo. */
+  const verTodas = accesoCompleto || visibilidad === "publico";
 
   let fotos: { id: string; url: string; autor: string | null; kb: number }[] = [];
-  if (accesoCompleto) {
+  if (verTodas) {
     const registros = await prisma.eventPhoto.findMany({
       where: { invitationId: invitation.id },
       orderBy: { createdAt: "desc" },
     });
     /* Al enlace privado le hace falta el token en cada foto: la ruta que las
-       sirve pide sesión o ese mismo `manageToken` por `?t=`. Con sesión no
-       hace falta —el token queda vacío y la ruta lo acepta igual—. */
+       sirve pide sesión, ese mismo `manageToken` por `?t=`, o un álbum que
+       ya no sea privado. Con sesión, o con el álbum público, no hace falta
+       —el token queda vacío y la ruta lo acepta igual—. */
     const sufijo = esCliente ? `?t=${encodeURIComponent(token)}` : "";
     fotos = registros.map((f) => ({
       id: f.id,
@@ -108,11 +116,23 @@ export default async function FotosPage({
         <Camara slug={invitation.slug} />
       </div>
 
-      {accesoCompleto && (
+      {(accesoCompleto || visibilidad !== "privado") && (
         <div className={styles.tarjetaAncha}>
-          <h2 className={styles.tituloAlbum}>El álbum completo</h2>
-          <p className={styles.texto}>Mira y descarga todas las fotos que han dejado.</p>
-          <Galeria invitationId={invitation.id} inicial={fotos} puedeBorrar={esOrganizador} />
+          <h2 className={styles.tituloAlbum}>
+            {accesoCompleto ? "El álbum completo" : visibilidad === "publico" ? "El álbum" : "Mis fotos"}
+          </h2>
+          <p className={styles.texto}>
+            {accesoCompleto
+              ? "Mira y descarga todas las fotos que han dejado."
+              : visibilidad === "publico"
+                ? "Mira y descarga las fotos que han dejado todos."
+                : "Las que tú has subido — cada quien ve sólo las suyas."}
+          </p>
+          {verTodas ? (
+            <Galeria invitationId={invitation.id} inicial={fotos} puedeBorrar={esOrganizador} />
+          ) : (
+            <GaleriaPropia slug={invitation.slug} />
+          )}
         </div>
       )}
     </main>
