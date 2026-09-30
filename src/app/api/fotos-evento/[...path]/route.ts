@@ -11,15 +11,16 @@ import { prisma } from "@/lib/prisma";
  * Dos llaves abren la puerta, no una: la sesión de quien inició sesión en el
  * editor, o el `manageToken` de esa misma invitación por `?t=` — el mismo
  * que ya abre `/g/[token]`, para quien organiza pero no tiene cuenta. La
- * ruta siempre empieza por el id de la invitación (así se guarda en disco),
- * así que un token sólo abre las fotos de su propia invitación.
+ * ruta siempre empieza por "eventos" y luego el id de la invitación (así se
+ * guarda en disco, ver `saveEventPhoto`), así que un token sólo abre las
+ * fotos de su propia invitación.
  */
 export async function GET(
   request: Request,
   { params }: { params: { path: string[] } }
 ) {
   const rel = params.path.join("/");
-  const invitationId = params.path[0] || "";
+  const invitationId = params.path[1] || "";
 
   let autorizado = !!(await sesionActual());
   if (!autorizado) {
