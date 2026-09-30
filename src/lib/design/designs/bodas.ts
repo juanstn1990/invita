@@ -18,6 +18,7 @@ import { paleta } from "../paleta";
 import * as deco from "../deco";
 import { eterna } from "./eterna";
 import { olivar } from "./olivar";
+import { otono } from "./otono";
 import { rosal } from "./rosal";
 import { rosalila } from "./rosalila";
 import {
@@ -336,5 +337,5 @@ const bendicion: Design = {
 
 export const BODAS: Design[] = [
   vintage, white, marsala, aurum, ivory, editorial, nocturno, campestre,
-  capilla, bruma, jardin, gala, bendicion, eterna, olivar, rosal, rosalila,
+  capilla, bruma, jardin, gala, bendicion, eterna, olivar, otono, rosal, rosalila,
 ];
