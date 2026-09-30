@@ -17,13 +17,24 @@ export const dynamic = "force-dynamic";
  * Quien tiene sesión —el organizador— ve esto aunque la invitación no esté
  * publicada o el evento no haya llegado, con un aviso arriba: es lo que
  * hace posible probarlo desde la vista previa del editor antes de repartir
- * nada.
+ * nada. Quien organiza pero no tiene cuenta ve exactamente lo mismo con el
+ * `manageToken` de su invitación por `?t=` en la dirección — el enlace que
+ * le da el panel de fotos/deseos del editor, para no pedirle que inicie
+ * sesión para ver lo suyo.
  */
-export default async function DeseosPage({ params }: { params: { slug: string } }) {
+export default async function DeseosPage({
+  params, searchParams,
+}: {
+  params: { slug: string };
+  searchParams: { t?: string };
+}) {
   const invitation = await prisma.invitation.findUnique({ where: { slug: params.slug } });
   const esOrganizador = !!(await sesionActual());
+  const token = String(searchParams?.t || "");
+  const esCliente = !!invitation?.manageToken && !!token && invitation.manageToken === token;
+  const accesoCompleto = esOrganizador || esCliente;
 
-  if (!invitation || (!invitation.published && !esOrganizador)) {
+  if (!invitation || (!invitation.published && !accesoCompleto)) {
     return (
       <main className={styles.pageAviso}>
         <p>
@@ -42,7 +53,7 @@ export default async function DeseosPage({ params }: { params: { slug: string } 
   const fecha = fechaActivacionDe(data, "deseos");
   const cfg = configLibro(data);
 
-  if (!eventoLlego(fecha) && !esOrganizador) {
+  if (!eventoLlego(fecha) && !accesoCompleto) {
     return (
       <main className={styles.page} style={{ "--acento": acento } as React.CSSProperties}>
         <div className={styles.tarjeta}>
@@ -57,23 +68,23 @@ export default async function DeseosPage({ params }: { params: { slug: string } 
     );
   }
 
-  const avisoOrganizador = esOrganizador && (!invitation.published || !eventoLlego(fecha));
+  const avisoAcceso = accesoCompleto && (!invitation.published || !eventoLlego(fecha));
   /* Ver el libro no es lo mismo que verlo público: si sigue en privado, lo
      que tú ves aquí —el libro entero, para hojear— no es lo que ve un
      invitado con el mismo link —sólo el formulario para escribir el suyo—.
      Sin este aviso, "yo lo veo bien" sería la prueba equivocada. */
-  const avisoPrivado = esOrganizador && cfg.visibilidad !== "publico";
-  const aviso = (avisoOrganizador || avisoPrivado) && (
+  const avisoPrivado = accesoCompleto && cfg.visibilidad !== "publico";
+  const aviso = (avisoAcceso || avisoPrivado) && (
     <p className={styles.avisoOrganizador}>
-      {avisoOrganizador && "Lo estás viendo como organizador — los invitados todavía no ven esto. "}
+      {avisoAcceso && "Estás viendo el panel completo — tus invitados todavía no ven esto. "}
       {avisoPrivado && "El libro está en privado: un invitado con este link sólo ve el formulario para escribir, no puede hojear los deseos como tú."}
     </p>
   );
 
-  /* El organizador ve siempre el libro entero, aunque lo haya dejado
+  /* Quien organiza ve siempre el libro entero, aunque lo haya dejado
      privado para los invitados: "privado" decide quién más lo lee, no si
      tú puedes leerlo. */
-  if (cfg.visibilidad === "publico" || esOrganizador) {
+  if (cfg.visibilidad === "publico" || accesoCompleto) {
     const deseos = await prisma.wish.findMany({
       where: { invitationId: invitation.id },
       orderBy: { createdAt: "asc" },
@@ -89,7 +100,8 @@ export default async function DeseosPage({ params }: { params: { slug: string } 
             colorHoja={cfg.colorHoja}
             colorLetra={cfg.colorLetra}
             deseosIniciales={deseos.map((d) => ({ id: d.id, nombre: d.nombre, texto: d.texto }))}
-            esOrganizador={esOrganizador}
+            esOrganizador={accesoCompleto}
+            token={esCliente ? token : undefined}
           />
         </div>
       </main>

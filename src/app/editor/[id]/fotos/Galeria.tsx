@@ -11,10 +11,12 @@ export interface Foto {
 }
 
 export function Galeria({
-  invitationId, inicial,
+  invitationId, inicial, puedeBorrar = true,
 }: {
   invitationId: string;
   inicial: Foto[];
+  /** El panel del editor borra; el enlace que se comparte sin sesión, sólo mira y descarga. */
+  puedeBorrar?: boolean;
 }) {
   const [fotos, setFotos] = useState(inicial);
   const [borrando, setBorrando] = useState<string | null>(null);
@@ -59,14 +61,16 @@ export function Galeria({
                 <a href={f.url} download className={styles.descargar} title="Descargar">
                   ↓
                 </a>
-                <button
-                  type="button"
-                  className={styles.borrar}
-                  onClick={() => borrar(f.id)}
-                  title="Borrar"
-                >
-                  ×
-                </button>
+                {puedeBorrar && (
+                  <button
+                    type="button"
+                    className={styles.borrar}
+                    onClick={() => borrar(f.id)}
+                    title="Borrar"
+                  >
+                    ×
+                  </button>
+                )}
               </div>
             </div>
           </li>

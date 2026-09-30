@@ -1,21 +1,44 @@
 import { NextResponse } from "next/server";
 import { readEventPhoto } from "@/lib/storage";
-import { noAutorizado } from "@/lib/auth";
+import { sesionActual } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 
 /**
- * Sirve una foto de evento. A diferencia de `/api/media/...`, ésta pide
- * sesión: una foto que subió un invitado es del organizador, no arte para
- * publicar, y no hay ningún sitio donde deba verse sin haber iniciado
- * sesión primero.
+ * Sirve una foto de evento. A diferencia de `/api/media/...`, ésta es
+ * privada: una foto que subió un invitado es del organizador (y de quien
+ * organiza con él), no arte para publicar.
+ *
+ * Dos llaves abren la puerta, no una: la sesión de quien inició sesión en el
+ * editor, o el `manageToken` de esa misma invitación por `?t=` — el mismo
+ * que ya abre `/g/[token]`, para quien organiza pero no tiene cuenta. La
+ * ruta siempre empieza por el id de la invitación (así se guarda en disco),
+ * así que un token sólo abre las fotos de su propia invitación.
  */
 export async function GET(
   request: Request,
   { params }: { params: { path: string[] } }
 ) {
-  const no = await noAutorizado();
-  if (no) return no;
-
   const rel = params.path.join("/");
+  const invitationId = params.path[0] || "";
+
+  let autorizado = !!(await sesionActual());
+  if (!autorizado) {
+    const token = new URL(request.url).searchParams.get("t") || "";
+    if (token && invitationId) {
+      const inv = await prisma.invitation.findUnique({
+        where: { id: invitationId },
+        select: { manageToken: true },
+      });
+      autorizado = !!inv?.manageToken && inv.manageToken === token;
+    }
+  }
+  if (!autorizado) {
+    return new NextResponse(JSON.stringify({ error: "Entra para hacer esto." }), {
+      status: 401,
+      headers: { "content-type": "application/json" },
+    });
+  }
+
   const file = await readEventPhoto(rel);
   if (!file) return new NextResponse("No encontrada", { status: 404 });
 

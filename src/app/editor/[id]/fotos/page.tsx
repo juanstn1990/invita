@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requiereSesion } from "@/lib/auth";
 import { qrSvgDataUrl } from "@/lib/qr";
+import { nuevoTokenPanel } from "@/lib/invitados";
+import { EnlaceCliente } from "../EnlaceCliente";
 import { Galeria } from "./Galeria";
 import styles from "./galeria.module.css";
 
@@ -21,11 +23,18 @@ export default async function FotosEventoPage({ params }: { params: { id: string
 
   const invitation = await prisma.invitation.findUnique({
     where: { id: params.id },
-    select: { id: true, title: true, slug: true, published: true },
+    select: { id: true, title: true, slug: true, published: true, manageToken: true },
   });
   if (!invitation) notFound();
 
+  let manageToken = invitation.manageToken;
+  if (!manageToken) {
+    manageToken = await nuevoTokenPanel();
+    await prisma.invitation.update({ where: { id: invitation.id }, data: { manageToken } });
+  }
+
   const enlace = `/${invitation.slug}/fotos`;
+  const enlaceCliente = `${enlace}?t=${manageToken}`;
   const qr = invitation.published ? await qrSvgDataUrl(`${process.env.INVITA_URL || ""}${enlace}`) : null;
 
   const fotos = await prisma.eventPhoto.findMany({
@@ -61,9 +70,24 @@ export default async function FotosEventoPage({ params }: { params: { id: string
               sirve para imprimirlo en una mesa o en un cartel — cualquiera que lo
               escanee llega a la misma página, sin instalar nada.
             </p>
+            {qr && (
+              <a href={qr} download={`qr-fotos-${invitation.slug}.svg`} className="btn btn-ghost btn-sm">
+                Descargar QR
+              </a>
+            )}
           </div>
         </div>
       )}
+
+      <div className={styles.aviso}>
+        <p className={styles.compartirTitulo}>El álbum, para quien organiza sin cuenta</p>
+        <p className={styles.compartirTexto}>
+          Mismo álbum que ves aquí —con la cámara y todas las fotos, para mirar y
+          descargar— pero sin pedir usuario ni contraseña. Pásaselo a quien no tiene
+          acceso al editor.
+        </p>
+        <EnlaceCliente ruta={enlaceCliente} texto={enlace} />
+      </div>
 
       <Galeria
         invitationId={invitation.id}

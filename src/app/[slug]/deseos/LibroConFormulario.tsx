@@ -15,7 +15,7 @@ import styles from "./deseos.module.css";
  * que quien acaba de escribir vea que ya quedó.
  */
 export function LibroConFormulario({
-  slug, portada, colorHoja, colorLetra, deseosIniciales, esOrganizador,
+  slug, portada, colorHoja, colorLetra, deseosIniciales, esOrganizador, token,
 }: {
   slug: string;
   portada: string;
@@ -23,6 +23,10 @@ export function LibroConFormulario({
   colorLetra: string;
   deseosIniciales: DeseoLeido[];
   esOrganizador: boolean;
+  /** El `manageToken` de quien organiza sin cuenta: sólo hace falta para el
+   *  enlace de descargar el PDF, que igual que las fotos pide sesión o
+   *  token por `?t=`. */
+  token?: string;
 }) {
   const [deseos, setDeseos] = useState<DeseoLeido[]>(deseosIniciales);
   const [saltarA, setSaltarA] = useState<number | null>(null);
@@ -47,6 +51,7 @@ export function LibroConFormulario({
         deseos={deseos}
         esOrganizador={esOrganizador}
         saltarA={saltarA}
+        token={token}
       />
       <details className={styles.escribir} ref={detalleRef}>
         <summary>Escribir mi deseo</summary>

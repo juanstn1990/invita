@@ -7,20 +7,28 @@ import { generarLibroPdf } from "@/lib/libroPdf";
 import { coupleName, type InvitationData } from "@/lib/schema";
 
 /**
- * El libro entero, en PDF. Sólo el organizador —"público" decide quién lee
+ * El libro entero, en PDF. Sólo quien organiza —"público" decide quién lee
  * el libro en pantalla, no quién se lo lleva impreso—: es su recuerdo, y un
  * invitado con el link no debería poder descargarlo aunque el libro esté
  * abierto para hojear.
+ *
+ * Dos llaves abren la puerta, la misma regla que las fotos: la sesión de
+ * quien inició sesión en el editor, o el `manageToken` de esta invitación
+ * por `?t=`, para quien organiza pero no tiene cuenta.
  */
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: { slug: string } }
 ) {
   const invitation = await prisma.invitation.findUnique({ where: { slug: params.slug } });
   if (!invitation) return new NextResponse("No encontrada", { status: 404 });
 
-  const esOrganizador = !!(await sesionActual());
-  if (!esOrganizador) return new NextResponse("No disponible", { status: 403 });
+  let autorizado = !!(await sesionActual());
+  if (!autorizado) {
+    const token = new URL(request.url).searchParams.get("t") || "";
+    autorizado = !!invitation.manageToken && !!token && invitation.manageToken === token;
+  }
+  if (!autorizado) return new NextResponse("No disponible", { status: 403 });
 
   const data = JSON.parse(invitation.data) as InvitationData;
   const cfg = configLibro(data);

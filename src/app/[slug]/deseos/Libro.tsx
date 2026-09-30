@@ -18,7 +18,7 @@ export interface DeseoLeido {
  * basta con que **se sienta** como pasar una página.
  */
 export function Libro({
-  slug, portada, colorHoja, colorLetra, deseos, esOrganizador, saltarA,
+  slug, portada, colorHoja, colorLetra, deseos, esOrganizador, saltarA, token,
 }: {
   slug: string;
   portada: string;
@@ -30,6 +30,8 @@ export function Libro({
    *  página para que quien acaba de escribir vea que ya quedó, sin tener
    *  que ir pasando hojas a buscarlo. */
   saltarA?: number | null;
+  /** El `manageToken` de quien organiza sin cuenta, para el enlace del PDF. */
+  token?: string;
 }) {
   /* 0 = portada, 1..N = un deseo por página, N+1 = la última (descargar). */
   const total = deseos.length + 2;
@@ -106,7 +108,11 @@ export function Libro({
                   : "Todavía no hay deseos — sé el primero."}
               </p>
               {esOrganizador && (
-                <a className={styles.descargar} href={`/api/i/${slug}/deseos/pdf`} download>
+                <a
+                  className={styles.descargar}
+                  href={`/api/i/${slug}/deseos/pdf${token ? `?t=${encodeURIComponent(token)}` : ""}`}
+                  download
+                >
                   Descargar el libro (PDF)
                 </a>
               )}

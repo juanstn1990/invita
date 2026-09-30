@@ -3,6 +3,7 @@ import { TEMPLATE_BY_ID } from "@/lib/templates";
 import { coupleName, resolvedDateLabel, type InvitationData } from "@/lib/schema";
 import { eventoLlego, fechaActivacionDe } from "@/lib/disponibilidadEvento";
 import { sesionActual } from "@/lib/auth";
+import { Galeria } from "../../editor/[id]/fotos/Galeria";
 import { Camara } from "./Camara";
 import styles from "./fotos.module.css";
 
@@ -18,14 +19,25 @@ export const dynamic = "force-dynamic";
  * pueda apuntar.
  *
  * Quien tiene sesión —el organizador— ve esto aunque la invitación no esté
- * publicada o el evento no haya llegado, con un aviso arriba: es lo que hace
- * posible probarlo desde la vista previa del editor.
+ * publicada o el evento no haya llegado, con un aviso arriba y, debajo de la
+ * cámara, el álbum entero para mirar y descargar: es lo que hace posible
+ * probarlo desde la vista previa del editor, y lo que le permite a quien
+ * organiza sin cuenta ver sus fotos con su enlace privado (`?t=` con el
+ * `manageToken` de la invitación), sin tener que iniciar sesión.
  */
-export default async function FotosPage({ params }: { params: { slug: string } }) {
+export default async function FotosPage({
+  params, searchParams,
+}: {
+  params: { slug: string };
+  searchParams: { t?: string };
+}) {
   const invitation = await prisma.invitation.findUnique({ where: { slug: params.slug } });
   const esOrganizador = !!(await sesionActual());
+  const token = String(searchParams?.t || "");
+  const esCliente = !!invitation?.manageToken && !!token && invitation.manageToken === token;
+  const accesoCompleto = esOrganizador || esCliente;
 
-  if (!invitation || (!invitation.published && !esOrganizador)) {
+  if (!invitation || (!invitation.published && !accesoCompleto)) {
     return (
       <main className={styles.pageAviso}>
         <p>
@@ -45,7 +57,7 @@ export default async function FotosPage({ params }: { params: { slug: string } }
 
   /* Una foto del salón vacío tres semanas antes no es lo que esto pide: se
      abre el día del evento y no vuelve a cerrarse. Ver `eventoLlego`. */
-  if (!eventoLlego(fecha) && !esOrganizador) {
+  if (!eventoLlego(fecha) && !accesoCompleto) {
     return (
       <main className={styles.page} style={{ "--acento": acento } as React.CSSProperties}>
         <div className={styles.tarjeta}>
@@ -60,14 +72,32 @@ export default async function FotosPage({ params }: { params: { slug: string } }
     );
   }
 
-  const avisoOrganizador = esOrganizador && (!invitation.published || !eventoLlego(fecha));
+  const avisoAcceso = accesoCompleto && (!invitation.published || !eventoLlego(fecha));
+
+  let fotos: { id: string; url: string; autor: string | null; kb: number }[] = [];
+  if (accesoCompleto) {
+    const registros = await prisma.eventPhoto.findMany({
+      where: { invitationId: invitation.id },
+      orderBy: { createdAt: "desc" },
+    });
+    /* Al enlace privado le hace falta el token en cada foto: la ruta que las
+       sirve pide sesión o ese mismo `manageToken` por `?t=`. Con sesión no
+       hace falta —el token queda vacío y la ruta lo acepta igual—. */
+    const sufijo = esCliente ? `?t=${encodeURIComponent(token)}` : "";
+    fotos = registros.map((f) => ({
+      id: f.id,
+      url: `/api/fotos-evento/${f.url}${sufijo}`,
+      autor: f.autor,
+      kb: Math.round(f.bytes / 1024),
+    }));
+  }
 
   return (
     <main className={styles.page} style={{ "--acento": acento } as React.CSSProperties}>
       <div className={styles.tarjeta}>
-        {avisoOrganizador && (
+        {avisoAcceso && (
           <p className={styles.avisoOrganizador}>
-            Lo estás viendo como organizador — los invitados todavía no ven esto.
+            Estás viendo el panel completo — los invitados todavía no ven esto.
           </p>
         )}
         <p className={styles.eyebrow}>{nombre}</p>
@@ -77,6 +107,14 @@ export default async function FotosPage({ params }: { params: { slug: string } }
         </p>
         <Camara slug={invitation.slug} />
       </div>
+
+      {accesoCompleto && (
+        <div className={styles.tarjetaAncha}>
+          <h2 className={styles.tituloAlbum}>El álbum completo</h2>
+          <p className={styles.texto}>Mira y descarga todas las fotos que han dejado.</p>
+          <Galeria invitationId={invitation.id} inicial={fotos} puedeBorrar={esOrganizador} />
+        </div>
+      )}
     </main>
   );
 }
