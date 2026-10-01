@@ -71,6 +71,22 @@ const GRIS = paleta({
   id: "gris", nombre: "Gris perla",
   base: "#f8f8f7", tinta: "#2b2c2e", marca: "#5f6469", segundo: "#a8aeb4",
 });
+const CAFE = paleta({
+  id: "cafe", nombre: "Café con leche",
+  base: "#f7efe5", tinta: "#654b3b", marca: "#927762", acento: "#9c806a", segundo: "#cfa987",
+});
+const ROSITA = paleta({
+  id: "rosita-revelacion", nombre: "Es una niña",
+  base: "#fdf3f1", tinta: "#5a3b3a", marca: "#c98a93", acento: "#d99aa0", segundo: "#f0c2c6",
+});
+const CELESTE = paleta({
+  id: "celeste-revelacion", nombre: "Es un niño",
+  base: "#f0f6fb", tinta: "#2c3e4a", marca: "#6f9bb8", acento: "#85acc4", segundo: "#bcdcee",
+});
+const DORADO_OSITO = paleta({
+  id: "dorado-osito", nombre: "Caramelo y oro",
+  base: "#fbf6ec", tinta: "#4a3824", marca: "#b9893f", acento: "#c89a4e", segundo: "#e6c98a",
+});
 
 /* ── Primer añito ───────────────────────────────────────────── */
 
@@ -270,7 +286,51 @@ const semilla: Design = {
   css: () => `.ornament{display:none}`,
 };
 
+const A_REVELACION = "/disenos/bs-revelacion";
+
+/**
+ * Revelación (de género) — y baby shower, con los mismos ositos.
+ *
+ * Un cliente trajo de referencia una invitación de otro proveedor con dos
+ * ositos de acuarela sosteniendo globos cafés y crema, y un sobre con un
+ * sello de cera. No se copia esa pieza —es trabajo ajeno— pero sí lo que
+ * pide: ositos tiernos, café con leche, nada infantil-gritón. El ramo de
+ * globos y el osito que se asoma en cada esquina son ilustraciones propias,
+ * generadas para este diseño.
+ *
+ * Dos paletas llevan el nombre de lo que se revela —"Es una niña" en rosa
+ * suave, "Es un niño" en celeste suave— para el organizador que ya hizo la
+ * prueba y sólo quiere avisar; las otras dos quedan neutras para antes de
+ * saberlo.
+ */
+const revelacion: Design = {
+  slug: "bs-revelacion",
+  name: "Revelación",
+  occasion: "baby-shower",
+  mood: "Tierno: ositos de acuarela en café y crema, para una revelación de género o un baby shower",
+  fontUrl: BALOO_NUNITO.url,
+  layout: { hero: "panel", head: "center", cards: "elevated", countdown: "circles", gallery: "grid", divider: "wave" },
+  type: { ...BALOO_NUNITO, scale: 1.3, displayWeight: 700, displayTracking: "-0.01em" },
+  shape: { radius: 26, radiusSm: 18, btnRadius: "pill", shadow: "soft" },
+  palettes: [CAFE, ROSITA, CELESTE, DORADO_OSITO],
+  css: () => `
+.splash-modal,.hero-content{border:1.5px solid color-mix(in srgb,var(--line) 70%,var(--brand-2))}
+.card:is(.feature-card,.event-card){border:1px solid color-mix(in srgb,var(--line) 60%,var(--brand-2))}
+.countdown-ring{border-color:var(--brand-2)}`,
+  adornos: [
+    { seccion: "splash", url: `${A_REVELACION}/cabecera.png`, sitio: "cabecera", tamano: 46 },
+    { seccion: "hero", url: `${A_REVELACION}/cabecera.png`, sitio: "cabecera", tamano: 50 },
+    { seccion: "guests", url: `${A_REVELACION}/esquina.png`, sitio: "arriba-izq", tamano: 16 },
+    { seccion: "events", url: `${A_REVELACION}/esquina.png`, sitio: "arriba-der", tamano: 15, espejo: "h" },
+    { seccion: "features", url: `${A_REVELACION}/esquina.png`, sitio: "abajo-izq", tamano: 14 },
+    { seccion: "confirm", url: `${A_REVELACION}/esquina.png`, sitio: "arriba-der", tamano: 14, espejo: "h" },
+    { seccion: "gifts", url: `${A_REVELACION}/esquina.png`, sitio: "abajo-izq", tamano: 13 },
+    { seccion: "footer", url: `${A_REVELACION}/esquina.png`, sitio: "abajo-der", tamano: 20, espejo: "h" },
+  ],
+};
+
 export const INFANTILES: Design[] = [
   globos, osito, circo, pastelito, primerLibro, huellita,
   nube, bosque, acuarela, cigena, lunita, pañal, semilla,
+  revelacion,
 ];
