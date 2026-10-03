@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { presetFor } from "@/lib/presets";
 import { TEMPLATE_BY_ID } from "@/lib/templates";
-import { normalizeSlug } from "@/lib/slug";
+import { slugLibre, nombresDe } from "@/lib/slugAuto";
 import { defaultData } from "@/lib/schema";
 import { noAutorizado } from "@/lib/auth";
 
@@ -27,15 +27,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Esa plantilla ya no existe." }, { status: 404 });
     }
     const datos = JSON.parse(p.data);
-    const base = normalizeSlug(String(datos?.event?.name1 || "invitacion"));
-    let slug = base;
-    for (let i = 2; await prisma.invitation.findUnique({ where: { slug } }); i++) {
-      slug = `${base}-${i}`;
-    }
+    const slug = await slugLibre(nombresDe(datos));
     const nueva = await prisma.invitation.create({
       /* `plantillaId` para saber, cuando se mejore la plantilla, qué
          invitaciones se hicieron con la versión de antes. */
-      data: { slug, templateId: p.templateId, title: p.nombre, data: p.data, plantillaId: p.id },
+      data: { slug, slugAuto: true, templateId: p.templateId, title: p.nombre, data: p.data, plantillaId: p.id },
     });
     return NextResponse.json({ id: nueva.id, slug: nueva.slug });
   }
@@ -48,16 +44,14 @@ export async function POST(request: Request) {
 
   const data = presetFor(template);
 
-  // Slug provisional único; el organizador lo cambia al publicar.
-  const base = normalizeSlug(String(data.event.name1 || "invitacion"));
-  let slug = base;
-  for (let i = 2; await prisma.invitation.findUnique({ where: { slug } }); i++) {
-    slug = `${base}-${i}`;
-  }
+  /* Los nombres del evento y un id corto. Sigue a los nombres mientras no se
+     publique; ver `slugAuto` en el esquema. */
+  const slug = await slugLibre(nombresDe(data));
 
   const invitation = await prisma.invitation.create({
     data: {
       slug,
+      slugAuto: true,
       templateId,
       title: `${template.name} · ${data.event.name1}`,
       data: JSON.stringify(data),

@@ -19,6 +19,12 @@ model Invitation {
   id         String   @id @default(cuid())
   /// URL pública: invita.app/{slug}
   slug       String   @unique
+  /// Si la dirección la armó el sistema con los nombres del evento y un id
+  /// corto (`ana-luis-k3m9x`) y nadie la ha escogido a mano. Mientras sea
+  /// cierto y la invitación no esté publicada, cambiar los nombres cambia la
+  /// dirección; en cuanto alguien la elige o se publica, deja de moverse
+  /// sola, porque un enlace repartido no puede cambiar bajo los pies.
+  slugAuto   Boolean  @default(false)
   /// Resto del constructor visual, que se retiró. Las columnas siguen aquí
   /// para no perder las invitaciones que se crearon con él; ya no se leen.
   mode       String   @default("plantilla")
@@ -60,6 +66,10 @@ model Invitation {
   /// porque no es contenido de la invitación —no se publica, no se ve—: es
   /// cómo se habla con el cliente, y el sitio para eso es el tablero.
   telefono   String?
+  /// Para las muestras del catálogo: qué es y a quién le queda (temas,
+  /// personajes, colores, ambiente). Es lo que el servidor MCP lee para
+  /// elegir cuál enseñar cuando alguien pide «algo de Rapunzel» o «en lila».
+  descripcion String?
   /// Notas del organizador: lo que se acordó, lo que falta, qué se cobró.
   /// Privadas, como el teléfono.
   notas      String?

@@ -38,9 +38,9 @@ import { z } from "zod";
 
 import { prisma } from "./prisma";
 import { presetFor } from "./presets";
-import { TEMPLATE_BY_ID, readTemplate } from "./templates";
+import { TEMPLATE_BY_ID, KIND_LABEL, readTemplate } from "./templates";
 import { renderInvitation } from "./render";
-import { normalizeSlug } from "./slug";
+import { slugLibre, nombresDe, slugActualizado } from "./slugAuto";
 import { catalogo, esquemaDe, fusionar } from "./mcp";
 import { ESTADO_POR_ID, estadoDe, PAGO_POR_ID, pagoDe } from "./tablero";
 import { actualizarConParche, deshacer } from "./plantillas";
@@ -312,22 +312,12 @@ export function construirServidor({ base, capturar }: OpcionesMcp): McpServer {
         deDonde = `diseño "${tpl.name}"`;
       }
 
-      /* La raíz del slug, que **no** es la dirección base.
-         Se llamaba `base` igual que el parámetro con la dirección de la app, y
-         lo tapaba: el enlace del editor salía como «juan/editor/…» en vez de
-         con el dominio. Un fallo que sólo se ve leyendo la respuesta, porque
-         la invitación se crea perfectamente. */
-      const raiz = normalizeSlug(
-        String((datos.event as Record<string, unknown>)?.name1 || "invitacion")
-      );
-      let slug = raiz;
-      for (let i = 2; await prisma.invitation.findUnique({ where: { slug } }); i++) {
-        slug = `${raiz}-${i}`;
-      }
+      const slug = await slugLibre(nombresDe(datos));
 
       const inv = await prisma.invitation.create({
         data: {
           slug,
+          slugAuto: true,
           templateId,
           title: titulo || `${TEMPLATE_BY_ID[templateId].name} · ${slug}`,
           data: JSON.stringify(datos),
@@ -507,12 +497,14 @@ export function construirServidor({ base, capturar }: OpcionesMcp): McpServer {
         );
       }
 
+      const slugNuevo = await slugActualizado(inv, r.datos);
       await prisma.invitation.update({
         where: { id },
-        data: { data: JSON.stringify(r.datos) },
+        data: { data: JSON.stringify(r.datos), ...(slugNuevo ? { slug: slugNuevo } : {}) },
       });
       return json({
         escritos: r.escritos,
+        ...(slugNuevo ? { direccion: `/${slugNuevo}` } : {}),
         siguiente: "Pide `ver` para mirar cómo quedó.",
       });
     }
@@ -616,6 +608,105 @@ export function construirServidor({ base, capturar }: OpcionesMcp): McpServer {
           editor: `${base}/editor/${i.id}`,
         }))
       );
+    }
+  );
+
+  /* ── Las muestras del catálogo ───────────────────────────────── */
+
+  server.registerTool(
+    "muestras",
+    {
+      title: "Buscar entre las muestras del catálogo",
+      description:
+        "Las invitaciones que están en la columna «Catálogo» del tablero: " +
+        "muestras para enseñar, cada una con su descripción (temas, " +
+        "personajes, colores, ambiente). Úsala cuando alguien pida algo por " +
+        "tema o por gusto —«Rapunzel», «en lila», «algo de flores»— antes de " +
+        "recurrir a `disenos`: aquí está lo que de verdad se ha hecho. Con " +
+        "`buscar` devuelve primero las que comparten palabras con la " +
+        "descripción; pero la coincidencia literal es sólo una pista: lee " +
+        "las descripciones y razona por sentido (Rapunzel → torre, cabello " +
+        "largo, flores, lila, cuento) para proponer las que mejor encajan, " +
+        "no sólo las que repiten la palabra. Enséñale a la persona las " +
+        "opciones con su enlace; no elijas por ella.",
+      inputSchema: {
+        buscar: z
+          .string()
+          .optional()
+          .describe("Lo que pide la persona, en sus palabras: «rapunzel lila»."),
+        ocasion: z
+          .string()
+          .optional()
+          .describe("Filtra por ocasión: boda, quince, comunion, grado, bautizo, babyshower…"),
+      },
+      annotations: { readOnlyHint: true },
+    },
+    async ({ buscar, ocasion }) => {
+      const limpiar = (x: string) =>
+        x.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      const palabras = Array.from(
+        new Set(
+          limpiar(buscar || "")
+            .split(/[^a-z0-9ñ]+/)
+            .filter((w) => w.length >= 3 && !["una", "uno", "con", "los", "las", "del", "que", "para", "algo", "como", "tipo"].includes(w))
+        )
+      );
+
+      const filas = await prisma.invitation.findMany({
+        where: { estado: "catalogo", archivada: false },
+        select: { id: true, slug: true, title: true, templateId: true, published: true, descripcion: true },
+        orderBy: { updatedAt: "desc" },
+      });
+
+      const oc = ocasion ? limpiar(ocasion) : "";
+      const muestras = filas
+        .filter((f) => TEMPLATE_BY_ID[f.templateId])
+        .map((f) => {
+          const tpl = TEMPLATE_BY_ID[f.templateId];
+          const desc = limpiar(f.descripcion || "");
+          const resto = limpiar(`${f.title} ${tpl.name} ${KIND_LABEL[tpl.kind]}`);
+          /* La descripción pesa el doble: es lo que alguien escribió a
+             propósito para esto; el título sólo es lo que quedó. */
+          const puntos = palabras.reduce(
+            (n, w) => n + (desc.includes(w) ? 2 : 0) + (resto.includes(w) ? 1 : 0),
+            0
+          );
+          return { f, tpl, puntos };
+        })
+        .filter(({ tpl }) => !oc || limpiar(`${tpl.kind} ${KIND_LABEL[tpl.kind]}`).includes(oc))
+        .sort((a, b) => b.puntos - a.puntos);
+
+      if (!muestras.length) {
+        return error(
+          "No hay muestras en el catálogo" + (ocasion ? ` de «${ocasion}»` : "") +
+            ". Mira `disenos` para partir de un diseño en blanco."
+        );
+      }
+
+      const sinDescripcion = muestras.filter(({ f }) => !f.descripcion?.trim()).length;
+      return json({
+        ...(palabras.length ? { buscado: palabras } : {}),
+        muestras: muestras.slice(0, 30).map(({ f, tpl, puntos }) => ({
+          id: f.id,
+          titulo: f.title,
+          ocasion: KIND_LABEL[tpl.kind],
+          diseno: tpl.name,
+          disenoId: f.templateId,
+          descripcion: f.descripcion || null,
+          ...(palabras.length ? { coincide: puntos > 0 } : {}),
+          enlace: f.published ? `${base}/${f.slug}` : null,
+        })),
+        ...(sinDescripcion
+          ? {
+              aviso:
+                `${sinDescripcion} muestra(s) no tienen descripción, así que sólo ` +
+                "se pueden elegir por su título. Se escribe en la ficha de la tarjeta, en el tablero.",
+            }
+          : {}),
+        siguiente:
+          "Enséñale las que encajan y deja que elija. Para partir de una, `crear` " +
+          "con su `disenoId` como diseño.",
+      });
     }
   );
 

@@ -23,3 +23,34 @@ export function slugError(slug: string): string | null {
     return "Sólo minúsculas, números y guiones.";
   return null;
 }
+
+/**
+ * La dirección que se propone a partir de los nombres del evento.
+ *
+ * `ana-luis-k3m9x`: los nombres para que se reconozca de un vistazo y un id
+ * corto al final porque dos parejas se pueden llamar igual, y sin él la
+ * segunda se quedaba con «ana-luis-2», que además revela que hubo una
+ * primera. El alfabeto deja fuera lo que se confunde al dictarlo por
+ * teléfono (0/o, 1/l/i).
+ */
+const ALFABETO = "abcdefghjkmnpqrstuvwxyz23456789";
+
+export function idCorto(largo = 5): string {
+  const bytes = new Uint8Array(largo);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, (b) => ALFABETO[b % ALFABETO.length]).join("");
+}
+
+/** Sólo la parte de los nombres, sin el id. Vacía → «invitacion». */
+export function raizDeNombres(nombres: string): string {
+  return normalizeSlug(nombres).slice(0, 40).replace(/-+$/g, "") || "invitacion";
+}
+
+export function slugDeNombres(nombres: string): string {
+  return `${raizDeNombres(nombres)}-${idCorto()}`;
+}
+
+/** ¿Esta dirección ya parte de esos nombres? Para no cambiarla sin motivo. */
+export function slugCoincide(slug: string, nombres: string): boolean {
+  return new RegExp(`^${raizDeNombres(nombres)}-[a-z2-9]{5}$`).test(slug);
+}

@@ -17,6 +17,8 @@
 .urgente, .cobro {
   padding: 5px 11px; border-radius: 999px; border: 1px solid transparent;
 }
+.chip { font: inherit; font-size: 13px; cursor: pointer; text-align: left; }
+.chip[aria-pressed="true"] { box-shadow: 0 0 0 2px currentColor; }
 .urgente { background: #fdf1ec; border-color: #f0d5c9; color: #8a3a22; }
 .urgente strong { color: #8a3a22; }
 .cobro { background: #fdf8e8; border-color: #ece0bc; color: #7a6320; }
@@ -43,6 +45,21 @@
   border-radius: 999px; color: var(--text); cursor: pointer;
 }
 
+.filtros { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.limpiar {
+  padding: 5px 4px; font-size: 12.5px; cursor: pointer;
+  background: none; border: 0; color: var(--text-muted); text-decoration: underline;
+}
+.toggleArchivadas[aria-expanded="true"] { border-style: solid; border-color: var(--accent); color: var(--accent-text); }
+
+.pestanas { display: flex; gap: 4px; border-bottom: 1px solid var(--border); }
+.pestanas button {
+  padding: 7px 14px; font: inherit; font-size: 13.5px; cursor: pointer;
+  background: none; border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px;
+  color: var(--text-muted);
+}
+.pestanas button[aria-selected="true"] { color: var(--text); font-weight: 600; border-bottom-color: var(--accent); }
+
 .error {
   margin: 0; padding: 10px 14px; border-radius: var(--radius);
   background: #fdf1ec; border: 1px solid #f0d5c9; color: var(--danger); font-size: 14px;
@@ -55,6 +72,11 @@
 .columnas {
   display: grid; grid-auto-flow: column; grid-auto-columns: minmax(220px, 1fr);
   gap: 14px; overflow-x: auto; padding-bottom: 10px;
+}
+/* El catálogo es una sola caja: sus muestras se reparten en rejilla. */
+.columnas[data-vista="catalogo"] { grid-auto-flow: row; grid-auto-columns: auto; overflow: visible; }
+.columnas[data-vista="catalogo"] .pila {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
 }
 
 .columna {
@@ -80,6 +102,117 @@
 }
 .pista { margin: 0 0 8px; font-size: 11.5px; line-height: 1.4; color: var(--text-faint); }
 
+.columna[data-vacia] { opacity: .75; }
+.columna[data-vacia] .vacia { padding: 8px; border-style: none; }
+.pila { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+
+/* ── La tarjeta ────────────────────────────────────────────── */
+
+.tarjeta {
+  position: relative;
+  display: flex; flex-direction: column; gap: 5px;
+  padding: 11px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: grab;
+  transition: border-color .15s, box-shadow .15s, opacity .15s;
+}
+.tarjeta:hover { border-color: var(--border-strong); box-shadow: var(--shadow); }
+.tarjeta[data-arrastrando] { opacity: .4; cursor: grabbing; }
+
+/* Lo que se celebra pronto y no está entregado lleva un filo: es lo único
+   del tablero que hay que ver sin leer. */
+.tarjeta[data-urgente] { border-left: 3px solid #c26a4a; }
+
+/* Archivada pero visible (se pidió verlas): atenuada, para que se note de
+   un vistazo que es trabajo ya cerrado y no algo que sigue pendiente. */
+.tarjeta[data-archivada] { opacity: .55; }
+.tarjeta[data-archivada]:hover { opacity: 1; }
+
+.fila { display: flex; align-items: flex-start; gap: 6px; }
+.nombre {
+  flex: 1; min-width: 0;
+  font-family: var(--font-display), serif; font-size: 16px; line-height: 1.25;
+  color: var(--text); text-decoration: none; overflow-wrap: anywhere;
+}
+.nombre:hover { text-decoration: underline; }
+
+.cuando { margin: 0; font-size: 12px; color: var(--text-muted); }
+.faltan { color: var(--text-faint); }
+
+.pie { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 3px; }
+
+/* El «⋯»: casi invisible hasta que se pasa por la tarjeta, y siempre a la
+   vista con el dedo, donde no hay «pasar por encima». */
+.mas {
+  flex: none; width: 24px; height: 24px; line-height: 1; font-size: 17px; cursor: pointer;
+  background: none; border: 0; border-radius: 6px; color: var(--text-faint);
+  opacity: 0; transition: opacity .15s, background .15s;
+}
+.tarjeta:hover .mas, .tarjeta:focus-within .mas, .tarjeta[data-menu] .mas { opacity: 1; }
+.mas:hover { background: var(--surface-2); color: var(--text); }
+@media (pointer: coarse) { .mas { opacity: 1; } }
+
+/* Los dos sellos comparten forma y tamaño: pago y responsable son lo mismo,
+   un estado que se cambia con un clic. */
+.pago, .responsable {
+  height: 20px; padding: 0 9px; font-size: 11px; font-weight: 600; letter-spacing: .02em;
+  background: transparent; border: 1px dashed var(--border-strong); border-radius: 999px;
+  color: var(--text-faint); cursor: pointer;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.pago:hover, .responsable:hover { border-color: var(--accent); color: var(--accent-text); }
+/* Anticipo en ámbar y completo en verde: son dos estados distintos, no el
+   mismo «ya entró algo» con más o menos intensidad. */
+.pago[data-pago="parcial"] {
+  background: #fdf6e3; border: 1px solid #ecd9a0; color: #8a6a1f;
+}
+.pago[data-pago="completo"] {
+  background: #eaf3ec; border: 1px solid #bcd9c3; color: #3d6b47;
+}
+.responsable { width: 20px; padding: 0; text-align: center; }
+.responsable[data-asignada] {
+  background: var(--accent-soft); border: 1px solid var(--accent); color: var(--accent-text);
+}
+.rastro {
+  margin-left: auto; padding: 1px 6px; border-radius: 999px;
+  background: var(--surface-2); color: var(--text-muted); font-size: 10px;
+}
+
+/* El menú de la tarjeta. El velo es un botón transparente a pantalla
+   completa: cerrar al pulsar fuera sin escuchar el documento entero. */
+.velo { position: fixed; inset: 0; z-index: 9; background: none; border: 0; cursor: default; }
+.menu {
+  position: absolute; z-index: 10; top: 34px; right: 8px; min-width: 170px;
+  display: flex; flex-direction: column; padding: 5px;
+  background: var(--surface); border: 1px solid var(--border-strong);
+  border-radius: 10px; box-shadow: var(--shadow);
+}
+.menu a, .menu > button {
+  padding: 7px 10px; font: inherit; font-size: 12.5px; text-align: left; cursor: pointer;
+  background: none; border: 0; border-radius: 6px; color: var(--text); text-decoration: none;
+}
+.menu a:hover, .menu > button:hover { background: var(--surface-2); }
+.menu .aviso { padding: 7px 10px; }
+
+.mover { display: flex; align-items: center; gap: 8px; padding: 6px 10px 4px; border-top: 1px solid var(--border); margin-top: 4px; }
+.mover span { font-size: 10.5px; letter-spacing: .05em; text-transform: uppercase; color: var(--text-faint); }
+.mover select {
+  flex: 1; padding: 4px 6px; font-size: 12px;
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 7px; color: var(--text);
+}
+@media (pointer: coarse) { .tarjeta { cursor: default; } }
+
+.verMas {
+  margin-top: 6px; padding: 6px; font-size: 12px; cursor: pointer;
+  background: none; border: 1px dashed var(--border-strong); border-radius: var(--radius);
+  color: var(--text-muted);
+}
+.verMas:hover { border-color: var(--accent); color: var(--accent-text); }
+
+.vacia { padding: 8px; border-style: none; }
 .pila { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 
 /* ── La tarjeta ────────────────────────────────────────────── */
@@ -174,26 +307,7 @@
 }
 
 /* ── La ficha del cliente ──────────────────────────────────────
-   Teléfono y notas. Privados: no salen en la invitación, son de quien la
-   encargó. Plegados por defecto para que la tarjeta siga siendo una tarjeta. */
-.cliente { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 2px; }
-
-.fichaBtn {
-  padding: 0; background: none; border: 0; cursor: pointer;
-  font-size: 11px; letter-spacing: .04em; text-transform: uppercase;
-  color: var(--text-faint);
-}
-.fichaBtn:hover { color: var(--accent-text); }
-/* El rastro de que hay algo dentro: sin él habría que abrir las quince
-   tarjetas para saber cuáles tienen nota. */
-.pista2 {
-  margin-left: 5px; padding: 1px 6px; border-radius: 999px;
-  background: var(--surface-2); color: var(--text-muted);
-  font-size: 10px; letter-spacing: .02em; text-transform: none;
-}
-.wa { margin-left: auto; font-size: 11.5px; color: #2b7a4b; text-decoration: none; }
-.wa:hover { text-decoration: underline; }
-
+   Teléfono y notas. Privados; se abren desde el menú de la tarjeta. */
 .fichaCuerpo { width: 100%; display: flex; flex-direction: column; gap: 7px; margin-top: 4px; }
 .campo { display: flex; flex-direction: column; gap: 3px; }
 .campo span { font-size: 10.5px; letter-spacing: .05em; text-transform: uppercase; color: var(--text-faint); }
@@ -212,3 +326,27 @@
 }
 .copiar:hover { background: #efdde1; }
 .aviso { font-size: 11px; color: var(--text-faint); font-style: italic; }
+
+/* La descripción de una muestra, recortada a dos líneas: la completa se lee
+   y se edita en la ficha. */
+.descripcion {
+  margin: 0; padding: 0; background: none; border: 0; text-align: left; font-family: inherit; cursor: pointer; font-size: 12px; line-height: 1.4; color: var(--text-muted);
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+.descripcion[data-vacia] { color: var(--text-faint); font-style: italic; }
+
+/* El destino de la otra pestaña, visible sólo mientras se arrastra.
+   Fija en la pantalla y no en el flujo de la página: si aparecía encima de
+   las columnas, empujaba la tarjeta que se estaba arrastrando, y el
+   navegador cancela un arrastre cuando el elemento se mueve del sitio al
+   empezar. */
+.puente {
+  position: fixed; z-index: 20; left: 50%; bottom: 24px; transform: translateX(-50%);
+  width: min(460px, calc(100vw - 32px)); box-sizing: border-box;
+  padding: 18px 14px; text-align: center; font-size: 13.5px; color: var(--text-muted);
+  background: var(--surface); box-shadow: var(--shadow);
+  border: 2px dashed var(--border-strong); border-radius: 14px;
+  transition: background .15s, border-color .15s, color .15s;
+}
+.puente[data-encima] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-text); }
+.descripcion:hover { color: var(--accent-text); }

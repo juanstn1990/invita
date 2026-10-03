@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { TEMPLATE_BY_ID, KIND_LABEL } from "@/lib/templates";
 import { coupleName, resolvedDateLabel, type InvitationData } from "@/lib/schema";
 import { requiereSesion } from "@/lib/auth";
-import { estadoDe, pagoDe, esResponsable } from "@/lib/tablero";
+import { estadoDe, pagoDe, esResponsable, cerrada } from "@/lib/tablero";
 import { Tablero, type Tarjeta } from "./Tablero";
 import styles from "../home.module.css";
 import propio from "./tablero.module.css";
@@ -22,6 +22,26 @@ export default async function TableroPage() {
   await requiereSesion();
 
   const todas = await prisma.invitation.findMany({ orderBy: { updatedAt: "desc" } });
+
+  /* Lo entregado, cobrado y con el evento ya pasado hace un mes se archiva
+     solo al abrir el tablero. La fecha vive dentro del JSON de `data`, así
+     que no se puede filtrar en la consulta: se decide aquí y se guarda en un
+     solo UPDATE. Sigue siendo reversible con «Ver archivadas». */
+  const cerradas = todas.filter((i) => {
+    try {
+      const fecha = String((JSON.parse(i.data)?.event as Record<string, unknown>)?.date || "");
+      return cerrada({ estado: estadoDe(i.estado), pago: pagoDe(i.pago), fecha, archivada: i.archivada });
+    } catch {
+      return false;
+    }
+  });
+  if (cerradas.length) {
+    await prisma.invitation.updateMany({
+      where: { id: { in: cerradas.map((i) => i.id) } },
+      data: { archivada: true },
+    });
+    for (const i of cerradas) i.archivada = true;
+  }
 
   /* Las del constructor visual, que se retiró: no hay con qué abrirlas, así
      que no pueden ser tarjetas. Pero **se cuentan**, y el tablero lo dice.
@@ -57,6 +77,7 @@ export default async function TableroPage() {
            al guardar tienen que distinguir dos vacíos. */
         telefono: i.telefono || "",
         notas: i.notas || "",
+        descripcion: i.descripcion || "",
       };
     });
 

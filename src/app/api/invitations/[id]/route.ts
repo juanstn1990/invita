@@ -5,6 +5,7 @@ import { normalizeSlug, slugError } from "@/lib/slug";
 import { noAutorizado } from "@/lib/auth";
 import { ESTADOS, esEstado, esPago, esResponsable, PAGOS } from "@/lib/tablero";
 import { deleteEventFolder } from "@/lib/storage";
+import { slugActualizado } from "@/lib/slugAuto";
 
 export async function PATCH(
   request: Request,
@@ -38,9 +39,25 @@ export async function PATCH(
       );
     }
     update.slug = slug;
+    /* Escogida a mano: desde aquí no la mueve nadie más. */
+    update.slugAuto = false;
   }
 
   if (typeof body.published === "boolean") update.published = body.published;
+
+  /* Si cambiaron los nombres y la dirección es la que armó el sistema,
+     acompaña a los nombres. Se mira después de saber si esta misma petición
+     publica o fija la dirección: en ese caso no hay nada que mover. */
+  if (body.data && typeof body.data === "object" && update.slug === undefined && body.published !== true) {
+    const actual = await prisma.invitation.findUnique({
+      where: { id: params.id },
+      select: { slug: true, slugAuto: true, published: true },
+    });
+    if (actual) {
+      const nuevo = await slugActualizado(actual, body.data);
+      if (nuevo) update.slug = nuevo;
+    }
+  }
 
   /* El estado del tablero. Se valida contra la lista y no se acepta lo que
      llegue: un estado inventado deja la invitación en una columna que no
@@ -95,6 +112,11 @@ export async function PATCH(
     update.notas = body.notas.trim().slice(0, 2000) || null;
   }
 
+  /* Qué es esta muestra y a quién le queda. Libre y acotado, como las notas. */
+  if (typeof body.descripcion === "string") {
+    update.descripcion = body.descripcion.trim().slice(0, 1000) || null;
+  }
+
   try {
     const invitation = await prisma.invitation.update({
       where: { id: params.id },
@@ -110,6 +132,7 @@ export async function PATCH(
       archivada: invitation.archivada,
       telefono: invitation.telefono,
       notas: invitation.notas,
+      descripcion: invitation.descripcion,
       updatedAt: invitation.updatedAt,
     });
   } catch {

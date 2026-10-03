@@ -266,3 +266,71 @@ export function whatsapp(telefono: string | null | undefined): string {
   const cifras = String(telefono || "").replace(/\D/g, "");
   return cifras.length >= 7 ? `https://wa.me/${cifras}` : "";
 }
+
+/* ── El orden dentro de cada columna ─────────────────────────── */
+
+/** Cuántas «Entregada» se ven de entrada: es la columna que sólo crece. */
+export const ENTREGADAS_VISIBLES = 5;
+
+const diaDe = (iso: string): number | null => {
+  if (!iso) return null;
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? null : Date.UTC(d.getFullYear(), d.getMonth(), d.getDate());
+};
+
+/**
+ * Lo que hay que mirar primero, arriba.
+ *
+ * Las entregadas van de la más reciente a la más antigua: lo último que se
+ * cerró es lo que se vuelve a consultar. En el resto, primero lo urgente,
+ * luego lo que se celebra pronto, luego lo que no tiene fecha y al fondo lo
+ * que ya pasó. Sin esto el orden era el de «tocado hace poco», que no dice
+ * nada de lo que corre prisa.
+ */
+export function ordenar<T extends { fecha: string; estado: Estado }>(
+  filas: T[],
+  ahora = new Date()
+): T[] {
+  const hoy = Date.UTC(ahora.getFullYear(), ahora.getMonth(), ahora.getDate());
+  const clave = (f: T): [number, number] => {
+    const d = diaDe(f.fecha);
+    if (f.estado === "entregada") return [0, d === null ? Infinity : -d];
+    if (d === null) return [2, 0];
+    if (d < hoy) return [3, hoy - d];
+    return [urge(f.fecha, f.estado, ahora) ? 0 : 1, d];
+  };
+  return [...filas].sort((a, b) => {
+    const [ga, va] = clave(a);
+    const [gb, vb] = clave(b);
+    return ga - gb || va - vb;
+  });
+}
+
+/** Las iniciales para el sello de responsable. */
+export const letraInicial = (label: string) => label.trim().charAt(0).toUpperCase();
+
+/* ── Lo entregado que ya no se toca ──────────────────────────── */
+
+/** Días después del evento a partir de los cuales una entregada y cobrada se
+    considera cerrada. Un mes: pasado el evento todavía puede llegar una
+    foto, un deseo o una pregunta; pasado un mes, ya no. */
+export const CERRADA_DIAS = 30;
+
+/**
+ * Entregada, cobrada del todo y con el evento ya pasado hace tiempo: no
+ * queda nada por hacer ni por cobrar, así que sobra en las columnas.
+ *
+ * Una entregada **sin cobrar** nunca cuenta, pase lo que pase con la fecha:
+ * es justo la que no hay que perder de vista. Y sin fecha tampoco se cierra
+ * sola —no hay forma de saber que el evento pasó—.
+ */
+export function cerrada(
+  f: { estado: Estado; pago: Pago; fecha: string; archivada: boolean },
+  ahora = new Date()
+): boolean {
+  if (f.archivada || f.estado !== "entregada" || f.pago !== "completo") return false;
+  const d = diaDe(f.fecha);
+  if (d === null) return false;
+  const hoy = Date.UTC(ahora.getFullYear(), ahora.getMonth(), ahora.getDate());
+  return (hoy - d) / 86400000 >= CERRADA_DIAS;
+}

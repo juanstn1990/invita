@@ -9,6 +9,10 @@ import {
   faltan,
   urge,
   resumir,
+  ordenar,
+  esTrabajo,
+  letraInicial,
+  ENTREGADAS_VISIBLES,
   whatsapp,
   pagoDe,
   siguientePago,
@@ -45,6 +49,8 @@ export interface Tarjeta {
   telefono: string;
   /** Notas del organizador. También privadas. */
   notas: string;
+  /** Sólo para las muestras del catálogo: qué son y a quién le quedan. */
+  descripcion: string;
 }
 
 /**
@@ -87,8 +93,30 @@ export function Tablero({
   const [filtroTipo, setFiltroTipo] = useState<Occasion | "">("");
   const [filtroPago, setFiltroPago] = useState<Pago | "">("");
   const [filtroResp, setFiltroResp] = useState<Responsable | "sin" | "">("");
+  /* El tablero de trabajo y el catálogo son dos cosas: el catálogo no tiene
+     pago, ni responsable, ni fecha que corra prisa, y en una columna más
+     rompía la lectura de las fases de izquierda a derecha. */
+  const [vista, setVista] = useState<"trabajo" | "catalogo">("trabajo");
+  /* Los filtros viven plegados: son tres selects que casi nunca se tocan y
+     ocupaban la fila entera de arriba. */
+  const [verFiltros, setVerFiltros] = useState(false);
+  /* Los dos avisos de arriba, convertidos en filtro: leer «3 urgentes» y no
+     poder ir a ellas obliga a buscarlas con la vista. */
+  const [soloUrgentes, setSoloUrgentes] = useState(false);
+  const [soloSinCobrar, setSoloSinCobrar] = useState(false);
+  /* El menú «⋯» de una tarjeta. Uno a la vez. */
+  const [menu, setMenu] = useState<string | null>(null);
+  /* Entregadas completas, no sólo las últimas. */
+  const [todasEntregadas, setTodasEntregadas] = useState(false);
 
   const resumen = resumir(tarjetas);
+  const filtrosActivos = [filtroTipo, filtroPago, filtroResp].filter(Boolean).length;
+  const muestrasN = tarjetas.filter((t) => t.estado === "catalogo" && !t.archivada).length;
+  const puente =
+    vista === "trabajo"
+      ? { estado: "catalogo" as Estado, texto: "Suelta aquí para pasarla al catálogo" }
+      : { estado: "borrador" as Estado, texto: "Suelta aquí para sacarla del catálogo (vuelve a Borrador)" };
+  const columnas = ESTADOS.filter((e) => (vista === "trabajo") === esTrabajo(e.id));
   const archivadasN = tarjetas.filter((t) => t.archivada).length;
   /* Sólo los tipos que de verdad hay: ofrecer "Baby shower" en el filtro
      cuando nadie tiene una invitación de baby shower sería un hueco que
@@ -106,6 +134,8 @@ export function Tablero({
     if (filtroPago && t.pago !== filtroPago) return false;
     if (filtroResp === "sin" && t.responsable) return false;
     if (filtroResp && filtroResp !== "sin" && t.responsable !== filtroResp) return false;
+    if (soloUrgentes && !urge(t.fecha, t.estado)) return false;
+    if (soloSinCobrar && !(t.estado === "entregada" && t.pago !== "completo")) return false;
     return true;
   });
 
@@ -138,7 +168,7 @@ export function Tablero({
   /* El teléfono y las notas se guardan al salir del campo y no en cada
      tecla: una petición por letra llena el registro de ruido y, con la red
      mala, llegan desordenadas y gana la penúltima. */
-  function anotar(id: string, campo: "telefono" | "notas", valor: string) {
+  function anotar(id: string, campo: "telefono" | "notas" | "descripcion", valor: string) {
     const antes = tarjetas;
     const t = tarjetas.find((x) => x.id === id);
     if (!t || t[campo] === valor) return;
@@ -161,10 +191,226 @@ export function Tablero({
     guardar(id, { responsable: responsable || "" }, () => setTarjetas(antes));
   }
 
+  /* Sin asignar → Valentina → Juan → sin asignar, como el pago: un clic y
+     no un select, para que los dos sellos de la tarjeta se manejen igual. */
+  function siguienteResp(id: string) {
+    const t = tarjetas.find((x) => x.id === id);
+    if (!t) return;
+    const orden: (Responsable | null)[] = [null, ...RESPONSABLES.map((r) => r.id)];
+    asignar(id, orden[(orden.indexOf(t.responsable) + 1) % orden.length]);
+  }
+
   function archivar(id: string, archivada: boolean) {
     const antes = tarjetas;
     setTarjetas(tarjetas.map((x) => (x.id === id ? { ...x, archivada } : x)));
     guardar(id, { archivada }, () => setTarjetas(antes));
+  }
+
+  function tarjeta(t: Tarjeta) {
+    const respLabel = RESPONSABLES.find((r) => r.id === t.responsable)?.label;
+    const catalogo = t.estado === "catalogo";
+    const cuanto = !catalogo && faltan(t.fecha);
+    return (
+      <li
+        key={t.id}
+        className={styles.tarjeta}
+        draggable
+        data-arrastrando={arrastrando === t.id || undefined}
+        data-urgente={urge(t.fecha, t.estado) || undefined}
+        data-archivada={t.archivada || undefined}
+        data-menu={menu === t.id || undefined}
+        onDragStart={(e) => {
+          e.dataTransfer.setData("text/plain", t.id);
+          e.dataTransfer.effectAllowed = "move";
+          setArrastrando(t.id);
+        }}
+        onDragEnd={() => { setArrastrando(null); setEncima(null); }}
+      >
+        <div className={styles.fila}>
+          <Link href={`/editor/${t.id}`} className={styles.nombre}>
+            {t.titulo}
+          </Link>
+          <button
+            type="button"
+            className={styles.mas}
+            aria-label={`Más acciones de ${t.titulo}`}
+            aria-expanded={menu === t.id}
+            onClick={() => setMenu(menu === t.id ? null : t.id)}
+          >
+            ⋯
+          </button>
+        </div>
+
+        <p className={styles.cuando}>
+          {t.tipoLabel} · {t.fechaTexto}
+          {cuanto && <span className={styles.faltan}> · {cuanto}</span>}
+        </p>
+
+        {/* La descripción de una muestra: es lo que la distingue de las demás
+            de un vistazo, y lo que lee el servidor MCP para elegirla. */}
+        {catalogo && (
+          <button
+            type="button"
+            className={styles.descripcion}
+            data-vacia={!t.descripcion || undefined}
+            onClick={() => setAbierta(abierta === t.id ? null : t.id)}
+            title="Clic para escribir o editar la descripción"
+          >
+            {t.descripcion || "Sin descripción · clic para escribirla"}
+          </button>
+        )}
+
+        {/* Lo único que se ve siempre además del nombre: cómo va el cobro y
+            quién la lleva, con el mismo tamaño y el mismo gesto. */}
+        {!catalogo && (
+          <div className={styles.pie}>
+            <button
+              type="button"
+              className={styles.pago}
+              data-pago={t.pago}
+              onClick={() => pagar(t.id)}
+              title={`Clic para: ${PAGO_POR_ID[siguientePago(t.pago)].label}`}
+            >
+              {PAGO_POR_ID[t.pago].label}
+            </button>
+            <button
+              type="button"
+              className={styles.responsable}
+              data-asignada={t.responsable || undefined}
+              onClick={() => siguienteResp(t.id)}
+              title={respLabel ? `La lleva ${respLabel}. Clic para cambiar` : "Sin asignar. Clic para asignar"}
+              aria-label={respLabel ? `Responsable: ${respLabel}` : "Sin responsable"}
+            >
+              {respLabel ? letraInicial(respLabel) : "?"}
+            </button>
+            {(t.telefono || t.notas) && (
+              <span className={styles.rastro} title="Tiene ficha de cliente">
+                {t.notas ? "nota" : "tel."}
+              </span>
+            )}
+          </div>
+        )}
+
+        {catalogo && (
+          <div className={styles.pie}>
+            {t.publicada ? (
+              <button
+                type="button"
+                className={styles.copiar}
+                onClick={() => {
+                  navigator.clipboard?.writeText(`${location.origin}/${t.slug}`);
+                  setCopiado(t.id);
+                  setTimeout(() => setCopiado((x) => (x === t.id ? null : x)), 1800);
+                }}
+                title={`Copiar el enlace /${t.slug}`}
+              >
+                {copiado === t.id ? "¡Copiada!" : "Copiar URL"}
+              </button>
+            ) : (
+              <span className={styles.aviso}>Publícala para poder compartirla</span>
+            )}
+          </div>
+        )}
+
+        {menu === t.id && (
+          <>
+            <button
+              type="button"
+              className={styles.velo}
+              aria-label="Cerrar el menú"
+              onClick={() => setMenu(null)}
+            />
+            <div className={styles.menu} role="menu">
+              {t.publicada && (
+                <a href={`/${t.slug}`} target="_blank" rel="noopener" role="menuitem">
+                  Ver invitación ↗
+                </a>
+              )}
+              {t.telefono && whatsapp(t.telefono) && (
+                <a href={whatsapp(t.telefono)} target="_blank" rel="noopener" role="menuitem">
+                  WhatsApp ↗
+                </a>
+              )}
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => { setAbierta(abierta === t.id ? null : t.id); setMenu(null); }}
+              >
+                {catalogo ? "Descripción" : "Ficha del cliente"}
+              </button>
+              {!catalogo && (
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => { archivar(t.id, !t.archivada); setMenu(null); }}
+                >
+                  {t.archivada ? "Sacar del archivo" : "Archivar"}
+                </button>
+              )}
+              {/* El paso entre el trabajo y el catálogo, sin abrir el selector:
+                  son pestañas distintas y no se puede arrastrar de una a otra. */}
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => { mover(t.id, catalogo ? "borrador" : "catalogo"); setMenu(null); }}
+              >
+                {catalogo ? "Sacar del catálogo" : "Pasar al catálogo"}
+              </button>
+              {/* Mover: arrastrar no existe con el dedo, y con ratón también
+                  es más corto elegir que cruzar el tablero. */}
+              <label className={styles.mover}>
+                <span>Mover a</span>
+                <select
+                  value={t.estado}
+                  onChange={(e) => { mover(t.id, e.target.value as Estado); setMenu(null); }}
+                >
+                  {ESTADOS.map((e) => (
+                    <option key={e.id} value={e.id}>{e.label}</option>
+                  ))}
+                </select>
+              </label>
+            </div>
+          </>
+        )}
+
+        {abierta === t.id && (
+          <div className={styles.fichaCuerpo}>
+            {catalogo ? (
+              <label className={styles.campo}>
+                <span>Descripción</span>
+                <textarea
+                  rows={5}
+                  defaultValue={t.descripcion}
+                  placeholder="Temas, personajes, colores, ambiente… p. ej. «Rapunzel: torre, cabello largo, flores silvestres, lila y dorado»"
+                  onBlur={(e) => anotar(t.id, "descripcion", e.target.value)}
+                />
+              </label>
+            ) : (
+              <>
+            <label className={styles.campo}>
+              <span>Teléfono</span>
+              <input
+                type="tel"
+                defaultValue={t.telefono}
+                placeholder="+57 300 000 0000"
+                onBlur={(e) => anotar(t.id, "telefono", e.target.value)}
+              />
+            </label>
+            <label className={styles.campo}>
+              <span>Notas</span>
+              <textarea
+                rows={3}
+                defaultValue={t.notas}
+                placeholder="Lo que se acordó, qué falta, qué se cobró…"
+                onBlur={(e) => anotar(t.id, "notas", e.target.value)}
+              />
+            </label>
+              </>
+            )}
+          </div>
+        )}
+      </li>
+    );
   }
 
   return (
@@ -173,34 +419,37 @@ export function Tablero({
         <span className={styles.dato}>
           <strong>{resumen.total}</strong> invitaciones
         </span>
-        {resumen.muestras > 0 && (
-          <span className={styles.dato}>
-            <strong>{resumen.muestras}</strong> en el catálogo
-          </span>
-        )}
         {ocultas > 0 && (
           <span className={styles.dato} title="Hechas con el constructor visual, que se retiró">
             <strong>{ocultas}</strong> de una versión anterior, sin poder abrir
           </span>
         )}
         {resumen.urgentes > 0 && (
-          <span className={`${styles.dato} ${styles.urgente}`}>
+          <button
+            type="button"
+            className={`${styles.dato} ${styles.chip} ${styles.urgente}`}
+            aria-pressed={soloUrgentes}
+            onClick={() => { setSoloUrgentes((v) => !v); setVista("trabajo"); }}
+            title="Clic para ver sólo estas"
+          >
             <strong>{resumen.urgentes}</strong>{" "}
             {resumen.urgentes === 1 ? "se celebra" : "se celebran"} en menos de dos
             semanas y no {resumen.urgentes === 1 ? "está entregada" : "están entregadas"}
-          </span>
+          </button>
         )}
         {resumen.sinCobrar > 0 && (
-          <span className={`${styles.dato} ${styles.cobro}`}>
+          <button
+            type="button"
+            className={`${styles.dato} ${styles.chip} ${styles.cobro}`}
+            aria-pressed={soloSinCobrar}
+            onClick={() => { setSoloSinCobrar((v) => !v); setVista("trabajo"); }}
+            title="Clic para ver sólo estas"
+          >
             <strong>{resumen.sinCobrar}</strong>{" "}
             {resumen.sinCobrar === 1 ? "entregada sin cobrar" : "entregadas sin cobrar"}
-          </span>
+          </button>
         )}
 
-        {/* Buscar y archivar son la respuesta a lo mismo: que el tablero
-            siga cabiendo de un vistazo aunque haya cien tarjetas y no quince.
-            Buscar encuentra una entre todas sin recorrer columnas; archivar
-            saca del camino lo que ya se cerró sin borrar nada. */}
         <input
           type="search"
           className={styles.buscar}
@@ -208,41 +457,14 @@ export function Tablero({
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
         />
-
-        <select
-          className={styles.filtro}
-          value={filtroTipo}
-          onChange={(e) => setFiltroTipo(e.target.value as Occasion | "")}
+        <button
+          type="button"
+          className={styles.toggleArchivadas}
+          aria-expanded={verFiltros}
+          onClick={() => setVerFiltros((v) => !v)}
         >
-          <option value="">Cualquier tipo</option>
-          {tiposPresentes.map(([tipo, label]) => (
-            <option key={tipo} value={tipo}>{label}</option>
-          ))}
-        </select>
-
-        <select
-          className={styles.filtro}
-          value={filtroPago}
-          onChange={(e) => setFiltroPago(e.target.value as Pago | "")}
-        >
-          <option value="">Cualquier pago</option>
-          {PAGOS.map((p) => (
-            <option key={p.id} value={p.id}>{p.label}</option>
-          ))}
-        </select>
-
-        <select
-          className={styles.filtro}
-          value={filtroResp}
-          onChange={(e) => setFiltroResp(e.target.value as Responsable | "sin" | "")}
-        >
-          <option value="">Cualquiera</option>
-          {RESPONSABLES.map((r) => (
-            <option key={r.id} value={r.id}>{r.label}</option>
-          ))}
-          <option value="sin">Sin asignar</option>
-        </select>
-
+          Filtros{filtrosActivos > 0 ? ` · ${filtrosActivos}` : ""}
+        </button>
         {archivadasN > 0 && (
           <button
             type="button"
@@ -255,16 +477,118 @@ export function Tablero({
         )}
       </div>
 
+      {verFiltros && (
+        <div className={styles.filtros}>
+          <select
+            className={styles.filtro}
+            value={filtroTipo}
+            onChange={(e) => setFiltroTipo(e.target.value as Occasion | "")}
+          >
+            <option value="">Cualquier tipo</option>
+            {tiposPresentes.map(([tipo, label]) => (
+              <option key={tipo} value={tipo}>{label}</option>
+            ))}
+          </select>
+          <select
+            className={styles.filtro}
+            value={filtroPago}
+            onChange={(e) => setFiltroPago(e.target.value as Pago | "")}
+          >
+            <option value="">Cualquier pago</option>
+            {PAGOS.map((p) => (
+              <option key={p.id} value={p.id}>{p.label}</option>
+            ))}
+          </select>
+          <select
+            className={styles.filtro}
+            value={filtroResp}
+            onChange={(e) => setFiltroResp(e.target.value as Responsable | "sin" | "")}
+          >
+            <option value="">Cualquiera</option>
+            {RESPONSABLES.map((r) => (
+              <option key={r.id} value={r.id}>{r.label}</option>
+            ))}
+            <option value="sin">Sin asignar</option>
+          </select>
+          {filtrosActivos > 0 && (
+            <button
+              type="button"
+              className={styles.limpiar}
+              onClick={() => { setFiltroTipo(""); setFiltroPago(""); setFiltroResp(""); }}
+            >
+              Quitar filtros
+            </button>
+          )}
+        </div>
+      )}
+
+      <div className={styles.pestanas} role="tablist">
+        <button
+          type="button" role="tab" aria-selected={vista === "trabajo"}
+          onClick={() => setVista("trabajo")}
+        >
+          Trabajo
+        </button>
+        <button
+          type="button" role="tab" aria-selected={vista === "catalogo"}
+          onClick={() => setVista("catalogo")}
+        >
+          Catálogo <span className={styles.cuenta}>{muestrasN}</span>
+        </button>
+      </div>
+
       {error && <p className={styles.error} role="alert">{error}</p>}
 
-      <div className={styles.columnas}>
-        {ESTADOS.map((col) => {
-          const suyas = visibles.filter((t) => t.estado === col.id);
+      {/* Mientras se arrastra una tarjeta aparece el destino de la otra
+          pestaña: sin él, al estar separadas, no habría dónde soltarla. */}
+      {arrastrando && (
+        <div
+          className={styles.puente}
+          data-encima={encima === puente.estado || undefined}
+          onDragOver={(e) => { e.preventDefault(); setEncima(puente.estado); }}
+          onDragLeave={() => setEncima((x) => (x === puente.estado ? null : x))}
+          onDrop={(e) => {
+            e.preventDefault();
+            setEncima(null);
+            const id = e.dataTransfer.getData("text/plain") || arrastrando;
+            setArrastrando(null);
+            if (id) mover(id, puente.estado);
+          }}
+        >
+          {puente.texto}
+        </div>
+      )}
+
+      <div
+        className={styles.columnas}
+        data-vista={vista}
+        /* Una columna vacía no necesita el ancho de una llena: se queda
+           como una tira con su cabecera y deja el espacio a las que tienen
+           trabajo. */
+        style={
+          vista === "trabajo"
+            ? {
+                gridTemplateColumns: columnas
+                  .map((c) =>
+                    visibles.some((t) => t.estado === c.id)
+                      ? "minmax(230px, 1fr)"
+                      : "minmax(150px, .45fr)"
+                  )
+                  .join(" "),
+              }
+            : undefined
+        }
+      >
+        {columnas.map((col) => {
+          const ordenadas = ordenar(visibles.filter((t) => t.estado === col.id));
+          const recorta = col.id === "entregada" && !todasEntregadas && ordenadas.length > ENTREGADAS_VISIBLES;
+          const suyas = recorta ? ordenadas.slice(0, ENTREGADAS_VISIBLES) : ordenadas;
           return (
             <section
               key={col.id}
               className={styles.columna}
               data-encima={encima === col.id || undefined}
+              data-vacia={!ordenadas.length || undefined}
               onDragOver={(e) => { e.preventDefault(); setEncima(col.id); }}
               onDragLeave={() => setEncima((x) => (x === col.id ? null : x))}
               onDrop={(e) => {
@@ -282,189 +606,26 @@ export function Tablero({
               <header className={styles.cabecera}>
                 <span className={styles.punto} style={{ background: col.color }} aria-hidden />
                 <h2 className={styles.tituloColumna}>{col.label}</h2>
-                <span className={styles.cuenta}>{suyas.length}</span>
+                <span className={styles.cuenta}>{ordenadas.length}</span>
               </header>
-              <p className={styles.pista}>{col.hint}</p>
+              {ordenadas.length > 0 && <p className={styles.pista}>{col.hint}</p>}
 
               <ul className={styles.pila}>
-                {suyas.map((t) => (
-                  <li
-                    key={t.id}
-                    className={styles.tarjeta}
-                    draggable
-                    data-arrastrando={arrastrando === t.id || undefined}
-                    data-urgente={urge(t.fecha, t.estado) || undefined}
-                    data-archivada={t.archivada || undefined}
-                    onDragStart={(e) => {
-                      e.dataTransfer.setData("text/plain", t.id);
-                      e.dataTransfer.effectAllowed = "move";
-                      setArrastrando(t.id);
-                    }}
-                    onDragEnd={() => { setArrastrando(null); setEncima(null); }}
-                  >
-                    <Link href={`/editor/${t.id}`} className={styles.nombre}>
-                      {t.titulo}
-                    </Link>
-                    <p className={styles.tipo}>{t.tipoLabel}</p>
-
-                    <p className={styles.cuando}>
-                      {t.fechaTexto}
-                      {t.estado !== "catalogo" && faltan(t.fecha) && (
-                        <span className={styles.faltan}> · {faltan(t.fecha)}</span>
-                      )}
-                    </p>
-
-                    <div className={styles.pie}>
-                      {/* El sello de pago. Un botón y no una casilla: es una
-                          acción que se hace y se deshace, y la casilla sugiere
-                          un formulario que hay que enviar. */}
-                      {t.estado === "catalogo" ? (
-                        t.publicada ? (
-                          <button
-                            type="button"
-                            className={styles.copiar}
-                            onClick={() => {
-                              navigator.clipboard?.writeText(`${location.origin}/${t.slug}`);
-                              setCopiado(t.id);
-                              setTimeout(() => setCopiado((x) => (x === t.id ? null : x)), 1800);
-                            }}
-                            title="Copiar el enlace para mandarlo por WhatsApp"
-                          >
-                            {copiado === t.id ? "¡Copiado!" : "Copiar enlace"}
-                          </button>
-                        ) : (
-                          <span className={styles.aviso}>Publícala para poder compartirla</span>
-                        )
-                      ) : (
-                      <button
-                        type="button"
-                        className={styles.pago}
-                        data-pago={t.pago}
-                        onClick={() => pagar(t.id)}
-                        title={`Clic para: ${PAGO_POR_ID[siguientePago(t.pago)].label}`}
-                      >
-                        {PAGO_POR_ID[t.pago].label}
-                      </button>
-                      )}
-
-                      {/* Quién la lleva: sin asignar por defecto en un select
-                          normal, para no inventar un tercer estado visual
-                          sólo para "nadie todavía". */}
-                      {t.estado !== "catalogo" && (
-                        <select
-                          className={styles.responsable}
-                          value={t.responsable || ""}
-                          onChange={(e) =>
-                            asignar(t.id, (e.target.value || null) as Responsable | null)
-                          }
-                          title="Quién la lleva"
-                        >
-                          <option value="">¿Quién?</option>
-                          {RESPONSABLES.map((r) => (
-                            <option key={r.id} value={r.id}>{r.label}</option>
-                          ))}
-                        </select>
-                      )}
-
-                      {t.publicada && (
-                        <a
-                          href={`/${t.slug}`}
-                          target="_blank"
-                          rel="noopener"
-                          className={styles.enlace}
-                          title={`Abrir /${t.slug}`}
-                        >
-                          ver ↗
-                        </a>
-                      )}
-
-                      {t.estado !== "catalogo" && (
-                        <button
-                          type="button"
-                          className={styles.archivar}
-                          onClick={() => archivar(t.id, !t.archivada)}
-                          title={t.archivada ? "Sacarla del archivo" : "Archivarla: sale de las columnas"}
-                        >
-                          {t.archivada ? "Desarchivar" : "Archivar"}
-                        </button>
-                      )}
-                    </div>
-
-                    {/* La ficha del cliente: teléfono y notas.
-
-                        Plegada por defecto, y con un rastro cuando hay algo
-                        dentro — un botón que no dice si esconde algo obliga a
-                        abrir las quince tarjetas para saber cuáles tienen
-                        nota, que es justo el trabajo que el tablero venía a
-                        quitar. */}
-                    <div className={styles.cliente}>
-                      <button
-                        type="button"
-                        className={styles.fichaBtn}
-                        onClick={() => setAbierta(abierta === t.id ? null : t.id)}
-                        aria-expanded={abierta === t.id}
-                      >
-                        {t.telefono || t.notas ? "Ficha ·" : "Ficha"}
-                        {t.telefono && <span className={styles.pista2}>tel.</span>}
-                        {t.notas && <span className={styles.pista2}>nota</span>}
-                      </button>
-
-                      {t.telefono && whatsapp(t.telefono) && (
-                        <a
-                          className={styles.wa}
-                          href={whatsapp(t.telefono)}
-                          target="_blank"
-                          rel="noopener"
-                          title={`Escribir a ${t.telefono} por WhatsApp`}
-                        >
-                          WhatsApp ↗
-                        </a>
-                      )}
-
-                      {abierta === t.id && (
-                        <div className={styles.fichaCuerpo}>
-                          <label className={styles.campo}>
-                            <span>Teléfono</span>
-                            <input
-                              type="tel"
-                              defaultValue={t.telefono}
-                              placeholder="+57 300 000 0000"
-                              onBlur={(e) => anotar(t.id, "telefono", e.target.value)}
-                            />
-                          </label>
-                          <label className={styles.campo}>
-                            <span>Notas</span>
-                            <textarea
-                              rows={3}
-                              defaultValue={t.notas}
-                              placeholder="Lo que se acordó, qué falta, qué se cobró…"
-                              onBlur={(e) => anotar(t.id, "notas", e.target.value)}
-                            />
-                          </label>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Arrastrar no existe en un teléfono: los eventos de
-                        arrastre de HTML no llegan con el dedo. Sin esto el
-                        tablero se vería perfecto y no se podría usar, que es
-                        la peor clase de roto. */}
-                    <label className={styles.mover}>
-                      <span className="sr-only">Mover {t.titulo} a otra columna</span>
-                      <select
-                        value={t.estado}
-                        onChange={(e) => mover(t.id, e.target.value as Estado)}
-                      >
-                        {ESTADOS.map((e) => (
-                          <option key={e.id} value={e.id}>{e.label}</option>
-                        ))}
-                      </select>
-                    </label>
-                  </li>
-                ))}
-
-                {!suyas.length && <li className={styles.vacia}>Nada aquí</li>}
+                {suyas.map(tarjeta)}
+                {!ordenadas.length && <li className={styles.vacia}>Nada aquí</li>}
               </ul>
+
+              {col.id === "entregada" && ordenadas.length > ENTREGADAS_VISIBLES && (
+                <button
+                  type="button"
+                  className={styles.verMas}
+                  onClick={() => setTodasEntregadas((v) => !v)}
+                >
+                  {recorta
+                    ? `Ver las ${ordenadas.length - ENTREGADAS_VISIBLES} anteriores`
+                    : "Ver sólo las últimas"}
+                </button>
+              )}
             </section>
           );
         })}
