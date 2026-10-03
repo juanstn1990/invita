@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import type { FieldSpec, ListSpec, SectionData, SectionSpec } from "@/lib/schema";
 import { ADORNOS, ALINEACIONES, ANIMACIONES } from "@/lib/schema";
 import type { TemplateSupport } from "@/lib/support";
@@ -28,11 +28,30 @@ interface Props {
   ignoreSupport?: boolean;
   /** Dentro de la lista de bloques el encabezado lo pone la lista. */
   compact?: boolean;
+  /**
+   * El campo que se acaba de señalar en la vista previa.
+   *
+   * Abrir la sección no basta: tiene once campos y el que se buscaba puede
+   * quedar fuera de la pantalla, así que además se resalta y se desplaza
+   * hasta él. Es la mitad de la respuesta a «¿dónde se cambia esto?».
+   *
+   * `indice` es la ficha, para los campos de lista: `events.items.title` son
+   * todas las del itinerario, y lo que se señaló fue una.
+   */
+  senalado?: Senalado | null;
+}
+
+export interface Senalado {
+  path: string;
+  /** -1 cuando el campo no es de una lista. */
+  indice: number;
+  /** De qué bloque salió. Distingue el segundo párrafo del primero. */
+  bloque?: string | null;
 }
 
 export function SectionEditor({
   spec, data, support, inTemplate, open, onToggleOpen, onChange, extraHint, extra,
-  ignoreSupport, compact,
+  ignoreSupport, compact, senalado,
 }: Props) {
   const enabled = data.enabled !== false;
   const supports = (path: string) =>
@@ -114,24 +133,8 @@ export function SectionEditor({
         }
       : undefined;
 
-  /** Un campo condicionado a otro (ver `showIf`) sólo aparece si toca. */
-  const toca = (f: FieldSpec) => {
-    if (!f.showIf) return true;
-    const actual = String(data[f.showIf.key] ?? "");
-    const valores = Array.isArray(f.showIf.value) ? f.showIf.value : [f.showIf.value];
-    /* "*" = con que el otro tenga algo. No lleva valor por defecto: un campo
-       vacío es vacío, y colarle la primera opción de un select que no existe
-       lo daría por lleno siempre. */
-    if (valores.includes("*")) return actual.trim() !== "";
-    /* Vacío = el valor por defecto del select, que es su primera opción. */
-    const efectivo =
-      actual ||
-      String(spec.fields.find((o) => o.key === f.showIf!.key)?.options?.[0]?.value ?? "");
-    return valores.includes(efectivo);
-  };
-
   const visible = spec.fields.filter(
-    (f) => supports(`${spec.key}.${f.key}`) && toca(f)
+    (f) => supports(`${spec.key}.${f.key}`) && toca(f, data, spec.fields)
   );
   const hidden = spec.fields.filter((f) => !supports(`${spec.key}.${f.key}`));
   const listVisible = spec.list && supports(`${spec.key}.items`);
@@ -166,8 +169,11 @@ export function SectionEditor({
 
           <div className={styles.fields} data-disabled={!enabled}>
             {visible.map((field) => (
-              <Field
+              <Resalte
                 key={field.key}
+                on={senalado?.path === `${spec.key}.${field.key}`}
+              >
+              <Field
                 field={field}
                 value={data[field.key]}
                 font={fontFor(field.key)}
@@ -189,11 +195,14 @@ export function SectionEditor({
                 anim={animFor(field)}
                 onChange={(v) => onChange({ [field.key]: v })}
               />
+              </Resalte>
             ))}
           </div>
 
           {listVisible && spec.list && (
             <ListEditor
+              senalado={senalado}
+              prefijo={`${spec.key}.items.`}
               list={spec.list}
               fields={spec.list.fields.filter((f) =>
                 supports(`${spec.key}.items.${f.key}`)
@@ -252,6 +261,57 @@ export function SectionEditor({
         </div>
       )}
     </section>
+  );
+}
+
+/**
+ * ¿Toca enseñar este campo? (ver `showIf` en el esquema)
+ *
+ * Vive suelta y no dentro de `SectionEditor` porque las fichas de una lista
+ * necesitan exactamente la misma regla, con sus propios datos: cada ficha
+ * tiene su foto, así que «esconde el ajuste si no hay foto» se decide por
+ * ficha y no por sección. Mientras estuvo dentro, las listas no la aplicaban
+ * y enseñaban el ajuste y el alto de fichas sin fondo, y la posición libre de
+ * adornos anclados.
+ */
+function toca(
+  f: FieldSpec,
+  datos: Record<string, unknown>,
+  hermanos: FieldSpec[]
+): boolean {
+  if (!f.showIf) return true;
+  const valores = [f.showIf.value].flat();
+  /* Varias llaves = basta con que una cumpla. */
+  return [f.showIf.key].flat().some((llave) => {
+    const actual = String(datos[llave] ?? "");
+    /* "*" = con que el otro tenga algo. No lleva valor por defecto: un campo
+       vacío es vacío, y colarle la primera opción de un select que no existe
+       lo daría por lleno siempre. */
+    if (valores.includes("*")) return actual.trim() !== "";
+    /* Vacío = el valor por defecto del select, que es su primera opción. */
+    const efectivo =
+      actual ||
+      String(hermanos.find((o) => o.key === llave)?.options?.[0]?.value ?? "");
+    return valores.includes(efectivo);
+  });
+}
+
+/**
+ * Envuelve el campo que se acaba de señalar en la vista previa.
+ *
+ * Se desplaza hasta él una sola vez, al encenderse, y no en cada render: con
+ * `scrollIntoView` en cada pasada el panel daba saltos mientras se escribía.
+ */
+function Resalte({ on, children }: { on: boolean; children: ReactNode }) {
+  const caja = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (on) caja.current?.scrollIntoView({ block: "center", behavior: "smooth" });
+  }, [on]);
+  if (!on) return <>{children}</>;
+  return (
+    <div ref={caja} className={styles.senalado}>
+      {children}
+    </div>
   );
 }
 
@@ -568,7 +628,12 @@ function RangeField({
  */
 function ListEditor({
   list, items, onChange, fields, fontFor, colorFor, alignFor, mediaKind,
+  senalado, prefijo,
 }: {
+  /** Lo señalado en la vista previa, para resaltar el campo de **su** ficha. */
+  senalado?: Senalado | null;
+  /** Con qué empieza la ruta de los campos de esta lista. */
+  prefijo?: string;
   list: ListSpec;
   items: Record<string, string>[];
   onChange: (items: Record<string, string>[]) => void;
@@ -658,9 +723,12 @@ function ListEditor({
           </div>
 
           <div className={styles.fields}>
-            {fields.map((field) => (
-              <Field
+            {fields.filter((f) => toca(f, item, fields)).map((field) => (
+              <Resalte
                 key={field.key}
+                on={!!prefijo && senalado?.path === prefijo + field.key && senalado.indice === i}
+              >
+              <Field
                 field={field}
                 value={item[field.key]}
                 font={fontFor?.(field.key)}
@@ -679,6 +747,7 @@ function ListEditor({
                   onChange(items.map((it, j) => (j === i ? { ...it, [field.key]: v } : it)))
                 }
               />
+              </Resalte>
             ))}
           </div>
         </div>

@@ -63,7 +63,15 @@ export interface FieldSpec {
    * llena el equivocado.
    */
   showIf?: {
-    key: string;
+    /**
+     * De qué campo depende. Varios = basta con que **uno** cumpla.
+     *
+     * La lista la pide la opacidad del fondo: atenúa tanto una foto como un
+     * color sólido, así que tiene sentido en cuanto hay cualquiera de los
+     * dos, y con una sola llave había que elegir cuál de los dos casos
+     * dejaba el control muerto.
+     */
+    key: string | string[];
     /**
      * El valor (o los valores) del otro campo que hacen aparecer a éste.
      *
@@ -304,7 +312,7 @@ export const esVideoUrl = (url: string) =>
  * de todo, mientras que un adorno es una pieza que se coloca donde se quiera
  * y puede ir encima del texto.
  */
-const fondoFields: FieldSpec[] = [
+export const fondoFields: FieldSpec[] = [
   {
     /*
      * Un color sólido detrás de la sección.
@@ -339,6 +347,11 @@ const fondoFields: FieldSpec[] = [
       { value: "contener", label: "Contener (entera)" },
       { value: "repetir", label: "Repetir en mosaico (sólo foto)" },
     ],
+    /* Sólo con foto: `ponerFondo` lee el ajuste nada más en la rama de
+       imagen, así que con un color sólido este control no tenía nada que
+       encuadrar — y se ofrecía igual en las once secciones de los 75
+       diseños. */
+    showIf: { key: "fondoUrl", value: "*" },
   },
   {
     key: "fondoOpacidad",
@@ -349,6 +362,10 @@ const fondoFields: FieldSpec[] = [
     step: 5,
     unit: "%",
     fallback: 100,
+    /* Con foto o con color: atenúa la capa, y la capa existe con cualquiera
+       de los dos. Sin fondo ninguno, `ponerFondo` se sale antes de crearla y
+       mover este deslizador no hacía absolutamente nada. */
+    showIf: { key: ["fondoUrl", "fondoColor"], value: "*" },
   },
 ];
 
@@ -536,7 +553,7 @@ export const ENTRADAS_SECCION_VALIDAS = new Set(
   ENTRADAS_SECCION.map((e) => e.value).filter(Boolean)
 );
 
-const entradaSeccionField: FieldSpec = {
+export const entradaSeccionField: FieldSpec = {
   key: "entrada",
   label: "Cómo entra la sección",
   type: "select",
@@ -571,6 +588,31 @@ export const ADORNOS: ListSpec = {
   min: 0,
   max: 8,
   fields: [
+    {
+      /*
+       * Un adorno que en vez de una pieza lleva una frase.
+       *
+       * Va aquí y no como una sección nueva porque lo que se pedía —«un
+       * texto que pueda acomodar libremente»— es exactamente lo que un
+       * adorno ya sabe hacer: ponerse en uno de los nueve anclajes o suelto
+       * en unas coordenadas, arrastrarse sobre la vista previa, girar,
+       * atenuarse y entrar con una animación. Montarlo aparte habría sido
+       * escribir por segunda vez las mismas seis cosas, y la segunda copia
+       * es la que se queda sin arreglar.
+       */
+      key: "texto",
+      label: "Texto",
+      type: "text",
+      span: 2,
+      help: "Déjalo vacío para poner una imagen. Con texto escrito, la imagen se ignora.",
+    },
+    {
+      key: "color",
+      label: "Color del texto",
+      type: "color",
+      span: 2,
+      showIf: { key: "texto", value: "*" },
+    },
     {
       key: "url",
       label: "Imagen o vídeo",
@@ -1441,6 +1483,7 @@ export const SECTIONS: SectionSpec[] = [
           { value: "contener", label: "Contener (entera)" },
           { value: "repetir", label: "Repetir en mosaico (sólo foto)" },
         ],
+        showIf: { key: "url", value: "*" },
       },
       {
         key: "opacidad",
@@ -1451,6 +1494,7 @@ export const SECTIONS: SectionSpec[] = [
         step: 5,
         unit: "%",
         fallback: 100,
+        showIf: { key: "url", value: "*" },
       },
       {
         /*
@@ -1464,6 +1508,7 @@ export const SECTIONS: SectionSpec[] = [
          */
         key: "velo",
         label: "Velo sobre la imagen",
+        showIf: { key: "url", value: "*" },
         type: "range",
         min: 0,
         max: 90,
@@ -1515,7 +1560,12 @@ export const SECTIONS: SectionSpec[] = [
         ],
       },
       {
+        /* De aquí abajo, todo depende de que haya partículas.
+           Con «Ninguna» el renderer se sale antes de crear el lienzo
+           (`render.ts`, `pintarParticulas`), así que estos seis controles se
+           ofrecían y no movían nada. */
         key: "zona",
+        showIf: { key: "tipo", value: "*" },
         label: "Por dónde",
         type: "select",
         fallback: 0,
@@ -1527,6 +1577,7 @@ export const SECTIONS: SectionSpec[] = [
       },
       {
         key: "cantidad",
+        showIf: { key: "tipo", value: "*" },
         label: "Cuántas",
         type: "range",
         min: 6,
@@ -1537,6 +1588,7 @@ export const SECTIONS: SectionSpec[] = [
       },
       {
         key: "velocidad",
+        showIf: { key: "tipo", value: "*" },
         label: "Ritmo",
         type: "select",
         fallback: 1,
@@ -1548,6 +1600,7 @@ export const SECTIONS: SectionSpec[] = [
       },
       {
         key: "tamano",
+        showIf: { key: "tipo", value: "*" },
         label: "Tamaño",
         type: "range",
         min: 8,
@@ -1558,6 +1611,7 @@ export const SECTIONS: SectionSpec[] = [
       },
       {
         key: "opacidad",
+        showIf: { key: "tipo", value: "*" },
         label: "Opacidad",
         type: "range",
         min: 10,
@@ -1568,6 +1622,7 @@ export const SECTIONS: SectionSpec[] = [
       },
       {
         key: "color",
+        showIf: { key: "tipo", value: "*" },
         label: "Color",
         type: "color",
         span: 2,
@@ -1697,6 +1752,34 @@ for (const clave of ["events", "features"]) {
 for (const spec of SECTIONS) {
   if (!spec.list || spec.key === "guests") continue;
   spec.fields = [...spec.fields, animFichasField];
+}
+
+/*
+ * El color de los nombres, por sección.
+ *
+ * Los nombres son un dato del evento, no de una sección: se escriben una vez
+ * y el renderer los reparte. Pero **salen en tres sitios** —la bienvenida, la
+ * portada y el pie, y en el pie en los 75 diseños— y el único color que había
+ * los pintaba los tres a la vez, porque la regla sale con el selector del
+ * campo y ése no distingue dónde está.
+ *
+ * Esto no sustituye a aquél: lo afina. Vacío manda el color de siempre, y
+ * puesto gana sólo dentro de su sección. Así la portada puede llevarlos en
+ * vino y el pie en dorado sin tener que elegir.
+ */
+const nombresColorField: FieldSpec = {
+  key: "nombresColor",
+  label: "Color de los nombres",
+  type: "color",
+  span: 2,
+  help: "Sólo aquí. Vacío = el color general de los nombres.",
+};
+
+/** Dónde se repiten los nombres de la pareja. */
+const CON_NOMBRES = new Set(["splash", "hero", "footer"]);
+
+for (const spec of SECTIONS) {
+  if (CON_NOMBRES.has(spec.key)) spec.fields = [...spec.fields, nombresColorField];
 }
 
 for (const spec of SECTIONS) {

@@ -9,7 +9,7 @@ import { SECTION_BY_KEY, type InvitationData, type SectionData, type SectionSpec
 import type { TemplateSupport } from "@/lib/support";
 import { Biblioteca } from "./Biblioteca";
 import { PortadaLibroField } from "./PortadaLibroField";
-import { SectionEditor } from "./SectionEditor";
+import { SectionEditor, type Senalado } from "./SectionEditor";
 import styles from "./editor.module.css";
 
 interface Props {
@@ -24,6 +24,8 @@ interface Props {
   onBlocks: (blocks: Block[]) => void;
   /** Cambiar los datos de una sección del esquema. */
   onSection: (key: string, patch: Partial<SectionData>) => void;
+  /** Lo señalado en la vista previa, para resaltarlo también aquí dentro. */
+  senalado?: Senalado | null;
 }
 
 /**
@@ -34,7 +36,7 @@ interface Props {
  * después llevan sus datos encima.
  */
 export function BlockList({
-  blocks, sections, templateId, support, open, onOpen, onBlocks, onSection,
+  blocks, sections, templateId, support, open, onOpen, onBlocks, onSection, senalado,
 }: Props) {
   const [agregando, setAgregando] = useState(false);
   /** Bloque cuya biblioteca está abierta. */
@@ -156,6 +158,9 @@ export function BlockList({
 
             <SectionEditor
               spec={specFor(spec, primero)}
+              /* Sólo al bloque que se señaló: dos párrafos comparten la ruta
+                 del campo, y sin esto los dos se resaltarían a la vez. */
+              senalado={senalado?.bloque === block.id ? senalado : null}
               data={data}
               support={support}
               inTemplate
@@ -204,17 +209,12 @@ export function BlockList({
               <span className={styles.addIcon}>{spec.icon}</span>
               <span>
                 <b>{spec.label}</b>
-                <span className={styles.addHint}>
-                  {spec.type === "paragraph"
-                    ? "Un texto libre en cualquier parte"
-                    : spec.type === "photo"
-                    ? "Una sola foto, a sangre o con marco"
-                    : spec.type === "video"
-                    ? "De YouTube o subiendo el archivo"
-                    : spec.type === "ubicacion"
-                    ? "El mapa y cómo llegar"
-                    : "Otra galería, con su propio diseño"}
-                </span>
+                {/* La descripción la declara el bloque. Escrita aquí como
+                    una cadena de ternarios, lo que no estuviera en la lista
+                    caía en "Otra galería…", y por eso HTML, Fotos de los
+                    invitados y Libro de deseos se presentaban los tres como
+                    una galería. */}
+                <span className={styles.addHint}>{spec.hint}</span>
               </span>
             </button>
           ))}
@@ -268,5 +268,11 @@ function specFor(spec: BlockSpec, primero: boolean): SectionSpec {
     optional: true,
     fields: spec.fields || base?.fields || [],
     list: spec.list || base?.list,
+    /* Los adornos se perdían al sintetizar el spec, y con ellos la segunda
+       galería y todo bloque agregado quedaban sin decoración — aunque el
+       renderer sí sabía dibujársela. Se heredan de la sección cuando el
+       bloque es una copia de una, y si no, del propio bloque. */
+    adornos: base?.adornos ?? spec.adornos,
+    fondo: base?.fondo ?? !!spec.fields,
   };
 }

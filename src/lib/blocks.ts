@@ -17,7 +17,7 @@
 
 import { iconoHtml } from "./iconos";
 import type { FieldSpec, ListSpec, SectionData } from "./schema";
-import { panelFields } from "./schema";
+import { entradaSeccionField, fondoFields, panelFields } from "./schema";
 
 export interface Block {
   /** Estable, para reordenar sin perder el foco ni los datos. */
@@ -46,11 +46,15 @@ export interface BlockSpec {
   icon: string;
   /** Clave del esquema, si el bloque ya existía como sección. */
   section?: string;
+  /** Una línea que diga qué es, para el menú de «¿Qué bloque agregas?». */
+  hint?: string;
   /** Se puede agregar más de una vez. */
   repeatable: boolean;
   /** Campos propios; los bloques con `section` los toman del esquema. */
   fields?: FieldSpec[];
   list?: ListSpec;
+  /** Acepta adornos, como las secciones. Lo pone el bucle de abajo. */
+  adornos?: boolean;
   variants: VariantSpec[];
 }
 
@@ -458,6 +462,7 @@ const galleryItems = (n: number) =>
 
 const gallery: BlockSpec = {
   type: "gallery",
+  hint: "Otra galería, con su propio diseño",
   label: "Galería",
   icon: "▣",
   section: "gallery",
@@ -819,6 +824,7 @@ const redes: BlockSpec = {
 
 const paragraph: BlockSpec = {
   type: "paragraph",
+  hint: "Un texto libre en cualquier parte",
   label: "Párrafo",
   icon: "¶",
   repeatable: true,
@@ -887,6 +893,7 @@ const marcoFoto = (clase: string) => `<figure class="inv-foto ${clase}">
 
 const photo: BlockSpec = {
   type: "photo",
+  hint: "Una sola foto, a sangre o con marco",
   label: "Foto",
   icon: "▢",
   repeatable: true,
@@ -951,6 +958,7 @@ const lienzoMapa = `<div class="inv-mapa-lienzo">
 
 const ubicacion: BlockSpec = {
   type: "ubicacion",
+  hint: "El mapa y cómo llegar",
   label: "Ubicación",
   icon: "◎",
   repeatable: true,
@@ -1045,6 +1053,7 @@ const marcoVideo = (clase: string) => `<figure class="inv-video ${clase}">
 
 const video: BlockSpec = {
   type: "video",
+  hint: "De YouTube o subiendo el archivo",
   label: "Vídeo",
   icon: "▶",
   repeatable: true,
@@ -1134,6 +1143,7 @@ const video: BlockSpec = {
  */
 const htmlPropio: BlockSpec = {
   type: "html",
+  hint: "Tu propio HTML: un mapa, un reproductor, lo que sea",
   label: "HTML",
   icon: "‹›",
   repeatable: true,
@@ -1186,6 +1196,7 @@ const htmlPropio: BlockSpec = {
  */
 const fotosEvento: BlockSpec = {
   type: "fotos",
+  hint: "Un álbum donde los invitados suben sus fotos del evento",
   label: "Fotos de los invitados",
   icon: "▣",
   repeatable: true,
@@ -1244,6 +1255,7 @@ const fotosEvento: BlockSpec = {
  */
 const deseosEvento: BlockSpec = {
   type: "deseos",
+  hint: "Un libro de firmas donde dejan su mensaje",
   label: "Libro de deseos",
   icon: "✎",
   repeatable: true,
@@ -1321,17 +1333,26 @@ export const BLOCKS: BlockSpec[] = [
 ];
 
 /*
- * La capa detrás del texto, a todos los bloques que traen campos propios.
+ * Fondo, capa detrás del texto y animación de entrada, a todos los bloques
+ * que traen campos propios.
  *
- * Los ocho bloques de sección la reciben por su `SectionSpec`; los cinco
- * nuevos —párrafo, foto, vídeo, ubicación, HTML— declaran sus campos aquí y
- * se quedarían sin ella. Aquí y no escrita en cada uno por lo de siempre:
- * son cinco sitios, bastaba olvidarse en uno, y el sexto que se añada la
- * tendría que recordar. Empezó siendo sólo del párrafo y ése fue el error
- * que se está deshaciendo.
+ * Los ocho bloques de sección los reciben por su `SectionSpec`
+ * (`schema.ts`); los que declaran sus campos aquí —párrafo, foto, vídeo,
+ * ubicación, HTML, fotos de los invitados, libro de deseos— se quedaban sin
+ * ellos, y eso **no** era una limitación del renderer: el bucle que dibuja
+ * (`render.ts`, `ponerFondo`/`ponerAdornos`/`ponerEntrada`) trata igual a una
+ * sección y a un bloque, lee los mismos nombres de campo y ya sabía pintarlo
+ * todo. Faltaba sólo quien lo ofreciera, así que un bloque agregado era una
+ * pieza de segunda: sin fondo, sin velo y sin entrada, por nada.
+ *
+ * Aquí y no escrito en cada uno por lo de siempre: son siete sitios, bastaba
+ * olvidarse en uno, y el octavo que se añada lo tendría que recordar. Empezó
+ * siendo sólo la capa y sólo del párrafo; esto termina de deshacer ese error.
  */
 for (const b of BLOCKS) {
-  if (b.fields) b.fields = [...b.fields, ...panelFields];
+  if (!b.fields) continue;
+  b.fields = [...b.fields, entradaSeccionField, ...fondoFields, ...panelFields];
+  b.adornos = true;
 }
 
 export const BLOCK_BY_TYPE: Record<string, BlockSpec> = Object.fromEntries(

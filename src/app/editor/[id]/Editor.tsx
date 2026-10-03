@@ -12,8 +12,9 @@ import {
 } from "@/lib/schema";
 import type { TemplateInfo } from "@/lib/templates";
 import type { TemplateSupport } from "@/lib/support";
-import { readLayout, type Block } from "@/lib/blocks";
+import { BLOCK_BY_TYPE, readLayout, type Block } from "@/lib/blocks";
 import { BlockList } from "./BlockList";
+import type { Senalado } from "./SectionEditor";
 import { Biblioteca } from "./Biblioteca";
 import { Aperturas } from "./Aperturas";
 import { GuardarPlantilla } from "./GuardarPlantilla";
@@ -104,8 +105,25 @@ export function Editor(props: EditorProps) {
      con los cambios sin guardar) o una de las páginas aparte —fotos,
      deseos—, que no tienen vista previa propia: se abre la página real,
      con la sesión de quien edita saltándose el candado de "todavía no". */
-  const [vista, setVista] = useState<"invitacion" | "fotos" | "deseos">("invitacion");
+  const [vista, setVista] = useState<"invitacion" | "bienvenida" | "fotos" | "deseos">("invitacion");
   const [open, setOpen] = useState<string | null>("event");
+  /**
+   * Qué se puede hacer tocando la vista previa.
+   *
+   * `ver` no toca nada —es como se le enseña la pantalla a un cliente—,
+   * `texto` escribe los textos donde se ven y `mover` es lo único que suelta
+   * los adornos. Tenerlos separados es lo que evita mover una filigrana sin
+   * querer mientras se lee.
+   */
+  const [modo, setModo] = useState<"ver" | "texto" | "mover">("ver");
+  /**
+   * El campo que se acaba de señalar en la vista previa.
+   *
+   * Lleva el índice porque un campo de ficha —«el título del segundo punto
+   * del itinerario»— no se identifica sólo con la ruta: `events.items.title`
+   * son todas las fichas a la vez.
+   */
+  const [senalado, setSenalado] = useState<Senalado | null>(null);
   const [save, setSave] = useState<SaveState>("idle");
   /* Por qué falló el último guardado, para poder decirlo en vez de dejar un
      "No se pudo guardar" gris que se pasa por alto. */
@@ -161,6 +179,11 @@ export function Editor(props: EditorProps) {
   /* ── Vista previa en vivo ───────────────────────────────── */
 
   useEffect(() => {
+    /* Mientras se escribe sobre la vista previa no se vuelve a renderizar.
+       Cada cambio reemplaza el `srcdoc` entero, así que un render a media
+       frase se lleva el cursor —y la frase— por delante. Lo escrito ya está
+       en `data`; el marco se pone al día al salir del modo. */
+    if (modo === "texto") return;
     const timer = setTimeout(async () => {
       scrollY.current = iframe.current?.contentWindow?.scrollY ?? scrollY.current;
       setRendering(true);
@@ -168,7 +191,7 @@ export function Editor(props: EditorProps) {
         const res = await fetch("/api/preview", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ templateId, data }),
+          body: JSON.stringify({ templateId, data, verSplash: vista === "bienvenida" }),
         });
         /* Si la sesión caducó mientras se editaba, la API responde JSON y
            volcarlo en el iframe llenaría la vista previa de `{"error":…}`.
@@ -180,7 +203,7 @@ export function Editor(props: EditorProps) {
       }
     }, 300);
     return () => clearTimeout(timer);
-  }, [data, templateId]);
+  }, [data, templateId, modo, vista]);
 
   /* ── Arrastrar un adorno sobre la vista previa ──────────── */
 
@@ -199,8 +222,73 @@ export function Editor(props: EditorProps) {
       /* Sólo de nuestro propio iframe: la vista previa vive en un `srcdoc` y
          cualquier otra ventana puede mandar mensajes a esta página. */
       if (e.source !== iframe.current?.contentWindow) return;
-      const m = e.data as { inv?: string; seccion?: string; i?: number; x?: number; y?: number };
-      if (!m || m.inv !== "adorno" || !m.seccion || typeof m.i !== "number") return;
+      const m = e.data as {
+        inv?: string; seccion?: string; i?: number; x?: number; y?: number;
+        path?: string; indice?: number; valor?: string; bloque?: string | null;
+      };
+      if (!m) return;
+
+      /* El marco se rehace en cada render y nace en «ver», así que pide el
+         modo al cargar en vez de esperar a que se lo manden. */
+      if (m.inv === "listo") {
+        iframe.current?.contentWindow?.postMessage({ inv: "modo", modo }, "*");
+        return;
+      }
+
+      /* Señalar: se abre la sección del campo y se resalta. Es la respuesta a
+         «¿dónde se cambia esto?», que es la pregunta que de verdad se hace
+         delante de once secciones y ciento y pico controles. */
+      if (m.inv === "selecciona" && m.path) {
+        /* Los nombres de la pareja son un solo elemento con dos campos
+           detrás. Se señala el primero, que es donde se empieza a escribir. */
+        const path = m.path === "event.names" ? "event.name1" : m.path;
+        const seccion = path.split(".")[0];
+        /* Casi todas las secciones se editan desde la lista de bloques, y
+           ahí lo que se abre es el **bloque**, cuyo id no es la clave de la
+           sección sino `events-0`. Abrir por la clave no encontraba nada y
+           el panel se quedaba quieto en todo el cuerpo de la invitación:
+           itinerario, galería, confirmación, regalos… */
+        const bloques = readLayout(data);
+        /* El id lo manda la propia vista previa, que sabe de qué bloque salió
+           el elemento. Buscarlo por la sección devolvía el primero de su
+           tipo, y con dos párrafos o dos galerías eso es el equivocado la
+           mitad de las veces. Se busca por sección sólo si no vino id. */
+        const bloque =
+          bloques.find((b) => b.id === m.bloque) ??
+          bloques.find((b) => (BLOCK_BY_TYPE[b.type]?.section || b.type) === seccion);
+        setOpen(bloque?.id ?? seccion);
+        setSenalado({
+          path,
+          indice: typeof m.indice === "number" ? m.indice : -1,
+          bloque: bloque?.id ?? null,
+        });
+        return;
+      }
+
+      /* Escribir desde la vista previa. Acaba en los mismos campos que el
+         panel: no hay un segundo sitio donde viva el texto. */
+      if (m.inv === "texto" && m.path && typeof m.valor === "string") {
+        const [seccion, campo, subcampo] = m.path.split(".");
+        const valor = m.valor;
+        dirty.current = true;
+        setData((prev) => {
+          const sec = (prev[seccion] || {}) as SectionData;
+          /* `events.items.title` con su índice: el campo vive en una ficha. */
+          if (campo === "items" && subcampo) {
+            const items = (sec.items as Record<string, string>[]) || [];
+            if (typeof m.indice !== "number" || m.indice < 0 || !items[m.indice]) return prev;
+            const next = items.map((it, k) =>
+              k === m.indice ? { ...it, [subcampo]: valor } : it
+            );
+            return { ...prev, [seccion]: { ...sec, items: next } };
+          }
+          if (sec[campo] === valor) return prev;
+          return { ...prev, [seccion]: { ...sec, [campo]: valor } };
+        });
+        return;
+      }
+
+      if (m.inv !== "adorno" || !m.seccion || typeof m.i !== "number") return;
 
       const x = Math.round(Math.max(0, Math.min(100, Number(m.x) || 0)));
       const y = Math.round(Math.max(0, Math.min(100, Number(m.y) || 0)));
@@ -219,7 +307,15 @@ export function Editor(props: EditorProps) {
 
     window.addEventListener("message", alSoltar);
     return () => window.removeEventListener("message", alSoltar);
-  }, []);
+  }, [modo, data]);
+
+  /* Al cambiar de modo se le dice al marco que ya está cargado. Si acaba de
+     renderizarse, él mismo lo pedirá con «listo»; los dos caminos llevan al
+     mismo sitio y ninguno depende de quién llegue antes. */
+  useEffect(() => {
+    iframe.current?.contentWindow?.postMessage({ inv: "modo", modo }, "*");
+    if (modo !== "texto") setSenalado(null);
+  }, [modo]);
 
   /* ── Guardado automático ────────────────────────────────── */
 
@@ -244,6 +340,9 @@ export function Editor(props: EditorProps) {
       if (res.ok) {
         dirty.current = false;
         setPorQue("");
+        /* La dirección acompaña a los nombres mientras no se publique. */
+        const j = await res.json().catch(() => null);
+        if (j?.slug) setSlug(j.slug);
       } else if (res.status !== 401) {
         /* El motivo que dé la API, y si no da ninguno, el código. Un fallo de
            guardado silencioso es lo peor que puede hacer un editor: se sigue
@@ -280,6 +379,9 @@ export function Editor(props: EditorProps) {
   );
 
   const sectionsInTemplate = new Set(support?.sections ?? []);
+  /** ¿Hay pantalla de bienvenida que enseñar? Apagada, no hay nada que ver. */
+  const hayBienvenida =
+    sectionsInTemplate.has("splash") && data.splash?.enabled !== false;
 
   return (
     <div className={styles.shell}>
@@ -428,6 +530,7 @@ export function Editor(props: EditorProps) {
                     <SectionEditor
                       key={spec.key}
                       spec={spec}
+                      senalado={senalado}
                       data={data[spec.key] || {}}
                       support={support}
                       inTemplate={spec.key === "event" || sectionsInTemplate.has(spec.key)}
@@ -461,6 +564,7 @@ export function Editor(props: EditorProps) {
                 </div>
 
                 <BlockList
+                  senalado={senalado}
                   blocks={blocks}
                   sections={data}
                   templateId={templateId}
@@ -476,6 +580,7 @@ export function Editor(props: EditorProps) {
                   return (
                     <SectionEditor
                       spec={pie}
+                      senalado={senalado}
                       data={data.footer || {}}
                       support={support}
                       inTemplate={sectionsInTemplate.has("footer")}
@@ -495,6 +600,7 @@ export function Editor(props: EditorProps) {
                   return (
                     <SectionEditor
                       spec={fg}
+                      senalado={senalado}
                       data={data.fondoGlobal || {}}
                       support={support}
                       inTemplate
@@ -510,6 +616,7 @@ export function Editor(props: EditorProps) {
                   return (
                     <SectionEditor
                       spec={pt}
+                      senalado={senalado}
                       data={data.particulas || {}}
                       support={support}
                       inTemplate
@@ -525,6 +632,7 @@ export function Editor(props: EditorProps) {
                   return (
                     <SectionEditor
                       spec={marca}
+                      senalado={senalado}
                       data={data.marca || {}}
                       support={support}
                       inTemplate
@@ -540,6 +648,7 @@ export function Editor(props: EditorProps) {
                   return (
                     <SectionEditor
                       spec={comp}
+                      senalado={senalado}
                       data={data.compartir || {}}
                       support={support}
                       inTemplate
@@ -569,7 +678,9 @@ export function Editor(props: EditorProps) {
                 </button>
               ))}
             </div>
-            {(blocks.some((b) => b.type === "fotos") || blocks.some((b) => b.type === "deseos")) && (
+            {(hayBienvenida ||
+              blocks.some((b) => b.type === "fotos") ||
+              blocks.some((b) => b.type === "deseos")) && (
               <div className={styles.devices}>
                 <button
                   className={styles.device}
@@ -578,6 +689,20 @@ export function Editor(props: EditorProps) {
                 >
                   Invitación
                 </button>
+                {/* La bienvenida tapa la pantalla entera, así que no puede
+                    salir en la vista normal —habría que cerrarla en cada
+                    tecleo—. Como vista aparte sí, y deja de ser la única
+                    parte de la invitación que se editaba a ciegas. */}
+                {hayBienvenida && (
+                  <button
+                    className={styles.device}
+                    data-active={vista === "bienvenida"}
+                    onClick={() => setVista("bienvenida")}
+                    title="Ver la pantalla de bienvenida como la verá quien abra el enlace"
+                  >
+                    Bienvenida
+                  </button>
+                )}
                 {blocks.some((b) => b.type === "fotos") && (
                   <button
                     className={styles.device}
@@ -598,14 +723,36 @@ export function Editor(props: EditorProps) {
                 )}
               </div>
             )}
-            <span className={styles.rendering} data-on={rendering && vista === "invitacion"}>
+            {vista === "invitacion" && (
+              <div className={styles.devices} role="group" aria-label="Qué hace al tocar la vista previa">
+                {([
+                  ["ver", "Ver", "Sólo mirar: nada se mueve ni se edita"],
+                  ["texto", "Editar texto", "Escribe los textos sobre la propia invitación"],
+                  ["mover", "Mover", "Arrastra los adornos a donde van"],
+                ] as const).map(([id, label, title]) => (
+                  <button
+                    key={id}
+                    className={styles.device}
+                    data-active={modo === id}
+                    title={title}
+                    onClick={() => setModo(id)}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
+            <span
+              className={styles.rendering}
+              data-on={rendering && (vista === "invitacion" || vista === "bienvenida")}
+            >
               actualizando…
             </span>
           </div>
 
           <div className={styles.stageScroll}>
             <div className={styles.frame} style={{ width: deviceWidth }}>
-              {vista === "invitacion" ? (
+              {vista === "invitacion" || vista === "bienvenida" ? (
                 <iframe
                   ref={iframe}
                   className={styles.previewFrame}
@@ -613,6 +760,7 @@ export function Editor(props: EditorProps) {
                   srcDoc={srcDoc}
                   onLoad={() => {
                     iframe.current?.contentWindow?.scrollTo(0, scrollY.current);
+                    iframe.current?.contentWindow?.postMessage({ inv: "modo", modo }, "*");
                   }}
                 />
               ) : (

@@ -122,6 +122,12 @@ const conIframe = (html: string) =>
     })));
     const marco = page.frameLocator("#vp");
     const caja = marco.locator("[data-inv-adorno]").first();
+    /* Arrastrar sólo funciona en el modo «mover», que es lo que impide mover
+       un adorno de refilón mientras se lee. El editor lo manda al marco; aquí
+       se hace lo mismo a mano. */
+    await marco.locator("body").evaluate((b) =>
+      b.ownerDocument.documentElement.setAttribute("data-inv-modo", "mover")
+    );
     await marco.locator("#gallery").scrollIntoViewIfNeeded();
     await page.waitForTimeout(250);
 

@@ -848,3 +848,18 @@
   .topbar { height: auto; flex-wrap: wrap; row-gap: 8px; padding: 8px 12px; }
   .topRight { flex-wrap: wrap; justify-content: flex-end; width: 100%; gap: 8px; }
 }
+
+/* El campo que se acaba de señalar tocándolo en la vista previa.
+   El mismo naranja que lo marca allí, para que los dos extremos del gesto se
+   reconozcan como la misma cosa. */
+.senalado {
+  position: relative;
+  border-radius: 10px;
+  outline: 2px solid #ea580c;
+  outline-offset: 4px;
+  animation: senalado-aparece 1.6s ease-out;
+}
+@keyframes senalado-aparece {
+  0%, 55% { background: rgba(234, 88, 12, .12); }
+  100% { background: transparent; }
+}

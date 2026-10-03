@@ -23,6 +23,9 @@ export async function POST(request: Request) {
       // contenedor da el hostname interno de Docker.
       data: withAbsoluteMedia(body.data || {}, origenDe(request)),
       preview: true,
+      /* La pantalla de bienvenida sólo cuando se pide: tapa la vista entera,
+         y el editor la ofrece como una vista aparte. */
+      verSplash: body.verSplash === true,
     });
     return new NextResponse(html, {
       headers: { "Content-Type": "text/html; charset=utf-8" },

@@ -57,6 +57,19 @@ export interface RenderOptions {
   /** En el editor: sin splash, sin envío real de RSVP. */
   preview?: boolean;
   /**
+   * Enseñar la pantalla de bienvenida **dentro** del editor.
+   *
+   * Está apagada en la vista previa desde el primer día, y por un motivo
+   * bueno: ocupa la pantalla entera y el marco se rehace en cada tecla, así
+   * que habría que cerrarla una y otra vez para ver lo que hay detrás. Pero
+   * el efecto secundario era que la bienvenida **no se podía ver nunca** —se
+   * editaba a ciegas y sólo aparecía al abrir el enlace publicado—.
+   *
+   * Con esto deja de ser una regla fija y pasa a ser una elección: el editor
+   * ofrece verla como una vista aparte, igual que las fotos o los deseos.
+   */
+  verSplash?: boolean;
+  /**
    * El origen público, para las etiquetas Open Graph.
    *
    * WhatsApp y compañía no resuelven rutas relativas: si `og:image` no es
@@ -677,6 +690,41 @@ function applyCouple(el: El, name1: string, name2: string) {
   setText(el, joined, true);
 }
 
+/**
+ * Deja escrito en el marcado a qué campo corresponde cada elemento.
+ *
+ * Los `data-inv` vienen del esqueleto, pero **las variantes no los traen**:
+ * su marcado lo sintetiza `blocks.ts` con las clases canónicas, y el mapa las
+ * resuelve por clase. Eso basta para pintar —el renderer encuentra el
+ * elemento igual— pero deja la vista previa muda: sin atributo no hay nada
+ * que leer al tocar, así que señalar y escribir sobre la invitación dejaban
+ * de funcionar en cuanto alguien elegía una variante, que es justo lo que más
+ * se toca. Y no daba ningún error: simplemente no pasaba nada.
+ *
+ * Se escribe sólo en la vista previa y sólo si falta: lo que ya declara el
+ * esqueleto manda, porque es el contrato de datos y éste es un apaño para el
+ * marcado que no lo lleva.
+ */
+function marcarRuta(root: El, ops: Op[], path: string, ctx: Ctx) {
+  if (!ctx.preview) return;
+  for (const op of ops) {
+    const sel = (op as { sel?: string[] }).sel;
+    if (!sel?.length) continue;
+    /* **Los mismos** elementos que escribió `applyOp`, no todos los que
+       encajan con el selector. Dos campos de una variante pueden compartir
+       clase —el mensaje a los invitados y su cierre son los dos
+       `.guests-text`— y marcando todas las coincidencias el primero se
+       quedaba también con el elemento del segundo, que entonces no se podía
+       ni señalar: el panel llevaba al campo equivocado. */
+    const encontrados = op.all ? pickEveryOutermost(root, sel) : pickAll(root, sel).slice(0, 1);
+    for (const el of encontrados) {
+      if (el?.setAttribute && !el.getAttribute?.("data-inv")) {
+        el.setAttribute("data-inv", path);
+      }
+    }
+  }
+}
+
 /* ── aplicar una operación ───────────────────────────────────── */
 
 function applyOp(root: El, op: Op, value: string, ctx: Ctx) {
@@ -1080,7 +1128,10 @@ function ponerAdornos(
   let puestos = 0;
   for (const [i, it] of items.entries()) {
     const url = String(it?.url || "").trim();
-    if (!url) continue;
+    /* Un adorno puede ser una frase en vez de una pieza. Manda el texto: con
+       los dos puestos, lo que se acaba de escribir es lo que se quiere ver. */
+    const texto = String(it?.texto || "").trim();
+    if (!url && !texto) continue;
 
     const sitio = SITIO_VALIDO.has(String(it.sitio)) ? String(it.sitio) : "arriba-izq";
     const tamano = Math.min(100, Math.max(5, Number(it.tamano) || 40));
@@ -1098,9 +1149,14 @@ function ponerAdornos(
     const caja = doc.createElement("div");
     caja.setAttribute(
       "class",
-      `inv-adorno inv-ad-${sitio}` + (entrada ? ` inv-ad-entra inv-ad-e-${entrada}` : "")
+      `inv-adorno inv-ad-${sitio}` +
+        (texto ? " inv-ad-conTexto" : "") +
+        (entrada ? ` inv-ad-entra inv-ad-e-${entrada}` : "")
     );
-    caja.setAttribute("aria-hidden", "true");
+    /* Una pieza decorativa se esconde del lector de pantalla; una frase
+       escrita a propósito, no — es contenido, aunque se coloque como un
+       adorno. */
+    if (!texto) caja.setAttribute("aria-hidden", "true");
     /* Sólo en el editor, y con el índice del array y no el de los puestos:
        un adorno sin imagen se salta al dibujar pero sigue ocupando su sitio
        en la lista, y el editor escribe por esa posición. Sin esta marca el
@@ -1114,11 +1170,19 @@ function ponerAdornos(
          pantalla para los del flujo. Dentro del contenedor —que mide 520 px
          como mucho— un 50 % no es el mismo 50 % que ve quien lo elige, y la
          pieza salía bastante más pequeña de lo declarado. */
-      (sitio === "sangre"
+      /* El texto no se mide en ancho sino en cuerpo de letra: estirarlo al
+         40 % de la sección lo partiría en renglones en vez de hacerlo más
+         grande, que es lo que el deslizador promete. */
+      (texto
+        ? `font-size:${tamano}px;`
+        : sitio === "sangre"
         ? ""
         : sitio === "titulo" || sitio === "cabecera"
           ? `width:min(${tamano}vw,100%);`
           : `width:${tamano}%;`) +
+      (texto && HEX.test(String(it.color || "").trim())
+        ? `color:${String(it.color).trim()};`
+        : "") +
         (sitio === "libre" ? `--inv-ad-x:${cx}%;--inv-ad-y:${cy}%;` : "") +
         /* La opacidad elegida va en una variable porque la animación de
            entrada tiene que terminar justo en ella, no en 1.
@@ -1161,9 +1225,17 @@ function ponerAdornos(
        tamaño 40 sobre un contenedor de ~780px son ~310px, y el doble en
        retina: 800 es el escalón que le toca. */
     const ancho = tamano >= 70 || sitio === "sangre" ? 1600 : 800;
-    const esVideo = esVideoUrl(url);
+    const esVideo = !texto && esVideoUrl(url);
 
-    if (esVideo) {
+    if (texto) {
+      /* `textContent` y no `innerHTML`: esto lo escribe quien organiza, pero
+         también lo escribe el servidor MCP a partir de lo que le dicte un
+         cliente por chat, y un adorno no es sitio para marcado. */
+      const span = doc.createElement("span");
+      span.setAttribute("class", "inv-ad-texto");
+      span.textContent = texto;
+      pieza.appendChild(span);
+    } else if (esVideo) {
       /* Un adorno puede ser un clip: una llama que arde en una esquina, unos
          pétalos cayendo en un rincón. Va mudo, en bucle y sin controles —es
          decoración, no una pieza que se mire—, y con los mismos cuatro
@@ -1438,6 +1510,24 @@ type Ctx = {
   preview?: boolean;
 };
 
+/**
+ * Las fichas y sus campos, marcados para la vista previa.
+ *
+ * Aparte de `applyList` porque hace falta en dos momentos: con fichas, dentro
+ * del bucle que las escribe, y **sin ninguna**, para la galería —que conserva
+ * sus tarjetas de muestra cuando está vacía— donde ese bucle no llega a
+ * correr. Sin esto, una galería vacía con variante no se podía ni tocar.
+ */
+function marcarFichas(fichas: El[], key: string, binding: ListBinding, ctx: Ctx) {
+  if (!ctx.preview) return;
+  for (const el of fichas) {
+    if (!el.getAttribute?.("data-inv-item")) el.setAttribute("data-inv-item", "");
+    for (const [field, ops] of Object.entries(binding.fields)) {
+      marcarRuta(el, ops, `${key}.items.${field}`, ctx);
+    }
+  }
+}
+
 function applyList(
   root: El,
   key: string,
@@ -1453,6 +1543,7 @@ function applyList(
 
   if (!items.length) {
     if (binding.whenEmpty === "removeContainer") container.remove();
+    else marcarFichas(current, key, binding, ctx);
     return;
   }
 
@@ -1470,6 +1561,10 @@ function applyList(
   current.forEach((el, i) => {
     const item = deriveItem(key, items[i]);
     ponerFondoFicha(el, items[i]);
+    /* Sin esto no hay de dónde sacar **qué ficha** se tocó: la vista previa
+       cuenta las hermanas marcadas, y el marcado de las variantes no lleva
+       el atributo. */
+    marcarFichas([el], key, binding, ctx);
     for (const [field, ops] of Object.entries(binding.fields)) {
       // Lo guardado es un emoji o la clave de un icono; lo que se pinta es el
       // dibujo. `iconoHtml` escapa lo que no reconoce, así que nunca entra
@@ -2297,6 +2392,13 @@ a.inv-rsvp-btn{display:flex;width:max-content;max-width:100%;margin:28px auto 0;
 .inv-adorno{position:absolute;line-height:0;pointer-events:none}
 .inv-ad-mov,.inv-ad-pieza{display:block;line-height:0}
 .inv-adorno img,.inv-adorno video{display:block;width:100%;height:auto}
+
+/* Adorno con frase: se devuelve el line-height que la pieza anula, y el
+   ancho lo pide el texto (en % se partiria en renglones). */
+.inv-ad-conTexto{line-height:normal;width:max-content;max-width:86%}
+.inv-ad-conTexto .inv-ad-mov,.inv-ad-conTexto .inv-ad-pieza{line-height:normal}
+.inv-ad-texto{display:block;line-height:1.15;white-space:pre-wrap;
+  font-family:var(--font-display,inherit);color:inherit}
 
 /* ── Efectos de los adornos ────────────────────────────────────
    Tres capas anidadas y cada una escribe su propio transform, porque las
@@ -3510,6 +3612,135 @@ const CORTINA_JS = `
 })();`;
 
 /**
+ * Señalar y escribir sobre la propia vista previa.
+ *
+ * El panel tiene ciento y pico controles repartidos en once secciones, y la
+ * pregunta que de verdad se hace al editar es la contraria a la que el panel
+ * contesta: no «¿qué hace este campo?» sino «¿dónde se cambia *esto* que
+ * estoy viendo?». Con el marcado ya resuelto —cada elemento editable lleva su
+ * `data-inv="seccion.campo"` desde el esqueleto— la respuesta sale de leer el
+ * atributo del elemento en el que se hizo clic.
+ *
+ * Tres modos y no uno:
+ *
+ *  · **ver** — no se toca nada. Es como se mira la invitación terminada, y es
+ *    el que vale cuando se le está enseñando la pantalla a un cliente.
+ *  · **texto** — los textos se escriben donde se ven.
+ *  · **mover** — y sólo aquí se arrastran los adornos.
+ *
+ * Separar «mover» es el punto: mientras fue siempre, mover un adorno sin
+ * querer era cuestión de rozarlo. Un modo explícito cuesta un clic y quita
+ * toda una clase de accidente.
+ *
+ * Señalar funciona en los tres, porque preguntar dónde está algo no cambia
+ * nada.
+ */
+const PREVIEW_EDICION_JS = `
+(function(){
+  var raiz = document.documentElement;
+  var modo = 'ver';
+
+  var css = document.createElement('style');
+  css.textContent =
+    /* Dos cosas distintas y por eso dos aspectos distintos: lo que se escribe
+       aquí mismo (azul, cursor de texto) y lo que sólo se puede señalar para
+       ir a buscarlo al panel (gris, cursor de mano). Con un solo aspecto,
+       pinchar un texto con formato —el mensaje a los invitados, los iconos—
+       lo marcaba igual que a los demás y luego no dejaba teclear, sin decir
+       por qué. */
+    '[data-inv-modo="texto"] [data-inv-texto]{outline:1px dashed rgba(59,130,246,.5);' +
+      'outline-offset:2px;cursor:text}' +
+    '[data-inv-modo="texto"] [data-inv-texto]:hover{outline-color:rgba(59,130,246,.95);' +
+      'background:rgba(59,130,246,.06)}' +
+    '[data-inv-texto][contenteditable="plaintext-only"]:focus{outline:2px solid rgba(59,130,246,1);' +
+      'background:rgba(59,130,246,.08)}' +
+    '[data-inv-modo="texto"] [data-inv]:not([data-inv-texto]){cursor:pointer}' +
+    '[data-inv-modo="texto"] [data-inv]:not([data-inv-texto]):hover{' +
+      'outline:1px dotted rgba(120,120,120,.8);outline-offset:2px}' +
+    /* Lo señalado se marca aunque el panel esté en otro sitio de la página. */
+    '[data-inv-sel]{outline:2px solid rgba(234,88,12,.9);outline-offset:3px}';
+  document.head.appendChild(css);
+
+  /** La ficha de una lista en la que vive un elemento, y su posición. */
+  function indiceDe(el){
+    var ficha = el.closest && el.closest('[data-inv-item]');
+    if (!ficha || !ficha.parentNode) return -1;
+    var hermanas = ficha.parentNode.querySelectorAll(':scope > [data-inv-item]');
+    for (var i = 0; i < hermanas.length; i++) if (hermanas[i] === ficha) return i;
+    return -1;
+  }
+
+  function avisar(tipo, el, extra){
+    var caja = el.closest && el.closest('[data-inv-bloque]');
+    var m = {
+      inv: tipo, path: el.getAttribute('data-inv'), indice: indiceDe(el),
+      bloque: caja ? caja.getAttribute('data-inv-bloque') : null,
+    };
+    for (var k in extra) m[k] = extra[k];
+    parent.postMessage(m, '*');
+  }
+
+  /* Señalar. En captura y no en burbuja: muchos textos viven dentro de un
+     enlace, y para cuando el clic burbujea el navegador ya se lo llevó. */
+  document.addEventListener('click', function(e){
+    if (modo === 'ver') return;
+    var el = e.target.closest && e.target.closest('[data-inv]');
+    if (!el) return;
+    /* Un enlace dentro de la invitación no debe navegar mientras se edita:
+       la vista previa se iría a otra página y habría que volver a abrirla. */
+    if (e.target.closest('a')) e.preventDefault();
+    var antes = document.querySelector('[data-inv-sel]');
+    if (antes) antes.removeAttribute('data-inv-sel');
+    el.setAttribute('data-inv-sel', '');
+    avisar('selecciona', el);
+  }, true);
+
+  /* Escribir. Con 'plaintext-only' lo que se pega desde WhatsApp o desde un
+     documento entra sin marcado: lo que se guarda es texto, y el resaltado
+     amarillo que viaja pegado a un copiar/pegar es justo el rastro que este
+     proyecto ya limpia en otro sitio. */
+  function editable(on){
+    var textos = document.querySelectorAll('[data-inv-texto]');
+    for (var i = 0; i < textos.length; i++) {
+      if (on) textos[i].setAttribute('contenteditable', 'plaintext-only');
+      else textos[i].removeAttribute('contenteditable');
+    }
+  }
+
+  document.addEventListener('focusout', function(e){
+    var el = e.target;
+    if (!el.hasAttribute || !el.hasAttribute('data-inv-texto')) return;
+    if (el.getAttribute('contenteditable') !== 'plaintext-only') return;
+    avisar('texto', el, { valor: (el.innerText || '').replace(/\\s+$/, '') });
+  }, true);
+
+  /* Enter cierra la edición en vez de partir el texto en dos líneas: estos
+     son títulos y etiquetas de una sola línea, y un salto dentro rompe el
+     diseño sin que se vea dónde. Shift+Enter sí lo deja pasar. */
+  document.addEventListener('keydown', function(e){
+    if (!e.target.hasAttribute || !e.target.hasAttribute('data-inv-texto')) return;
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); e.target.blur(); }
+    if (e.key === 'Escape') e.target.blur();
+  });
+
+  function aplicar(nuevo){
+    modo = nuevo;
+    raiz.setAttribute('data-inv-modo', nuevo);
+    editable(nuevo === 'texto');
+  }
+
+  window.addEventListener('message', function(e){
+    if (e.data && e.data.inv === 'modo') aplicar(String(e.data.modo || 'ver'));
+  });
+
+  /* El marco se reconstruye en cada render, así que el modo no sobrevive: en
+     vez de que el editor adivine cuándo volver a mandarlo, se pide al
+     cargar. Un solo sitio decide, y nada se queda a medias. */
+  aplicar('ver');
+  parent.postMessage({ inv: 'listo' }, '*');
+})();`;
+
+/**
  * Arrastrar un adorno sobre la vista previa.
  *
  * Los dos deslizadores de «libre» colocan a ciegas: se mueve un número, se
@@ -3538,15 +3769,19 @@ const ADORNO_ARRASTRE_JS = `
      un secreto. El contorno va en :hover para no ensuciar la vista previa. */
   var css = document.createElement('style');
   css.textContent =
-    '[data-inv-adorno]{pointer-events:auto;cursor:grab;touch-action:none}' +
-    '[data-inv-adorno]:hover{outline:1px dashed rgba(59,130,246,.9);outline-offset:3px}' +
-    '[data-inv-adorno].inv-ad-agarrado{cursor:grabbing;outline:1px solid rgba(59,130,246,1)}' +
+    /* Agarrable sólo en modo «mover». Antes lo era siempre que el editor
+       estuviera abierto, y con doce adornos sueltos sobre la portada mover
+       uno sin querer era cuestión de tiempo: el modo es justo la respuesta a
+       eso. */
+    '[data-inv-modo="mover"] [data-inv-adorno]{pointer-events:auto;cursor:grab;touch-action:none}' +
+    '[data-inv-modo="mover"] [data-inv-adorno]:hover{outline:1px dashed rgba(59,130,246,.9);outline-offset:3px}' +
+    '[data-inv-modo="mover"] [data-inv-adorno].inv-ad-agarrado{cursor:grabbing;outline:1px solid rgba(59,130,246,1)}' +
     /* Una franja mínima para agarrar. Un adorno ancho y fino —una filigrana
        de separación— mide seis píxeles de alto y es casi imposible de coger;
        y mientras su imagen carga mide cero. Va en un pseudoelemento absoluto
        a propósito: así el área de agarre crece sin que la caja cambie de
        tamaño, que movería la pieza respecto a donde de verdad está. */
-    '[data-inv-adorno]::before{content:"";position:absolute;left:0;right:0;' +
+    '[data-inv-modo="mover"] [data-inv-adorno]::before{content:"";position:absolute;left:0;right:0;' +
       'top:50%;height:28px;translate:0 -50%}';
   document.head.appendChild(css);
 
@@ -3554,6 +3789,7 @@ const ADORNO_ARRASTRE_JS = `
 
   function preparar(caja){
     caja.addEventListener('pointerdown', function(e){
+      if (document.documentElement.getAttribute('data-inv-modo') !== 'mover') return;
       /* La sección es quien define el sistema de coordenadas: el renderer le
          pone position:relative justo para esto. */
       var sec = caja.offsetParent;
@@ -3743,6 +3979,9 @@ export function renderBloque(
 
 export function renderInvitation(opts: RenderOptions): string {
   const { templateId, data, slug = "", preview = false } = opts;
+  /* Pedirla sólo tiene sentido en el editor: en lo publicado manda el
+     interruptor de la sección, como siempre. */
+  const verSplash = preview && opts.verSplash === true;
   const map = mapFor(templateId);
 
   const iso = String(data.event?.date || "");
@@ -3961,7 +4200,7 @@ export function renderInvitation(opts: RenderOptions): string {
   const sectionOn = (key: string) => {
     const spec = SPEC.find((s) => s.key === key);
     if (!spec?.optional) return true;
-    if (key === "splash" && preview) return false;
+    if (key === "splash" && preview && !verSplash) return false;
     return data[key]?.enabled !== false;
   };
 
@@ -4527,6 +4766,22 @@ export function renderInvitation(opts: RenderOptions): string {
        el único texto del pie donde el enlace SÍ debe teñirse, ya que la
        frase entera es una sola pieza de marca y no un párrafo con un enlace
        suelto dentro. */
+    /* El color de los nombres, sólo en esta sección.
+       Los nombres se escriben una vez y salen en tres sitios —bienvenida,
+       portada y pie—, y el color del campo los pintaba los tres a la vez
+       porque su regla lleva el selector del campo, que no sabe dónde está.
+       Ésta lleva delante el de la sección, así que gana sólo aquí; y se
+       emite después que la global, que es lo que decide el empate cuando
+       las dos pesan lo mismo. */
+    const nombres = String(sectionData.nombresColor || "").trim();
+    if (HEX.test(nombres)) {
+      colorCss.push(
+        `${sectionSel} [data-inv="event.names"],` +
+          `${sectionSel} [data-inv="event.names"] *` +
+          `{color:${nombres} !important}`
+      );
+    }
+
     const credito = String(sectionData.creditColor || "").trim();
     if (credito && HEX.test(credito)) {
       // Sin el 50% de opacidad de siempre: quien elige un color lo hace
@@ -4583,6 +4838,12 @@ export function renderInvitation(opts: RenderOptions): string {
     );
     ponerEntrada(root, String(sectionData.entrada || ""));
 
+    /* Qué bloque es, para la vista previa. Con dos párrafos o dos galerías,
+       la ruta del campo (`paragraph.text`) es la misma en los dos y el editor
+       no podía saber cuál se tocó: abría siempre el primero. El id sí es
+       único, y es además la llave con la que el panel abre sus bloques. */
+    if (preview) root.setAttribute?.("data-inv-bloque", r.block.id);
+
     /* Un bloque de vídeo sin vídeo se esconde, y entonces no hay nada más
        que escribirle dentro. */
     if (r.block.type === "video" && !ponerVideo(root, sectionData)) continue;
@@ -4613,6 +4874,7 @@ export function renderInvitation(opts: RenderOptions): string {
       if (!ops || field.key in calculados) continue;
       const value = derived[path] ?? String(sectionData[field.key] ?? "");
       for (const op of ops) applyOp(root, op, value, ctx);
+      marcarRuta(root, ops, path, ctx);
     }
 
     for (const [clave, valor] of Object.entries(calculados)) {
@@ -5074,6 +5336,41 @@ export function renderInvitation(opts: RenderOptions): string {
      quien recibe la invitación. */
   if (preview && document.querySelector("[data-inv-adorno]")) {
     scripts.push(ADORNO_ARRASTRE_JS);
+  }
+
+  /*
+   * Qué se puede escribir desde la propia vista previa.
+   *
+   * Se decide aquí y no en el guion porque la respuesta está en el mapa de
+   * campos, que vive en el servidor: el elemento sabe *qué campo* es por su
+   * `data-inv`, pero no si ese campo escribe texto plano o algo más. Se
+   * marcan sólo `text` y `textoOpcional`; `htmlSeguro` queda fuera a
+   * propósito —es texto con marcado, y editarlo en plano se llevaría por
+   * delante los enlaces y las negritas—, y `couple` también, porque un solo
+   * elemento lleva dos campos (los dos nombres) y no hay forma de saber cuál
+   * de los dos se acaba de escribir.
+   */
+  if (preview) {
+    /* Los campos de una ficha no viven en `map.fields` sino en `map.lists`,
+       así que mirar sólo el primero dejaba fuera el itinerario entero y las
+       tarjetas de «información útil» —justo los textos que más se corrigen—.
+       Se veían como no editables y sin explicación, que es el peor modo de
+       fallar: parecía que la edición sobre la vista previa no funcionaba. */
+    const opsDe = (path: string): Op[] => {
+      const directas = map.fields[path];
+      if (directas) return directas;
+      const [seccion, lista, campo] = path.split(".");
+      if (lista !== "items" || !campo) return [];
+      return map.lists[seccion]?.fields?.[campo] || [];
+    };
+
+    for (const el of Array.from(document.querySelectorAll("[data-inv]")) as El[]) {
+      const path = el.getAttribute("data-inv") || "";
+      if (opsDe(path).some((o) => o.kind === "text" || o.kind === "textoOpcional")) {
+        el.setAttribute("data-inv-texto", "");
+      }
+    }
+    scripts.push(PREVIEW_EDICION_JS);
   }
   if (scripts.length) {
     const s = document.createElement("script");
