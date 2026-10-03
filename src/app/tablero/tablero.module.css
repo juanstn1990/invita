@@ -350,3 +350,63 @@
 }
 .puente[data-encima] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-text); }
 .descripcion:hover { color: var(--accent-text); }
+
+/* ── El catálogo como muestrario ───────────────────────────────
+   No es una columna más del tablero: aquí se viene a elegir qué enseñarle a
+   un cliente, y eso no se hace leyendo nombres. Por eso cada muestra se
+   dibuja de verdad y van agrupadas por ocasión, que es como se buscan. */
+.galeria { display: flex; flex-direction: column; gap: 26px; }
+
+.grupoTitulo {
+  display: flex; align-items: center; gap: 9px;
+  margin: 0 0 12px; padding-bottom: 7px;
+  font-family: var(--font-display), serif; font-size: 20px; font-weight: 400;
+  border-bottom: 1px solid var(--border);
+}
+
+/* Columnas de ancho fijo y no elásticas: la miniatura es un iframe de 390 px
+   escalado por un factor fijo, así que su ancho final es un número concreto
+   (390 × 0.6 = 234). Con columnas elásticas la tarjeta crecía y la miniatura
+   no, y quedaba una franja gris a la derecha de cada muestra. */
+.rejilla {
+  display: grid; gap: 16px;
+  grid-template-columns: repeat(auto-fill, 234px);
+  justify-content: start;
+}
+
+.muestra {
+  display: flex; flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  cursor: grab;
+  transition: border-color .15s, box-shadow .15s, transform .15s, opacity .15s;
+}
+.muestra:hover { border-color: var(--border-strong); box-shadow: var(--shadow); transform: translateY(-2px); }
+.muestra[data-arrastrando] { opacity: .4; cursor: grabbing; }
+
+/* El iframe se dibuja a 390px —ancho de móvil— y se escala al de la tarjeta:
+   así lo que se ve es la invitación real y no una captura que envejece en
+   cuanto alguien retoca la muestra. */
+.marco {
+  position: relative; display: block; width: 234px; height: 290px; overflow: hidden;
+  background: var(--surface-2); border-bottom: 1px solid var(--border);
+}
+.lienzo {
+  position: absolute; top: 0; left: 0;
+  width: 390px; height: 760px;
+  border: 0;
+  transform: scale(.6);
+  transform-origin: top left;
+  pointer-events: none;
+}
+/* Sin esta capa el iframe se queda con el clic y la tarjeta no se abre ni se
+   arrastra. */
+.velo { position: absolute; inset: 0; }
+
+.muestraPie { display: flex; flex-direction: column; gap: 7px; padding: 11px 13px 13px; }
+.muestraNombre {
+  margin: 0; font-family: var(--font-display), serif; font-size: 16px; line-height: 1.25;
+  overflow-wrap: anywhere;
+}

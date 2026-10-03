@@ -139,6 +139,27 @@ export function Tablero({
     return true;
   });
 
+  /**
+   * Las muestras del catálogo, por ocasión.
+   *
+   * Se agrupan por lo que de verdad se busca —«una de quince», «una de
+   * boda»— y no por fecha ni por nombre: una muestra no tiene fecha real y
+   * su nombre no dice de qué es.
+   */
+  const muestrasPorTipo = Array.from(
+    visibles
+      .filter((t) => t.estado === "catalogo")
+      .reduce((acc, t) => {
+        const g = acc.get(t.tipo) ?? { label: t.tipoLabel, items: [] as Tarjeta[] };
+        g.items.push(t);
+        acc.set(t.tipo, g);
+        return acc;
+      }, new Map<string, { label: string; items: Tarjeta[] }>())
+  )
+    .map(([tipo, g]) => [tipo, g.label, g.items] as const)
+    .sort((a, b) => a[1].localeCompare(b[1]));
+
+
   async function guardar(id: string, cambio: Record<string, unknown>, deshacer: () => void) {
     setError("");
     try {
@@ -204,6 +225,98 @@ export function Tablero({
     const antes = tarjetas;
     setTarjetas(tarjetas.map((x) => (x.id === id ? { ...x, archivada } : x)));
     guardar(id, { archivada }, () => setTarjetas(antes));
+  }
+
+  /**
+   * Una muestra del catálogo, dibujada.
+   *
+   * El iframe es la invitación real renderizada a 390 px —ancho de móvil— y
+   * escalada, igual que en la galería de diseños: una captura envejecería en
+   * cuanto alguien retocara la muestra, y una muestra que no se parece a lo
+   * que se entrega no sirve para enseñar nada.
+   */
+  function muestra(t: Tarjeta) {
+    return (
+      <article
+        key={t.id}
+        className={styles.muestra}
+        draggable
+        data-arrastrando={arrastrando === t.id || undefined}
+        onDragStart={(e) => {
+          e.dataTransfer.setData("text/plain", t.id);
+          e.dataTransfer.effectAllowed = "move";
+          setArrastrando(t.id);
+        }}
+        onDragEnd={() => { setArrastrando(null); setEncima(null); }}
+      >
+        <Link href={`/editor/${t.id}`} className={styles.marco} title={`Abrir ${t.titulo}`}>
+          <iframe
+            className={styles.lienzo}
+            src={`/api/invitations/${t.id}/vista`}
+            title={`Vista previa · ${t.titulo}`}
+            loading="lazy"
+            scrolling="no"
+            tabIndex={-1}
+          />
+          {/* Encima del iframe: sin esto el clic se lo come él y la tarjeta
+              deja de poder abrirse ni arrastrarse. */}
+          <span className={styles.velo} aria-hidden />
+        </Link>
+
+        <div className={styles.muestraPie}>
+          <p className={styles.muestraNombre}>{t.titulo}</p>
+
+          <button
+            type="button"
+            className={styles.descripcion}
+            data-vacia={!t.descripcion || undefined}
+            onClick={() => setAbierta(abierta === t.id ? null : t.id)}
+            title="Clic para escribir o editar la descripción"
+          >
+            {t.descripcion || "Sin descripción · clic para escribirla"}
+          </button>
+
+          <div className={styles.pie}>
+            {t.publicada ? (
+              <button
+                type="button"
+                className={styles.copiar}
+                onClick={() => {
+                  navigator.clipboard?.writeText(`${location.origin}/${t.slug}`);
+                  setCopiado(t.id);
+                  setTimeout(() => setCopiado((x) => (x === t.id ? null : x)), 1800);
+                }}
+                title={`Copiar el enlace /${t.slug}`}
+              >
+                {copiado === t.id ? "¡Copiada!" : "Copiar URL"}
+              </button>
+            ) : (
+              <span className={styles.aviso}>Publícala para compartirla</span>
+            )}
+            <button
+              type="button"
+              className={styles.archivar}
+              onClick={() => mover(t.id, "borrador")}
+              title="Sacarla del catálogo (vuelve a Borrador)"
+            >
+              Sacar
+            </button>
+          </div>
+
+          {abierta === t.id && (
+            <label className={styles.campo}>
+              <span>Descripción</span>
+              <textarea
+                rows={4}
+                defaultValue={t.descripcion}
+                placeholder="Temas, personajes, colores, ambiente… p. ej. «Rapunzel: torre, cabello largo, flores silvestres, lila y dorado»"
+                onBlur={(e) => anotar(t.id, "descripcion", e.target.value)}
+              />
+            </label>
+          )}
+        </div>
+      </article>
+    );
   }
 
   function tarjeta(t: Tarjeta) {
@@ -559,6 +672,32 @@ export function Tablero({
         </div>
       )}
 
+      {/* El catálogo no es una columna más: es un muestrario.
+          Lo que se hace aquí es **elegir** una muestra para enseñársela a un
+          cliente, y eso no se hace leyendo nombres. Se agrupa por ocasión
+          —nadie busca «una muestra», busca «una de quince»— y cada una se
+          dibuja de verdad, con el mismo iframe escalado que ya usa la
+          galería de diseños. */}
+      {vista === "catalogo" ? (
+        muestrasPorTipo.length === 0 ? (
+          <p className={styles.vacio}>
+            No hay muestras todavía. Pasa una invitación al catálogo desde su
+            menú «⋯» y aparecerá aquí.
+          </p>
+        ) : (
+          <div className={styles.galeria}>
+            {muestrasPorTipo.map(([tipo, label, suyas]) => (
+              <section key={tipo}>
+                <h2 className={styles.grupoTitulo}>
+                  {label}
+                  <span className={styles.cuenta}>{suyas.length}</span>
+                </h2>
+                <div className={styles.rejilla}>{suyas.map(muestra)}</div>
+              </section>
+            ))}
+          </div>
+        )
+      ) : (
       <div
         className={styles.columnas}
         data-vista={vista}
@@ -630,6 +769,7 @@ export function Tablero({
           );
         })}
       </div>
+      )}
     </div>
   );
 }
