@@ -39,7 +39,6 @@ import {
   PARTICULA_POR_TIPO,
   coupleName,
   esVideoUrl,
-  formatDateLong,
   resolvedDateLabel,
   type HeroDisposicion,
   type InvitationData,
@@ -4173,7 +4172,19 @@ export function renderInvitation(opts: RenderOptions): string {
     preview,
   };
 
-  const deadline = String(data.confirm?.deadlineText || "").trim() || formatDateLong(iso);
+  /*
+   * La fecha límite para confirmar.
+   *
+   * Vacía es **vacía**, no la fecha del evento. Caía en ella, y eso tenía dos
+   * consecuencias, las dos malas: no había forma de quitarla —el campo vacío
+   * la devolvía igual— y lo que se leía no era una fecha límite sino el día
+   * de la fiesta, que como plazo para avisar no significa nada: confirmar el
+   * mismo día es no confirmar.
+   *
+   * Los 75 diseños traen su propio elemento para esto, así que se escribe
+   * ahí y se deja de pegar al final del mensaje; pegada **y** en su elemento
+   * salía dos veces en cuanto alguien la escribía.
+   */
   const confirmText = String(data.confirm?.text || "").trim();
 
   /** Valores compuestos que no salen tal cual del formulario. */
@@ -4190,11 +4201,7 @@ export function renderInvitation(opts: RenderOptions): string {
     "footer.dateLine":
       String(data.footer?.dateLine || "").trim() ||
       [resolvedDateLabel(data), String(data.event?.city || "")].filter(Boolean).join(" · "),
-    "confirm.text": confirmText
-      ? deadline
-        ? `${escapeHtml(confirmText)} <strong>${escapeHtml(deadline)}</strong>.`
-        : escapeHtml(confirmText)
-      : "",
+    "confirm.text": escapeHtml(confirmText),
   };
 
   const sectionOn = (key: string) => {

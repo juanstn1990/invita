@@ -1708,6 +1708,36 @@ for (const [nombre, tocar] of CASOS) {
         const sinFormulario = !doc.querySelector("[data-inv-rsvp]") && !!doc.querySelector("[data-inv-wa]");
         return sinFormulario && !!doc.querySelector("[data-inv-invitado]") && conScript(doc, "data-inv-invitado");
       }],
+    /* La fecha límite caía en la fecha del evento cuando estaba vacía, así
+       que se colaba al final del mensaje y no había forma de quitarla —y lo
+       que se leía no era un plazo, era el día de la fiesta—. Y escrita salía
+       dos veces: pegada al mensaje y en su propio elemento. */
+    ["sin fecha límite no se cuela la del evento en el mensaje",
+      (d) => {
+        d.event = { ...d.event, date: "2031-07-15T18:00" };
+        d.confirm = { ...d.confirm, enabled: true, mode: "form",
+          text: "Nos haría feliz que vengas.", deadlineText: "" };
+      },
+      (doc) => {
+        const t: any = doc.querySelector('[data-inv="confirm.text"]');
+        const texto = (t?.textContent || "").replace(/\s+/g, " ").trim();
+        return texto === "Nos haría feliz que vengas." &&
+          !/julio|2031/i.test(texto) &&
+          !doc.querySelector('[data-inv="confirm.deadlineText"]');
+      }],
+    ["y escrita sale una sola vez, en su sitio",
+      (d) => {
+        d.confirm = { ...d.confirm, enabled: true, mode: "form",
+          text: "Nos haría feliz que vengas.", deadlineText: "Antes del 1 de julio" };
+      },
+      (doc) => {
+        const dentro = doc.querySelector('[data-inv="confirm.deadlineText"]');
+        const t: any = doc.querySelector('[data-inv="confirm.text"]');
+        const seccion = (doc.querySelector('[data-inv-section="confirm"]')?.textContent || "");
+        const veces = (seccion.match(/Antes del 1 de julio/g) || []).length;
+        return !!dentro && veces === 1 &&
+          !(t?.textContent || "").includes("Antes del 1 de julio");
+      }],
     ["pases: tarjeta con el número y sin preguntar cuántos van",
       (d) => { d.confirm = { ...d.confirm, enabled: true, mode: "form" }; },
       (doc) => {

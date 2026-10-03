@@ -1259,7 +1259,13 @@ export const SECTIONS: SectionSpec[] = [
     fields: [
       ...sectionHeaderFields("¿Vendrás?", "Confirma tu asistencia"),
       { key: "text", label: "Mensaje", type: "textarea", span: 2 },
-      { key: "deadlineText", label: "Fecha límite", type: "text", placeholder: "1 de Noviembre de 2025" },
+      {
+        key: "deadlineText",
+        label: "Fecha límite para confirmar",
+        type: "text",
+        placeholder: "Antes del 1 de noviembre",
+        help: "Hasta cuándo pueden avisar. Déjalo vacío y no se muestra nada.",
+      },
       { key: "note", label: "Nota de cierre", type: "text", placeholder: "¡Tu presencia es el mejor regalo!" },
       {
         key: "mode",
