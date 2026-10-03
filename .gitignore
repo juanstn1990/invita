@@ -11,5 +11,6 @@ uploads
 
 # Salidas generadas: se rehacen con scripts/manual-pdf.py y scripts/lienzo-prueba.py
 Manual-Invita.pdf
+Guia-Invitados.pdf
 lienzo-prueba.html
 adornos-grok/

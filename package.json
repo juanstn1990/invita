@@ -38,6 +38,7 @@
     "audit:tablero": "tsx scripts/audit-tablero.ts",
     "audit:preview": "tsx scripts/audit-preview.ts",
     "audit:panel": "tsx scripts/audit-panel.ts",
+    "guia:invitados": "python3 scripts/guia-invitados-pdf.py",
     "audit:plantillas": "tsx scripts/audit-plantillas.ts",
     "mcp": "tsx scripts/mcp.ts"
   },
