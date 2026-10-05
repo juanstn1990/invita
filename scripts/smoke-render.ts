@@ -1738,6 +1738,21 @@ for (const [nombre, tocar] of CASOS) {
           /* Con imagen no se escribe la inicial: se vería encima del sello. */
           mitades.every((m) => !(m.textContent || "").trim());
       }],
+    /* El tamaño va en el velo, no en cada mitad: si cada una midiera por su
+       cuenta el sello no cuadraría en la juntura. Y acotado, porque un número
+       suelto —de una plantilla vieja, del MCP— no debe tapar la pantalla. */
+    ["lacre · el tamaño elegido, y acotado",
+      (d) => {
+        d.splash = { ...d.splash, enabled: true, apertura: "lacre", selloTamano: "9999" };
+      },
+      (doc) => {
+        const velo: any = doc.querySelector("#splash");
+        return (velo?.getAttribute("style") || "").includes("--inv-lacre-size:340px") &&
+          /* En las mitades no se escribe: lo heredan del velo. */
+          !Array.from(doc.querySelectorAll(".inv-lacre")).some(
+            (m: any) => (m.getAttribute("style") || "").includes("--inv-lacre-size")
+          );
+      }],
     ["sin fecha límite no se cuela la del evento en el mensaje",
       (d) => {
         d.event = { ...d.event, date: "2031-07-15T18:00" };

@@ -4634,6 +4634,18 @@ export function renderInvitation(opts: RenderOptions): string {
         `<i class="inv-hoja inv-hoja-izq" aria-hidden="true">${mitad("izq")}</i>` +
           `<i class="inv-hoja inv-hoja-der" aria-hidden="true">${mitad("der")}</i>`
       );
+      /* El tamaño va en el velo y no en cada mitad: las dos tienen que medir
+         lo mismo o el sello no cuadra en la juntura, y así es un solo sitio
+         donde mirarlo. Se acota aquí porque un número suelto en los datos
+         —de una plantilla vieja, del MCP— no debe poder tapar la pantalla. */
+      const tam = Math.round(Number(data.splash?.selloTamano));
+      if (Number.isFinite(tam) && tam > 0) {
+        const px = Math.min(340, Math.max(70, tam));
+        velo.setAttribute(
+          "style",
+          `${velo.getAttribute("style") || ""};--inv-lacre-size:${px}px`.replace(/^;/, "")
+        );
+      }
       velo.insertAdjacentHTML?.("beforeend", `<p class="inv-sobre-pista">Toca para romper el lacre</p>`);
     }
     if (velo && apertura === "sello") {

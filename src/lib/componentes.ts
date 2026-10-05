@@ -458,7 +458,9 @@ html:not(.js) .inv-ev-sendero .inv-dato{opacity:1;transform:none}
 #splash.abriendo .inv-hoja-izq{transform:rotateY(-112deg)}
 #splash.abriendo .inv-hoja-der{transform:rotateY(112deg)}
 
-.inv-lacre{--inv-lacre-w:132px;
+/* El tamaño sale de una variable del velo para poder elegirlo desde el
+   editor; el 132 es el valor de siempre cuando nadie lo toca. */
+.inv-lacre{--inv-lacre-w:var(--inv-lacre-size,132px);
   position:absolute;top:50%;height:var(--inv-lacre-w);width:calc(var(--inv-lacre-w) / 2);
   margin-top:calc(var(--inv-lacre-w) / -2);overflow:hidden;z-index:5;pointer-events:none;
   filter:drop-shadow(0 8px 14px rgba(0,0,0,.45))}
