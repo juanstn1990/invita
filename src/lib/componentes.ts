@@ -430,6 +430,58 @@ html:not(.js) .inv-ev-sendero .inv-dato{opacity:1;transform:none}
 #splash.abriendo .inv-postigo-der{transform:rotateY(108deg)}
 #splash.inv-velo-ventana .inv-sobre-pista{z-index:4;color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.5)}
 
+/* ── El lacre: dos hojas que se abren y parten el sello ──
+   Es la ventana llevada al papel: en vez de postigos, las dos mitades de un
+   sobre, y en la juntura un lacre que se parte por la mitad al abrirse.
+
+   El lacre se parte sin recortar nada: cada mitad es una ventana de medio
+   ancho con el sello **entero** dentro, pegado a su borde. Juntas lo
+   componen; al separarse las hojas, cada una se lleva su mitad. Así vale
+   igual para una imagen que para el sello dibujado, y no hay que generar
+   dos recortes de la foto que suba quien edita.
+
+   La transición es más lenta que en las demás aperturas (2.4s): aquí lo que
+   se mira es cómo se rompe el lacre, y a la velocidad de un postigo no da
+   tiempo a verlo. */
+#splash.inv-velo-lacre{cursor:pointer;-webkit-tap-highlight-color:transparent;overflow:hidden;perspective:2000px}
+#splash.inv-velo-lacre .splash-btns{display:none}
+#splash.inv-velo-lacre .splash-modal{position:relative;z-index:1}
+.inv-hoja{position:absolute;top:0;bottom:0;width:50.4%;z-index:3;
+  background:
+    linear-gradient(135deg,color-mix(in srgb,var(--inv-papel,#fdfbf7) 97%,#000) 0%,var(--inv-papel,#fdfbf7) 45%,
+      color-mix(in srgb,var(--inv-papel,#fdfbf7) 92%,#000) 100%),
+    repeating-linear-gradient(45deg,rgba(0,0,0,.016) 0 2px,transparent 2px 6px);
+  box-shadow:0 0 60px rgba(0,0,0,.45);
+  transition:transform 2.4s cubic-bezier(.25,1,.25,1)}
+.inv-hoja-izq{left:0;transform-origin:left center;border-right:1px solid rgba(120,100,70,.28)}
+.inv-hoja-der{right:0;transform-origin:right center;border-left:1px solid rgba(120,100,70,.28)}
+#splash.abriendo .inv-hoja-izq{transform:rotateY(-112deg)}
+#splash.abriendo .inv-hoja-der{transform:rotateY(112deg)}
+
+.inv-lacre{--inv-lacre-w:132px;
+  position:absolute;top:50%;height:var(--inv-lacre-w);width:calc(var(--inv-lacre-w) / 2);
+  margin-top:calc(var(--inv-lacre-w) / -2);overflow:hidden;z-index:5;pointer-events:none;
+  filter:drop-shadow(0 8px 14px rgba(0,0,0,.45))}
+.inv-lacre-izq{right:0}
+.inv-lacre-der{left:0}
+.inv-lacre i{position:absolute;top:0;height:100%;width:var(--inv-lacre-w);
+  display:grid;place-items:center;border-radius:50%;font-style:normal;
+  font-family:var(--font-display),Georgia,serif;font-size:calc(var(--inv-lacre-w) * .42);
+  color:color-mix(in srgb,var(--inv-accent) 40%,#fff);
+  text-shadow:0 1px 0 rgba(0,0,0,.45);
+  background:
+    radial-gradient(circle at 34% 28%,color-mix(in srgb,var(--inv-accent) 72%,#fff) 0%,
+      var(--inv-accent) 42%,color-mix(in srgb,var(--inv-accent) 72%,#000) 78%,
+      color-mix(in srgb,var(--inv-accent) 48%,#000) 100%);
+  box-shadow:inset 0 0 0 5px color-mix(in srgb,var(--inv-accent) 55%,#000),
+    inset 0 3px 10px rgba(255,255,255,.22)}
+.inv-lacre-izq i{left:0}
+.inv-lacre-der i{right:0}
+/* Con imagen manda la imagen: ni disco, ni inicial, ni relieve dibujado. */
+.inv-lacre.con-imagen i{background:var(--inv-lacre-img) center/contain no-repeat;
+  border-radius:0;box-shadow:none;color:transparent}
+#splash.inv-velo-lacre .inv-sobre-pista{z-index:4}
+
 /* ── La claqueta: se toca, el palo cae —¡acción!— y empieza la película ──
    Toda en CSS: la tabla con sus renglones y el palo con las franjas. El
    palo gira sobre la bisagra de la izquierda. */
@@ -770,7 +822,12 @@ html:not(.js) .inv-ev-sendero .inv-dato{opacity:1;transform:none}
     repeating-linear-gradient(45deg,color-mix(in srgb,var(--inv-accent) 85%,#000) 0 6px,var(--inv-accent) 6px 12px),
     var(--inv-accent);
   box-shadow:inset 0 0 0 10px var(--inv-naipe-fondo,var(--inv-surface))}
-#splash.abriendo .splash-modal{animation:invNaipeCae 1.7s cubic-bezier(.45,0,.55,1) forwards}
+/* Acotada al naipe, que es de quien es. Sin el inv-velo-naipe delante
+   alcanzaba a cualquier velo que se abriera con la clase abriendo —la
+   ventana, la claqueta, las nubes, el telon...— y en todos ellos la tarjeta
+   se volteaba y salia girando como una carta. El texto quedaba espejado un
+   segundo antes de irse, que es lo que delata el fallo. */
+#splash.inv-velo-naipe.abriendo .splash-modal{animation:invNaipeCae 1.7s cubic-bezier(.45,0,.55,1) forwards}
 @keyframes invNaipeCae{
   0%{transform:none}
   30%{transform:rotateY(180deg)}
@@ -1099,7 +1156,7 @@ html:not(.js) .inv-ev-constelacion .inv-dato{opacity:1;transform:none}
   .inv-cd-luciernagas .ring-number.tick,.inv-luciernaga{animation:none}
   .inv-ev-sendero .inv-dato,.inv-parada{transition:none}
   .inv-viajero,.inv-hito{transition:none}
-  .inv-postigo,.inv-claqueta-palo{transition:none}
+  .inv-postigo,.inv-claqueta-palo,.inv-hoja{transition:none}
   .inv-pedazo,.inv-grietas path{transition:none;animation:none}
   #splash.abriendo .splash-modal{animation:none}
   .inv-cd-bolsillo .countdown-ring::after{transition:none}
@@ -1501,6 +1558,29 @@ export const VENTANA_JS = `
       var b = velo.querySelector('.splash-btn-primary');
       if (b) b.click(); else if (window.enterSite) window.enterSite();
     }, quieto ? 0 : 1300);
+  });
+})();`;
+
+/**
+ * El lacre: se toca, las dos hojas se abren y el sello se parte con ellas.
+ *
+ * Espera más que las demás (2000 ms contra 1300) porque la transición dura
+ * 2.4 s: entrar antes se come justo lo que se había puesto a mirar.
+ */
+export const LACRE_JS = `
+(function(){
+  var velo = document.querySelector('#splash.inv-velo-lacre');
+  if (!velo) return;
+  var quieto = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var hecho = false;
+  velo.addEventListener('click', function(e){
+    if (hecho || e.target.closest('a')) return;
+    hecho = true;
+    velo.classList.add('abriendo');
+    setTimeout(function(){
+      var b = velo.querySelector('.splash-btn-primary');
+      if (b) b.click(); else if (window.enterSite) window.enterSite();
+    }, quieto ? 0 : 2000);
   });
 })();`;
 

@@ -10,7 +10,7 @@
 import { parseHTML } from "linkedom";
 import {
   ABANICO_JS, AGENDAR_JS, ANILLOS_JS, CAPITULOS_JS, CARRUSEL_JS, CIELO_JS, COMPONENTES_CSS, CONFETI_JS,
-  CONSTELACION_JS, DESEO_JS, FUGAZ_JS, LIBRO_JS, NUBES_JS, POLVO_JS, RASCA_JS, SENDERO_JS, SOBRE_JS, TELON_JS, VIAJE_JS, VENTANA_JS, CLAQUETA_JS, LLEGAN_JS, MARIPOSA_JS, ESCARCHA_JS, NAIPE_JS,
+  CONSTELACION_JS, DESEO_JS, FUGAZ_JS, LIBRO_JS, NUBES_JS, POLVO_JS, RASCA_JS, SENDERO_JS, SOBRE_JS, TELON_JS, VIAJE_JS, VENTANA_JS, CLAQUETA_JS, LLEGAN_JS, MARIPOSA_JS, ESCARCHA_JS, NAIPE_JS, LACRE_JS,
   VOLTEA_JS,
 } from "./componentes";
 import { sanearHtml } from "./sanear";
@@ -3448,7 +3448,7 @@ const FONDO_VIDEO_JS = `
  * inyectado; no hay marcado nuevo, así que funcionan igual en los 49 diseños
  * y en los que vengan.
  */
-const APERTURAS = new Set(["sobre", "sello", "deseo", "libro", "abanico", "nubes", "telon", "anillos", "ventana", "claqueta", "mariposa", "escarcha", "naipe", "jardin", "velas"]);
+const APERTURAS = new Set(["sobre", "sello", "deseo", "libro", "abanico", "nubes", "telon", "anillos", "ventana", "claqueta", "mariposa", "escarcha", "naipe", "jardin", "velas", "lacre"]);
 
 /**
  * Cómo la cortina da paso a la invitación.
@@ -4613,6 +4613,29 @@ export function renderInvitation(opts: RenderOptions): string {
           `</div><p class="inv-sobre-pista">Abre el libro</p>`
       );
     }
+    /* El lacre: dos hojas de papel que se abren y parten el sello.
+       Las dos mitades llevan el sello **entero** y cada una enseña su mitad
+       por recorte, así que vale igual una imagen que el sello dibujado y no
+       hay que partir en dos la foto que suba quien edita. */
+    if (velo && apertura === "lacre") {
+      const img = String(data.splash?.sello || "").trim();
+      const url = img ? (propia(img) ? conAncho(img, 400) : img) : "";
+      const inicial = (
+        String(data.event?.name1 || coupleName(data)).trim().charAt(0) || "✦"
+      ).toUpperCase();
+      const mitad = (lado: "izq" | "der") =>
+        `<div class="inv-lacre inv-lacre-${lado}${url ? " con-imagen" : ""}"` +
+        (url
+          ? ` style="--inv-lacre-img:url(&quot;${escapeHtml(url).replace(/"/g, "%22")}&quot;)"`
+          : "") +
+        ` aria-hidden="true"><i>${url ? "" : escapeHtml(inicial)}</i></div>`;
+      velo.insertAdjacentHTML?.(
+        "afterbegin",
+        `<i class="inv-hoja inv-hoja-izq" aria-hidden="true">${mitad("izq")}</i>` +
+          `<i class="inv-hoja inv-hoja-der" aria-hidden="true">${mitad("der")}</i>`
+      );
+      velo.insertAdjacentHTML?.("beforeend", `<p class="inv-sobre-pista">Toca para romper el lacre</p>`);
+    }
     if (velo && apertura === "sello") {
       const nombre = coupleName(data) || "";
       const ante = String(data.splash?.label || "").trim();
@@ -5322,6 +5345,7 @@ export function renderInvitation(opts: RenderOptions): string {
   if (document.querySelector(".inv-ev-sendero")) scripts.push(SENDERO_JS);
   if (document.querySelector(".inv-ev-viaje")) scripts.push(VIAJE_JS);
   if (document.querySelector(".inv-velo-ventana")) scripts.push(VENTANA_JS);
+  if (document.querySelector(".inv-velo-lacre")) scripts.push(LACRE_JS);
   if (document.querySelector(".inv-velo-claqueta")) scripts.push(CLAQUETA_JS);
   if (document.querySelector(".inv-velo-mariposa,.inv-velo-jardin,.inv-velo-velas")) scripts.push(MARIPOSA_JS);
   if (document.querySelector(".inv-velo-escarcha")) scripts.push(ESCARCHA_JS);

@@ -1712,6 +1712,32 @@ for (const [nombre, tocar] of CASOS) {
        que se colaba al final del mensaje y no había forma de quitarla —y lo
        que se leía no era un plazo, era el día de la fiesta—. Y escrita salía
        dos veces: pegada al mensaje y en su propio elemento. */
+    /* La apertura de lacre: dos hojas y un sello que se parte. Las mitades
+       llevan el sello entero y cada una enseña la suya por recorte, así que
+       lo que hay que comprobar es que estén las dos y que la imagen, cuando
+       la hay, mande sobre el sello dibujado. */
+    ["lacre · dos hojas y las dos mitades del sello",
+      (d) => { d.splash = { ...d.splash, enabled: true, apertura: "lacre" }; },
+      (doc) =>
+        doc.querySelectorAll(".inv-hoja").length === 2 &&
+        !!doc.querySelector(".inv-hoja-izq .inv-lacre-izq") &&
+        !!doc.querySelector(".inv-hoja-der .inv-lacre-der") &&
+        /* Sin imagen, la inicial dentro de cada mitad. */
+        !doc.querySelector(".inv-lacre.con-imagen") &&
+        (doc.querySelector(".inv-lacre-izq i")?.textContent || "").trim().length === 1],
+    ["lacre · con imagen manda la imagen, en las dos mitades",
+      (d) => {
+        d.splash = { ...d.splash, enabled: true, apertura: "lacre",
+          sello: "/api/media/2099/01/" + "a".repeat(24) + ".png" };
+      },
+      (doc) => {
+        const mitades = Array.from(doc.querySelectorAll(".inv-lacre")) as any[];
+        return mitades.length === 2 &&
+          mitades.every((m) => m.getAttribute("class").includes("con-imagen")) &&
+          mitades.every((m) => (m.getAttribute("style") || "").includes("--inv-lacre-img")) &&
+          /* Con imagen no se escribe la inicial: se vería encima del sello. */
+          mitades.every((m) => !(m.textContent || "").trim());
+      }],
     ["sin fecha límite no se cuela la del evento en el mensaje",
       (d) => {
         d.event = { ...d.event, date: "2031-07-15T18:00" };
