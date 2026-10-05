@@ -41,7 +41,10 @@ import { presetFor } from "./presets";
 import { TEMPLATE_BY_ID, KIND_LABEL, readTemplate } from "./templates";
 import { renderInvitation } from "./render";
 import { slugLibre, nombresDe, slugActualizado } from "./slugAuto";
-import { catalogo, esquemaDe, fusionar } from "./mcp";
+import { catalogo, esquemaDe, esquemaDeBloque, fusionar } from "./mcp";
+import {
+  ADDABLE, BLOCK_BY_TYPE, blockDefaults, newBlockId, readLayout, type Block,
+} from "./blocks";
 import { ESTADO_POR_ID, estadoDe, PAGO_POR_ID, pagoDe } from "./tablero";
 import { actualizarConParche, deshacer } from "./plantillas";
 import { descargar, guardarEnBiblioteca, TIPOS_BIBLIOTECA, urlsUsables } from "./subir";
@@ -354,11 +357,32 @@ export function construirServidor({ base, capturar }: OpcionesMcp): McpServer {
       inputSchema: {
         diseno: z.string().describe("El id del diseño."),
         seccion: z.string().optional().describe("Sólo una sección, p.ej. hero."),
+        bloque: z
+          .string()
+          .optional()
+          .describe("El **tipo** de un bloque opcional: paragraph, html, gallery…"),
       },
       annotations: { readOnlyHint: true },
     },
-    async ({ diseno, seccion }) => {
+    async ({ diseno, seccion, bloque }) => {
       if (!TEMPLATE_BY_ID[diseno]) return error(`"${diseno}" no es un diseño. Mira \`disenos\`.`);
+
+      /* Los bloques opcionales no son secciones del esquema: su marcado lo
+         pone la app, así que sus campos no dependen del diseño y hay que
+         pedirlos aparte. Van por tipo y no por id porque lo normal es
+         mirarlos **antes** de agregar uno. */
+      if (bloque) {
+        const uno = esquemaDeBloque(bloque, diseno);
+        return uno
+          ? json(uno)
+          : error(
+              `"${bloque}" no es un bloque con campos propios. Los que hay:\n\n` +
+                JSON.stringify(
+                  ADDABLE.map((b) => ({ tipo: b.type, nombre: b.label })), null, 2
+                )
+            );
+      }
+
       const todo = esquemaDe(diseno);
       if (!seccion) return json(todo);
       const una = todo.find((s) => s.seccion === seccion);
@@ -450,7 +474,10 @@ export function construirServidor({ base, capturar }: OpcionesMcp): McpServer {
         "Mete datos en las secciones de la invitación. El parche es " +
         '{ seccion: { campo: valor } }, p.ej. { "event": { "name1": "Ana" }, ' +
         '"hero": { "label": "Nos casamos" } }. Si algo no encaja no se escribe ' +
-        "nada y se explica qué: corrige y vuelve a llamar.",
+        "nada y se explica qué: corrige y vuelve a llamar. " +
+        "También acepta el **id de un bloque opcional** en vez de una sección " +
+        '—{ "paragraph-l2k4x1": { "title": "Nuestra historia" } }—: los que ' +
+        "se agregan con `bloques` se llenan por aquí, igual que una sección.",
       inputSchema: {
         id: z.string().describe("El id que devolvió `crear`."),
         datos: z
@@ -506,6 +533,167 @@ export function construirServidor({ base, capturar }: OpcionesMcp): McpServer {
         escritos: r.escritos,
         ...(slugNuevo ? { direccion: `/${slugNuevo}` } : {}),
         siguiente: "Pide `ver` para mirar cómo quedó.",
+      });
+    }
+  );
+
+  /* ── 6 bis · Los bloques opcionales ──────────────────────────── */
+
+  server.registerTool(
+    "bloques",
+    {
+      title: "Ver y agregar los bloques de una invitación",
+      description:
+        "El orden de la invitación y qué piezas la componen. Las once " +
+        "secciones del esquema vienen de serie, pero además se pueden agregar " +
+        "**bloques opcionales** —un párrafo, un HTML propio, una segunda " +
+        "galería, una foto, un vídeo, una ubicación— tantos como haga falta. " +
+        "Sin acción, enumera los que hay y los que se pueden agregar. Con " +
+        "`accion: \"agregar\"` crea uno y devuelve su id, y con ese id se " +
+        "escribe en él usando `escribir`, igual que en una sección.",
+      inputSchema: {
+        id: z.string().describe("El id de la invitación."),
+        accion: z
+          .enum(["agregar", "quitar", "mover"])
+          .optional()
+          .describe("Sin esto, sólo enumera."),
+        tipo: z.string().optional().describe("Qué agregar: paragraph, html, gallery…"),
+        bloque: z.string().optional().describe("El id del bloque, para quitar o mover."),
+        posicion: z
+          .number()
+          .int()
+          .optional()
+          .describe("Dónde ponerlo, empezando en 0. Al final si no se dice."),
+      },
+    },
+    async ({ id, accion, tipo, bloque, posicion }) => {
+      const inv = await prisma.invitation.findUnique({ where: { id } });
+      if (!inv) return error(`No hay ninguna invitación con id "${id}".`);
+      const viejo = sinDiseno(inv);
+      if (viejo) return error(viejo);
+
+      const datos = JSON.parse(inv.data) as Record<string, any>;
+      const lista = readLayout(datos);
+
+      /**
+       * Cómo se enumera un bloque: lo que hace falta para decidir.
+       *
+       * Recibe el array al que pertenece y no lo busca en el de fuera: al
+       * insertar uno en medio, los índices de los de abajo se corren, y
+       * comparando contra la lista vieja todos ellos dejaban de reconocerse
+       * como «el primero de su tipo». El resultado era que, después de
+       * agregar, media invitación decía que se escribía en su id —donde el
+       * renderer no lee nada— en vez de en su sección.
+       */
+      const retratoDe = (arr: Block[]) => (b: Block, i: number) => {
+        const spec = BLOCK_BY_TYPE[b.type];
+        /* El primero de cada tipo con sección propia edita esa sección, no
+           sus propios datos. Decirlo aquí evita el viaje de escribir en el
+           id y recibir un error. */
+        const primero = arr.findIndex((x) => x.type === b.type) === i;
+        const enSeccion = primero && spec?.section ? spec.section : null;
+        return {
+          posicion: i,
+          bloque: b.id,
+          tipo: b.type,
+          nombre: spec?.label || b.type,
+          ...(enSeccion
+            ? { seEscribeEn: enSeccion, nota: "Su contenido vive en esa sección del esquema." }
+            : { seEscribeEn: b.id }),
+          ...(b.variant ? { variante: b.variant } : {}),
+        };
+      };
+
+      if (!accion) {
+        return json({
+          bloques: lista.map(retratoDe(lista)),
+          sePuedenAgregar: ADDABLE.map((b) => ({
+            tipo: b.type, nombre: b.label, que: b.hint,
+          })),
+          siguiente:
+            "Para agregar: `bloques` con accion \"agregar\" y el `tipo`. Después " +
+            "`escribir` con el id que devuelva, como si fuera una sección.",
+        });
+      }
+
+      /* La misma frontera que `escribir`: entregada es que está en manos del
+         cliente, y añadirle un bloque es cambiársela a quien ya la tiene. */
+      if (estadoDe(inv.estado) === "entregada") {
+        return error(
+          `"${inv.title}" está marcada como **entregada**, y este servidor no toca ` +
+            `entregadas. Muévela a «En curso» en el tablero (${base}/tablero) y vuelve.`
+        );
+      }
+
+      let nuevos = [...lista];
+      let creado = "";
+
+      if (accion === "agregar") {
+        const spec = ADDABLE.find((b) => b.type === tipo);
+        if (!spec) {
+          return error(
+            `"${tipo}" no se puede agregar. Los que sí:\n\n` +
+              JSON.stringify(
+                ADDABLE.map((b) => ({ tipo: b.type, nombre: b.label, que: b.hint })),
+                null, 2
+              )
+          );
+        }
+        /* La variante propia y no la del diseño: un bloque agregado no existe
+           en el marcado del template, así que «la del diseño» no dibujaría
+           nada. Es la misma elección que hace el editor al agregarlo. */
+        creado = newBlockId(spec.type);
+        const nuevo: Block = {
+          id: creado,
+          type: spec.type,
+          variant: spec.variants.find((v) => v.id)?.id || "",
+          data: blockDefaults(spec),
+        };
+        const donde = typeof posicion === "number"
+          ? Math.max(0, Math.min(nuevos.length, posicion))
+          : nuevos.length;
+        nuevos.splice(donde, 0, nuevo);
+      } else {
+        const i = nuevos.findIndex((b) => b.id === bloque);
+        if (i < 0) {
+          return error(
+            `No hay ningún bloque "${bloque}" en esta invitación. Pide \`bloques\` sin acción para verlos.`
+          );
+        }
+        if (accion === "quitar") {
+          const spec = BLOCK_BY_TYPE[nuevos[i].type];
+          const primero = nuevos.findIndex((x) => x.type === nuevos[i].type) === i;
+          if (primero && spec?.section) {
+            return error(
+              `"${spec.label}" es una sección del esquema, no un bloque agregado: ` +
+                `quitarla aquí la sacaría del orden y su contenido se quedaría ` +
+                `huérfano. Apágala con \`escribir\`: { "${spec.section}": { "enabled": false } }.`
+            );
+          }
+          nuevos.splice(i, 1);
+        } else {
+          if (typeof posicion !== "number") {
+            return error("Para mover hace falta `posicion` (empieza en 0).");
+          }
+          const [fila] = nuevos.splice(i, 1);
+          nuevos.splice(Math.max(0, Math.min(nuevos.length, posicion)), 0, fila);
+        }
+      }
+
+      datos.layout = { ...(datos.layout || {}), blocks: nuevos };
+      await prisma.invitation.update({
+        where: { id },
+        data: { data: JSON.stringify(datos) },
+      });
+
+      return json({
+        hecho: accion,
+        ...(creado ? { bloque: creado } : {}),
+        bloques: nuevos.map(retratoDe(nuevos)),
+        siguiente: creado
+          ? `Escribe en él: \`escribir\` con { "${creado}": { … } }. Pide \`esquema\` ` +
+            `con \`bloque\` para saber qué campos admite.`
+          : "Pide `ver` para mirar cómo quedó.",
       });
     }
   );

@@ -35,6 +35,7 @@ import {
 import { FONTS } from "./fonts";
 import { TEMPLATES, TEMPLATE_BY_ID } from "./templates";
 import { templateSupport } from "./support";
+import { BLOCK_BY_TYPE, readLayout, type Block } from "./blocks";
 import { KIND_LABEL } from "./templates";
 
 /* ── El catálogo ─────────────────────────────────────────────── */
@@ -260,6 +261,50 @@ export function esquemaDe(templateId: string): SeccionResumen[] {
   return out;
 }
 
+/**
+ * Los campos de un bloque opcional (párrafo, HTML, foto, vídeo, ubicación…).
+ *
+ * Aparte de `esquemaDe` porque un bloque no es una sección del esquema: su
+ * marcado lo pone `blocks.ts`, así que no hay que preguntarle al diseño qué
+ * dibuja —lo dibuja todo— y sus campos no dependen del template.
+ */
+export function esquemaDeBloque(tipo: string, templateId: string): SeccionResumen | null {
+  const spec = BLOCK_BY_TYPE[tipo];
+  if (!spec?.fields) return null;
+
+  const s: SeccionResumen = {
+    seccion: tipo,
+    etiqueta: spec.label,
+    opcional: true,
+    campos: spec.fields
+      .filter((f) => !NO_RELLENABLES.has(f.type))
+      .map((f) => resumirCampo(f, templateId)),
+  };
+  if (spec.hint) s.nota = spec.hint;
+  if (spec.list) {
+    s.lista = {
+      clave: "items",
+      etiqueta: spec.list.label,
+      minimo: spec.list.min,
+      maximo: spec.list.max,
+      campos: spec.list.fields
+        .filter((f) => !NO_RELLENABLES.has(f.type))
+        .map((f) => resumirCampo(f, templateId)),
+    };
+  }
+  if (spec.adornos) {
+    s.adornos = {
+      clave: "adornos",
+      maximo: ADORNOS.max,
+      nota:
+        "Imágenes de la biblioteca colocadas sobre el bloque. Se escribe la " +
+        "lista entera y reemplaza la que hubiera.",
+      campos: ADORNOS.fields.map((f) => resumirCampo(f, templateId)),
+    };
+  }
+  return s;
+}
+
 /* ── Fusionar un parche ──────────────────────────────────────── */
 
 export interface Resultado {
@@ -376,10 +421,62 @@ export function fusionar(
   const admite = new Set(templateSupport(templateId).fields);
   const secciones = SECTIONS.map((s) => s.key);
 
+  /*
+   * Los bloques agregados —un párrafo, un HTML, una segunda galería— se
+   * escriben por su **id**, igual que una sección por su clave.
+   *
+   * No son secciones del esquema: viven en `layout.blocks` con sus datos
+   * encima, así que `SECTION_BY_KEY` no los encuentra y hasta ahora el
+   * servidor contestaba «no existe la sección», que es cierto y no sirve de
+   * nada. Se podían agregar desde el editor y después no se podían llenar
+   * desde aquí, que es justo al revés de lo que hace falta: agregar es un
+   * clic y escribir es el trabajo.
+   */
+  const bloques = (copia.layout as { blocks?: Block[] } | undefined)?.blocks || [];
+  /** El primero de cada tipo con sección propia escribe en la sección. */
+  const usados = new Set<string>();
+  const seccionDe = new Map<string, string>();
+  for (const b of bloques) {
+    const bs = BLOCK_BY_TYPE[b.type];
+    if (bs?.section && !usados.has(b.type)) seccionDe.set(b.id, bs.section);
+    usados.add(b.type);
+  }
+
   for (const [clave, campos] of Object.entries(parche || {})) {
-    const spec: SectionSpec | undefined = SECTION_BY_KEY[clave];
+    let spec: SectionSpec | undefined = SECTION_BY_KEY[clave];
+    const bloque = spec ? undefined : bloques.find((b) => b.id === clave);
+
+    if (!spec && bloque) {
+      /* El primero de su tipo edita la sección del esquema, no sus propios
+         datos: escribir en el id guardaría en un sitio que el renderer no
+         lee, y sería un «hecho» sin nada hecho. */
+      const enSeccion = seccionDe.get(bloque.id);
+      if (enSeccion) {
+        errores.push(
+          `El bloque "${clave}" es el primero de su tipo, así que su contenido ` +
+            `vive en la sección "${enSeccion}". Escribe ahí.`
+        );
+        continue;
+      }
+      const bs = BLOCK_BY_TYPE[bloque.type];
+      if (!bs?.fields) {
+        errores.push(`El bloque "${clave}" no tiene campos propios que escribir.`);
+        continue;
+      }
+      /* Marcado nuestro: no hay que preguntarle al diseño qué dibuja. */
+      spec = { key: clave, label: bs.label, fields: bs.fields, list: bs.list,
+               adornos: bs.adornos, optional: true } as SectionSpec;
+      for (const f of bs.fields) admite.add(`${clave}.${f.key}`);
+      if (bs.list) {
+        admite.add(`${clave}.items`);
+        for (const f of bs.list.fields) admite.add(`${clave}.items.${f.key}`);
+      }
+    }
+
     if (!spec) {
-      errores.push(`No existe la sección "${clave}".${conSugerencia(clave, secciones)}`);
+      errores.push(
+        `No existe la sección "${clave}".${conSugerencia(clave, [...secciones, ...bloques.map((b) => b.id)])}`
+      );
       continue;
     }
     if (!campos || typeof campos !== "object" || Array.isArray(campos)) {
@@ -478,7 +575,15 @@ export function fusionar(
       escritos.push(`${clave}.${campo}`);
     }
 
-    copia[clave] = destino;
+    /* Un bloque guarda lo suyo dentro de `layout.blocks`, no en la raíz: ahí
+       es donde lo lee el renderer. */
+    if (bloque) {
+      const i = bloques.findIndex((b) => b.id === clave);
+      bloques[i] = { ...bloques[i], data: destino as Block["data"] };
+      copia.layout = { ...(copia.layout as object), blocks: bloques };
+    } else {
+      copia[clave] = destino;
+    }
   }
 
   return errores.length
