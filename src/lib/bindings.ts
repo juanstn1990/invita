@@ -409,7 +409,11 @@ function construir(): TemplateMap {
              el mapa pediría un `data-inv` que no existe en ningún diseño. */
           /* Los cuatro del fondo de una ficha: los pinta `ponerFondoFicha`
              sobre la tarjeta ya clonada, no una operación del mapa. */
-          .filter((f) => !f.key.startsWith("fondo"))
+          /* Y la ilustración de la ficha, por lo mismo: la pinta
+             `ponerIlustracion` sobre la tarjeta ya clonada, no una operación
+             del mapa, así que pedirle un `data-inv` sería pedir un atributo
+             que ningún diseño trae. */
+          .filter((f) => !f.key.startsWith("fondo") && f.key !== "ilustracion" && f.key !== "arte")
           .map((f) => {
             const sel = [
               `[data-inv="${s.key}.items.${f.key}"]`,

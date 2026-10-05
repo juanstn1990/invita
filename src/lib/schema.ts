@@ -1251,6 +1251,37 @@ export const SECTIONS: SectionSpec[] = [
         { key: "address", label: "Dirección", type: "text", span: 2 },
         { key: "note", label: "Nota", type: "text", span: 2, placeholder: "Duración aproximada: 1 hora" },
         { key: "mapUrl", label: "Link al mapa", type: "url", span: 2 },
+        /*
+         * La ilustración que algunos diseños ponen al lado de cada momento
+         * —la capilla, las copas, el farol de «Olivar»— venía horneada en el
+         * CSS del diseño y por tanto no se podía ni cambiar ni quitar: eran
+         * las mismas tres para toda boda que usara ese diseño, en ese orden,
+         * pasara lo que pasara en el programa.
+         *
+         * Va en tres estados y no en un campo de imagen a secas porque
+         * «vacío» ya significa «la del diseño», y hacía falta poder decir
+         * **ninguna** sin que eso devolviera la de serie.
+         */
+        {
+          key: "ilustracion",
+          label: "Ilustración",
+          type: "select",
+          span: 2,
+          fallback: 0,
+          options: [
+            { value: "", label: "La que trae el diseño" },
+            { value: "propia", label: "Una imagen mía" },
+            { value: "ninguna", label: "Ninguna" },
+          ],
+        },
+        {
+          key: "arte",
+          label: "La imagen",
+          type: "image",
+          span: 2,
+          showIf: { key: "ilustracion", value: "propia" },
+          help: "Un PNG con fondo transparente queda mejor: se dibuja al lado del momento, no dentro de una caja.",
+        },
       ],
       defaultItem: {
         icon: "🥂",

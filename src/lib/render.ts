@@ -1560,6 +1560,7 @@ function applyList(
   current.forEach((el, i) => {
     const item = deriveItem(key, items[i]);
     ponerFondoFicha(el, items[i]);
+    ponerIlustracion(el, items[i]);
     /* Sin esto no hay de dónde sacar **qué ficha** se tocó: la vista previa
        cuenta las hermanas marcadas, y el marcado de las variantes no lleva
        el atributo. */
@@ -1588,6 +1589,48 @@ function applyList(
  * `overflow:hidden` porque la tarjeta suele tener esquinas redondeadas y una
  * foto a sangre se saldría por ellas, que es de lo que más se nota.
  */
+/**
+ * La ilustración que acompaña a una ficha del programa.
+ *
+ * Algunos diseños la hornean en su CSS —la capilla, las copas y el farol de
+ * «Olivar» salen de tres reglas `nth-child`— y eso la volvía intocable: las
+ * mismas tres, en ese orden, para toda boda que usara el diseño. Aquí se
+ * decide por ficha: lo del diseño, una imagen propia, o ninguna.
+ *
+ * Va en estilo en línea a propósito. Lo que hay que ganarle es una regla con
+ * `#events` y un `nth-child` dentro, y pelear eso con otro selector sería
+ * escribir una especificidad mayor a ciegas y por cada diseño; en línea gana
+ * siempre y no hay que saber contra qué se compite.
+ */
+function ponerIlustracion(ficha: El, datos?: Record<string, string>) {
+  const modo = String(datos?.ilustracion || "").trim();
+  if (!modo || !ficha?.querySelector) return;
+
+  const hueco = ficha.querySelector(".event-icon") as El | null;
+  if (!hueco?.setAttribute) return;
+
+  if (modo === "ninguna") {
+    const antes = hueco.getAttribute("style") || "";
+    hueco.setAttribute("style", `${antes ? antes + ";" : ""}display:none`);
+    return;
+  }
+  const url = String(datos?.arte || "").trim();
+  if (modo !== "propia" || !url) return;
+
+  /* El icono o el emoji que hubiera dentro se va: la imagen **sustituye** a
+     la ilustración, y las dos juntas se pisarían. */
+  hueco.textContent = "";
+  /* El `?w=` sólo lo entiende lo que servimos nosotros; una URL pegada a mano
+     se deja como está o devolvería un 404. */
+  const src = propia(url) ? conAncho(url, 400) : url;
+  const antes = hueco.getAttribute("style") || "";
+  hueco.setAttribute(
+    "style",
+    `${antes ? antes + ";" : ""}background:url("${src.replace(/"/g, "%22")}") center/contain no-repeat;` +
+      `box-shadow:none;border-radius:0`
+  );
+}
+
 function ponerFondoFicha(ficha: El, datos?: Record<string, string>) {
   if (!ficha?.setAttribute) return;
   const url = String(datos?.fondo || "").trim();

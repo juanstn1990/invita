@@ -1716,6 +1716,32 @@ for (const [nombre, tocar] of CASOS) {
        llevan el sello entero y cada una enseña la suya por recorte, así que
        lo que hay que comprobar es que estén las dos y que la imagen, cuando
        la hay, mande sobre el sello dibujado. */
+    /* La ilustración de cada momento. Algunos diseños la hornean en su CSS
+       —tres reglas nth-child en «Olivar»— y eso la volvía intocable: las
+       mismas tres, en ese orden, para toda boda con ese diseño. */
+    ["programa · la ilustración se cambia y se quita por ficha",
+      (d) => {
+        const uno = d.events.items[0] || {};
+        d.events = { ...d.events, enabled: true, items: [
+          { ...uno, title: "Del diseño" },
+          { ...uno, title: "Ninguna", ilustracion: "ninguna" },
+          { ...uno, title: "Propia", ilustracion: "propia",
+            arte: "/api/media/2099/01/" + "a".repeat(24) + ".png" },
+        ]};
+      },
+      (doc) => {
+        const ic = Array.from(doc.querySelectorAll("#events .event-card .event-icon")) as any[];
+        if (ic.length < 3) return false;
+        const e = (n: number) => ic[n].getAttribute("style") || "";
+        return (
+          /* La primera no se toca: manda el diseño. */
+          !e(0).includes("display:none") && !e(0).includes("background:url") &&
+          e(1).includes("display:none") &&
+          e(2).includes("background:url") && e(2).includes("w=400") &&
+          /* La imagen sustituye: no se queda el emoji debajo. */
+          !(ic[2].textContent || "").trim()
+        );
+      }],
     ["lacre · dos hojas y las dos mitades del sello",
       (d) => { d.splash = { ...d.splash, enabled: true, apertura: "lacre" }; },
       (doc) =>
