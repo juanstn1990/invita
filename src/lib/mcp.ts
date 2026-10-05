@@ -36,6 +36,7 @@ import { FONTS } from "./fonts";
 import { TEMPLATES, TEMPLATE_BY_ID } from "./templates";
 import { templateSupport } from "./support";
 import { BLOCK_BY_TYPE, readLayout, type Block } from "./blocks";
+import { fontableOp, mapFor } from "./bindings";
 import { KIND_LABEL } from "./templates";
 
 /* ── El catálogo ─────────────────────────────────────────────── */
@@ -85,6 +86,16 @@ export interface CampoResumen {
   opciones?: { valor: string; etiqueta: string }[];
   ayuda?: string;
   ejemplo?: string;
+  /**
+   * Qué se le puede retocar además del valor: la letra, el color, la
+   * alineación, el tamaño y la animación de entrada.
+   *
+   * Se declara aquí porque si no, no hay forma de saberlo: los ajustes se
+   * escriben en mapas aparte (`fonts`, `colors`…) y no todos los campos los
+   * admiten —sólo los que escriben texto en un elemento concreto—. Sin esto
+   * sólo quedaba adivinar el nombre del campo y leer el error.
+   */
+  ajustes?: string[];
 }
 
 export interface SeccionResumen {
@@ -189,9 +200,27 @@ function conOpciones(f: FieldSpec, templateId: string): FieldSpec {
   };
 }
 
-function resumirCampo(f: FieldSpec, templateId: string): CampoResumen {
+function resumirCampo(
+  f: FieldSpec,
+  templateId: string,
+  /** La ruta del campo, para saber si admite letra. Sin ella, no se declara. */
+  rutaFont?: string,
+  admite?: Set<string>
+): CampoResumen {
   const campo = conOpciones(f, templateId);
   const c: CampoResumen = { campo: campo.key, etiqueta: campo.label, tipo: campo.type };
+  /* Sólo los campos que de verdad escriben texto. El mapa de bindings le da
+     una operación de texto a cualquier campo, selects incluidos, así que
+     «cómo entra la sección» figura como si se le pudiera cambiar la letra —y
+     no hay ningún texto al que cambiársela—. Anunciarlo aquí sería gastar un
+     turno en un ajuste que no se vería. */
+  if (
+    rutaFont &&
+    admite?.has(rutaFont) &&
+    (campo.type === "text" || campo.type === "textarea")
+  ) {
+    c.ajustes = ["fonts", "colors", "align", "size", "anim"];
+  }
   if (campo.type === "select" && campo.options) {
     c.opciones = campo.options.map((o) => ({ valor: o.value, etiqueta: o.label }));
   }
@@ -219,12 +248,12 @@ export function esquemaDe(templateId: string): SeccionResumen[] {
   for (const spec of SECTIONS) {
     const campos = spec.fields
       .filter((f) => admite.has(`${spec.key}.${f.key}`) && !NO_RELLENABLES.has(f.type))
-      .map((f) => resumirCampo(f, templateId));
+      .map((f) => resumirCampo(f, templateId, `${spec.key}.${f.key}@font`, admite));
 
     const listaCampos = spec.list
       ? spec.list.fields
           .filter((f) => !NO_RELLENABLES.has(f.type))
-          .map((f) => resumirCampo(f, templateId))
+          .map((f) => resumirCampo(f, templateId, `${spec.key}.items.${f.key}@font`, admite))
       : [];
 
     if (!campos.length && !listaCampos.length && !spec.adornos) continue;
@@ -272,13 +301,19 @@ export function esquemaDeBloque(tipo: string, templateId: string): SeccionResume
   const spec = BLOCK_BY_TYPE[tipo];
   if (!spec?.fields) return null;
 
+  /* Los bindings de un bloque van por su tipo, no por el id de la copia. */
+  const fontable = (campo: string) =>
+    (mapFor().fields[`${tipo}.${campo}`] || []).some(fontableOp);
+  const admite = new Set<string>();
+  for (const f of spec.fields) if (fontable(f.key)) admite.add(`${tipo}.${f.key}@font`);
+
   const s: SeccionResumen = {
     seccion: tipo,
     etiqueta: spec.label,
     opcional: true,
     campos: spec.fields
       .filter((f) => !NO_RELLENABLES.has(f.type))
-      .map((f) => resumirCampo(f, templateId)),
+      .map((f) => resumirCampo(f, templateId, `${tipo}.${f.key}@font`, admite)),
   };
   if (spec.hint) s.nota = spec.hint;
   if (spec.list) {
@@ -466,10 +501,28 @@ export function fusionar(
       /* Marcado nuestro: no hay que preguntarle al diseño qué dibuja. */
       spec = { key: clave, label: bs.label, fields: bs.fields, list: bs.list,
                adornos: bs.adornos, optional: true } as SectionSpec;
-      for (const f of bs.fields) admite.add(`${clave}.${f.key}`);
+      /*
+       * El id es de este bloque; los bindings son del **tipo**. El renderer
+       * aplica la letra y el color con `paragraph.text`, no con
+       * `paragraph-l2k4x1.text`, así que para saber si un campo admite esos
+       * ajustes hay que preguntar por el tipo. Sin esta traducción, cambiarle
+       * la letra a un párrafo agregado se rechazaba con un «no es un texto al
+       * que se le pueda cambiar la letra» que no era verdad.
+       */
+      const fontable = (campo: string) =>
+        (mapFor().fields[`${bloque.type}.${campo}`] || []).some(fontableOp);
+      for (const f of bs.fields) {
+        admite.add(`${clave}.${f.key}`);
+        if (fontable(f.key)) admite.add(`${clave}.${f.key}@font`);
+      }
       if (bs.list) {
         admite.add(`${clave}.items`);
-        for (const f of bs.list.fields) admite.add(`${clave}.items.${f.key}`);
+        for (const f of bs.list.fields) {
+          admite.add(`${clave}.items.${f.key}`);
+          if (f.type === "text" || f.type === "textarea") {
+            admite.add(`${clave}.items.${f.key}@font`);
+          }
+        }
       }
     }
 
@@ -731,4 +784,33 @@ function revisarAdornos(
     out.push(a);
   }
   return out;
+}
+
+
+/**
+ * El catálogo de lo que se puede elegir para un texto.
+ *
+ * Vivía sólo dentro de los mensajes de error —«no es una tipografía del
+ * catálogo. Algunas: …»— así que la única forma de saber qué había era
+ * equivocarse y leer la respuesta, y aun así sólo salían seis de cincuenta y
+ * tantas. Un catálogo que hay que descubrir a base de errores es un catálogo
+ * que no se usa.
+ */
+export function catalogoDeAjustes() {
+  const porGrupo: Record<string, { id: string; nombre: string }[]> = {};
+  for (const f of FONTS) {
+    (porGrupo[f.group] ||= []).push({ id: f.id, nombre: f.name });
+  }
+  return {
+    letras: porGrupo,
+    alineaciones: ALINEACIONES.map((a) => ({ valor: a.value, etiqueta: a.label })),
+    animaciones: ANIMACIONES.map((a) => ({ valor: a.value, etiqueta: a.label })),
+    tamano: "Un porcentaje de lo que le dio el diseño: 100 es sin tocar, 130 un 30 % más grande.",
+    colores: "Hexadecimal de seis cifras, como \"#8a7248\".",
+    como:
+      "Se escriben con `escribir`, en mapas aparte del valor y por campo: " +
+      '{ "hero": { "fonts": { "label": "greatvibes" }, "colors": { "label": "#b03060" } } }. ' +
+      "Vacío quita el ajuste y devuelve lo del diseño. Qué campos los admiten " +
+      "lo dice `esquema`, en `ajustes` de cada campo.",
+  };
 }

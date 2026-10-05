@@ -41,7 +41,7 @@ import { presetFor } from "./presets";
 import { TEMPLATE_BY_ID, KIND_LABEL, readTemplate } from "./templates";
 import { renderInvitation } from "./render";
 import { slugLibre, nombresDe, slugActualizado } from "./slugAuto";
-import { catalogo, esquemaDe, esquemaDeBloque, fusionar } from "./mcp";
+import { catalogo, catalogoDeAjustes, esquemaDe, esquemaDeBloque, fusionar } from "./mcp";
 import {
   ADDABLE, BLOCK_BY_TYPE, blockDefaults, newBlockId, readLayout, type Block,
 } from "./blocks";
@@ -393,6 +393,23 @@ export function construirServidor({ base, capturar }: OpcionesMcp): McpServer {
               todo.map((s) => s.seccion).join(", ") + "."
           );
     }
+  );
+
+  server.registerTool(
+    "letras",
+    {
+      title: "Las tipografías y los demás ajustes de un texto",
+      description:
+        "Qué se le puede elegir a un texto además de lo que dice: la " +
+        "tipografía (más de cincuenta, por familias), el color, la " +
+        "alineación, el tamaño y la animación de entrada. Hacía falta porque " +
+        "el catálogo sólo asomaba dentro de los mensajes de error, y de seis " +
+        "en seis. Qué campos admiten estos ajustes lo dice `esquema`, en " +
+        "`ajustes` de cada campo; aquí están los valores que aceptan.",
+      inputSchema: {},
+      annotations: { readOnlyHint: true },
+    },
+    async () => json(catalogoDeAjustes())
   );
 
   /* ── 5 · Leer lo que hay ─────────────────────────────────────── */
