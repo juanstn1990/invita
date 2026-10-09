@@ -1756,10 +1756,32 @@ function ponerIlustracion(ficha: El, datos?: Record<string, string>) {
   /* El `?w=` sólo lo entiende lo que servimos nosotros; una URL pegada a mano
      se deja como está o devolvería un 404. */
   const src = propia(url) ? conAncho(url, 400) : url;
+  /* El tamaño, también en línea y siempre, no sólo cuando se mueve el
+     deslizador. El hueco lo dimensiona el CSS de cada diseño y no lo
+     dimensionan igual —52 px en «Cielo Celeste», 160 en «Olivar»—, y los que
+     nunca dibujaron ilustración no le dan ninguno: ahí el alto lo ponía el
+     icono de dentro, que esta imagen sustituye, así que sin medida propia el
+     hueco se queda en nada y la imagen no se ve. Dándosela siempre, la misma
+     foto sale igual en los 76.
+
+     Caja con tope de ancho y alto fijo, y la imagen `contain` dentro: una
+     apaisada usa el ancho y gasta menos alto, una vertical al revés, y
+     ninguna se deforma. */
+  /* Vacío es «el de por defecto», no «el mínimo». El deslizador escribe
+     vacío cuando está en su posición de descanso —es lo que significa su
+     `fallback`— y `Number("")` da 0, que al acotar se convierte en 30: la
+     imagen se encogía a la mínima en cuanto alguien movía el control y lo
+     devolvía a su sitio. */
+  const crudo = String(datos?.arteTamano ?? "").trim();
+  const n = Number(crudo);
+  const tamano = crudo && Number.isFinite(n) ? Math.min(300, Math.max(30, n)) : 100;
+  const lado = Math.round((96 * tamano) / 100);
   const antes = hueco.getAttribute("style") || "";
   hueco.setAttribute(
     "style",
     `${antes ? antes + ";" : ""}background:url("${src.replace(/"/g, "%22")}") center/contain no-repeat;` +
+      `display:block;width:100%;max-width:${lado}px;height:${lado}px;` +
+      `margin-left:auto;margin-right:auto;` +
       `box-shadow:none;border-radius:0`
   );
 }

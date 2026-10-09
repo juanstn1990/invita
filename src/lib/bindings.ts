@@ -421,8 +421,15 @@ function construir(): TemplateMap {
           /* Y la ilustración de la ficha, por lo mismo: la pinta
              `ponerIlustracion` sobre la tarjeta ya clonada, no una operación
              del mapa, así que pedirle un `data-inv` sería pedir un atributo
-             que ningún diseño trae. */
-          .filter((f) => !f.key.startsWith("fondo") && f.key !== "ilustracion" && f.key !== "arte")
+             que ningún diseño trae.
+
+             Por prefijo y no por nombre, como el fondo: la ilustración ya
+             son dos campos —la imagen y su tamaño— y el segundo entró
+             pidiendo su atributo en los 76 hasta que la auditoría lo dijo.
+             Lo que `ponerIlustracion` pinte mañana se llamará `arte…` y
+             quedará fuera solo. */
+          .filter((f) => !f.key.startsWith("fondo") && !f.key.startsWith("arte")
+            && f.key !== "ilustracion")
           .map((f) => {
             const sel = [
               `[data-inv="${s.key}.items.${f.key}"]`,

@@ -1282,6 +1282,32 @@ export const SECTIONS: SectionSpec[] = [
           showIf: { key: "ilustracion", value: "propia" },
           help: "Un PNG con fondo transparente queda mejor: se dibuja al lado del momento, no dentro de una caja.",
         },
+        /*
+         * Cuánto mide.
+         *
+         * Hace falta porque el hueco de la ilustración lo dimensiona el CSS
+         * de cada diseño, y no lo dimensionan igual: unos le dan 52 px, otros
+         * 160, y los que nunca dibujaron ilustración no le dan ninguno —ahí
+         * el hueco lo abría el icono que había dentro, y una imagen propia lo
+         * sustituye—. Así que la misma foto salía de un tamaño distinto en
+         * cada diseño, y en algunos no salía.
+         *
+         * Con esto la imagen propia deja de depender del diseño: mide lo que
+         * se diga, y el 100 % es un tamaño de partida que funciona en todos.
+         */
+        {
+          key: "arteTamano",
+          label: "Tamaño de la imagen",
+          type: "range",
+          min: 30,
+          max: 300,
+          step: 10,
+          unit: "%",
+          fallback: 100,
+          span: 2,
+          showIf: { key: "ilustracion", value: "propia" },
+          help: "100 % son 96 px de alto. Súbelo o bájalo hasta que encaje con el texto del momento.",
+        },
       ],
       defaultItem: {
         icon: "🥂",
