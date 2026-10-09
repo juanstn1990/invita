@@ -1461,6 +1461,139 @@ function duplicarCinta(root: El) {
   }
 }
 
+/* ── calendario ──────────────────────────────────────────────── */
+
+const CAL_MESES = [
+  "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+  "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
+];
+
+/** Domingo primero, que es como se imprime un calendario en América. */
+const CAL_DIAS = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+const CAL_INICIALES = ["Do", "Lu", "Ma", "Mi", "Ju", "Vi", "Sá"];
+
+/**
+ * El círculo a mano alzada.
+ *
+ * Un solo trazo que da la vuelta y se pasa un poco al cerrar, que es lo que
+ * lo hace parecer dibujado y no un `border-radius`. `pathLength="1"` deja el
+ * largo normalizado para que el CSS lo dibuje con un `stroke-dashoffset` de
+ * 1 a 0 sin saber cuánto mide de verdad.
+ */
+const CAL_TRAZO =
+  '<svg class="inv-cal-trazo" viewBox="0 0 100 100" aria-hidden="true">' +
+  '<path pathLength="1" d="M74 22C61 10 31 12 19 29 7 46 11 75 34 85c23 10 55-2 57-28' +
+  'C92 35 73 18 47 17c-9 0-18 3-25 8"/></svg>';
+
+/**
+ * Los días de un mes y en qué columna cae el primero.
+ *
+ * Todo en UTC a propósito: `new Date("2027-04-17")` se interpreta como
+ * medianoche UTC y, leído con `getDate()` en un reloj al oeste de Greenwich
+ * —que es donde está casi todo el mundo que usa esto—, devuelve el día
+ * anterior. Un calendario que marca el 16 cuando la boda es el 17 es peor
+ * que no poner calendario.
+ */
+function calMes(y: number, m: number, inicioLunes: boolean) {
+  const dias = new Date(Date.UTC(y, m, 0)).getUTCDate();
+  const primero = new Date(Date.UTC(y, m - 1, 1)).getUTCDay();
+  return { dias, hueco: inicioLunes ? (primero + 6) % 7 : primero };
+}
+
+/**
+ * Llena la caja del bloque de Calendario.
+ *
+ * El bloque sólo escribe `<div class="inv-cal" data-inv-cal>`; lo de dentro
+ * depende de la fecha, así que se arma aquí. Las cuatro variantes comparten
+ * las mismas clases —`.inv-cal-dia`, `.inv-cal-fecha`— y se distinguen por
+ * la que lleva la caja, igual que las cuentas atrás: el CSS hace el resto.
+ *
+ * Sin fecha no hay calendario que dibujar y el bloque se esconde entero, en
+ * vez de dejar una rejilla vacía que nadie sabría leer.
+ */
+function llenarCalendario(root: El, d: Record<string, unknown>, iso: string) {
+  const caja = root.querySelector?.("[data-inv-cal]") as El | null;
+  if (!caja) return;
+
+  const fecha = String(d.fecha || "").trim() || iso;
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(fecha);
+  if (!m) {
+    ocultar(root);
+    return;
+  }
+  const y = Number(m[1]);
+  const mes = Number(m[2]);
+  const dia = Number(m[3]);
+  const semana = new Date(Date.UTC(y, mes - 1, dia)).getUTCDay();
+
+  const inicioLunes = String(d.inicio || "") === "lunes";
+  const marca = String(d.marca || "aro").trim() || "aro";
+  /* El giro de la semana: con la semana empezando en lunes, la columna 0 es
+     el lunes, así que las iniciales y los huecos se leen desplazados uno. */
+  const giro = (i: number) => (inicioLunes ? (i + 1) % 7 : i);
+
+  const cabecera = CAL_INICIALES.map(
+    (_, i) => `<span class="inv-cal-sem">${CAL_INICIALES[giro(i)]}</span>`
+  ).join("");
+
+  const celda = (n: number, clase = "") =>
+    `<span class="inv-cal-dia${clase ? " " + clase : ""}">${n}</span>`;
+
+  /* El día señalado: el número y, detrás, la marca. El trazo va siempre en
+     el marcado y el CSS lo enseña sólo cuando toca —es un SVG de 300 bytes
+     y así las cuatro marcas se eligen sin volver a armar la rejilla. */
+  const marcado = (n: number) =>
+    `<span class="inv-cal-dia inv-cal-fecha">${CAL_TRAZO}<b>${n}</b></span>`;
+
+  let dentro = "";
+
+  if (String(caja.getAttribute("class") || "").includes("inv-cal-hoja")) {
+    dentro =
+      `<p class="inv-cal-banda">${CAL_MESES[mes - 1]}</p>` +
+      `<div class="inv-cal-cuerpo">${CAL_TRAZO}` +
+      `<span class="inv-cal-grande">${dia}</span>` +
+      `<span class="inv-cal-sub">${CAL_DIAS[semana].toLowerCase()} · ${y}</span>` +
+      `</div>`;
+  } else if (String(caja.getAttribute("class") || "").includes("inv-cal-semana")) {
+    /* La semana del evento: se retrocede hasta su primer día y se avanzan
+       siete, cruzando el cambio de mes si hace falta. Los días del mes de al
+       lado se quedan, apagados: quitarlos dejaría una fila coja. */
+    const desde = inicioLunes ? (semana + 6) % 7 : semana;
+    dentro =
+      `<p class="inv-cal-titulo">${CAL_MESES[mes - 1]} ${y}</p>` +
+      `<div class="inv-cal-rejilla">${cabecera}` +
+      Array.from({ length: 7 }, (_, i) => {
+        const f = new Date(Date.UTC(y, mes - 1, dia - desde + i));
+        const n = f.getUTCDate();
+        if (f.getUTCMonth() + 1 === mes && n === dia) return marcado(n);
+        return celda(n, f.getUTCMonth() + 1 === mes ? "" : "inv-cal-fuera");
+      }).join("") +
+      `</div>`;
+  } else {
+    const { dias, hueco } = calMes(y, mes, inicioLunes);
+    const grande =
+      String(caja.getAttribute("class") || "").includes("inv-cal-tarjeta")
+        ? `<p class="inv-cal-cabeza"><span class="inv-cal-grande">${dia}</span>` +
+          `<span class="inv-cal-sub">${CAL_DIAS[semana].toLowerCase()}</span></p>`
+        : "";
+    dentro =
+      grande +
+      `<p class="inv-cal-titulo">${CAL_MESES[mes - 1]} ${y}</p>` +
+      `<div class="inv-cal-rejilla">${cabecera}` +
+      Array.from({ length: hueco }, () => '<span class="inv-cal-dia"></span>').join("") +
+      Array.from({ length: dias }, (_, i) =>
+        i + 1 === dia ? marcado(dia) : celda(i + 1)
+      ).join("") +
+      `</div>`;
+  }
+
+  caja.innerHTML = dentro;
+  caja.setAttribute(
+    "class",
+    `${caja.getAttribute("class") || ""} inv-cal-m-${marca}`.trim()
+  );
+}
+
 /* ── listas repetibles ───────────────────────────────────────── */
 
 /**
@@ -1828,6 +1961,10 @@ export const INJECTED_CSS = `
 /* ── Componentes propios ──────────────────────────────────────
    Todo lo que inyectamos se dibuja con estas reglas y se adapta con las
    variables --inv-* que declara el tema de cada diseño (ver design/css.ts). */
+
+/* El corazón del calendario, una vez y arriba: es una máscara —el color lo
+   pone --inv-accent— y la usan dos reglas distintas. */
+:root{--inv-cal-corazon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 29'%3E%3Cpath fill='%23000' d='M16 29S2 20.2 2 10.6C2 5.9 5.8 2 10.5 2 13 2 15 3.2 16 5c1-1.8 3-3 5.5-3C26.2 2 30 5.9 30 10.6 30 20.2 16 29 16 29z'/%3E%3C/svg%3E")}
 
 .inv-rsvp{display:flex;flex-direction:column;gap:11px;max-width:420px;margin:28px auto 0;text-align:center}
 .inv-rsvp-input{width:100%;box-sizing:border-box;padding:14px 16px;
@@ -3031,6 +3168,113 @@ a.inv-rsvp-btn{display:flex;width:max-content;max-width:100%;margin:28px auto 0;
 @media (min-width:640px){
   .inv-mapa-ancho .inv-mapa-lienzo::before{padding-top:44%}
 }
+
+/* ── Calendario ──
+   Las cuatro variantes comparten rejilla y celdas; lo que cambia es la caja
+   que las envuelve. Todo sale de los tokens del diseño, así que el mes se
+   viste solo en los 58. */
+.inv-cal{max-width:400px;margin:28px auto 0;font-family:var(--inv-font-ui)}
+.inv-cal-titulo{margin:0 0 14px;text-align:center;font-family:var(--inv-font-title);
+  font-size:clamp(19px,5vw,25px);line-height:1.2;color:var(--inv-ink)}
+.inv-cal-rejilla{display:grid;grid-template-columns:repeat(7,1fr);gap:3px 0;
+  align-items:center}
+.inv-cal-sem{padding-bottom:9px;text-align:center;font-size:10px;
+  letter-spacing:var(--inv-tracking);text-transform:uppercase;
+  color:var(--inv-accent);opacity:.85}
+.inv-cal-dia{position:relative;display:grid;place-items:center;aspect-ratio:1;
+  font-size:clamp(12.5px,3.5vw,15px);font-variant-numeric:tabular-nums;
+  color:var(--inv-ink);opacity:.82}
+.inv-cal-fuera{opacity:.3}
+.inv-cal-fecha{opacity:1;font-weight:600}
+.inv-cal-fecha b{position:relative;z-index:2;font-weight:inherit}
+.inv-cal-pie{margin:16px 0 0;text-align:center;font-size:12.5px;
+  line-height:1.5;color:var(--inv-ink);opacity:.7}
+
+/* La marca del día. Las cuatro se dibujan detrás del número, centradas en la
+   celda y de un tamaño atado a ella: así la misma regla vale para el mes
+   completo —celdas de 40px— y para la hoja arrancada, donde el número ocupa
+   la caja entera. */
+.inv-cal-marca,.inv-cal-fecha::before{content:"";position:absolute;
+  left:50%;top:50%;width:108%;aspect-ratio:1;transform:translate(-50%,-50%);
+  z-index:1;pointer-events:none}
+.inv-cal-m-aro .inv-cal-fecha::before{border:1.6px solid var(--inv-accent);border-radius:50%}
+.inv-cal-m-relleno .inv-cal-fecha::before{background:var(--inv-accent);border-radius:50%}
+.inv-cal-m-relleno .inv-cal-fecha b{color:var(--inv-on-accent)}
+/* El corazón es una máscara, no una imagen de color: así lo tiñe
+   --inv-accent como todo lo demás y no hay un rojo fijo en el CSS. */
+.inv-cal-m-corazon .inv-cal-fecha::before{width:132%;background:var(--inv-accent);
+  -webkit-mask:var(--inv-cal-corazon) center/contain no-repeat;
+  mask:var(--inv-cal-corazon) center/contain no-repeat}
+.inv-cal-m-corazon .inv-cal-fecha b{color:var(--inv-on-accent)}
+/* El trazo a mano: sólo se ve con esa marca elegida, y se dibuja al asomarse
+   la sección, como el resto de las animaciones de entrada. */
+.inv-cal-trazo{position:absolute;left:50%;top:50%;width:128%;height:128%;
+  transform:translate(-50%,-50%) rotate(-4deg);z-index:1;overflow:visible;
+  fill:none;stroke:var(--inv-accent);stroke-width:4.5;stroke-linecap:round;
+  opacity:0}
+.inv-cal-m-trazo .inv-cal-trazo{opacity:1}
+.js .inv-cal-m-trazo .inv-cal-trazo path{stroke-dasharray:1;stroke-dashoffset:1}
+.js .reveal.in .inv-cal-m-trazo .inv-cal-trazo path{
+  animation:inv-cal-dibuja 1.05s .25s ease-out forwards}
+@keyframes inv-cal-dibuja{to{stroke-dashoffset:0}}
+@media (prefers-reduced-motion:reduce){
+  .js .inv-cal-m-trazo .inv-cal-trazo path{stroke-dashoffset:0;animation:none}
+}
+
+/* Sólo la semana: una fila sola, con más aire entre números porque no hay
+   cinco renglones que le den cuerpo. */
+.inv-cal-semana{max-width:360px}
+.inv-cal-semana .inv-cal-dia{aspect-ratio:auto;padding:7px 0 9px}
+
+/* La tarjeta: el día grande arriba y el mes dentro de un recuadro. */
+.inv-cal-tarjeta{max-width:380px;padding:26px 22px 24px;
+  background:var(--inv-surface);border:1px solid var(--inv-field-border);
+  border-radius:var(--inv-radius);box-shadow:0 10px 28px rgba(0,0,0,.07)}
+.inv-cal-cabeza{margin:0 0 14px;text-align:center;line-height:1}
+.inv-cal-tarjeta .inv-cal-titulo{padding-bottom:12px;
+  border-bottom:1px solid var(--inv-field-border)}
+.inv-cal-grande{display:block;font-family:var(--inv-font-title);
+  font-size:clamp(46px,13vw,62px);line-height:1;color:var(--inv-accent)}
+.inv-cal-sub{display:block;margin-top:6px;font-size:10.5px;
+  letter-spacing:var(--inv-tracking);text-transform:uppercase;
+  color:var(--inv-ink);opacity:.66}
+
+/* La hoja arrancada: la banda del mes, el día enorme y las dos anillas de
+   arriba, que son lo que la hace leerse como un calendario de pared. */
+.inv-cal-hoja{position:relative;max-width:260px;margin-top:40px;overflow:hidden;
+  background:var(--inv-surface);border:1px solid var(--inv-field-border);
+  border-radius:var(--inv-radius);box-shadow:0 12px 30px rgba(0,0,0,.1);
+  text-align:center}
+.inv-cal-hoja::before,.inv-cal-hoja::after{content:"";position:absolute;top:-9px;
+  width:9px;height:19px;border-radius:4px;background:var(--inv-ink);opacity:.55}
+.inv-cal-hoja::before{left:28%}
+.inv-cal-hoja::after{right:28%}
+.inv-cal-banda{margin:0;padding:13px 10px 12px;background:var(--inv-accent);
+  color:var(--inv-on-accent);font-size:12px;letter-spacing:var(--inv-tracking);
+  text-transform:uppercase}
+.inv-cal-cuerpo{position:relative;padding:26px 16px 24px}
+.inv-cal-hoja .inv-cal-grande{position:relative;z-index:2;
+  font-size:clamp(68px,19vw,92px);color:var(--inv-ink)}
+.inv-cal-hoja .inv-cal-sub{margin-top:10px}
+/* En la hoja la marca envuelve el número grande: no hay celda de la que
+   colgar, así que el ::before va sobre el cuerpo. */
+.inv-cal-hoja.inv-cal-m-aro .inv-cal-cuerpo::before,
+.inv-cal-hoja.inv-cal-m-relleno .inv-cal-cuerpo::before,
+.inv-cal-hoja.inv-cal-m-corazon .inv-cal-cuerpo::before{content:"";position:absolute;
+  left:50%;top:48%;width:122px;aspect-ratio:1;transform:translate(-50%,-50%);z-index:1}
+.inv-cal-hoja.inv-cal-m-aro .inv-cal-cuerpo::before{
+  border:1.8px solid var(--inv-accent);border-radius:50%}
+.inv-cal-hoja.inv-cal-m-relleno .inv-cal-cuerpo::before{
+  background:var(--inv-accent);border-radius:50%}
+.inv-cal-hoja.inv-cal-m-relleno .inv-cal-grande{color:var(--inv-on-accent)}
+.inv-cal-hoja.inv-cal-m-corazon .inv-cal-cuerpo::before{width:150px;
+  background:var(--inv-accent);
+  -webkit-mask:var(--inv-cal-corazon) center/contain no-repeat;
+  mask:var(--inv-cal-corazon) center/contain no-repeat}
+.inv-cal-hoja.inv-cal-m-corazon .inv-cal-grande{color:var(--inv-on-accent)}
+/* Y el trazo, que aquí no cuelga de una celda sino del cuerpo de la hoja:
+   el porcentaje del resto daría un círculo del tamaño de la tarjeta. */
+.inv-cal-hoja .inv-cal-trazo{width:154px;height:154px;top:47%}
 
 /* ── Regalos y redes con marcado propio ── */
 .inv-cuenta{max-width:340px;margin:24px auto 0;padding:20px;text-align:center;
@@ -4999,6 +5243,14 @@ export function renderInvitation(opts: RenderOptions): string {
        `applyList` a partir de las que haya: duplicar la plantilla daría seis
        huecos aunque el organizador subiera tres. */
     if (r.block.variant === "cinta") duplicarCinta(root);
+
+    /* El calendario: la rejilla depende de la fecha, y la fecha no la conoce
+       el `build()` del bloque. Aquí sí, así que se arma después de escribir
+       los campos —el pie y los títulos ya están puestos— sobre la caja vacía
+       que dejó el marcado. */
+    if (r.block.type === "calendario") {
+      llenarCalendario(root, sectionData as Record<string, unknown>, iso);
+    }
   }
 
   /* La caja de "transferencia bancaria" sin número es un recuadro vacío:

@@ -1129,6 +1129,105 @@ const video: BlockSpec = {
   ],
 };
 
+/* ── Calendario (bloque nuevo) ────────────────────────────── */
+
+/**
+ * El mes del evento con su día señalado.
+ *
+ * Aquí sólo se escribe la caja. La rejilla —cuántos días tiene el mes, en qué
+ * columna cae el primero, cuál va marcado, cómo se llama el día de la
+ * semana— la llena el renderer, que es el único que conoce la fecha: un
+ * `build()` no recibe los datos, y un calendario sin fecha no es nada. Ver
+ * `llenarCalendario` en `render.ts`.
+ *
+ * El marcado sale con las clases de siempre —`.section-label`,
+ * `.section-title`, `.section-body`— para que cada diseño lo vista solo, y
+ * la rejilla se pinta con `--inv-accent` y `--inv-ink`, así que el mes de
+ * Rosa Encantada sale rosa y el de Noche Estrellada azul sin escribir una
+ * línea de CSS por diseño.
+ */
+const cajaCal = (clase: string) => `<div class="inv-cal ${clase}" data-inv-cal></div>
+    <p class="inv-cal-pie">Nota</p>`;
+
+const calendario: BlockSpec = {
+  type: "calendario",
+  hint: "El mes del evento con el día marcado",
+  label: "Calendario",
+  icon: "▦",
+  repeatable: true,
+  fields: [
+    { key: "label", label: "Antetítulo", type: "text", placeholder: "Marca la fecha" },
+    { key: "title", label: "Título", type: "text", placeholder: "El gran día" },
+    { key: "text", label: "Mensaje", type: "textarea", span: 2 },
+    {
+      key: "fecha",
+      label: "Otra fecha",
+      type: "datetime",
+      span: 2,
+      help: "Opcional. Vacío = la fecha del evento, la misma de la cuenta atrás.",
+    },
+    {
+      key: "inicio",
+      label: "La semana empieza en",
+      type: "select",
+      options: [
+        { value: "domingo", label: "Domingo" },
+        { value: "lunes", label: "Lunes" },
+      ],
+    },
+    {
+      key: "marca",
+      label: "Cómo se señala el día",
+      type: "select",
+      options: [
+        { value: "aro", label: "Un aro" },
+        { value: "relleno", label: "Un círculo lleno" },
+        { value: "corazon", label: "Un corazón" },
+        { value: "trazo", label: "Un círculo a mano" },
+      ],
+    },
+    {
+      key: "pie",
+      label: "Nota al pie",
+      type: "text",
+      span: 2,
+      placeholder: "Te esperamos",
+      help: "Opcional, bajo el calendario.",
+    },
+    { key: "textColor", label: "Color de las letras", type: "color", span: 2 },
+  ],
+  variants: [
+    {
+      id: "mes",
+      name: "Mes completo",
+      hint: "El mes entero, con el día marcado",
+      build: () => `${head()}${body}
+    ${cajaCal("inv-cal-mes")}`,
+    },
+    {
+      id: "semana",
+      name: "Sólo la semana",
+      hint: "Un solo renglón con los siete días de esa semana",
+      build: () => `${head()}${body}
+    ${cajaCal("inv-cal-semana")}`,
+    },
+    {
+      id: "tarjeta",
+      name: "Tarjeta",
+      hint: "El mes dentro de una tarjeta, con el día grande arriba",
+      build: () => `${head()}${body}
+    ${cajaCal("inv-cal-tarjeta")}`,
+    },
+    {
+      id: "hoja",
+      name: "Hoja arrancada",
+      hint: "Una hoja de calendario de pared: el mes en la banda y el día grande",
+      build: () => `${head()}${body}
+    ${cajaCal("inv-cal-hoja")}`,
+    },
+  ],
+};
+
 /**
  * Un bloque de HTML propio.
  *
@@ -1327,6 +1426,7 @@ export const BLOCKS: BlockSpec[] = [
   photo,
   video,
   ubicacion,
+  calendario,
   htmlPropio,
   fotosEvento,
   deseosEvento,
@@ -1437,6 +1537,12 @@ export function blockDefaults(spec: BlockSpec): SectionData {
     return {
       enabled: true, label: "Dónde nos vemos", title: "La ubicación", text: "",
       place: "", address: "", query: "", mapUrl: "", buttonText: "Cómo llegar", textColor: "",
+    };
+  }
+  if (spec.type === "calendario") {
+    return {
+      enabled: true, label: "Marca la fecha", title: "El gran día", text: "",
+      fecha: "", inicio: "domingo", marca: "aro", pie: "", textColor: "",
     };
   }
   if (spec.type === "fotos") {

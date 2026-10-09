@@ -145,6 +145,10 @@ const CLASES: Record<string, string | string[]> = {
   "video.label": ".section-label",
   "video.title": ".section-title",
   "video.caption": ".inv-video-pie",
+  "calendario.label": ".section-label",
+  "calendario.title": ".section-title",
+  "calendario.text": ".section-body",
+  "calendario.pie": ".inv-cal-pie",
   "ubicacion.label": ".section-label",
   "ubicacion.title": ".section-title",
   "ubicacion.text": ".section-body",
@@ -227,6 +231,11 @@ const APARTE = new Set([
   "pieza",
   "sello",
   "calendarText",
+  /* Del calendario: dónde empieza la semana y con qué se señala el día. Los
+     dos los consume `llenarCalendario`, que arma la rejilla; son `select` y
+     sin esto su valor —«domingo», «aro»— se escribiría como un texto más. */
+  "inicio",
+  "marca",
   "rumbo",
   "zona",
   /* El fondo global lo monta `ponerFondoGlobal` en una capa fija propia. */

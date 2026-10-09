@@ -51,6 +51,25 @@ export const CORMORANT_INTER_CALIGRAFIA: Pareja = {
   ),
 };
 
+/**
+ * La serifa fina con una firma monolínea.
+ *
+ * Como `CORMORANT_INTER_CALIGRAFIA`, y por lo mismo: una caligrafía no puede
+ * ser la letra de los títulos, así que Allura entra sólo donde se lee como
+ * una firma —el antetítulo de la portada y los nombres— y el resto sigue
+ * siendo la serifa. Allura y no Great Vibes porque es monolínea y de trazo
+ * moderno, que es la letra de un «save the date» de hoy; Great Vibes es
+ * copperplate, con sus gruesos y finos, y suena a participación antigua.
+ */
+export const CORMORANT_JOST_FIRMA: Pareja = {
+  display: "'Cormorant Garamond',Georgia,serif",
+  body: "'Jost',system-ui,sans-serif",
+  url: gfont(
+    "family=Cormorant+Garamond:wght@300;400;500" +
+      "&family=Jost:wght@300;400;500&family=Allura"
+  ),
+};
+
 /** Serifa de contraste alto. Tiene presencia en tamaños grandes. */
 export const PLAYFAIR_KARLA: Pareja = {
   display: "'Playfair Display',Georgia,serif",
