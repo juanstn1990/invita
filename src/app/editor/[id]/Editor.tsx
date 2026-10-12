@@ -416,6 +416,15 @@ export function Editor(props: EditorProps) {
           <Link href={`/editor/${props.id}/deseos`} className="btn btn-ghost btn-sm">
             Libro de deseos
           </Link>
+          {/* Éste sí condicionado, a diferencia de los dos de arriba: la
+              lista de regalos sólo existe en baby shower, así que en todo lo
+              demás el enlace llevaría a un panel vacío de algo que no se
+              puede ni agregar. */}
+          {blocks.some((b) => b.type === "regalos") && (
+            <Link href={`/editor/${props.id}/regalos`} className="btn btn-ghost btn-sm">
+              Lista de regalos
+            </Link>
+          )}
           <GuardarPlantilla
             id={props.id}
             sugerido={coupleName(data) || "Mi plantilla"}
@@ -568,6 +577,7 @@ export function Editor(props: EditorProps) {
                   blocks={blocks}
                   sections={data}
                   templateId={templateId}
+                  ocasion={props.templates.find((t) => t.id === templateId)?.kind}
                   support={support}
                   open={open}
                   onOpen={setOpen}

@@ -27,16 +27,27 @@ export function eventoLlego(fechaIso: string, ahora = new Date()): boolean {
 }
 
 /**
- * Desde cuándo se activan las fotos o el libro de deseos.
+ * Desde cuándo se activa una de las páginas aparte.
  *
- * Cada uno puede traer su propia fecha —quien organiza puede querer que las
+ * Cada una puede traer su propia fecha —quien organiza puede querer que las
  * fotos se abran el día de antes, o el libro de deseos un día después—, pero
  * casi nadie va a tocarla: por eso, si el bloque la deja vacía, se usa la
  * fecha del evento y no hace falta configurar dos veces lo mismo.
+ *
+ * **La lista de regalos es la excepción, y es la que explica la regla.** Las
+ * fotos y los deseos se hacen *en* el evento, así que esperar al día tiene
+ * sentido. Una lista de regalos se reparte **antes** —ésa es toda su razón
+ * de ser, que a nadie le toque comprar dos veces lo mismo— y heredar la
+ * fecha del evento la habría dejado cerrada justo durante las semanas en
+ * que sirve. Vacía significa abierta.
  */
-export function fechaActivacionDe(data: InvitationData, tipo: "fotos" | "deseos"): string {
+export function fechaActivacionDe(
+  data: InvitationData,
+  tipo: "fotos" | "deseos" | "regalos"
+): string {
   const bloque = readLayout(data).find((b) => b.type === tipo);
   const propia = String((bloque?.data as Record<string, unknown> | undefined)?.fechaActivacion || "").trim();
   if (propia) return propia;
+  if (tipo === "regalos") return "";
   return String((data.event as Record<string, unknown> | undefined)?.date || "");
 }

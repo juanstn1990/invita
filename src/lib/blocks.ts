@@ -16,6 +16,7 @@
  */
 
 import { iconoHtml } from "./iconos";
+import type { Occasion } from "./design/theme";
 import type { FieldSpec, ListSpec, SectionData } from "./schema";
 import { entradaSeccionField, fondoFields, panelFields } from "./schema";
 
@@ -50,6 +51,17 @@ export interface BlockSpec {
   hint?: string;
   /** Se puede agregar más de una vez. */
   repeatable: boolean;
+  /**
+   * Las ocasiones donde este bloque tiene sentido. Sin declarar nada, todas
+   * — que es lo que valía para los dieciséis primeros.
+   *
+   * Lo estrenó la lista de regalos, que se pidió sólo para baby shower: una
+   * lista de pañales y mamaderas en una boda no es un bloque menos útil, es
+   * uno que no significa nada. Antes que esconderlo con un `if` en el
+   * editor, el bloque declara dónde vive y quien lo ofrece filtra; así el
+   * editor y el servidor MCP no pueden discrepar sobre qué se puede agregar.
+   */
+  ocasiones?: Occasion[];
   /** Campos propios; los bloques con `section` los toman del esquema. */
   fields?: FieldSpec[];
   list?: ListSpec;
@@ -1228,6 +1240,90 @@ const calendario: BlockSpec = {
   ],
 };
 
+/* ── Lista de regalos (sólo baby shower) ──────────────────── */
+
+/**
+ * La lista de regalos que los invitados se reparten.
+ *
+ * No es la «Mesa de regalos» que ya existe: aquélla son enlaces a tiendas y
+ * un número de cuenta, contenido de la invitación como cualquier otro. Ésta
+ * es una lista de cosas concretas de la que cada familia **toma** una, y lo
+ * que importa es que no se repitan. Por eso sus datos no viven en el JSON de
+ * la invitación sino en dos tablas (ver `src/lib/regalos.ts`): un JSON que
+ * se reescribe entero al guardar no puede sostener algo que varias personas
+ * cambian a la vez.
+ *
+ * Aquí sólo está el botón y los ajustes; la lista se carga y se reparte en
+ * `/editor/{id}/regalos`, y los invitados eligen en `/{slug}/regalos`.
+ */
+const listaRegalos: BlockSpec = {
+  type: "regalos",
+  hint: "Una lista de regalos de la que cada invitado toma el suyo",
+  label: "Lista de regalos",
+  icon: "✦",
+  repeatable: false,
+  ocasiones: ["baby-shower"],
+  fields: [
+    { key: "label", label: "Antetítulo", type: "text", placeholder: "Opcional" },
+    { key: "title", label: "Título", type: "text", placeholder: "Lista de regalos" },
+    {
+      key: "texto",
+      label: "Mensaje",
+      type: "textarea",
+      span: 2,
+      placeholder: "Elige lo que quieras regalarnos y lo apartamos para ti.",
+    },
+    { key: "boton", label: "Texto del botón", type: "text", placeholder: "Ver la lista" },
+    { key: "textColor", label: "Color de las letras", type: "color", span: 2 },
+    /* Lo de abajo no pinta nada en la invitación: lo lee la página de la
+       lista, que no pasa por el motor de plantillas. Va aquí y no en un
+       sitio nuevo porque es donde ya vive todo lo demás de este bloque. */
+    {
+      key: "modo",
+      label: "Cómo se reparten",
+      type: "select",
+      span: 2,
+      options: [
+        { value: "elige", label: "Eligen ellos: cada invitado toma de la lista" },
+        { value: "asignado", label: "Yo asigno: le pongo su regalo a cada invitado" },
+      ],
+      help:
+        "Con «eligen ellos» ven lo que queda libre y toman. Con «yo asigno» cada " +
+        "invitado abre y ve sólo el suyo: ni la lista, ni lo que llevan los demás.",
+    },
+    {
+      key: "tope",
+      label: "Máximo por invitado",
+      type: "range",
+      min: 0,
+      max: 10,
+      step: 1,
+      unit: " regalos",
+      fallback: 0,
+      span: 2,
+      showIf: { key: "modo", value: "elige" },
+      help: "0 = sin tope. Súbelo si quieres que nadie se lleve media lista.",
+    },
+    {
+      key: "fechaActivacion",
+      label: "Fecha de activación",
+      type: "datetime",
+      span: 2,
+      help: "Desde cuándo se puede elegir. Vacío = en cuanto se publique.",
+    },
+  ],
+  variants: [
+    {
+      id: "simple",
+      name: "Botón centrado",
+      hint: "Un botón a la lista; el enlace lo pone la invitación sola",
+      build: () => `${head()}
+    <p class="section-body" data-inv="regalos.texto">Mensaje</p>
+    <a class="regalos-btn" href="#" data-inv-regalos-btn data-inv="regalos.boton">Ver la lista</a>`,
+    },
+  ],
+};
+
 /**
  * Un bloque de HTML propio.
  *
@@ -1427,6 +1523,7 @@ export const BLOCKS: BlockSpec[] = [
   video,
   ubicacion,
   calendario,
+  listaRegalos,
   htmlPropio,
   fotosEvento,
   deseosEvento,
@@ -1459,8 +1556,27 @@ export const BLOCK_BY_TYPE: Record<string, BlockSpec> = Object.fromEntries(
   BLOCKS.map((b) => [b.type, b])
 );
 
-/** Los que se pueden agregar desde el botón "+ Agregar bloque". */
+/**
+ * Los que se pueden agregar desde el botón "+ Agregar bloque".
+ *
+ * Se conserva sin filtrar porque hay dos sitios que la usan —el editor y el
+ * servidor MCP— y los dos tienen que ofrecer lo mismo; el filtro por ocasión
+ * va en `agregables()`, que es lo que deben llamar los dos.
+ */
 export const ADDABLE = BLOCKS.filter((b) => b.repeatable);
+
+/**
+ * Los que se pueden agregar a una invitación de esta ocasión.
+ *
+ * Sin ocasión conocida se ofrece todo: es lo que había antes de que ningún
+ * bloque declarara ninguna, y esconder cosas por no saber en qué diseño
+ * estamos sería peor que ofrecer una de más.
+ */
+export function agregables(ocasion?: string): BlockSpec[] {
+  return ADDABLE.filter(
+    (b) => !b.ocasiones || !ocasion || b.ocasiones.includes(ocasion as Occasion)
+  );
+}
 
 /** Orden inicial, y el que se usa para migrar invitaciones viejas. */
 export const DEFAULT_ORDER = [
@@ -1543,6 +1659,14 @@ export function blockDefaults(spec: BlockSpec): SectionData {
     return {
       enabled: true, label: "Marca la fecha", title: "El gran día", text: "",
       fecha: "", inicio: "domingo", marca: "aro", pie: "", textColor: "",
+    };
+  }
+  if (spec.type === "regalos") {
+    return {
+      enabled: true, label: "", title: "Lista de regalos",
+      texto: "Elige lo que quieras regalarnos y lo apartamos para ti, para que no se repita nada.",
+      boton: "Ver la lista", textColor: "",
+      modo: "elige", tope: "", fechaActivacion: "",
     };
   }
   if (spec.type === "fotos") {

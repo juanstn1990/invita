@@ -162,6 +162,9 @@ const CLASES: Record<string, string | string[]> = {
   "fotos.label": ".section-label",
   "fotos.title": ".section-title",
   "fotos.texto": ".section-body",
+  "regalos.label": ".section-label",
+  "regalos.title": ".section-title",
+  "regalos.texto": ".section-body",
   "deseos.label": ".section-label",
   "deseos.title": ".section-title",
   "deseos.texto": ".section-body",
@@ -236,6 +239,10 @@ const APARTE = new Set([
      sin esto su valor —«domingo», «aro»— se escribiría como un texto más. */
   "inicio",
   "marca",
+  /* De la lista de regalos: cómo se reparten y cuántos puede llevarse cada
+     uno. Los lee la página de la lista, que no pasa por el marcado. */
+  "modo",
+  "tope",
   "rumbo",
   "zona",
   /* El fondo global lo monta `ponerFondoGlobal` en una capa fija propia. */

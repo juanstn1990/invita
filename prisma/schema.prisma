@@ -1,5 +1,5 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
   /// `native` para la máquina de quien desarrolla y el objetivo de Debian
   /// para la imagen de Docker. Sin la segunda, el contenedor arranca, sirve
   /// las páginas que no tocan la base, y cualquiera que sí la toque falla con
@@ -16,44 +16,44 @@ datasource db {
 /// El contenido sigue el esquema canónico de `src/lib/schema.ts`, así que
 /// cambiar de diseño no pierde nada de lo que ya se escribió.
 model Invitation {
-  id         String   @id @default(cuid())
+  id          String   @id @default(cuid())
   /// URL pública: invita.app/{slug}
-  slug       String   @unique
+  slug        String   @unique
   /// Si la dirección la armó el sistema con los nombres del evento y un id
   /// corto (`ana-luis-k3m9x`) y nadie la ha escogido a mano. Mientras sea
   /// cierto y la invitación no esté publicada, cambiar los nombres cambia la
   /// dirección; en cuanto alguien la elige o se publica, deja de moverse
   /// sola, porque un enlace repartido no puede cambiar bajo los pies.
-  slugAuto   Boolean  @default(false)
+  slugAuto    Boolean  @default(false)
   /// Resto del constructor visual, que se retiró. Las columnas siguen aquí
   /// para no perder las invitaciones que se crearon con él; ya no se leen.
-  mode       String   @default("plantilla")
-  templateId String
+  mode        String   @default("plantilla")
+  templateId  String
   /// Nombre interno, sólo para el listado del organizador.
-  title      String
-  data       String
-  tree       String?
+  title       String
+  data        String
+  tree        String?
   /// Llave del panel que el organizador comparte con quien invita: quien
   /// tenga el enlace puede crear links de invitado y ver quién confirmó.
-  manageToken String? @unique
-  published  Boolean  @default(false)
+  manageToken String?  @unique
+  published   Boolean  @default(false)
   /// En qué punto del trabajo está: borrador, demo, curso, entregada.
   /// Ver `ESTADOS` en `src/lib/tablero.ts`. Es distinto de `published`, que
   /// sólo dice si la dirección pública responde: una demo se publica para
   /// enseñarla, y una entregada puede despublicarse sin dejar de estar
   /// entregada.
-  estado     String   @default("borrador")
+  estado      String   @default("borrador")
   /// Si ya se cobró: "no" | "parcial" | "completo". Aparte del estado y no
   /// como una columna más del tablero porque no es el final de una fila: se
   /// cobra un anticipo de algo que sigue en curso, y se entrega algo que no
   /// se ha cobrado —que es justo lo que hay que poder ver de un vistazo—.
   /// El anticipo es un estado real y no sólo un paso hacia «sí»: hay que
   /// poder ver que falta el resto, no sólo que falta todo.
-  pago       String   @default("no")
+  pago        String   @default("no")
   /// El booleano de antes de `pago`. Ninguna columna con datos reales se
   /// borra —ver `mode` arriba—, así que se queda sólo para poder migrar su
   /// valor una vez (`scripts/migrar-pago.ts`); el código ya no la lee.
-  pagada     Boolean  @default(false)
+  pagada      Boolean  @default(false)
   /// Quién la está llevando: "valentina" | "juan". Vacío en lo ya hecho,
   /// porque no había nadie a quien preguntarle cuando se creó.
   responsable String?
@@ -61,18 +61,18 @@ model Invitation {
   /// menos que se pida verla, pero se puede recuperar en cualquier momento.
   /// Es lo que evita que el tablero se llene de trabajo ya cerrado y hace que
   /// siga cabiendo de un vistazo según crece. Ver `src/lib/tablero.ts`.
-  archivada  Boolean  @default(false)
+  archivada   Boolean  @default(false)
   /// El contacto de quien encargó la invitación. Va aquí y no en `data`
   /// porque no es contenido de la invitación —no se publica, no se ve—: es
   /// cómo se habla con el cliente, y el sitio para eso es el tablero.
-  telefono   String?
+  telefono    String?
   /// Para las muestras del catálogo: qué es y a quién le queda (temas,
   /// personajes, colores, ambiente). Es lo que el servidor MCP lee para
   /// elegir cuál enseñar cuando alguien pide «algo de Rapunzel» o «en lila».
   descripcion String?
   /// Notas del organizador: lo que se acordó, lo que falta, qué se cobró.
   /// Privadas, como el teléfono.
-  notas      String?
+  notas       String?
   /// De qué plantilla guardada salió, si salió de una. Sólo informativo: no
   /// es una relación, para que borrar la plantilla no se lleve nada. Sirve
   /// para saber, cuando se mejora una plantilla, qué invitaciones se hicieron
@@ -81,15 +81,17 @@ model Invitation {
   /// Visitas crudas, incluidos rastreadores y recargas. Se conserva porque ya
   /// venía contando, pero lo que se muestra sale de `Apertura`, que distingue
   /// personas de rastreadores. Ver `src/lib/aperturas.ts`.
-  views      Int      @default(0)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  views       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  rsvps     Rsvp[]
-  links     GuestLink[]
-  aperturas Apertura[]
-  fotos     EventPhoto[]
-  deseos    Wish[]
+  rsvps      Rsvp[]
+  links      GuestLink[]
+  aperturas  Apertura[]
+  fotos      EventPhoto[]
+  deseos     Wish[]
+  regalos    Regalo[]
+  elecciones RegaloEleccion[]
 }
 
 /// Un link personalizado: los nombres que van a salir en la invitación y un
@@ -116,8 +118,9 @@ model GuestLink {
   pases        Int?
   createdAt    DateTime   @default(now())
 
-  rsvps     Rsvp[]
-  aperturas Apertura[]
+  rsvps      Rsvp[]
+  aperturas  Apertura[]
+  elecciones RegaloEleccion[]
 
   @@index([invitationId])
 }
@@ -169,6 +172,71 @@ model Wish {
   @@index([invitationId])
 }
 
+/// Un regalo de la lista que el organizador carga.
+///
+/// Distinto de la sección «Mesa de regalos» del esquema, que son enlaces a
+/// tiendas y un número de cuenta: eso es contenido de la invitación y vive
+/// en su JSON como todo lo demás. Esto es **estado disputado** —hay uno y
+/// quien lo toma se lo lleva—, así que no puede vivir en un JSON que se
+/// reescribe entero cada vez que alguien guarda el editor: dos invitados
+/// eligiendo a la vez se pisarían, que es justo lo que hay que evitar.
+model Regalo {
+  id           String     @id @default(cuid())
+  invitationId String
+  invitation   Invitation @relation(fields: [invitationId], references: [id], onDelete: Cascade)
+  nombre       String
+  /// Talla, color, dónde se consigue. Lo que haga falta para no comprar mal.
+  nota         String?
+  /// Opcional, de la biblioteca. Una lista con fotos se elige mucho mejor.
+  imagen       String?
+  /// Cuántos caben. 1 = único, que es lo normal; los pañales son 4.
+  cupo         Int        @default(1)
+  orden        Int        @default(0)
+  createdAt    DateTime   @default(now())
+
+  elecciones RegaloEleccion[]
+
+  @@index([invitationId, orden])
+}
+
+/// Quién se lleva qué.
+///
+/// La fila la crea el invitado al elegir, o el organizador al asignar; el
+/// `asignado` distingue las dos, que es lo que deja saber si alguien eligió
+/// o si se lo pusieron.
+///
+/// `@@unique([regaloId, clave])` es la única protección real contra dos
+/// personas tocando el mismo botón a la vez: comprobar antes de escribir
+/// deja una rendija de milisegundos y ahí es donde caen los dobles clics.
+/// Es la misma lección que `Rsvp.clave`. El cupo no lo puede guardar un
+/// índice —«como mucho N filas» no es una restricción que exista— así que
+/// ése se cuenta dentro de una transacción serializable; ver `tomarRegalo`
+/// en `src/lib/regalos.ts`.
+model RegaloEleccion {
+  id           String     @id @default(cuid())
+  regaloId     String
+  regalo       Regalo     @relation(fields: [regaloId], references: [id], onDelete: Cascade)
+  /// Repetido aquí y no sólo a través del regalo, para poder listar y contar
+  /// por invitación sin pasar por la tabla de al lado.
+  invitationId String
+  invitation   Invitation @relation(fields: [invitationId], references: [id], onDelete: Cascade)
+  /// De qué enlace de invitado salió. Es quien elige.
+  guestLinkId  String?
+  guestLink    GuestLink? @relation(fields: [guestLinkId], references: [id], onDelete: Cascade)
+  /// Los nombres del enlace, copiados al elegir: el enlace se puede editar
+  /// después y lo que hay que poder leer es quién se lo llevó entonces.
+  nombre       String
+  /// `guestLinkId` o, sin enlace, el nombre normalizado. Ver `claveDeEleccion`.
+  clave        String
+  /// La puso el organizador, no el invitado.
+  asignado     Boolean    @default(false)
+  createdAt    DateTime   @default(now())
+
+  @@unique([regaloId, clave])
+  @@index([invitationId])
+  @@index([guestLinkId])
+}
+
 /// Confirmación de un invitado. Sin registro: sólo el nombre es obligatorio.
 model Rsvp {
   id           String     @id @default(cuid())
@@ -193,7 +261,7 @@ model Rsvp {
   /// lugar de añadir otra fila. La restricción es la única protección real
   /// contra dos envíos simultáneos: comprobar antes de escribir deja una
   /// rendija de milisegundos, y un doble clic cae justo ahí.
-  clave        String?
+  clave String?
 
   @@unique([invitationId, clave])
   @@index([invitationId])
@@ -310,20 +378,20 @@ model Apertura {
 /// es lo que se quiere: una plantilla que se moviera sola bajo los pies
 /// dejaría de servir para empezar igual dos veces.
 model Plantilla {
-  id         String   @id @default(cuid())
-  nombre     String
+  id            String             @id @default(cuid())
+  nombre        String
   /// El diseño base, para saber qué HTML renderizar.
-  templateId String
+  templateId    String
   /// Copia del `data` de la invitación en el momento de guardarla.
-  data       String
+  data          String
   /// De cuál salió. Sólo informativo: no es una relación, para que borrar la
   /// invitación no se lleve la plantilla.
-  origenId   String?
-  createdAt  DateTime @default(now())
+  origenId      String?
+  createdAt     DateTime           @default(now())
   /// Cuándo se actualizó por última vez. Nulo = tal como se guardó.
   actualizadaAt DateTime?
   /// Lo que tenía antes de cada actualización, para poder volver atrás.
-  versiones  PlantillaVersion[]
+  versiones     PlantillaVersion[]
 }
 
 /// Una foto de la plantilla justo antes de actualizarla.

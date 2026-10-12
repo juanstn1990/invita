@@ -2311,6 +2311,87 @@ mensaje genérico quien había repartido enlaces no entendía qué pasaba. Ahora
 una invitación que existe pero no está publicada dice exactamente eso, y el
 panel avisa en grande y marca los botones mientras siga en borrador.
 
+## Lista de regalos: estado disputado, no contenido
+
+Sólo en baby shower. El organizador carga una lista de cosas concretas y cada
+familia se lleva una — y lo único que de verdad importa es que **nadie compre
+lo mismo dos veces**.
+
+Esa frase es la que decide toda la forma. Lo demás que escribe un invitado —un
+deseo, una foto— se **añade**: no hay nada que repartir, el orden da igual y
+dos personas a la vez no se estorban. Aquí hay un cochecito, uno solo, y en
+cuanto alguien lo toma deja de estar para los demás.
+
+**Por eso no vive en el JSON.** Todo el contenido de una invitación está en
+`Invitation.data`, que el editor reescribe entero al guardar. Dos invitados
+eligiendo con un segundo de diferencia escribirían dos versiones del mismo JSON
+y la segunda se llevaría por delante la primera: el regalo quedaría libre y
+acabarían comprándolo los dos. Son dos tablas, `Regalo` y `RegaloEleccion`.
+
+**Que no se repita lo guarda la base, no el código.** Son dos reglas y se
+guardan de maneras distintas:
+
+| Regla | Quién la guarda |
+| --- | --- |
+| La misma familia no lo toma dos veces | El índice único `(regaloId, clave)` |
+| No más de `cupo` | Una transacción `Serializable` que cuenta y escribe |
+
+La primera es una restricción que el motor entiende, así que no hay carrera
+posible. La segunda no se puede expresar como índice —«como mucho N filas» no
+existe— y por eso se cuenta dentro de la transacción. Comprobar antes de
+escribir deja una rendija de milisegundos, y ahí es donde caen los dobles
+clics; es la misma lección que `Rsvp.clave`.
+
+**El aborto por serialización no es «ya está tomado».** Fue el error que más
+costó ver, y lo encontró `npm run audit:regalos` lanzando tres invitados a la
+vez con `Promise.all`. Con un regalo de cuatro unidades y tres personas
+simultáneas entraba **una sola** y a las otras dos les decía que no quedaba,
+cuando quedaba: el motor abortaba las transacciones que chocaban y ese aborto
+se estaba leyendo como «lleno». Con `cupo: 1` no se notaba, porque ahí la
+respuesta equivocada coincide con la correcta — que es justo por lo que una
+prueba secuencial habría pasado. Ahora se reintenta hasta cuatro veces con una
+espera corta y **desigual**: igual para todos, los tres volverían a chocar.
+
+**Quién elige lo dice el enlace de invitado**, el mismo de `?invitado=…&g=CODE`.
+Nadie escribe su nombre, así que no hay dos maneras de llamarse igual ni forma
+de soltar el regalo de otro. El botón de la invitación se lleva el código
+consigo con un script, porque el HTML se renderiza una vez y lo abren todas las
+familias. Quien entre por la dirección pelada ve la lista pero no aparta nada.
+
+**Dos modos**, en el propio bloque:
+
+- **Eligen ellos** — la lista con lo que queda libre. Pueden soltar lo suyo
+  mientras nadie más lo haya cogido, y hay un tope opcional por familia.
+- **Yo asigno** — el organizador reparte desde `/editor/{id}/regalos` y el
+  invitado abre y ve **sólo el suyo**: ni la lista, ni quién lleva qué.
+
+**Los nombres de quién eligió no viajan al invitado.** La lista dice si algo
+está tomado, no por quién: en un baby shower, ver que la suegra ya tomó el
+cochecito cambia lo que la gente elige, y lo que se pidió es repartir regalos,
+no publicar un marcador.
+
+**El sondeo no es lo que evita los repetidos** — eso lo hace la base, pase lo
+que pase en el navegador. Lo que hace es que la lista no mienta mientras la
+miras: se refresca cada cinco segundos, al volver a la pestaña, y
+inmediatamente cuando el servidor responde 409, que es la prueba de que lo que
+se está viendo ya caducó. Para treinta invitados eso sobra, y no mete una
+conexión abierta por persona.
+
+**La fecha de activación va al revés que en las otras páginas.** Las fotos y
+los deseos se hacen *en* el evento, así que esperan al día; una lista de
+regalos se reparte **antes** —ésa es toda su razón de ser— y heredar la fecha
+del evento la habría dejado cerrada justo durante las semanas en que sirve.
+Vacía significa abierta.
+
+**Sólo en baby shower**, y eso es un mecanismo, no un `if`: un bloque declara
+en `ocasiones` dónde vive, y el editor y el servidor MCP le preguntan los dos a
+`agregables()`. Así no pueden ofrecer cosas distintas.
+
+```bash
+npm run audit:regalos       # la carrera: tres a la vez por el mismo regalo
+npm run audit:regalos-web   # las rutas, con la app levantada
+```
+
 ## Iconos: Phosphor, no emojis
 
 Un emoji lo pinta el sistema operativo: cambia de un teléfono a otro, no se

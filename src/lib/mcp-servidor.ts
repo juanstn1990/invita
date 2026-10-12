@@ -43,7 +43,7 @@ import { renderInvitation } from "./render";
 import { slugLibre, nombresDe, slugActualizado } from "./slugAuto";
 import { catalogo, catalogoDeAjustes, esquemaDe, esquemaDeBloque, fusionar } from "./mcp";
 import {
-  ADDABLE, BLOCK_BY_TYPE, blockDefaults, newBlockId, readLayout, type Block,
+  agregables, BLOCK_BY_TYPE, blockDefaults, newBlockId, readLayout, type Block,
 } from "./blocks";
 import { ESTADO_POR_ID, estadoDe, PAGO_POR_ID, pagoDe } from "./tablero";
 import { actualizarConParche, deshacer } from "./plantillas";
@@ -378,7 +378,9 @@ export function construirServidor({ base, capturar }: OpcionesMcp): McpServer {
           : error(
               `"${bloque}" no es un bloque con campos propios. Los que hay:\n\n` +
                 JSON.stringify(
-                  ADDABLE.map((b) => ({ tipo: b.type, nombre: b.label })), null, 2
+                  agregables(TEMPLATE_BY_ID[diseno]?.kind)
+                    .map((b) => ({ tipo: b.type, nombre: b.label })),
+                  null, 2
                 )
             );
       }
@@ -624,7 +626,11 @@ export function construirServidor({ base, capturar }: OpcionesMcp): McpServer {
       if (!accion) {
         return json({
           bloques: lista.map(retratoDe(lista)),
-          sePuedenAgregar: ADDABLE.map((b) => ({
+          /* Sólo los de esta ocasión, igual que en el editor y por el
+             mismo sitio: el bloque declara dónde vive. Que los dos lo
+             pregunten a `agregables` es lo que impide que ofrezcan cosas
+             distintas. */
+          sePuedenAgregar: agregables(TEMPLATE_BY_ID[inv.templateId]?.kind).map((b) => ({
             tipo: b.type, nombre: b.label, que: b.hint,
           })),
           siguiente:
@@ -646,12 +652,13 @@ export function construirServidor({ base, capturar }: OpcionesMcp): McpServer {
       let creado = "";
 
       if (accion === "agregar") {
-        const spec = ADDABLE.find((b) => b.type === tipo);
+        const puede = agregables(TEMPLATE_BY_ID[inv.templateId]?.kind);
+        const spec = puede.find((b) => b.type === tipo);
         if (!spec) {
           return error(
-            `"${tipo}" no se puede agregar. Los que sí:\n\n` +
+            `"${tipo}" no se puede agregar a "${inv.title}". Los que sí:\n\n` +
               JSON.stringify(
-                ADDABLE.map((b) => ({ tipo: b.type, nombre: b.label, que: b.hint })),
+                puede.map((b) => ({ tipo: b.type, nombre: b.label, que: b.hint })),
                 null, 2
               )
           );

@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import {
-  ADDABLE, BLOCK_BY_TYPE, blockDefaults, newBlockId,
+  agregables, BLOCK_BY_TYPE, blockDefaults, newBlockId,
   type Block, type BlockSpec,
 } from "@/lib/blocks";
 import { SECTION_BY_KEY, type InvitationData, type SectionData, type SectionSpec } from "@/lib/schema";
@@ -18,6 +18,15 @@ interface Props {
   sections: Record<string, SectionData>;
   /** Diseño en uso: la biblioteca dibuja cada opción con su paleta. */
   templateId: string;
+  /**
+   * La ocasión del diseño, para ofrecer sólo los bloques que le tocan.
+   *
+   * Llega como prop y no se busca aquí a propósito: el catálogo de diseños
+   * vive en `templates.ts`, que lee del disco, y esto es un componente de
+   * cliente — importarlo mete `fs` en el paquete del navegador y el build se
+   * cae. Quien ya lo tiene a mano es el editor.
+   */
+  ocasion?: string;
   support?: TemplateSupport;
   open: string | null;
   onOpen: (id: string | null) => void;
@@ -36,7 +45,7 @@ interface Props {
  * después llevan sus datos encima.
  */
 export function BlockList({
-  blocks, sections, templateId, support, open, onOpen, onBlocks, onSection, senalado,
+  blocks, sections, templateId, ocasion, support, open, onOpen, onBlocks, onSection, senalado,
 }: Props) {
   const [agregando, setAgregando] = useState(false);
   /** Bloque cuya biblioteca está abierta. */
@@ -189,7 +198,10 @@ export function BlockList({
       {agregando ? (
         <div className={styles.addPanel}>
           <p className={styles.addTitle}>¿Qué bloque agregas?</p>
-          {ADDABLE.map((spec) => (
+          {/* Sólo los que tienen sentido en esta ocasión: la lista de
+              regalos se pidió para baby shower y en una boda sería un bloque
+              que no significa nada. Lo declara el bloque, no esto. */}
+          {agregables(ocasion).map((spec) => (
             <button
               key={spec.type}
               className={styles.addItem}

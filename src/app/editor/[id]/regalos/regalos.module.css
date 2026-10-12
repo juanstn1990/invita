@@ -1,0 +1,69 @@
+/* El panel de la lista de regalos. Sobrio y denso: es una herramienta de
+   trabajo, no una pantalla que vea nadie más. */
+
+.page { max-width: 760px; margin: 0 auto; padding: 24px 18px 60px; }
+
+.header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 16px; flex-wrap: wrap; margin-bottom: 22px;
+}
+.eyebrow {
+  margin: 0; font-size: 11px; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--muted, #8a8178);
+}
+.title { margin: 4px 0 0; font-size: 24px; font-weight: 600; }
+.headerAcciones { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.aviso {
+  margin: 0 0 20px; padding: 12px 16px; border-radius: 12px;
+  background: #fdf6e3; color: #8a6a1f; font-size: 13px; line-height: 1.6;
+}
+.error {
+  margin: 14px 0; padding: 10px 14px; border-radius: 12px;
+  background: #fdecec; color: #9b2c2c; font-size: 13px;
+}
+
+.h2 { margin: 26px 0 8px; font-size: 15px; font-weight: 600; }
+.cuenta { margin-left: 8px; font-weight: 400; font-size: 13px; color: #8a8178; }
+.ayuda { margin: 0 0 10px; font-size: 13px; line-height: 1.6; color: #6b6257; }
+.ayuda code {
+  padding: 1px 5px; border-radius: 5px; background: #f1ede7; font-size: 12px;
+}
+
+.cargar {
+  padding: 16px; border: 1px solid #e7e1d8; border-radius: 14px; background: #fdfcfa;
+}
+.area {
+  width: 100%; box-sizing: border-box; margin-bottom: 10px; padding: 10px 12px;
+  font: inherit; font-size: 14px; line-height: 1.6; resize: vertical;
+  border: 1px solid #ddd6cc; border-radius: 10px; background: #fff;
+}
+
+.lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.fila {
+  display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: start;
+  padding: 12px 14px; border: 1px solid #e7e1d8; border-radius: 12px; background: #fff;
+}
+.datos { min-width: 0; }
+.nombre { margin: 0; font-size: 14px; font-weight: 600; overflow-wrap: anywhere; }
+.nota { margin: 2px 0 0; font-size: 12.5px; color: #8a8178; overflow-wrap: anywhere; }
+.libre { margin: 4px 0 0; font-size: 12.5px; color: #9a9289; }
+
+.quienes { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 3px; }
+.quienes li { font-size: 12.5px; }
+.cuando { color: #8a8178; }
+.liberar {
+  margin-left: 8px; padding: 0; border: 0; background: none; cursor: pointer;
+  font: inherit; font-size: 12px; color: #9b2c2c; text-decoration: underline;
+}
+
+.asignar {
+  margin-top: 8px; padding: 6px 10px; font: inherit; font-size: 12.5px;
+  border: 1px solid #ddd6cc; border-radius: 9px; background: #fff; color: #6b6257;
+}
+
+.borrar {
+  padding: 2px 8px; border: 0; border-radius: 8px; background: none; cursor: pointer;
+  font-size: 20px; line-height: 1; color: #bdb5ab;
+}
+.borrar:hover { color: #9b2c2c; background: #fdecec; }

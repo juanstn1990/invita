@@ -4184,6 +4184,34 @@ const TEXTO_ANIM_JS = `
   for (var j = 0; j < textos.length; j++) obs.observe(textos[j]);
 })();`;
 
+/**
+ * El enlace de la lista de regalos se lleva consigo quién está abriendo.
+ *
+ * La lista reparte cosas, así que necesita saber quién elige. Eso lo dice el
+ * enlace de invitado —`?invitado=Ana,Carlos&g=CODE`— y sólo se sabe en el
+ * navegador: el HTML de la invitación se renderiza una vez y lo abren todas
+ * las familias, así que el código no puede ir escrito en el href.
+ *
+ * Se copian los dos parámetros y nada más. Arrastrar la dirección entera
+ * metería en el enlace cualquier cosa que alguien pegue detrás —campañas,
+ * basura— y lo que esta página necesita son dos.
+ */
+const REGALOS_LINK_JS = `
+(function(){
+  var btns = document.querySelectorAll('[data-inv-regalos-btn]');
+  if (!btns.length) return;
+  var de = new URLSearchParams(location.search);
+  var lleva = new URLSearchParams();
+  ['invitado','g'].forEach(function(k){ if (de.get(k)) lleva.set(k, de.get(k)); });
+  var cola = lleva.toString();
+  if (!cola) return;
+  for (var i = 0; i < btns.length; i++) {
+    var href = btns[i].getAttribute('href');
+    if (!href || href === '#') continue;
+    btns[i].setAttribute('href', href + (href.indexOf('?') > -1 ? '&' : '?') + cola);
+  }
+})();`;
+
 const HIDE_SPLASH_JS = `
 (function(){
   var s = document.getElementById('splash') || document.querySelector('.splash');
@@ -4769,6 +4797,19 @@ export function renderInvitation(opts: RenderOptions): string {
     document.querySelectorAll("[data-inv-deseos-btn]")
   ) as El[]) {
     if (slug) btn.setAttribute("href", `/${slug}/deseos`);
+    else { btn.removeAttribute("href"); btn.setAttribute("aria-disabled", "true"); }
+  }
+
+  /* El botón de la lista de regalos. El enlace sale igual que los otros dos,
+     pero éste **tiene que llevarse el código del invitado**: la lista reparte
+     cosas y necesita saber quién está eligiendo. El código viaja en la
+     dirección de la invitación (`?invitado=…&g=CODE`) y lo pega el script de
+     abajo, no esto: aquí no se sabe quién va a abrir la página — el HTML se
+     renderiza una vez y lo ven todas las familias. */
+  for (const btn of Array.from(
+    document.querySelectorAll("[data-inv-regalos-btn]")
+  ) as El[]) {
+    if (slug) btn.setAttribute("href", `/${slug}/regalos`);
     else { btn.removeAttribute("href"); btn.setAttribute("aria-disabled", "true"); }
   }
 
@@ -5692,6 +5733,7 @@ export function renderInvitation(opts: RenderOptions): string {
   if (document.querySelector(".inv-fe-voltea, .inv-gi-voltea")) scripts.push(VOLTEA_JS);
   if (document.querySelector("[data-inv-agendar]")) scripts.push(AGENDAR_JS);
   if (document.querySelector(".inv-polvo")) scripts.push(POLVO_JS);
+  if (document.querySelector("[data-inv-regalos-btn]")) scripts.push(REGALOS_LINK_JS);
   /* Sólo en el editor: en lo publicado sería dejar mover la decoración a
      quien recibe la invitación. */
   if (preview && document.querySelector("[data-inv-adorno]")) {
