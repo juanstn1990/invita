@@ -28,7 +28,11 @@ export async function GET(
     const token = new URL(request.url).searchParams.get("t") || "";
     autorizado = !!invitation.manageToken && !!token && invitation.manageToken === token;
   }
-  if (!autorizado) return new NextResponse("No disponible", { status: 403 });
+  if (!autorizado)
+    return new NextResponse(
+      "No disponible: el libro lo descarga quien organiza. Vuelve a entrar en el editor, o abre el enlace privado que te dio el panel.",
+      { status: 403 }
+    );
 
   const data = JSON.parse(invitation.data) as InvitationData;
   const cfg = configLibro(data);

@@ -43,7 +43,10 @@ export default async function DeseosEventoPage({ params }: { params: { id: strin
           <h1 className={styles.title}>Libro de deseos</h1>
         </div>
         <div className={styles.headerAcciones}>
-          <a href={`/api/i/${invitation.slug}/deseos/pdf`} className="btn btn-ghost btn-sm" download>
+          {/* Con el token y no sólo con la cookie de sesión: es el mismo
+              enlace que funciona desde el panel del cliente, y así la
+              descarga no depende de que la sesión siga viva. */}
+          <a href={`/api/i/${invitation.slug}/deseos/pdf?t=${manageToken}`} className="btn btn-ghost btn-sm" download>
             Descargar PDF
           </a>
           <Link href={`/editor/${invitation.id}`} className="btn btn-ghost btn-sm">
