@@ -28,6 +28,8 @@ interface Fila {
   abrieron: number;
   veces: number;
   abiertoEl: string | null;
+  /** Qué trae esta familia. Sólo con el bloque de lista de regalos puesto. */
+  regalo: string | null;
   /** El teléfono y el mensaje de cada quien contestó por este enlace. */
   respuestas: Respuesta[];
 }
@@ -75,7 +77,7 @@ const ETIQUETA_RESPUESTA: Record<string, string> = {
  * su nombre en la invitación y confirma sin escribir nada.
  */
 export function PanelInvitados({
-  token, slug, publicada, titulo, fecha, origen, inicial, sinEnlace,
+  token, slug, publicada, titulo, fecha, origen, inicial, sinEnlace, conRegalos,
 }: {
   token: string;
   slug: string;
@@ -86,12 +88,17 @@ export function PanelInvitados({
   inicial: Fila[];
   /** Confirmaron sin abrir un enlace personalizado: no tienen a qué familia sumarse. */
   sinEnlace: Respuesta[];
+  /** La invitación lleva lista de regalos: entonces cada familia trae el suyo. */
+  conRegalos: boolean;
 }) {
   const router = useRouter();
   const [filas, setFilas] = useState<Fila[]>(inicial);
   const [nombres, setNombres] = useState("");
   const [nota, setNota] = useState("");
   const [pases, setPases] = useState("");
+  const [regalo, setRegalo] = useState("");
+  /** Qué fila se está editando el regalo, y con qué texto. */
+  const [editando, setEditando] = useState<{ id: string; texto: string } | null>(null);
   const [error, setError] = useState("");
   const [guardando, setGuardando] = useState(false);
   const [copiado, setCopiado] = useState<string | null>(null);
@@ -125,7 +132,7 @@ export function PanelInvitados({
     const r = await fetch(`/api/g/${token}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ names: nombres, note: nota, pases }),
+      body: JSON.stringify({ names: nombres, note: nota, pases, regalo }),
     });
     const j = await r.json().catch(() => ({}));
     setGuardando(false);
@@ -136,12 +143,31 @@ export function PanelInvitados({
     setFilas([
       { id: j.id, code: j.code, nombres: previsualizacion, note: nota.trim() || null,
         pases: j.pases ?? null, estado: "sin respuesta", asisten: 0, total: 0, respondidoEl: null,
-        abrieron: 0, veces: 0, abiertoEl: null, respuestas: [] },
+        abrieron: 0, veces: 0, abiertoEl: null, regalo: j.regalo ?? null, respuestas: [] },
       ...filas,
     ]);
     setNombres("");
     setNota("");
     setPases("");
+    setRegalo("");
+  }
+
+  /** Cambiar —o borrar— lo que trae una familia ya creada. */
+  async function guardarRegalo(id: string, texto: string) {
+    /* Se pinta antes de que conteste el servidor: es un campo de texto y la
+       espera se nota. Si falla, se deshace y se dice. */
+    const antes = filas.find((f) => f.id === id)?.regalo ?? null;
+    setFilas((xs) => xs.map((f) => (f.id === id ? { ...f, regalo: texto.trim() || null } : f)));
+    setEditando(null);
+    const r = await fetch(`/api/g/${token}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ link: id, regalo: texto }),
+    });
+    if (!r.ok) {
+      setFilas((xs) => xs.map((f) => (f.id === id ? { ...f, regalo: antes } : f)));
+      setError("No se pudo guardar el regalo.");
+    }
   }
 
   async function borrar(id: string) {
@@ -217,6 +243,24 @@ export function PanelInvitados({
           poner límite.
         </p>
 
+        {conRegalos && (
+          <>
+            <label className="field-label" htmlFor="regalo">Su regalo</label>
+            <input
+              id="regalo"
+              className="input"
+              value={regalo}
+              placeholder="Pañales talla 1"
+              onChange={(e) => setRegalo(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") crear(); }}
+            />
+            <p className={styles.ayuda}>
+              Qué le toca traer a esta familia. Lo ve sólo ella, al abrir su enlace, y
+              nadie más. Déjalo vacío si todavía no lo has decidido.
+            </p>
+          </>
+        )}
+
         <label className="field-label" htmlFor="nota">Para acordarte (opcional)</label>
         <input
           id="nota"
@@ -273,6 +317,40 @@ export function PanelInvitados({
                   )}
                 </p>
                 {f.note && <p className={styles.nota}>{f.note}</p>}
+
+                {/* El regalo, donde se mira la familia y no en otra pantalla:
+                    es un dato suyo, como sus pases. Se edita en el sitio. */}
+                {conRegalos && (editando?.id === f.id ? (
+                  <div className={styles.regaloEditar}>
+                    <input
+                      className="input"
+                      autoFocus
+                      value={editando.texto}
+                      placeholder="Pañales talla 1"
+                      onChange={(e) => setEditando({ id: f.id, texto: e.target.value })}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") guardarRegalo(f.id, editando.texto);
+                        if (e.key === "Escape") setEditando(null);
+                      }}
+                    />
+                    <button className="btn btn-sm btn-primary" onClick={() => guardarRegalo(f.id, editando.texto)}>
+                      Guardar
+                    </button>
+                    <button className={styles.regaloCancelar} onClick={() => setEditando(null)}>
+                      Cancelar
+                    </button>
+                  </div>
+                ) : (
+                  <p className={styles.regalo}>
+                    {f.regalo ? <b>{f.regalo}</b> : <span className={styles.regaloVacio}>Sin regalo</span>}
+                    <button
+                      className={styles.regaloCambiar}
+                      onClick={() => setEditando({ id: f.id, texto: f.regalo || "" })}
+                    >
+                      {f.regalo ? "cambiar" : "poner uno"}
+                    </button>
+                  </p>
+                ))}
                 <p className={`${styles.enlace} mono`}>
                   /{slug}?invitado=…&amp;g={f.code}
                 </p>

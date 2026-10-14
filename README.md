@@ -2358,6 +2358,22 @@ de soltar el regalo de otro. El botón de la invitación se lleva el código
 consigo con un script, porque el HTML se renderiza una vez y lo abren todas las
 familias. Quien entre por la dirección pelada ve la lista pero no aparta nada.
 
+**Quien reparte no es quien hace la invitación.** La lista se carga desde el
+editor, pero el editor es de quien monta la invitación, no de la mamá — y es
+ella la que sabe qué trae cada familia. Por eso el regalo se escribe también
+—y sobre todo— en el **panel compartido** (`/g/{token}`), en el mismo
+formulario donde se crea el enlace de cada familia: ahí «qué trae» es un dato
+suyo, al lado de sus nombres y sus pases, y se cambia en su propia fila.
+
+Las dos pantallas escriben lo mismo por caminos distintos a propósito. El
+editor piensa en **lista**: se cargan veinticinco regalos y después se mira a
+quién darle cada cosa. El panel piensa en **familia**: ésta trae la cuna. La
+segunda es la forma en que se reparte de verdad, y la única que puede usar
+quien no tiene cuenta. Por eso en el panel cada familia lleva uno y sólo uno:
+escribir otro reemplaza al anterior, y vacío la deja sin nada. Corregir un
+regalo deja su fila **libre**, y volver a escribir ese mismo nombre para otra
+familia la reaprovecha en vez de dejar dos filas iguales.
+
 **Dos modos**, en el propio bloque:
 
 - **Eligen ellos** — la lista con lo que queda libre. Pueden soltar lo suyo

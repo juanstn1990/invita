@@ -35,6 +35,8 @@ async function main() {
     data: {
       slug, templateId: "invitacion-bs-nube", title: "Prueba regalos",
       data: JSON.stringify(data), published: true,
+      /* El panel de quien invita se abre con este token y sin sesión. */
+      manageToken: `t-panel-${Date.now()}`,
     },
   });
   const fam = await Promise.all([1, 2].map((n) =>
@@ -125,6 +127,54 @@ async function main() {
   ok(nada.mios?.length === 0, "quien no tiene nada no ve nada");
   const intento = await post({ regalo: regalos[0].id, accion: "tomar", g: fam[0].code });
   ok(intento.status === 403, "y nadie puede tomar por su cuenta", `HTTP ${intento.status}`);
+
+  /* ── El panel de quien invita ─────────────────────────────────
+     Quien reparte los regalos no es quien hace la invitación: es la mamá,
+     que entra por el panel compartido y no tiene cuenta. Por eso el regalo
+     se escribe donde se crea el enlace de cada familia —es un dato suyo,
+     como sus pases— y no cargando una lista en otra pantalla. */
+  console.log("\n━━ El regalo, donde se crean los invitados");
+  {
+    const panel = async (metodo: string, cuerpo: unknown) => {
+      const r = await fetch(`${BASE}/api/g/${inv.manageToken}`, {
+        method: metodo, headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(cuerpo),
+      });
+      return { status: r.status, body: await r.json().catch(() => ({})) };
+    };
+    const traeDe = async (linkId: string) => {
+      const e = await prisma.regaloEleccion.findFirst({
+        where: { invitationId: inv.id, guestLinkId: linkId },
+        include: { regalo: { select: { nombre: true } } },
+      });
+      return e?.regalo.nombre ?? null;
+    };
+
+    const nueva = await panel("POST", { names: "Jhon, Edith", pases: 2, regalo: "Cuna" });
+    ok(nueva.status === 200 && nueva.body.regalo === "Cuna", "se crea el enlace con su regalo de una vez", JSON.stringify(nueva.body));
+    const idJhon = nueva.body.id;
+    ok((await traeDe(idJhon)) === "Cuna", "y queda asignado a esa familia");
+
+    const cambio = await panel("PATCH", { link: idJhon, regalo: "Coche" });
+    ok(cambio.status === 200 && (await traeDe(idJhon)) === "Coche", "cambiarlo reemplaza, no suma", JSON.stringify(cambio.body));
+    const cuantos = await prisma.regaloEleccion.count({ where: { invitationId: inv.id, guestLinkId: idJhon } });
+    ok(cuantos === 1, "cada familia lleva uno y sólo uno", `${cuantos}`);
+
+    /* La cuna quedó libre al corregir. Escribirla para otra familia tiene
+       que reaprovecharla en vez de dejar dos filas con el mismo nombre. */
+    const otra = await panel("POST", { names: "Marisol", regalo: "Cuna" });
+    const cunas = await prisma.regalo.count({ where: { invitationId: inv.id, nombre: "Cuna" } });
+    ok(cunas === 1, "reescribir un regalo liberado no duplica la fila", `${cunas} filas «Cuna»`);
+    ok((await traeDe(otra.body.id)) === "Cuna", "y se la queda la nueva familia");
+
+    const vacio = await panel("PATCH", { link: idJhon, regalo: "" });
+    ok(vacio.status === 200 && (await traeDe(idJhon)) === null, "vacío lo deja sin regalo");
+
+    const ajeno = await panel("PATCH", { link: "no-existe", regalo: "Cuna" });
+    ok(ajeno.status === 404, "no se le pone regalo a un invitado de otra invitación", `HTTP ${ajeno.status}`);
+
+    await prisma.guestLink.deleteMany({ where: { id: { in: [idJhon, otra.body.id] } } });
+  }
 
   /* ── En la invitación, no en otra página ──────────────────────
      Con «yo asigno» no hay nada que elegir, así que la tarjeta sale dentro

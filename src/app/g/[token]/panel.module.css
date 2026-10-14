@@ -63,6 +63,21 @@
 .nota { margin: 2px 0 0; font-size: 12.5px; color: var(--text-muted); }
 .enlace { margin: 6px 0 0; font-size: 11.5px; color: var(--text-muted); word-break: break-all; }
 
+/* El regalo de la familia. Se lee en la fila y se edita ahí mismo: abrir otra
+   pantalla para cambiar dos palabras era lo que hacía falta evitar. */
+.regalo { margin: 4px 0 0; font-size: 13px; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.regaloVacio { color: var(--text-muted); }
+.regaloCambiar {
+  border: 0; background: none; padding: 0; cursor: pointer;
+  font: inherit; font-size: 12px; color: var(--accent); text-decoration: underline;
+}
+.regaloEditar { margin: 6px 0 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.regaloEditar .input { flex: 1 1 180px; min-width: 0; }
+.regaloCancelar {
+  border: 0; background: none; padding: 0; cursor: pointer;
+  font: inherit; font-size: 12px; color: var(--text-muted); text-decoration: underline;
+}
+
 .filaLado { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
 
 /* Las respuestas de cada enlace: teléfono y mensaje de quien confirmó.

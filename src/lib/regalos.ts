@@ -286,16 +286,20 @@ export async function soltarRegalo(
  * parte un renglón» habrían empezado iguales y terminado distintas: el panel
  * entendiendo la nota y el MCP no, o al revés.
  */
-export async function cargarRegalos(invitationId: string, crudo: string): Promise<number> {
-  const texto = crudo.trim();
-  if (!texto) return 0;
-
+async function siguienteOrden(invitationId: string): Promise<number> {
   const ultimo = await prisma.regalo.findFirst({
     where: { invitationId },
     orderBy: { orden: "desc" },
     select: { orden: true },
   });
-  let orden = (ultimo?.orden ?? -1) + 1;
+  return (ultimo?.orden ?? -1) + 1;
+}
+
+export async function cargarRegalos(invitationId: string, crudo: string): Promise<number> {
+  const texto = crudo.trim();
+  if (!texto) return 0;
+
+  let orden = await siguienteOrden(invitationId);
 
   /* Un regalo por renglón, y lo que vaya detrás de "—" es la nota:
      «Cochecito — talla única, en Falabella». Se parte por el guion largo y
@@ -381,4 +385,74 @@ export async function asignarRegalo(
     return "ya-lo-tenia";
   }
   return "ok";
+}
+
+/**
+ * El regalo de una familia, escrito donde se crea su enlace.
+ *
+ * Es el mismo reparto que hace el panel del editor, pero al revés de cómo lo
+ * piensa aquél. Allí se carga una lista y después se mira a quién darle cada
+ * cosa; aquí el regalo es **un dato de la familia** —qué trae— y se escribe
+ * en el mismo renglón que sus nombres y sus pases. Esa es la forma en que se
+ * reparte de verdad, y es la que puede usar quien invita sin tener cuenta.
+ *
+ * Por eso cada familia lleva uno y sólo uno: escribir otro reemplaza al
+ * anterior en vez de sumarse, y vacío lo deja sin nada.
+ */
+export async function ponerRegaloA(
+  invitationId: string,
+  guestLinkId: string,
+  nombre: string
+): Promise<{ ok: true; regalo: string | null } | { ok: false; motivo: "no-existe" }> {
+  const enlace = await prisma.guestLink.findFirst({
+    where: { id: guestLinkId, invitationId },
+    select: { id: true, names: true },
+  });
+  if (!enlace) return { ok: false, motivo: "no-existe" };
+
+  const clave = claveDeEleccion(enlace.id, enlace.names);
+  const limpio = nombre.trim().slice(0, 120);
+
+  await prisma.regaloEleccion.deleteMany({ where: { invitationId, clave } });
+  if (!limpio) return { ok: true, regalo: null };
+
+  /* Se reaprovecha una fila libre con ese mismo nombre antes de crear otra.
+     Al corregir —«no era Pañales, era Cuna»— la vieja se queda libre, y sin
+     esto escribir «Pañales» para otra familia dejaría dos filas iguales, una
+     de ellas fantasma. */
+  const mismas = await prisma.regalo.findMany({
+    where: { invitationId, nombre: limpio },
+    select: { id: true, cupo: true, _count: { select: { elecciones: true } } },
+    orderBy: { orden: "asc" },
+  });
+  const libre = mismas.find((r) => r._count.elecciones < r.cupo);
+
+  const regaloId = libre
+    ? libre.id
+    : (
+        await prisma.regalo.create({
+          data: { invitationId, nombre: limpio, orden: await siguienteOrden(invitationId) },
+        })
+      ).id;
+
+  try {
+    await prisma.regaloEleccion.create({
+      data: { regaloId, invitationId, guestLinkId: enlace.id, nombre: enlace.names, clave, asignado: true },
+    });
+  } catch {
+    /* El índice único: ya lo tenía. El resultado es el que se quería. */
+  }
+  return { ok: true, regalo: limpio };
+}
+
+/** Qué lleva cada familia, por id de enlace. Para pintarlo junto a su fila. */
+export async function regalosPorEnlace(invitationId: string): Promise<Record<string, string>> {
+  const elecciones = await prisma.regaloEleccion.findMany({
+    where: { invitationId, guestLinkId: { not: null } },
+    orderBy: { createdAt: "asc" },
+    select: { guestLinkId: true, regalo: { select: { nombre: true } } },
+  });
+  const mapa: Record<string, string> = {};
+  for (const e of elecciones) if (e.guestLinkId) mapa[e.guestLinkId] = e.regalo.nombre;
+  return mapa;
 }

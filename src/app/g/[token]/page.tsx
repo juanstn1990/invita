@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { coupleName, resolvedDateLabel, type InvitationData } from "@/lib/schema";
 import { resumirLink } from "@/lib/invitados";
+import { regalosPorEnlace, tieneRegalos } from "@/lib/regalos";
 import { PanelInvitados } from "./PanelInvitados";
 
 export const dynamic = "force-dynamic";
@@ -34,6 +35,12 @@ export default async function PanelPage({ params }: { params: { token: string } 
   const data = JSON.parse(invitation.data) as InvitationData;
   const filas = invitation.links.map(resumirLink);
 
+  /* El regalo de cada familia, y sólo si la invitación tiene el bloque: sin
+     él, pedirle a quien invita que escriba un regalo sería pedirle un dato
+     que nadie va a ver. */
+  const conRegalos = tieneRegalos(data);
+  const regalos = conRegalos ? await regalosPorEnlace(invitation.id) : {};
+
   /* Quien confirma sin haber abierto un enlace personalizado —escribió su
      nombre por su cuenta, o llegó por el link general— no tiene family a la
      que sumarse: sin esto la confirmación queda guardada pero invisible aquí,
@@ -58,8 +65,10 @@ export default async function PanelPage({ params }: { params: { token: string } 
       titulo={coupleName(data) || invitation.title}
       fecha={resolvedDateLabel(data)}
       origen={`${proto}://${host}`}
+      conRegalos={conRegalos}
       inicial={filas.map((f) => ({
         ...f,
+        regalo: regalos[f.id] || null,
         respondidoEl: f.respondidoEl?.toISOString() ?? null,
         abiertoEl: f.abiertoEl?.toISOString() ?? null,
         respuestas: f.respuestas.map((r) => ({ ...r, createdAt: r.createdAt.toISOString() })),
