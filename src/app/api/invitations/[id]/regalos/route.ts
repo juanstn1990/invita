@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { noAutorizado } from "@/lib/auth";
-import { claveDeEleccion, listarRegalos } from "@/lib/regalos";
+import { asignarRegalo, cargarRegalos, listarRegalos } from "@/lib/regalos";
 
 /**
  * La lista de regalos desde el panel: cargarla, repartirla y liberarla.
@@ -54,62 +54,20 @@ export async function POST(
     if (!regaloId || !guestLinkId) {
       return NextResponse.json({ error: "Falta el regalo o el invitado." }, { status: 400 });
     }
-    const enlace = await prisma.guestLink.findFirst({
-      where: { id: guestLinkId, invitationId: params.id },
-      select: { id: true, names: true },
-    });
-    const regalo = await prisma.regalo.findFirst({
-      where: { id: regaloId, invitationId: params.id },
-      select: { id: true },
-    });
-    if (!enlace || !regalo) {
+    const r = await asignarRegalo(params.id, regaloId, guestLinkId);
+    if (r === "no-existe") {
       return NextResponse.json({ error: "Ese regalo o ese invitado ya no están." }, { status: 404 });
     }
-    try {
-      await prisma.regaloEleccion.create({
-        data: {
-          regaloId, invitationId: params.id, guestLinkId: enlace.id,
-          nombre: enlace.names, clave: claveDeEleccion(enlace.id, enlace.names),
-          asignado: true,
-        },
-      });
-    } catch {
-      /* El índice único: ese invitado ya tenía ese regalo. No es un error
-         que haya que enseñar como fallo — el resultado es el que se quería. */
-      return NextResponse.json({ ok: true, yaEstaba: true });
+    if (r === "lleno") {
+      return NextResponse.json({ error: "Ese regalo ya no tiene sitio." }, { status: 409 });
     }
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, ...(r === "ya-lo-tenia" ? { yaEstaba: true } : {}) });
   }
 
-  const crudo = String(body.texto || "").trim();
-  if (crudo) {
-    /* Un regalo por renglón, y lo que vaya detrás de "—" o "-" es la nota:
-       «Cochecito — talla única, en Falabella». Se parte por el guion largo
-       primero porque es el que se escribe a propósito; el corto aparece
-       dentro de nombres («Body 0-3 meses») y partir por él los rompería. */
-    const ultimo = await prisma.regalo.findFirst({
-      where: { invitationId: params.id },
-      orderBy: { orden: "desc" },
-      select: { orden: true },
-    });
-    let orden = (ultimo?.orden ?? -1) + 1;
-
-    const filas = crudo
-      .split("\n")
-      .map((l) => l.trim())
-      .filter(Boolean)
-      .slice(0, 200)
-      .map((linea) => {
-        const corte = linea.indexOf("—");
-        const nombre = (corte > 0 ? linea.slice(0, corte) : linea).trim().slice(0, 120);
-        const nota = corte > 0 ? linea.slice(corte + 1).trim().slice(0, 200) : "";
-        return { invitationId: params.id, nombre, nota: nota || null, orden: orden++ };
-      })
-      .filter((r) => r.nombre);
-
-    if (!filas.length) return NextResponse.json({ error: "No había nada que agregar." }, { status: 400 });
-    await prisma.regalo.createMany({ data: filas });
-    return NextResponse.json({ ok: true, agregados: filas.length });
+  const agregados = await cargarRegalos(params.id, String(body.texto || ""));
+  if (agregados) return NextResponse.json({ ok: true, agregados });
+  if (String(body.texto || "").trim()) {
+    return NextResponse.json({ error: "No había nada que agregar." }, { status: 400 });
   }
 
   return NextResponse.json({ error: "Escribe al menos un regalo." }, { status: 400 });

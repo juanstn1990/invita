@@ -2387,9 +2387,25 @@ Vacía significa abierta.
 en `ocasiones` dónde vive, y el editor y el servidor MCP le preguntan los dos a
 `agregables()`. Así no pueden ofrecer cosas distintas.
 
+**Se carga y se reparte desde dos sitios**, el panel web y el servidor MCP, y
+los dos llaman a las mismas dos funciones (`cargarRegalos`, `asignarRegalo`).
+Vivían dentro de la ruta del panel, que era el único que cargaba listas; dos
+copias de «cómo se parte un renglón» habrían empezado iguales y terminado
+distintas. Por MCP los regalos y los invitados se nombran **por su nombre** y
+no por su id: los ids no salen en ninguna pantalla, y lo que se tiene a mano al
+repartir es «la cuna es de Jhon y Edith». Eso es lo que permite dejar una lista
+de veinticinco puesta en una llamada en vez de en veinticinco desplegables.
+
+**Volver a asignar lo mismo a la misma familia no es un error**, y el orden de
+las comprobaciones es lo que lo sostiene: con cupo 1 y esa familia dentro, el
+cupo está lleno —por ella—, así que mirar el cupo antes contestaba «ya no tiene
+sitio» a quien ya lo tenía. Repetir la llamada para completar lo que faltó
+devolvía entonces veinticinco errores de algo que estaba bien.
+
 ```bash
 npm run audit:regalos       # la carrera: tres a la vez por el mismo regalo
 npm run audit:regalos-web   # las rutas, con la app levantada
+npm run audit:regalos-mcp   # cargar y repartir, por un cliente MCP de verdad
 ```
 
 ## Iconos: Phosphor, no emojis

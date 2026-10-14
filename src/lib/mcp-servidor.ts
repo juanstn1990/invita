@@ -49,6 +49,9 @@ import { ESTADO_POR_ID, estadoDe, PAGO_POR_ID, pagoDe } from "./tablero";
 import { actualizarConParche, deshacer } from "./plantillas";
 import { descargar, guardarEnBiblioteca, TIPOS_BIBLIOTECA, urlsUsables } from "./subir";
 import { limpiarNombres, limpiarPases, nuevoCodigo, resumirLink, urlDeLink } from "./invitados";
+import { asignarRegalo, cargarRegalos, configRegalos, listarRegalos, tieneRegalos } from "./regalos";
+import { nombreNormalizado } from "./rsvp";
+import type { InvitationData } from "./schema";
 
 export interface OpcionesMcp {
   /** Con qué dirección se arman los enlaces que se devuelven. */
@@ -1076,6 +1079,199 @@ export function construirServidor({ base, capturar }: OpcionesMcp): McpServer {
     }
   );
 
+
+  /* ── La lista de regalos ─────────────────────────────────────── */
+
+  /**
+   * Cargar la lista y repartirla, que es lo que faltaba.
+   *
+   * El bloque se construyó con su panel web y sin herramienta aquí, y se
+   * notó el día que hubo que montar veinticinco regalos para un baby shower:
+   * veinticinco renglones y veinticinco desplegables a mano, teniendo los
+   * datos ya escritos en la nota de cada enlace.
+   *
+   * Regalos e invitados se nombran **por su nombre** y no por su id. Los ids
+   * no los ha visto nadie —no salen en ninguna pantalla— y lo que se tiene a
+   * mano al repartir es «la cuna es de Jhon y Edith». Resolver el nombre aquí
+   * es lo que hace que una sola llamada pueda dejar la lista entera puesta.
+   */
+  server.registerTool(
+    "regalos",
+    {
+      title: "La lista de regalos: cargarla y repartirla",
+      description:
+        "Sólo en baby shower, y sólo si la invitación tiene el bloque «Lista de " +
+        "regalos». Sin acción, enumera la lista con quién tiene qué y los " +
+        "invitados a los que se puede repartir. `cargar` agrega regalos, uno por " +
+        "renglón, y lo que vaya detrás de un guion largo (—) es la nota: " +
+        "«Cochecito — color gris». `asignar` le pone su regalo a cada familia, " +
+        "varios de una vez; con el bloque en modo «yo asigno» cada invitado abre " +
+        "su enlace y ve sólo el suyo. `liberar` deshace un reparto y `quitar` " +
+        "borra un regalo de la lista.",
+      inputSchema: {
+        id: z.string().describe("El id de la invitación, de `listar`."),
+        accion: z
+          .enum(["cargar", "asignar", "liberar", "quitar"])
+          .optional()
+          .describe("Sin esto, sólo enumera."),
+        texto: z
+          .string()
+          .optional()
+          .describe("Para `cargar`: un regalo por renglón, «Nombre — nota»."),
+        reparto: z
+          .array(
+            z.object({
+              regalo: z.string().describe("El nombre del regalo, como está en la lista."),
+              invitado: z
+                .string()
+                .describe("Los nombres del enlace, como salen en `invitados`: «Jhon, Edith»."),
+            })
+          )
+          .max(200)
+          .optional()
+          .describe("Para `asignar`: los pares regalo–invitado."),
+        regalo: z
+          .string()
+          .optional()
+          .describe("El nombre del regalo, para `liberar` o `quitar`."),
+      },
+    },
+    async ({ id, accion, texto, reparto, regalo }) => {
+      const inv = await prisma.invitation.findUnique({
+        where: { id },
+        select: { id: true, title: true, data: true, estado: true },
+      });
+      if (!inv) return error("No existe una invitación con ese id. Mírala en `listar`.");
+
+      const data = JSON.parse(inv.data) as InvitationData;
+
+      /* La misma frontera que `escribir` y `bloques`: entregada es que está
+         en manos del cliente. */
+      if (accion && estadoDe(inv.estado) === "entregada") {
+        return error(
+          `"${inv.title}" está marcada como **entregada**, y este servidor no toca ` +
+            `entregadas. Muévela a «En curso» en el tablero (${base}/tablero) y vuelve.`
+        );
+      }
+
+      /* El bloque es lo que hace visible la lista. Sin él los regalos se
+         guardan igual pero no hay por dónde verlos, así que más vale decirlo
+         antes de cargar veinticinco que después. */
+      const sinBloque = !tieneRegalos(data)
+        ? {
+            aviso:
+              `"${inv.title}" no tiene el bloque «Lista de regalos», así que ` +
+              "ningún invitado puede ver esto. Agrégalo con `bloques` " +
+              '(`accion: "agregar"`, `tipo: "regalos"`).',
+          }
+        : {};
+
+      const enlaces = await prisma.guestLink.findMany({
+        where: { invitationId: inv.id },
+        orderBy: { createdAt: "asc" },
+        select: { id: true, names: true, note: true },
+      });
+
+      /* Buscar por nombre, perdonando mayúsculas y tildes. Devuelve el único
+         que coincide, o nada: con dos iguales no se puede adivinar cuál, y
+         elegir uno sería repartir a ciegas. */
+      const unico = <T,>(xs: T[], nombre: (x: T) => string, buscado: string): T | null => {
+        const q = nombreNormalizado(buscado);
+        const hay = xs.filter((x) => nombreNormalizado(nombre(x)) === q);
+        return hay.length === 1 ? hay[0] : null;
+      };
+
+      const comoEsta = async () => {
+        const lista = await listarRegalos(inv.id, null, true);
+        return json({
+          modo: configRegalos(data).modo,
+          regalos: lista.map((r) => ({
+            regalo: r.nombre,
+            nota: r.nota || null,
+            cupo: r.cupo,
+            libres: r.libres,
+            de: r.de.map((e) => `${e.nombre}${e.asignado ? " (se lo asignaste)" : " (lo eligió)"}`),
+          })),
+          invitados: enlaces.map((e) => ({ invitado: e.names, nota: e.note })),
+          cuentas: {
+            regalos: lista.length,
+            conDueno: lista.filter((r) => r.de.length).length,
+            libres: lista.filter((r) => r.libres > 0).length,
+          },
+          ...sinBloque,
+        });
+      };
+
+      if (!accion) return comoEsta();
+
+      if (accion === "cargar") {
+        const cuantos = await cargarRegalos(inv.id, String(texto || ""));
+        if (!cuantos) return error("No había nada que agregar. Un regalo por renglón en `texto`.");
+        return json({
+          agregados: cuantos,
+          ...sinBloque,
+          siguiente:
+            'Para repartirlos: `regalos` con `accion: "asignar"` y los pares ' +
+            "regalo–invitado. Sin repartir, los invitados eligen ellos.",
+        });
+      }
+
+      if (accion === "asignar") {
+        if (!reparto?.length) return error("Dime qué le toca a quién en `reparto`.");
+        const lista = await listarRegalos(inv.id, null, false);
+
+        const hechos: string[] = [];
+        const fallos: string[] = [];
+        for (const par of reparto) {
+          const r = unico(lista, (x) => x.nombre, par.regalo);
+          const e = unico(enlaces, (x) => x.names, par.invitado);
+          if (!r) { fallos.push(`«${par.regalo}»: no está en la lista, o hay dos con ese nombre`); continue; }
+          if (!e) { fallos.push(`«${par.invitado}»: no es ninguno de los invitados, o hay dos así`); continue; }
+          const res = await asignarRegalo(inv.id, r.id, e.id);
+          if (res === "ok" || res === "ya-lo-tenia") hechos.push(`${r.nombre} → ${e.names}`);
+          else if (res === "lleno") fallos.push(`«${r.nombre}»: ya no tiene sitio (cupo ${r.cupo})`);
+          else fallos.push(`«${r.nombre}» → «${e.names}»: uno de los dos ya no está`);
+        }
+
+        const cfg = configRegalos(data);
+        return json({
+          asignados: hechos.length,
+          reparto: hechos,
+          ...(fallos.length ? { sinAsignar: fallos } : {}),
+          ...sinBloque,
+          ...(cfg.modo === "asignado"
+            ? {}
+            : {
+                aviso:
+                  "El bloque está en «eligen ellos», así que el invitado verá la " +
+                  "lista entera además de lo suyo. Para que vea sólo su regalo, " +
+                  'escribe `modo: "asignado"` en el bloque.',
+              }),
+          siguiente: "Con `invitados` sacas el enlace de cada familia para mandárselo.",
+        });
+      }
+
+      /* Liberar y quitar son cosas distintas, y por eso son dos acciones:
+         liberar deja el regalo en la lista para otro —lo asignaste mal—,
+         quitar se lo lleva entero con lo que hubiera elegido alguien. */
+      if (!regalo) return error("Dime qué regalo, por su nombre, en `regalo`.");
+      const cual = unico(await listarRegalos(inv.id, null, false), (x) => x.nombre, regalo);
+      if (!cual) {
+        return error(
+          `No encuentro un solo regalo llamado «${regalo}» en la lista — o no está, ` +
+            "o hay dos con ese nombre. Pide `regalos` sin acción para verla."
+        );
+      }
+
+      if (accion === "liberar") {
+        await prisma.regaloEleccion.deleteMany({ where: { invitationId: inv.id, regaloId: cual.id } });
+        return json({ liberado: cual.nombre, nota: "Vuelve a estar libre en la lista." });
+      }
+
+      await prisma.regalo.deleteMany({ where: { id: cual.id, invitationId: inv.id } });
+      return json({ quitado: cual.nombre });
+    }
+  );
 
   /* ── Las imágenes ────────────────────────────────────────────── */
 

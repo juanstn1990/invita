@@ -42,6 +42,7 @@
     "audit:plantillas": "tsx scripts/audit-plantillas.ts",
     "audit:regalos": "tsx scripts/audit-regalos.ts",
     "audit:regalos-web": "tsx scripts/audit-regalos-web.ts",
+    "audit:regalos-mcp": "tsx scripts/audit-regalos-mcp.ts",
     "mcp": "tsx scripts/mcp.ts"
   },
   "dependencies": {

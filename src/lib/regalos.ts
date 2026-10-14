@@ -273,3 +273,112 @@ export async function soltarRegalo(
   });
   return count > 0;
 }
+
+/* ────────────────────────────────────────────────────────────────
+   Cargar la lista y repartirla
+   ──────────────────────────────────────────────────────────────── */
+
+/**
+ * Agrega regalos a la lista, uno por renglón.
+ *
+ * Vivía dentro de la ruta del panel, que era el único sitio que cargaba
+ * listas. Ahora también la carga el servidor MCP, y dos copias de «cómo se
+ * parte un renglón» habrían empezado iguales y terminado distintas: el panel
+ * entendiendo la nota y el MCP no, o al revés.
+ */
+export async function cargarRegalos(invitationId: string, crudo: string): Promise<number> {
+  const texto = crudo.trim();
+  if (!texto) return 0;
+
+  const ultimo = await prisma.regalo.findFirst({
+    where: { invitationId },
+    orderBy: { orden: "desc" },
+    select: { orden: true },
+  });
+  let orden = (ultimo?.orden ?? -1) + 1;
+
+  /* Un regalo por renglón, y lo que vaya detrás de "—" es la nota:
+     «Cochecito — talla única, en Falabella». Se parte por el guion largo y
+     no por el corto porque el corto aparece dentro de los nombres —«Body
+     0-3 meses»— y partir por él los rompería. */
+  const filas = texto
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean)
+    .slice(0, 200)
+    .map((linea) => {
+      const corte = linea.indexOf("—");
+      const nombre = (corte > 0 ? linea.slice(0, corte) : linea).trim().slice(0, 120);
+      const nota = corte > 0 ? linea.slice(corte + 1).trim().slice(0, 200) : "";
+      return { invitationId, nombre, nota: nota || null, orden: orden++ };
+    })
+    .filter((r) => r.nombre);
+
+  if (!filas.length) return 0;
+  await prisma.regalo.createMany({ data: filas });
+  return filas.length;
+}
+
+export type ResultadoAsignar = "ok" | "ya-lo-tenia" | "no-existe" | "lleno";
+
+/**
+ * Le pone un regalo a una familia.
+ *
+ * Marcado `asignado`, que es lo que distingue «se lo puse yo» de «lo eligió
+ * él» — y lo que impide que lo suelte desde la invitación: si pudiera,
+ * «yo asigno» dejaría de significar nada en cuanto alguien no quisiera el
+ * suyo.
+ *
+ * No necesita la transacción serializable de `tomarRegalo`: aquí no hay
+ * carrera, reparte una sola persona desde un solo sitio. Lo que sí hace
+ * falta es respetar el cupo, porque asignar a ciegas dejaría un regalo con
+ * más dueños que unidades y eso es justo lo que la lista existe para evitar.
+ */
+export async function asignarRegalo(
+  invitationId: string,
+  regaloId: string,
+  guestLinkId: string
+): Promise<ResultadoAsignar> {
+  const [enlace, regalo] = await Promise.all([
+    prisma.guestLink.findFirst({
+      where: { id: guestLinkId, invitationId },
+      select: { id: true, names: true },
+    }),
+    prisma.regalo.findFirst({
+      where: { id: regaloId, invitationId },
+      select: { id: true, cupo: true, _count: { select: { elecciones: true } } },
+    }),
+  ]);
+  if (!enlace || !regalo) return "no-existe";
+
+  /* «Ya lo tenía» se mira **antes** que el cupo, y no es un detalle de
+     orden: con cupo 1 y esa misma familia dentro, el cupo está lleno —por
+     ella—, así que preguntar primero por el cupo contestaba «ya no tiene
+     sitio» a quien ya lo tiene. Repartiendo veinticinco de una vez eso
+     importa: repetir la llamada para completar lo que faltó devolvía
+     veinticinco errores de algo que estaba bien. Volver a asignar lo mismo
+     a la misma familia tiene que ser decir lo que ya se dijo. */
+  const clave = claveDeEleccion(enlace.id, enlace.names);
+  const suya = await prisma.regaloEleccion.findUnique({
+    where: { regaloId_clave: { regaloId: regalo.id, clave } },
+    select: { id: true },
+  });
+  if (suya) return "ya-lo-tenia";
+
+  if (regalo._count.elecciones >= regalo.cupo) return "lleno";
+
+  try {
+    await prisma.regaloEleccion.create({
+      data: {
+        regaloId, invitationId, guestLinkId: enlace.id,
+        nombre: enlace.names, clave,
+        asignado: true,
+      },
+    });
+  } catch {
+    /* El índice único: esa familia ya tenía ese regalo. No es un fallo que
+       enseñar — el resultado es el que se quería. */
+    return "ya-lo-tenia";
+  }
+  return "ok";
+}
