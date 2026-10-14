@@ -1039,7 +1039,21 @@ export const SECTIONS: SectionSpec[] = [
     key: "hero",
     label: "Portada",
     icon: "❖",
-    optional: false,
+    /*
+     * Apagable, aunque sea la portada.
+     *
+     * Durante mucho tiempo fue obligatoria por una razón buena —una
+     * invitación sin portada no se parece a una invitación— y eso dejaba
+     * fuera el caso que la contradice: la invitación de **una sola
+     * pantalla**, toda en un bloque de HTML, donde la portada es una
+     * pantalla entera que hay que pasar para llegar a lo único que hay.
+     *
+     * Apagarla no la borra: como el resto de las secciones, se oculta. Los
+     * guiones del template siguen encontrando sus elementos —la cuenta atrás
+     * busca los suyos cada segundo— y los bloques se siguen colgando donde
+     * siempre, que es justo lo que se rompería si desapareciera del árbol.
+     */
+    optional: true,
     fields: [
       { key: "label", label: "Antetítulo", type: "text", placeholder: "Te invitamos a nuestra" },
       {
