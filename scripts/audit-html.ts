@@ -92,6 +92,14 @@ const LEGITIMOS: Caso[] = [
     (s) => s.includes("youtube.com") && s.includes('loading="lazy"')],
   ["un mapa de Google", `<iframe src="https://www.google.com/maps/embed?pb=x"></iframe>`,
     (s) => s.includes("google.com/maps")],
+  /* El enganche de la cuenta atrás: lo escribe quien edita, pero quien lo
+     lee es el guion del propio diseño. Es el único `data-` que sobrevive, y
+     sin él una cuenta atrás dentro de un bloque de HTML se queda en guiones
+     para siempre. */
+  ["el enganche de la cuenta atrás", `<span class="ring-number" data-cd="days">--</span>`,
+    (s) => s.includes('data-cd="days"')],
+  ["pero ningún otro data-", `<span data-loquesea="x" data-cd="mins">--</span>`,
+    (s) => s.includes('data-cd="mins"') && !s.includes("data-loquesea")],
 ];
 
 let malos = 0;

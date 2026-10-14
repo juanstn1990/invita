@@ -45,6 +45,12 @@ const ATRIBUTOS = new Set([
   "lang", "loop", "muted", "playsinline", "poster", "rel", "rowspan",
   "sizes", "span", "src", "srcset", "style", "target", "title", "type",
   "width", "loading", "allow", "allowfullscreen", "frameborder", "open",
+  /* El enganche de la cuenta atrás. Es el único `data-` que pasa, y pasa
+     porque el guion que lo lee no es del invitado: es el del propio diseño,
+     que busca `[data-cd]` en toda la página y escribe un número dentro. Sin
+     esto, una cuenta atrás escrita en un bloque de HTML salía con guiones
+     para siempre y sin decir por qué. No ejecuta nada: es un nombre. */
+  "data-cd",
 ]);
 
 /**
