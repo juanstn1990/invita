@@ -1325,6 +1325,7 @@ const listaRegalos: BlockSpec = {
       hint: "Un botón a la lista; el enlace lo pone la invitación sola",
       build: () => `${head()}
     <p class="section-body" data-inv="regalos.texto">Mensaje</p>
+    <div class="regalos-mio" data-inv-regalos-mio hidden></div>
     <a class="regalos-btn" href="#" data-inv-regalos-btn data-inv="regalos.boton">Ver la lista</a>`,
     },
   ],

@@ -4196,6 +4196,75 @@ const TEXTO_ANIM_JS = `
  * metería en el enlace cualquier cosa que alguien pegue detrás —campañas,
  * basura— y lo que esta página necesita son dos.
  */
+/**
+ * El regalo de quien está mirando, dentro de la propia invitación.
+ *
+ * Con «yo asigno» el invitado no tiene nada que elegir: lo suyo ya está
+ * decidido, así que mandarlo a otra página a verlo era un viaje para una
+ * sola frase. Si hay regalo asignado, la tarjeta sale aquí y el botón sobra.
+ *
+ * Tiene que pasar en el navegador y no al renderizar, por lo de siempre en
+ * este archivo: el HTML se genera una vez y lo abren las veinticinco
+ * familias; quién está mirando sólo lo dice el `?g=` de la dirección.
+ *
+ * Y se construye con `textContent`, no pegando HTML: el nombre de un regalo
+ * lo escribe quien organiza, pero acaba en la página de los invitados, y esa
+ * es exactamente la ruta por la que una comilla de más deja de ser un
+ * nombre y pasa a ser marcado.
+ */
+const REGALOS_MIO_JS = `
+(function(){
+  var caja = document.querySelector('[data-inv-regalos-mio]');
+  if (!caja) return;
+  var slug = caja.getAttribute('data-inv-regalos-mio');
+  if (!slug || slug === 'preview') return;
+  var codigo = new URLSearchParams(location.search).get('g');
+  if (!codigo) return;
+
+  fetch('/api/i/' + slug + '/regalos?g=' + encodeURIComponent(codigo))
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(j){
+      /* Sólo cuando reparte quien invita y a éste le tocó algo. En «eligen
+         ellos» la tarjeta aquí sería mentira: todavía tiene que elegir. */
+      if (!j || j.modo !== 'asignado' || !j.mios || !j.mios.length) return;
+
+      j.mios.forEach(function(r){
+        var ficha = document.createElement('div');
+        ficha.className = 'regalos-ficha';
+
+        if (r.imagen) {
+          var img = document.createElement('img');
+          img.className = 'regalos-ficha-foto';
+          img.src = r.imagen;
+          img.alt = '';
+          ficha.appendChild(img);
+        }
+
+        var datos = document.createElement('div');
+        var nombre = document.createElement('p');
+        nombre.className = 'regalos-ficha-nombre';
+        nombre.textContent = r.nombre;
+        datos.appendChild(nombre);
+        if (r.nota) {
+          var nota = document.createElement('p');
+          nota.className = 'regalos-ficha-nota';
+          nota.textContent = r.nota;
+          datos.appendChild(nota);
+        }
+        ficha.appendChild(datos);
+        caja.appendChild(ficha);
+      });
+
+      caja.hidden = false;
+      /* El botón llevaba justo a esto. */
+      var btn = document.querySelector('[data-inv-regalos-btn]');
+      if (btn) btn.hidden = true;
+    })
+    .catch(function(){
+      /* Sin red se queda el botón, que es el camino de siempre. */
+    });
+})();`;
+
 const REGALOS_LINK_JS = `
 (function(){
   var btns = document.querySelectorAll('[data-inv-regalos-btn]');
@@ -4811,6 +4880,16 @@ export function renderInvitation(opts: RenderOptions): string {
   ) as El[]) {
     if (slug) btn.setAttribute("href", `/${slug}/regalos`);
     else { btn.removeAttribute("href"); btn.setAttribute("aria-disabled", "true"); }
+  }
+
+  /* El hueco donde cabe el regalo de quien está mirando, con el slug encima
+     para que el script sepa a quién preguntarle. Igual que el formulario de
+     confirmación lleva el suyo en `data-inv-rsvp`: el guion no puede
+     adivinarlo, y aquí es lo único que no cambia entre una familia y otra. */
+  for (const caja of Array.from(
+    document.querySelectorAll("[data-inv-regalos-mio]")
+  ) as El[]) {
+    caja.setAttribute("data-inv-regalos-mio", slug || "");
   }
 
   /* 3 · quater · Cómo se abre el velo.
@@ -5734,6 +5813,7 @@ export function renderInvitation(opts: RenderOptions): string {
   if (document.querySelector("[data-inv-agendar]")) scripts.push(AGENDAR_JS);
   if (document.querySelector(".inv-polvo")) scripts.push(POLVO_JS);
   if (document.querySelector("[data-inv-regalos-btn]")) scripts.push(REGALOS_LINK_JS);
+  if (document.querySelector("[data-inv-regalos-mio]")) scripts.push(REGALOS_MIO_JS);
   /* Sólo en el editor: en lo publicado sería dejar mover la decoración a
      quien recibe la invitación. */
   if (preview && document.querySelector("[data-inv-adorno]")) {

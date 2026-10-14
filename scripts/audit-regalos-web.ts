@@ -23,7 +23,11 @@ async function main() {
     blocks: [
       ...defaultLayout(),
       { id: "regalos-0", type: "regalos", variant: "simple",
-        data: { enabled: true, title: "Lista de regalos", texto: "Elige el tuyo.", modo: "elige", tope: "2" } },
+        /* `boton` hace falta aunque parezca de adorno: el renderer quita lo
+           que no tiene texto, así que sin esto el botón no llega al HTML y
+           «¿sigue estando el botón?» se contestaría solo. */
+        data: { enabled: true, title: "Lista de regalos", texto: "Elige el tuyo.",
+          boton: "Ver la lista", modo: "elige", tope: "2" } },
     ],
   };
   const slug = `t-regalos-${Date.now()}`;
@@ -121,6 +125,44 @@ async function main() {
   ok(nada.mios?.length === 0, "quien no tiene nada no ve nada");
   const intento = await post({ regalo: regalos[0].id, accion: "tomar", g: fam[0].code });
   ok(intento.status === 403, "y nadie puede tomar por su cuenta", `HTTP ${intento.status}`);
+
+  /* ── En la invitación, no en otra página ──────────────────────
+     Con «yo asigno» no hay nada que elegir, así que la tarjeta sale dentro
+     de la propia invitación y el botón sobra. Eso sólo ocurre en el
+     navegador —el HTML se renderiza una vez y lo abren todas las familias—,
+     y por eso esto es lo único de este archivo que necesita Chromium. */
+  console.log("\n━━ La tarjeta dentro de la invitación");
+  {
+    const { chromium } = await import("playwright");
+    const nav = await chromium.launch();
+    const abrir = async (g?: string) => {
+      const p = await nav.newPage({ viewport: { width: 430, height: 900 } });
+      await p.goto(`${BASE}/${slug}${g ? `?invitado=Familia&g=${g}` : ""}`, { waitUntil: "networkidle" });
+      /* La tarjeta la pone un `fetch`, así que hay que darle su turno. */
+      await p.waitForTimeout(1200);
+      const caja = p.locator("[data-inv-regalos-mio]");
+      const estado = {
+        tarjeta: (await caja.locator(".regalos-ficha").count()) > 0 && !(await caja.isHidden()),
+        texto: (await caja.textContent())?.trim() || "",
+        boton: !(await p.locator("[data-inv-regalos-btn]").first().isHidden()),
+      };
+      await p.close();
+      return estado;
+    };
+
+    const conRegalo = await abrir(fam[1].code);
+    ok(conRegalo.tarjeta, "quien tiene regalo asignado ve la tarjeta", JSON.stringify(conRegalo));
+    ok(/Pañales/.test(conRegalo.texto), "y dice cuál es", conRegalo.texto);
+    ok(!conRegalo.boton, "el botón desaparece: llevaba justo a eso");
+
+    const sinRegalo = await abrir(fam[0].code);
+    ok(!sinRegalo.tarjeta && sinRegalo.boton, "a quien no le han asignado nada le queda el botón", JSON.stringify(sinRegalo));
+
+    const anonimo = await abrir();
+    ok(!anonimo.tarjeta && anonimo.boton, "y sin código, también", JSON.stringify(anonimo));
+
+    await nav.close();
+  }
 
   console.log("\n━━ La página");
   const pagina = await fetch(`${BASE}/${slug}/regalos?g=${fam[0].code}`);

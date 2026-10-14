@@ -299,6 +299,31 @@ section.alt{background:var(--bg-alt)}
   letter-spacing:var(--tracking);text-transform:var(--caps)}
 
 /* ── Lista de regalos ── */
+/* La tarjeta del regalo asignado, dentro de la invitación. Hereda del diseño
+   —el acento, la tipografía de los títulos, el radio de los botones— porque
+   aparece en medio de una sección, no en una página aparte: una tarjeta
+   blanca de esquinas rectas en una invitación de acuarela se lee como un
+   pegote. El borde es del acento y el fondo apenas se insinúa, para que la
+   foto o el papel del diseño se sigan viendo detrás. */
+.regalos-mio{margin:22px auto 0;max-width:min(420px,100%);display:grid;gap:10px}
+.regalos-mio[hidden]{display:none}
+.regalos-ficha{display:grid;grid-template-columns:auto 1fr;align-items:center;
+  gap:14px;padding:16px 18px;border-radius:var(--btn-radius);
+  border:2px solid var(--accent);background:rgba(255,255,255,.72);
+  text-align:left}
+.regalos-ficha>div:only-child,.regalos-ficha>div:last-child{min-width:0}
+.regalos-ficha-foto{width:54px;height:54px;object-fit:cover;border-radius:10px}
+.regalos-ficha-nombre{margin:0;font-family:var(--display);
+  font-weight:var(--display-weight);font-size:var(--fs-h3);line-height:1.2;
+  overflow-wrap:anywhere}
+.regalos-ficha-nota{margin:4px 0 0;font-size:var(--fs-micro);opacity:.75;
+  overflow-wrap:anywhere}
+
+/* El display:block de abajo le gana al [hidden] del navegador, que es sólo
+   display:none en la hoja del agente de usuario: sin esta línea, el botón
+   seguía ahí después de que el script lo escondiera al poner la tarjeta, y
+   salían los dos. */
+.regalos-btn[hidden]{display:none}
 .regalos-btn{display:block;width:max-content;max-width:100%;margin:24px auto 0;
   padding:15px 30px;border-radius:var(--btn-radius);background:var(--accent);
   color:var(--on-accent);text-decoration:none;font-size:var(--fs-micro);

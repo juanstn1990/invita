@@ -2365,6 +2365,21 @@ familias. Quien entre por la dirección pelada ve la lista pero no aparta nada.
 - **Yo asigno** — el organizador reparte desde `/editor/{id}/regalos` y el
   invitado abre y ve **sólo el suyo**: ni la lista, ni quién lleva qué.
 
+**Con «yo asigno», la tarjeta sale en la propia invitación.** No hay nada que
+elegir —lo suyo ya está decidido—, así que mandarlo a otra página a verlo era
+un viaje para una sola frase: si hay regalo asignado, la ficha aparece en el
+bloque y el botón se esconde. Lo pone un `fetch` en el navegador y no el
+renderizado, por lo de siempre: el HTML se genera una vez y lo abren todas las
+familias, y quién está mirando sólo lo dice el `?g=` de la dirección. Quien no
+tenga nada asignado, o entre sin código, se queda con el botón de siempre.
+
+Dos detalles que costaron una pasada de auditoría cada uno. El botón necesita
+`.regalos-btn[hidden]{display:none}` explícito: su `display:block` le gana al
+`[hidden]` del navegador, que sólo vive en la hoja del agente de usuario, y sin
+eso salían la tarjeta **y** el botón. Y el CSS de los diseños va horneado en
+`templates/*.html`, así que tocar `design/css.ts` no se ve hasta
+`npm run templates:build` — la regla estaba escrita y la página no la tenía.
+
 **Los nombres de quién eligió no viajan al invitado.** La lista dice si algo
 está tomado, no por quién: en un baby shower, ver que la suegra ya tomó el
 cochecito cambia lo que la gente elige, y lo que se pidió es repartir regalos,
