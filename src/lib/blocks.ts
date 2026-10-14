@@ -49,7 +49,13 @@ export interface BlockSpec {
   section?: string;
   /** Una línea que diga qué es, para el menú de «¿Qué bloque agregas?». */
   hint?: string;
-  /** Se puede agregar más de una vez. */
+  /**
+   * Se puede agregar más de una vez.
+   *
+   * No es lo mismo que «se puede agregar»: eso lo decide `ADDABLE`, y
+   * confundir las dos cosas dejó la lista de regalos fuera del menú durante
+   * un despliegue entero. Ver ahí.
+   */
   repeatable: boolean;
   /**
    * Las ocasiones donde este bloque tiene sentido. Sin declarar nada, todas
@@ -1559,11 +1565,22 @@ export const BLOCK_BY_TYPE: Record<string, BlockSpec> = Object.fromEntries(
 /**
  * Los que se pueden agregar desde el botón "+ Agregar bloque".
  *
- * Se conserva sin filtrar porque hay dos sitios que la usan —el editor y el
- * servidor MCP— y los dos tienen que ofrecer lo mismo; el filtro por ocasión
+ * Lo que deja fuera a un bloque es **venir ya puesto**: los que tienen
+ * `section` son las once del esquema, que toda invitación trae de serie y no
+ * se agregan porque ya están. Lo demás se agrega, se repita o no.
+ *
+ * Antes esto era `b.repeatable`, y ahí cabían los dos sentidos en una sola
+ * palabra: la lista de regalos declaró `repeatable: false` queriendo decir
+ * «una por invitación» —que es verdad— y lo que consiguió fue desaparecer del
+ * menú. Nadie pudo agregarla nunca, ni desde el editor ni por MCP, porque los
+ * dos preguntan aquí. Un bloque sin sección que no sea agregable no es un
+ * bloque: es código muerto.
+ *
+ * Se conserva sin filtrar por ocasión porque hay dos sitios que la usan —el
+ * editor y el servidor MCP— y los dos tienen que ofrecer lo mismo; ese filtro
  * va en `agregables()`, que es lo que deben llamar los dos.
  */
-export const ADDABLE = BLOCKS.filter((b) => b.repeatable);
+export const ADDABLE = BLOCKS.filter((b) => b.repeatable || !b.section);
 
 /**
  * Los que se pueden agregar a una invitación de esta ocasión.
