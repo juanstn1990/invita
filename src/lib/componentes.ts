@@ -1205,7 +1205,13 @@ html:not(.js) .inv-ev-constelacion .inv-dato{opacity:1;transform:none}
 
    Sin color de fondo: se pinta por debajo del border-image y asomaría por
    la rotura, que es justo lo que no puede pasar. Lo aparta el renderer. */
-.inv-fondo-papel{border-style:solid;border-width:var(--inv-papel-alto,22px) 0;
+/* El borde transparente es el respaldo, y no es un detalle: si la imagen no
+   carga —un archivo borrado de la biblioteca, una ruta mal escrita— el
+   navegador pinta el borde con el color de las letras, y lo que aparece
+   son dos franjas oscuras de 22px cruzando la invitación. Transparente, lo
+   que se pierde es el papel y nada más. */
+.inv-fondo-papel{border-style:solid;border-color:transparent;
+  border-width:var(--inv-papel-alto,22px) 0;
   border-image:var(--inv-papel-img) var(--inv-papel-corte,22) 0 fill stretch}
 /* Una de cada dos, volteada: la misma hoja da dos roturas distintas sin
    subir una segunda. Vale para la dibujada y para la de foto — las dos son
