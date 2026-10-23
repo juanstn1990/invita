@@ -1005,13 +1005,65 @@ function fondoVideo(doc: Doc, url: string, modo: string): El {
 function ponerFondo(seccion: El, d: InvitationData[string], sel: string, ctx: Ctx) {
   const url = String(d.fondoUrl || "").trim();
   const color = String(d.fondoColor || "").trim();
-  if (!url && !HEX.test(color)) return;
+  const rasgado = String(d.fondoBorde || "") === "rasgado";
+  /* La foto de papel sólo significa algo con el borde rasgado puesto. */
+  const papel = rasgado ? String(d.fondoPapel || "").trim() : "";
+  if (!url && !HEX.test(color) && !papel) return;
   const modo = String(d.fondoAjuste || "");
   const opacidad = Math.min(100, Math.max(0, Number(d.fondoOpacidad ?? 100))) / 100;
 
   const capa = seccion.ownerDocument.createElement("div");
-  capa.setAttribute("class", "inv-fondo");
+  /* El papel rasgado arriba y abajo. La rotura enseña lo que haya detrás, y
+     detrás está el color que el diseño le pinta a la sección: hay que
+     apartarlo para que se vea el fondo general de la invitación, que es lo
+     que hace el efecto. Sin eso la máscara recorta y no se nota nada. */
+  /* Una de cada dos, volteada. Ver `papelPrevio` en el contexto. */
+  if (rasgado) {
+    const cual = papel || "dibujado";
+    ctx.papelEspejo = cual === ctx.papelPrevio ? !ctx.papelEspejo : false;
+    ctx.papelPrevio = cual;
+  }
+  capa.setAttribute(
+    "class",
+    (papel ? "inv-fondo inv-fondo-papel" : rasgado ? "inv-fondo inv-fondo-rasgado" : "inv-fondo") +
+      (rasgado && ctx.papelEspejo ? " inv-fondo-espejo" : "")
+  );
   capa.setAttribute("aria-hidden", "true");
+  if (rasgado) ctx.css.push(`${sel}{background:transparent !important}`);
+
+  /* Una hoja rasgada se monta sobre la de arriba.
+     Dos secciones rasgadas seguidas se tocan borde con borde, y entre el
+     desgarrón de la de arriba y el de la de abajo no queda papel: por ahí
+     asomaba el fondo de la invitación como una raya quebrada que no se lee
+     como fondo, se lee como un error.
+
+     Se sube el doble de lo que mide el desgarrón, y no lo mismo: montando
+     justo el alto, los dientes se cruzan —uno hondo arriba contra uno hondo
+     abajo— y quedan agujeritos de fondo la mitad de las veces. Al doble no
+     se cruzan nunca, y lo que se ve es lo que se quería: una hoja encima de
+     otra, con su borde roto, sin nada entre medias. */
+  if (rasgado) {
+    const alto = papel
+      ? `${Math.min(80, Math.max(6, Number(d.fondoPapelAlto ?? 22) || 22))}px`
+      : "clamp(9px,2.4vw,16px)";
+    ctx.css.push(`${sel}{margin-top:calc(-2 * ${alto})}`);
+  }
+
+  /* Con foto de papel, la foto **es** el fondo: ni color ni imagen de
+     fondo, que se pintan por debajo del border-image y asomarían por la
+     rotura. Y la imagen se pide a su tamaño, sin `?w=`: el corte va en
+     píxeles de la imagen, y servirla reescalada los movería. */
+  if (papel) {
+    const alto = Math.min(80, Math.max(6, Number(d.fondoPapelAlto ?? 22) || 22));
+    capa.setAttribute(
+      "style",
+      `--inv-papel-img:url("${papel.replace(/"/g, "%22")}");` +
+        `--inv-papel-alto:${alto}px;--inv-papel-corte:${alto};opacity:${opacidad}`
+    );
+    seccion.insertBefore(capa, seccion.firstChild);
+    ctx.css.push(`${sel}{position:relative}`, `${sel}>.container{position:relative;z-index:1}`);
+    return;
+  }
 
   /* Sólo color: la capa entera se pinta de él y ya. Es lo más barato que
      puede pedirse —cero bytes— y lo que más se pide. */
@@ -1640,6 +1692,19 @@ type Ctx = {
   peso: Peso;
   /** En el editor. Es lo único que enciende el arrastre de adornos. */
   preview?: boolean;
+  /**
+   * El papel rasgado de la sección anterior, y si va volteado.
+   *
+   * Dos secciones seguidas rotas con la misma hoja se rompen **igual**, y
+   * dos desgarrones idénticos uno encima de otro se leen como lo que son:
+   * una imagen repetida. Volteando una de cada dos, la misma hoja da dos
+   * roturas distintas y no hay que subir una segunda.
+   *
+   * Se guarda cuál era para no voltear cuando la hoja ya cambió: quien
+   * eligió otra a propósito no necesita que se la demos la vuelta.
+   */
+  papelPrevio?: string;
+  papelEspejo?: boolean;
 };
 
 /**
@@ -2704,6 +2769,35 @@ a.inv-rsvp-btn{display:flex;width:max-content;max-width:100%;margin:28px auto 0;
 /* A sangre: cubre la sección y recorta lo que sobre. */
 .inv-ad-sangre{inset:0}
 .inv-ad-sangre img,.inv-ad-sangre video{width:100%;height:100%;object-fit:cover}
+
+/* ── El bloque «Adorno»: una pieza entre dos secciones ──────────
+   La franja no ocupa alto: es una costura sin grosor, y la pieza se centra
+   en ella y sobresale por los dos lados. Midiendo lo que mide la pieza
+   aparecía una banda del color de la página entre dos secciones que sí
+   tienen el suyo —los diseños que alternan colores lo enseñaban a la
+   primera—, y esa banda no la había pedido nadie. «Aire» le da alto, y
+   entonces sí separa las dos secciones.
+
+   El padding va a cero porque el de los bloques sueltos son 64px arriba y
+   abajo, que aquí serían un hueco en medio de la nada. Y el selector lleva
+   las dos clases porque con una sola pesa lo mismo que la regla de
+   .inv-block-suelto y ganaría la escrita después.
+
+   El z-index es lo que hace que la pieza se vea entera: las secciones van
+   posicionadas y la de abajo se dibuja después, así que sin él la taparía
+   justo por la mitad. */
+.inv-block-suelto.inv-block-adorno{padding:0 22px;background:transparent;
+  position:relative;z-index:2;overflow:visible;height:var(--inv-ad-aire,0px);
+  display:flex;align-items:center;justify-content:center;
+  gap:clamp(12px,4vw,26px)}
+/* En una sección, la cabecera lleva un margen que la separa del antetítulo
+   que viene detrás. En la franja no hay nada detrás. */
+.inv-block-adorno .inv-ad-cabecera{margin:0;flex:none}
+/* Entre dos líneas: los filetes son los pseudoelementos de la propia franja,
+   que en un flex cuentan como dos hijos más —uno antes y otro después—, así
+   que la pieza queda en medio sin añadir marcado. */
+.inv-block-adorno.inv-v-linea::before,.inv-block-adorno.inv-v-linea::after{
+  content:"";flex:1;height:1px;background:var(--inv-accent);opacity:.45}
 
 /* El adorno bajo el título de cada sección. Lo elige el diseño en su deco. */
 .inv-orn{width:100%;height:100%;fill:currentColor}
@@ -5148,6 +5242,25 @@ export function renderInvitation(opts: RenderOptions): string {
     }
   }
 
+  /* 3 · sexies · Las líneas que el diseño pone entre secciones.
+     Un filete de un píxel que con el fondo liso ayuda y con una sección
+     rasgada estorba: cruza recto por encima del desgarrón.
+
+     Se borran las que están **entre** secciones —los hijos del flujo— y no
+     todo lo que se llame parecido: `dots` y `torn` son nombres que también
+     llevan piezas de dentro de una sección, como los puntos de un carrusel,
+     y un selector a secas se las habría llevado por delante. Es la misma
+     familia de clases que ya reconoce `divisorDe` para arrastrarlas al
+     reordenar. */
+  if (String(data.event?.divisores || "") === "sin") {
+    const { padre } = flujo(document, pick(document, map.sections.hero || []));
+    for (const hijo of Array.from(padre.children || []) as El[]) {
+      if (/wave|divider|scallop|torn|cloudline|brush|dots/i.test(hijo.getAttribute?.("class") || "")) {
+        hijo.remove?.();
+      }
+    }
+  }
+
   /* 3a · Los adornos de la portada ya no se tocan.
      Aquí había un paso que, en los diseños de boda, escondía todo lo que
      pareciera decoración de la portada: ornamentos, iniciales, marcas de
@@ -5291,6 +5404,19 @@ export function renderInvitation(opts: RenderOptions): string {
               `backdrop-filter:blur(1.5px)}`
           );
         }
+      }
+    }
+
+    /* Cuánto separa la franja del bloque «Adorno» a sus dos vecinas.
+       En línea y no como regla porque es un número por bloque: una regla por
+       franja sería escribir el mismo CSS tantas veces como adornos se
+       pongan, y cada una con su selector. */
+    if (r.block.type === "adorno") {
+      const aire = Math.min(200, Math.max(0, Number(sectionData.aire) || 0));
+      if (aire) {
+        const previo = root.getAttribute?.("style") || "";
+        const sep = previo && !previo.trim().endsWith(";") ? ";" : "";
+        root.setAttribute?.("style", `${previo}${sep}--inv-ad-aire:${aire}px`);
       }
     }
 

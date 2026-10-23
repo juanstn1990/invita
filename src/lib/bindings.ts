@@ -259,10 +259,19 @@ const APARTE = new Set([
   "btnColor",
   /* La forma de los botones es una regla CSS sobre `--btn-radius`. */
   "btnForma",
+  /* Las líneas entre secciones se quitan borrando el divisor del diseño. */
+  "divisores",
   "btnInk",
   "fondoUrl",
   "fondoAjuste",
   "fondoOpacidad",
+  /* El borde rasgado del fondo: una clase y una máscara sobre esa misma
+     capa, y la foto del papel es su `border-image`. Sin esto, el mapa le
+     daría a un `select` su operación de siempre —escribir el valor como
+     texto— y pediría un `data-inv` que ningún diseño tiene. */
+  "fondoBorde",
+  "fondoPapel",
+  "fondoPapelAlto",
   /* De la ficha: cómo entra su foto y qué alto mínimo le deja. Los pone
      `ponerFondoFicha` en variables de la propia tarjeta. */
   "fondoAlto",

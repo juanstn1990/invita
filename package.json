@@ -10,6 +10,7 @@
     "db:studio": "prisma studio",
     "media:index": "tsx scripts/index-uploads.ts",
     "media:limpiar": "tsx scripts/media-limpiar.ts",
+    "media:papeles": "tsx scripts/papeles.ts",
     "db:migrar": "tsx scripts/migrar-a-postgres.ts",
     "backup": "tsx scripts/backup.ts",
     "docker:backup": "sh scripts/docker-backup.sh",

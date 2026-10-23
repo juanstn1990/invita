@@ -354,6 +354,78 @@ export const fondoFields: FieldSpec[] = [
     showIf: { key: "fondoUrl", value: "*" },
   },
   {
+    /*
+     * El borde del papel.
+     *
+     * Rompe la capa del fondo, no la sección: una máscara se lleva por
+     * delante todo lo pintado, y sobre la sección recortaría también el
+     * texto que asome por el borde.
+     *
+     * Y por eso pide fondo puesto, igual que la opacidad: lo que se rasga es
+     * esa capa, y sin fondo no hay capa que rasgar. El color de la sección
+     * que trae el diseño no sirve —ése se pinta sobre la sección entera—,
+     * así que al elegir rasgado el renderer lo aparta para que por la rotura
+     * se vea el fondo general de la invitación, que es lo que hace el
+     * efecto.
+     */
+    key: "fondoBorde",
+    label: "Borde del fondo",
+    type: "select",
+    span: 2,
+    fallback: 0,
+    options: [
+      { value: "", label: "Recto" },
+      { value: "rasgado", label: "Papel rasgado" },
+    ],
+    showIf: { key: ["fondoUrl", "fondoColor"], value: "*" },
+    help: "Rompe el borde de arriba y el de abajo, como una tira de papel arrancada. Por la rotura se ve el fondo general de la invitación: si es del mismo color que la sección, no se nota: dale otro color o una textura.",
+  },
+  {
+    /*
+     * El papel de verdad.
+     *
+     * El desgarrón dibujado es una silueta y nada más: no tiene fibra, ni
+     * grano, ni el borde más claro donde el papel se afina. Una foto de una
+     * hoja rota sí, y se nota a la primera.
+     *
+     * La imagen se corta en tres con `border-image`: la tira de arriba, la
+     * de abajo y el papel del medio, que es el único que se estira. Así el
+     * desgarrón mide lo mismo en una sección de doscientos píxeles que en
+     * una de mil quinientos, que es justo lo que no conseguía la hoja
+     * entera puesta de fondo.
+     *
+     * Tiene que llegar de lado a lado: lo que se corta son el borde de
+     * arriba y el de abajo, no los de los lados, así que un PNG con margen
+     * transparente a los costados deja un hueco en los bordes de la
+     * pantalla.
+     */
+    key: "fondoPapel",
+    label: "Imagen del papel",
+    type: "image",
+    span: 2,
+    showIf: { key: "fondoBorde", value: "rasgado" },
+    help: "Un PNG de una hoja rasgada, con el fondo transparente y que llegue de lado a lado. La imagen pasa a ser el fondo: se usa su borde de arriba, el de abajo y su papel. Vienen dos puestos, `/disenos/papeles/crema.png` y `/disenos/papeles/crema-espejo.png`, que están también en la biblioteca. Dos secciones seguidas con la misma hoja se voltean en espejo solas, así que no hace falta ir alternando a mano: con poner la misma en todas, ninguna se rompe igual que su vecina. Vacío = el desgarrón que dibujamos nosotros.",
+  },
+  {
+    /*
+     * Un solo número para dos cosas, y a propósito: cuánto de la imagen es
+     * el desgarrón y cuánto mide en pantalla. Siendo el mismo, la tira se
+     * dibuja a tamaño natural y no se deforma — que es de lo que se venía
+     * huyendo.
+     */
+    key: "fondoPapelAlto",
+    label: "Alto del desgarrón",
+    type: "range",
+    min: 6,
+    max: 80,
+    step: 2,
+    unit: "px",
+    fallback: 22,
+    span: 2,
+    showIf: { key: "fondoPapel", value: "*" },
+    help: "Cuántos píxeles de arriba y de abajo de la imagen son el borde roto. Se dibujan a tamaño natural, así que es también lo que mide en pantalla.",
+  },
+  {
     key: "fondoOpacidad",
     label: "Opacidad del fondo",
     type: "range",
@@ -844,6 +916,31 @@ export const SECTIONS: SectionSpec[] = [
         label: "Color de su texto",
         type: "color",
         help: "Las letras dentro del botón. Vacío = el que trae la paleta.",
+      },
+      {
+        /*
+         * Las rayas que el diseño pone entre una sección y otra.
+         *
+         * Todos los diseños traen una: un filete de un píxel, del color del
+         * borde, que marca dónde acaba una sección y empieza la siguiente.
+         * Con el fondo liso de siempre ayuda; en cuanto una sección se
+         * rasga, estorba — la raya cruza recta por encima del desgarrón y
+         * delata que el papel es un rectángulo con una foto en el borde.
+         *
+         * Va aquí y no en cada sección a propósito: quien quiere quitarlas
+         * las quiere quitar todas. Una invitación con tres rayas sí y dos no
+         * no es una decisión, es un olvido.
+         */
+        key: "divisores",
+        label: "Líneas entre secciones",
+        type: "select",
+        span: 2,
+        fallback: 0,
+        options: [
+          { value: "", label: "Las del diseño" },
+          { value: "sin", label: "Sin líneas" },
+        ],
+        help: "El filete que separa una sección de la siguiente. Quítalo si usas fondos de color o papel rasgado: ahí la raya recta cruza por encima del desgarrón.",
       },
       {
         key: "paleta",

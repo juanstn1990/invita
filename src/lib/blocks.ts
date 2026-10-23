@@ -18,7 +18,7 @@
 import { iconoHtml } from "./iconos";
 import type { Occasion } from "./design/theme";
 import type { FieldSpec, ListSpec, SectionData } from "./schema";
-import { entradaSeccionField, fondoFields, panelFields } from "./schema";
+import { ADORNOS, entradaSeccionField, fondoFields, panelFields } from "./schema";
 
 export interface Block {
   /** Estable, para reordenar sin perder el foco ni los datos. */
@@ -960,6 +960,77 @@ const photo: BlockSpec = {
   ],
 };
 
+/* ── Adorno (bloque nuevo) ────────────────────────────────── */
+
+/**
+ * Una pieza suelta entre dos secciones.
+ *
+ * Los adornos existían desde el principio, pero siempre **dentro** de una
+ * sección: puestos en absoluto sobre ella, y los 76 diseños declaran
+ * `section{overflow:hidden}`, así que lo que asomaba por el borde se cortaba
+ * justo en la costura. Poner una guirnalda «entre la galería y el programa»
+ * no era un control que faltara: era un sitio donde no cabía nada.
+ *
+ * Esto es ese sitio. El bloque es una franja transparente que se arrastra en
+ * el orden como cualquier otro, y lo que lleva dentro es un adorno de los de
+ * siempre —viene ya creado, en el flujo y centrado—, así que llega con su
+ * tamaño, su giro, su volteo, su opacidad, sus cinco entradas y sus seis
+ * movimientos sin escribir ninguna de esas seis cosas por segunda vez. Y como
+ * un adorno también sabe ser una frase, la franja sirve igual para el
+ * versículo suelto entre dos secciones.
+ *
+ * No lleva campos de arte propios a propósito: duplicarlos aquí habría sido
+ * exactamente la segunda copia que se queda sin arreglar.
+ */
+const adorno: BlockSpec = {
+  type: "adorno",
+  hint: "Una pieza o una frase entre dos secciones",
+  label: "Adorno",
+  icon: "❧",
+  repeatable: true,
+  fields: [
+    {
+      /*
+       * Cuánto se separan las dos secciones para dejarle sitio.
+       *
+       * En cero la franja no ocupa alto: la pieza se queda a caballo de la
+       * costura, que es como cuelga una guirnalda. Subiéndolo se abre hueco y
+       * la pieza acaba dentro de él.
+       *
+       * En píxeles y no en porcentaje: lo que se ajusta es el aire entre dos
+       * secciones, que el diseño ya mide en píxeles, y un porcentaje de una
+       * franja que no tiene alto propio no diría nada.
+       */
+      key: "aire",
+      label: "Cuánto separa las dos secciones",
+      type: "range",
+      min: 0,
+      max: 200,
+      step: 4,
+      unit: "px",
+      fallback: 0,
+      span: 2,
+      help: "En cero, la pieza queda a caballo de la costura y sobresale por los dos lados. Subiéndolo se abre hueco entre las dos secciones y la pieza se mete dentro.",
+    },
+  ],
+  variants: [
+    {
+      id: "suelta",
+      name: "La pieza sola",
+      hint: "Sólo el adorno, centrado",
+      bare: true,
+      build: () => "",
+    },
+    {
+      id: "linea",
+      name: "Entre dos líneas",
+      hint: "Con un filete a cada lado, como un divisor",
+      bare: true,
+      build: () => "",
+    },
+  ],
+};
+
 /* ── Ubicación (bloque nuevo) ─────────────────────────────── */
 
 const fichaMapa = `<div class="inv-mapa-datos">
@@ -1527,6 +1598,7 @@ export const BLOCKS: BlockSpec[] = [
   redes,
   paragraph,
   photo,
+  adorno,
   video,
   ubicacion,
   calendario,
@@ -1656,6 +1728,18 @@ export function blockDefaults(spec: BlockSpec): SectionData {
   }
   if (spec.type === "gallery") {
     return { enabled: true, label: "", title: "Más fotos", text: "", items: [] };
+  }
+  if (spec.type === "adorno") {
+    /* Con la pieza ya creada y en el flujo.
+       Un bloque llamado «Adorno» que se abriera sin ningún adorno dentro
+       obligaría a entender que el arte vive en una lista aparte, que es justo
+       lo que el bloque viene a ahorrar. `cabecera` es el sitio del flujo: la
+       franja mide lo que mida la pieza, sin alto que ajustar. */
+    return {
+      enabled: true,
+      aire: "0",
+      adornos: [{ ...ADORNOS.defaultItem, sitio: "cabecera", tamano: "34" }],
+    };
   }
   if (spec.type === "photo") {
     return { enabled: true, url: "", label: "", title: "", caption: "", textColor: "" };

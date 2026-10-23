@@ -108,6 +108,50 @@ function rasgado(semilla: number): string {
   return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
 }
 
+/**
+ * El borde roto de una banda de papel.
+ *
+ * El de arriba es otra cosa que el de una foto. La máscara de la foto rompe
+ * los cuatro lados de un rectángulo y se estira con ella, que mide lo que
+ * mide; una sección mide lo que mida su texto —doscientos píxeles o mil
+ * quinientos— y la misma máscara estirada daría un desgarrón de tres
+ * píxeles en una y de veinte en la siguiente.
+ *
+ * Por eso esto no es la silueta entera sino una tira: el desgarrón solo, con
+ * papel macizo detrás. Se pone arriba y abajo con un alto fijo, y el medio
+ * lo rellena un degradado opaco, así que el diente mide lo mismo en todas
+ * las secciones de la invitación.
+ *
+ * El azar es el mismo de siempre —propio y con semilla— para que dos
+ * capturas de la misma invitación no se rompan distinto.
+ */
+function rasgadoBorde(semilla: number, abajo: boolean): string {
+  let s = (semilla * 2654435761) % 2147483647;
+  const azar = () => (s = (s * 1103515245 + 12345) % 2147483647) / 2147483647;
+  const W = 100;
+  const H = 10;
+  /* Muchos dientes y cortos: la tira se estira a todo el ancho de la
+     pantalla, y con pocos el estirón los convierte en ondas. */
+  const n = 48;
+  const puntos: string[] = [];
+  for (let i = 0; i <= n; i++) {
+    const x = (W * i) / n;
+    /* Casi siempre un diente corto, y de vez en cuando una muesca honda:
+       es lo que distingue un papel roto de un borde serrado. */
+    const d = azar() * (azar() > 0.18 ? 2.8 : 6.4);
+    puntos.push(`${x.toFixed(1)} ${(abajo ? H - d : d).toFixed(1)}`);
+  }
+  const linea = puntos.join("L");
+  /* Arriba: se rompe el borde de arriba y queda macizo el de abajo. */
+  const d = abajo
+    ? `M0 0L${linea}L${W} 0Z`
+    : `M0 ${H}L${linea}L${W} ${H}Z`;
+  const svg =
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" ` +
+    `preserveAspectRatio="none"><path d="${d}" fill="#000"/></svg>`;
+  return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
+}
+
 /* ────────────────────────────────────────────────────────────────
    CSS
    ──────────────────────────────────────────────────────────────── */
@@ -1117,7 +1161,9 @@ html:not(.js) .inv-ev-constelacion .inv-dato{opacity:1;transform:none}
    pintado, sombra incluida—, y por eso estas fotos no llevan. */
 :root{--inv-rasgado-1:${rasgado(7)};
   --inv-rasgado-2:${rasgado(19)};
-  --inv-rasgado-3:${rasgado(42)}}
+  --inv-rasgado-3:${rasgado(42)};
+  --inv-rasgado-arriba:${rasgadoBorde(11, false)};
+  --inv-rasgado-abajo:${rasgadoBorde(29, true)}}
 .inv-ga-rasgada{display:flex;flex-direction:column;gap:30px;margin-top:26px}
 .inv-ga-rasgada .gallery-item,.inv-foto-rasgada .gallery-item{width:100%;border:0;border-radius:0;padding:0;
   background:none;box-shadow:none;overflow:hidden;
@@ -1127,6 +1173,44 @@ html:not(.js) .inv-ev-constelacion .inv-dato{opacity:1;transform:none}
 .inv-ga-rasgada .gallery-item:nth-child(3n+3){-webkit-mask-image:var(--inv-rasgado-3);mask-image:var(--inv-rasgado-3)}
 .inv-ga-rasgada .gallery-ph,.inv-foto-rasgada .gallery-ph{width:100%;height:100%}
 .inv-foto-rasgada .gallery-item{max-width:360px;margin:26px auto 0;aspect-ratio:3/4}
+
+/* ── El fondo de una sección, rasgado arriba y abajo ──
+   Tres capas de máscara: la tira rota de arriba, el papel macizo del medio
+   y la tira rota de abajo. El alto de las tiras es fijo, así que el
+   desgarrón mide lo mismo en una sección corta que en una larga.
+
+   Se rompe la capa del fondo y no la sección: una máscara recorta todo lo
+   pintado, y sobre la sección se llevaría por delante el texto que asome
+   por el borde. Y abajo se ve lo que haya detrás —el fondo general de la
+   invitación—, que es lo que hace el efecto: sin nada distinto detrás, un
+   papel rasgado sobre papel del mismo color no se ve roto. */
+.inv-fondo-rasgado{--inv-rb:clamp(9px,2.4vw,16px);
+  -webkit-mask:var(--inv-rasgado-arriba) top center/100% var(--inv-rb) no-repeat,
+    linear-gradient(#000,#000) center/100% calc(100% - var(--inv-rb) * 2) no-repeat,
+    var(--inv-rasgado-abajo) bottom center/100% var(--inv-rb) no-repeat;
+  mask:var(--inv-rasgado-arriba) top center/100% var(--inv-rb) no-repeat,
+    linear-gradient(#000,#000) center/100% calc(100% - var(--inv-rb) * 2) no-repeat,
+    var(--inv-rasgado-abajo) bottom center/100% var(--inv-rb) no-repeat}
+
+/* ── Y el mismo fondo, pero con una foto de papel de verdad ──
+   La imagen se corta en tres con border-image: la tira de arriba, la de
+   abajo y el papel del medio. Las dos tiras se dibujan a tamaño natural
+   —el mismo número es el corte en píxeles de la imagen y el alto del borde
+   en pantalla— y sólo se estira el medio, que es papel liso y no se nota.
+   Por eso esto no se deforma y la hoja entera puesta de fondo sí.
+
+   Se estira a lo ancho en vez de repetirse: repetida, la rotura enseña la
+   costura donde empieza otra vez; estirada, como el desgarrón es
+   irregular, no hay nada que delate el estirón.
+
+   Sin color de fondo: se pinta por debajo del border-image y asomaría por
+   la rotura, que es justo lo que no puede pasar. Lo aparta el renderer. */
+.inv-fondo-papel{border-style:solid;border-width:var(--inv-papel-alto,22px) 0;
+  border-image:var(--inv-papel-img) var(--inv-papel-corte,22) 0 fill stretch}
+/* Una de cada dos, volteada: la misma hoja da dos roturas distintas sin
+   subir una segunda. Vale para la dibujada y para la de foto — las dos son
+   la misma capa, y voltearla le da la vuelta al papel entero. */
+.inv-fondo-espejo{transform:scaleX(-1)}
 
 /* ── Párrafo «cita» ──
    Una frase en su tarjeta y la firma debajo, dentro. El antetítulo hace de
