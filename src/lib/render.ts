@@ -10,7 +10,7 @@
 import { parseHTML } from "linkedom";
 import {
   ABANICO_JS, AGENDAR_JS, ANILLOS_JS, CAPITULOS_JS, CARRUSEL_JS, CIELO_JS, COMPONENTES_CSS, CONFETI_JS,
-  CONSTELACION_JS, DESEO_JS, FUGAZ_JS, LIBRO_JS, NUBES_JS, POLVO_JS, RASCA_JS, SENDERO_JS, SOBRE_JS, TELON_JS, VIAJE_JS, VENTANA_JS, CLAQUETA_JS, LLEGAN_JS, MARIPOSA_JS, ESCARCHA_JS, NAIPE_JS, LACRE_JS,
+  CONSTELACION_JS, DESEO_JS, FUGAZ_JS, LIBRO_JS, NUBES_JS, PANTALLA_JS, POLVO_JS, RASCA_JS, SENDERO_JS, SOBRE_JS, TELON_JS, VIAJE_JS, VENTANA_JS, CLAQUETA_JS, LLEGAN_JS, MARIPOSA_JS, ESCARCHA_JS, NAIPE_JS, LACRE_JS,
   VOLTEA_JS,
 } from "./componentes";
 import { sanearHtml } from "./sanear";
@@ -3862,7 +3862,7 @@ const FONDO_VIDEO_JS = `
  * inyectado; no hay marcado nuevo, así que funcionan igual en los 49 diseños
  * y en los que vengan.
  */
-const APERTURAS = new Set(["sobre", "sello", "deseo", "libro", "abanico", "nubes", "telon", "anillos", "ventana", "claqueta", "mariposa", "escarcha", "naipe", "jardin", "velas", "lacre"]);
+const APERTURAS = new Set(["pantalla", "sobre", "sello", "deseo", "libro", "abanico", "nubes", "telon", "anillos", "ventana", "claqueta", "mariposa", "escarcha", "naipe", "jardin", "velas", "lacre"]);
 
 /**
  * Cómo la cortina da paso a la invitación.
@@ -3911,8 +3911,26 @@ const CORTINA_JS = `
      ambiente, es ruido. Muda la cortina, que suene la música encima. */
   var musica = v.hasAttribute('muted') ? null : document.getElementById('inv-musica');
 
-  /* Lo que se ve de la cortina, como mucho. Ver el comentario de abajo. */
-  var TOPE = 5000;
+  /* Cuánto se deja puesta la cortina como mucho.
+
+     Era un número fijo de cinco segundos, y eso convertía el respaldo en
+     una regla: un vídeo de doce segundos se cortaba a la mitad pasara lo
+     que pasara, y había que subir recortado el trozo que se quisiera ver.
+     El tope no está para decidir cuánto dura la apertura —eso lo decide
+     quien sube el vídeo— sino para que nadie quede encerrado mirando una
+     cortina que no se va.
+
+     Así que ahora lo dice el propio vídeo: lo que dure y un segundo más,
+     que es el margen para que llegue el aviso de que terminó. Si el
+     archivo no sabe cuánto dura —metadatos mal escritos, una duración
+     infinita— se cae a un número generoso, que es justo el caso para el
+     que el respaldo existe. Y el botón de saltar sigue ahí desde el primer segundo y medio,
+     que es la salida de verdad. */
+  var TOPE_CIEGO = 30000;
+  function tope() {
+    var d = v.duration;
+    return isFinite(d) && d > 0 ? d * 1000 + 1000 : TOPE_CIEGO;
+  }
   /* Cuánto se espera a que el vídeo tenga imagen antes de renunciar a él.
      Cuatro segundos es mucho para una espera y poco para una descarga mala:
      pasado eso vale más entrar a la invitación sin cortina que seguir
@@ -3988,7 +4006,7 @@ const CORTINA_JS = `
        cortina, nunca llegó a bloquearse y no hay nada que devolver. */
     document.body.style.overflow = 'hidden';
     abrir();
-    reloj = setTimeout(irse, TOPE);
+    reloj = setTimeout(irse, tope());
   }
 
   var previo = window.enterSite;
@@ -5018,6 +5036,14 @@ export function renderInvitation(opts: RenderOptions): string {
     /* El sobre con sello: el velo se vuelve un sobre cerrado, con el nombre
        en la carta de dentro. El panel del velo sigue ahí, escondido, porque
        su botón es el que el sobre pulsa al abrirse. */
+    /* Sin botón: la pantalla entera es lo que se toca, así que el velo
+       pasa a ser el botón también para quien no usa el ratón. */
+    if (velo && apertura === "pantalla") {
+      velo.setAttribute("role", "button");
+      velo.setAttribute("tabindex", "0");
+      velo.setAttribute("aria-label", "Abrir la invitación");
+      velo.insertAdjacentHTML?.("beforeend", `<p class="inv-sobre-pista">Toca la pantalla</p>`);
+    }
     if (velo && apertura === "deseo") {
       velo.insertAdjacentHTML?.("beforeend", `<p class="inv-deseo-pista">Toca y pide un deseo</p>`);
     }
@@ -5958,6 +5984,7 @@ export function renderInvitation(opts: RenderOptions): string {
   if (document.querySelector("[data-inv-sobre]")) scripts.push(SOBRE_JS);
   if (document.querySelector("[data-inv-libro]")) scripts.push(LIBRO_JS);
   if (document.querySelector("[data-inv-abanico]")) scripts.push(ABANICO_JS);
+  if (document.querySelector(".inv-velo-pantalla")) scripts.push(PANTALLA_JS);
   if (document.querySelector(".inv-velo-nubes")) scripts.push(NUBES_JS);
   if (document.querySelector(".inv-velo-telon")) scripts.push(TELON_JS);
   if (document.querySelector(".inv-velo-anillos")) scripts.push(ANILLOS_JS);

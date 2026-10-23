@@ -1037,7 +1037,7 @@ export const SECTIONS: SectionSpec[] = [
         label: "Vídeo de apertura",
         type: "video",
         span: 2,
-        help: "Se reproduce a pantalla completa al pulsar el botón y da paso a la invitación. Se corta siempre a los 5 segundos, así que sube el trozo que quieres que se vea: lo que haya después no se llega a ver y sólo pesa.",
+        help: "Se reproduce a pantalla completa al pulsar el botón y da paso a la invitación. Se ve entero, dure lo que dure, y quien no quiera esperar tiene el botón de saltar. Piensa que es lo primero que ve quien abre la invitación: unos segundos se disfrutan, medio minuto se salta.",
       },
       {
         key: "introSonido",
@@ -1088,6 +1088,7 @@ export const SECTIONS: SectionSpec[] = [
         fallback: 0,
         options: [
           { value: "", label: "Se funde (la de siempre)" },
+          { value: "pantalla", label: "Sin botón: se toca la pantalla" },
           { value: "sobre", label: "Como un sobre que se abre" },
           { value: "sello", label: "Un sobre con sello: se toca para abrir" },
           { value: "lacre", label: "Dos hojas que se abren y parten el lacre por la mitad" },
@@ -1105,7 +1106,7 @@ export const SECTIONS: SectionSpec[] = [
           { value: "jardin", label: "Un jardín que se mece y una mariposa que se va" },
           { value: "velas", label: "Unas velas encendidas: se tocan y la luz lo llena todo" },
         ],
-        help: "Lo que pasa al pulsar el botón. Con «sobre con sello» el velo es un sobre cerrado y el sello es lo que se toca.",
+        help: "Lo que pasa al pulsar el botón. Con «sobre con sello» el velo es un sobre cerrado y el sello es lo que se toca. Con «sin botón» el velo se queda como lo dibuja el diseño, se quita el botón y lo que se toca es la pantalla entera: es la que mejor va con el vídeo de apertura, donde un botón compite con lo único que hay que hacer.",
       },
       {
         key: "sello",

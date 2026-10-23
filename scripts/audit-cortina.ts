@@ -33,9 +33,10 @@ const TMP = fs.mkdtempSync(path.join(os.tmpdir(), "invita-cortina-"));
 /**
  * Un clip de verdad, grabado por el navegador.
  *
- * Hacen falta dos: uno más corto que el tope, para ver que termina solo, y
- * uno más largo, para ver que se corta. Con uno solo, el corte a los tres
- * segundos no se distingue de que el vídeo se acabara.
+ * Hacen falta dos: uno corto y otro bastante más largo. El largo es el que
+ * prueba lo que de verdad se quiso: que la cortina dure lo que dure el
+ * vídeo y no lo que diga un número escrito en el guion. Con uno solo no se
+ * distinguiría «se fue porque terminó» de «se fue porque la cortaron».
  */
 async function clip(b: Browser, segs: number): Promise<Buffer> {
   const dir = fs.mkdtempSync(path.join(TMP, "clip-"));
@@ -70,20 +71,21 @@ type Caso = {
   roto?: "404" | "basura";
   saltar?: boolean;
   sonido?: boolean;
-  /** Un clip más largo que el tope, para ver que se corta. */
+  /** El clip largo: el que prueba que no se corta antes de tiempo. */
   largo?: boolean;
   /** Qué debe pasar con la música mientras la cortina está puesta. */
   musicaDurante: boolean;
 };
 
-/** El tope que aplica el renderer. Si cambia allí, cambia aquí. */
-const TOPE = 5000;
+/** Lo que duran los dos clips. Si cambian abajo, cambian aquí. */
+const CORTO_SEGS = 1.6;
+const LARGO_SEGS = 8;
 /** Lo que dura la salida, que es lo que hay que esperar de más. */
 const SALIDA = 2000;
 
 const CASOS: Caso[] = [
   { nombre: "se reproduce y se va sola al terminar", musicaDurante: true },
-  { nombre: "un vídeo largo se corta a los 5 segundos", largo: true, musicaDurante: true },
+  { nombre: "un vídeo largo se ve entero", largo: true, musicaDurante: true },
   { nombre: "con sonido, la música de fondo espera", sonido: true, musicaDurante: false },
   { nombre: "se puede saltar", saltar: true, musicaDurante: true },
   { nombre: "el archivo no existe", roto: "404", musicaDurante: true },
@@ -96,8 +98,8 @@ const SALIDAS = ["", "negro", "destello", "acerca", "aleja", "sube", "baja",
 
 (async () => {
   const b = await chromium.launch({ args: ["--no-sandbox", "--disable-dev-shm-usage"] });
-  const CORTO = await clip(b, 1.6);
-  const LARGO = await clip(b, 8);
+  const CORTO = await clip(b, CORTO_SEGS);
+  const LARGO = await clip(b, LARGO_SEGS);
   const MUSICA = musica();
   const tpl = TEMPLATES[0];
   let malos = 0;
@@ -171,7 +173,9 @@ const SALIDAS = ["", "negro", "destello", "acerca", "aleja", "sube", "baja",
         corriendo: !v.paused, musica: m ? !m.paused : null,
         saltar: c.classList.contains('lista') };
     })()`);
-    const buena = !caso.roto && !caso.saltar && !caso.largo;
+    /* El largo también es un caso bueno: ahora se ve entero, así que
+       mientras corre tiene que verse la cortina igual que con el corto. */
+    const buena = !caso.roto && !caso.saltar;
     if (buena && !durante.puesta) fallos.push("la cortina no llegó a verse");
     if (buena && !durante.corriendo) fallos.push("el vídeo no arrancó");
     if (buena && !durante.saltar) fallos.push("sin botón de saltar");
@@ -181,7 +185,8 @@ const SALIDAS = ["", "negro", "destello", "acerca", "aleja", "sube", "baja",
 
     /* Y lo único que de verdad importa: que pasado el vídeo no quede nada
        encima de la invitación. Se pregunta quién ocupa el centro. */
-    await page.waitForTimeout(TOPE + SALIDA + 1200);
+    const dura = (caso.largo ? LARGO_SEGS : CORTO_SEGS) * 1000;
+    await page.waitForTimeout(dura + SALIDA + 1800);
     const despues: any = await page.evaluate(`(() => {
       var c = document.querySelector('.inv-cortina');
       var m = document.getElementById('inv-musica');
@@ -196,9 +201,13 @@ const SALIDAS = ["", "negro", "destello", "acerca", "aleja", "sube", "baja",
     if (caso.largo) {
       const t: any = await page.evaluate(`window.__t`);
       const visto = t.ini && t.fin ? Math.round(t.fin - t.ini) : null;
-      if (visto === null) fallos.push("no llegó a cortarse");
-      /* Medio segundo de margen: el reloj de una página no es un cronómetro. */
-      else if (Math.abs(visto - TOPE) > 500) fallos.push(`se vio ${visto} ms, no ~${TOPE}`);
+      if (visto === null) fallos.push("no llegó a irse");
+      /* Entero, no cortado: lo que dura el clip. Un segundo de margen, que
+         el reloj de una página no es un cronómetro y el vídeo tampoco
+         arranca en el fotograma cero. */
+      else if (Math.abs(visto - LARGO_SEGS * 1000) > 1000) {
+        fallos.push(`se vio ${visto} ms, no ~${LARGO_SEGS * 1000}`);
+      }
     }
 
     if (!despues.oculta) fallos.push("la cortina sigue puesta");
