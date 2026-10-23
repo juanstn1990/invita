@@ -453,8 +453,33 @@ export function construirServidor({ base, capturar }: OpcionesMcp): McpServer {
       /* Se devuelve sólo lo que tiene valor. Un volcado con los ciento y pico
          campos vacíos entierra los cuatro que importan, y quien lee esto
          tiene un presupuesto de atención tan limitado como el de cualquiera. */
+      /*
+       * Los bloques agregados, cada uno bajo su id.
+       *
+       * Sus datos no viven en una sección: viven dentro del propio bloque,
+       * en `layout.blocks[].data`. Recorriendo sólo las secciones, pedir
+       * `leer` de un bloque devolvía `{}` —y `leer` de todo lo enterraba
+       * dentro del volcado de `layout`, junto al orden—. Las dos cosas
+       * mienten igual de mal: la primera dice que no hay nada escrito y la
+       * segunda lo esconde donde nadie lo busca.
+       *
+       * Lo vi escribiendo una invitación de verdad: `escribir` confirmaba
+       * los once campos de una ubicación y `leer` seguía contestando `{}`,
+       * así que parecía que el bloque se vaciaba solo. Se reescribió tres
+       * veces lo que nunca se había perdido.
+       *
+       * Se escriben por id, que es la misma clave con la que `escribir` los
+       * acepta y la que devuelve `bloques`. El orden no se vuelca: eso lo
+       * contesta `bloques`, y aquí sería ruido.
+       */
+      const deBloques: Record<string, unknown> = {};
+      for (const b of (datos.layout?.blocks as { id?: string; data?: unknown }[] | undefined) || []) {
+        if (b?.id && b.data && typeof b.data === "object") deBloques[b.id] = b.data;
+      }
+      const { layout: _orden, ...secciones } = datos;
+
       const limpio: Record<string, unknown> = {};
-      for (const [clave, campos] of Object.entries(datos)) {
+      for (const [clave, campos] of Object.entries({ ...secciones, ...deBloques })) {
         if (seccion && clave !== seccion) continue;
         if (!campos || typeof campos !== "object") continue;
         const dentro: Record<string, unknown> = {};
