@@ -295,13 +295,47 @@ export function Editor(props: EditorProps) {
 
       dirty.current = true;
       setData((prev) => {
-        const sec = (prev[m.seccion!] || {}) as SectionData;
-        const items = (sec.adornos as Record<string, string>[]) || [];
-        if (!items[m.i!]) return prev;
-        const next = items.map((it, k) =>
-          k === m.i ? { ...it, sitio: "libre", x: String(x), y: String(y) } : it
-        );
-        return { ...prev, [m.seccion!]: { ...sec, adornos: next } };
+        /* Dónde viven los adornos de quien se arrastró.
+
+           Los de una sección del esquema viven en `data.<seccion>`; los de un
+           bloque agregado —una segunda galería, una ubicación, el bloque de
+           Adorno— viven dentro del propio bloque, en `layout.blocks[].data`.
+           La vista previa manda la clave que corresponde en cada caso.
+
+           Mientras esto escribía siempre en la sección, arrastrar un adorno
+           de un bloque agregado no hacía nada: se escribía en una sección que
+           no era la suya —o en ninguna, si el bloque no tenía sección del
+           mismo nombre— y la pieza volvía a su sitio al siguiente render, sin
+           ningún aviso. Se movían los de las once secciones y los de ningún
+           bloque. */
+        const mover = (datos: SectionData): SectionData | null => {
+          const items = (datos.adornos as Record<string, string>[]) || [];
+          if (!items[m.i!]) return null;
+          return {
+            ...datos,
+            adornos: items.map((it, k) =>
+              k === m.i ? { ...it, sitio: "libre", x: String(x), y: String(y) } : it
+            ),
+          };
+        };
+
+        const bloques = (prev.layout?.blocks as Block[] | undefined) || [];
+        const cual = bloques.findIndex((b) => b.id === m.seccion);
+        if (cual >= 0) {
+          const datos = mover((bloques[cual].data || {}) as SectionData);
+          if (!datos) return prev;
+          return {
+            ...prev,
+            layout: {
+              ...(prev.layout || {}),
+              blocks: bloques.map((b, k) => (k === cual ? { ...b, data: datos } : b)),
+            },
+          };
+        }
+
+        const datos = mover((prev[m.seccion!] || {}) as SectionData);
+        if (!datos) return prev;
+        return { ...prev, [m.seccion!]: datos };
       });
     };
 

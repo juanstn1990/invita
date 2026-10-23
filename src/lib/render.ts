@@ -819,6 +819,17 @@ interface Resuelto {
   sel: string;
   /** Sección del esquema de la que salen los campos y los bindings. */
   key: string;
+  /**
+   * Dónde viven sus datos, que no siempre es `key`.
+   *
+   * El primer bloque de un tipo con sección escribe en la sección del
+   * esquema; los que se agregan después guardan lo suyo dentro del propio
+   * bloque, en `layout.blocks[].data`. El arrastre de adornos necesita
+   * **esta** y no la otra: marcando con `key`, soltar un adorno de una
+   * segunda galería escribía en `data.gallery`, que no es de donde salió,
+   * y el adorno volvía a su sitio al siguiente render como si nada.
+   */
+  claveDatos: string;
   data: InvitationData[string];
   /** Marcado nuestro, no el del template. */
   sintetizado: boolean;
@@ -4751,7 +4762,7 @@ export function renderInvitation(opts: RenderOptions): string {
     if (!found) continue;
     fijos.push({
       block: { id: key, type: key, variant: "" },
-      el: found[0], sel: found[1], key, data: data[key], sintetizado: false,
+      el: found[0], sel: found[1], key, claveDatos: key, data: data[key], sintetizado: false,
     });
   }
 
@@ -4770,7 +4781,11 @@ export function renderInvitation(opts: RenderOptions): string {
     const primero = !usados.has(block.type);
     usados.add(block.type);
     const sectionKey = spec.section || block.type;
-    const blockData = (primero && spec.section ? data[sectionKey] : block.data) || {};
+    const enLaSeccion = primero && !!spec.section;
+    const blockData = (enLaSeccion ? data[sectionKey] : block.data) || {};
+    /* La misma condición que decide de dónde se leen, porque es la misma
+       pregunta: dónde hay que escribirlos. */
+    const claveDatos = enLaSeccion ? sectionKey : block.id;
     if (blockData.enabled === false) continue;
 
     /* La variante: la que eligió quien edita, y si no eligió ninguna, la que
@@ -4794,7 +4809,7 @@ export function renderInvitation(opts: RenderOptions): string {
       if (found) {
         resueltos.push({
           block, el: found[0], sel: found[1], key: sectionKey,
-          data: blockData, sintetizado: false,
+          claveDatos, data: blockData, sintetizado: false,
         });
         continue;
       }
@@ -4860,7 +4875,7 @@ export function renderInvitation(opts: RenderOptions): string {
     }
     resueltos.push({
       block, el: seccion, sel, key: sectionKey,
-      data: blockData, sintetizado: !anfitrion,
+      claveDatos, data: blockData, sintetizado: !anfitrion,
     });
   }
 
@@ -5437,7 +5452,7 @@ export function renderInvitation(opts: RenderOptions): string {
     ponerFondo(root, sectionData, sectionSel, ctx);
     const declarados = adornosDeclarados(designOf(templateId), r.key);
     ponerAdornos(
-      root, sectionData, sectionSel, ctx, r.key,
+      root, sectionData, sectionSel, ctx, r.claveDatos,
       declarados.some((a) => a.sitio === "titulo"),
       declarados.map((a) => {
         const { seccion, ...campos } = a;
