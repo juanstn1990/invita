@@ -991,18 +991,17 @@ const adorno: BlockSpec = {
   fields: [
     {
       /*
-       * Cuánto se separan las dos secciones para dejarle sitio.
+       * Cuánto aire le queda a la pieza arriba y abajo.
        *
-       * En cero la franja no ocupa alto: la pieza se queda a caballo de la
-       * costura, que es como cuelga una guirnalda. Subiéndolo se abre hueco y
-       * la pieza acaba dentro de él.
+       * En cero la franja mide exactamente lo que mide la pieza, que es lo
+       * justo para que quepa entre las dos secciones. Subiéndolo se separan.
        *
        * En píxeles y no en porcentaje: lo que se ajusta es el aire entre dos
        * secciones, que el diseño ya mide en píxeles, y un porcentaje de una
-       * franja que no tiene alto propio no diría nada.
+       * franja que mide lo que mida su pieza no diría nada.
        */
       key: "aire",
-      label: "Cuánto separa las dos secciones",
+      label: "Aire arriba y abajo",
       type: "range",
       min: 0,
       max: 200,
@@ -1010,7 +1009,7 @@ const adorno: BlockSpec = {
       unit: "px",
       fallback: 0,
       span: 2,
-      help: "En cero, la pieza queda a caballo de la costura y sobresale por los dos lados. Subiéndolo se abre hueco entre las dos secciones y la pieza se mete dentro.",
+      help: "En cero, la franja mide lo que mida la pieza. Subiéndolo se separan las dos secciones vecinas.",
     },
   ],
   variants: [

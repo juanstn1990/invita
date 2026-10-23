@@ -2782,23 +2782,28 @@ a.inv-rsvp-btn{display:flex;width:max-content;max-width:100%;margin:28px auto 0;
 .inv-ad-sangre img,.inv-ad-sangre video{width:100%;height:100%;object-fit:cover}
 
 /* ── El bloque «Adorno»: una pieza entre dos secciones ──────────
-   La franja no ocupa alto: es una costura sin grosor, y la pieza se centra
-   en ella y sobresale por los dos lados. Midiendo lo que mide la pieza
-   aparecía una banda del color de la página entre dos secciones que sí
-   tienen el suyo —los diseños que alternan colores lo enseñaban a la
-   primera—, y esa banda no la había pedido nadie. «Aire» le da alto, y
-   entonces sí separa las dos secciones.
+   La franja mide lo que mida la pieza, y «aire» le añade separación arriba
+   y abajo.
 
-   El padding va a cero porque el de los bloques sueltos son 64px arriba y
-   abajo, que aquí serían un hueco en medio de la nada. Y el selector lleva
-   las dos clases porque con una sola pesa lo mismo que la regla de
-   .inv-block-suelto y ganaría la escrita después.
+   Estuvo de alto cero, con la pieza centrada en la costura y sobresaliendo
+   por los dos lados: así no aparecía una banda del color de la página entre
+   dos secciones que sí tienen el suyo. Pero esa banda era una precaución
+   —sólo se ve en los diseños que alternan colores— y el alto cero costaba
+   algo peor: el guion de arrastre mide contra el contenedor y se sale si no
+   tiene alto, así que la pieza del bloque **no se podía mover**. Entre una
+   banda que a veces se nota y una pieza que nunca se mueve, se queda la
+   banda; y quien la vea tiene el color de fondo de la franja para taparla.
+
+   El padding lateral se queda en 22px —el de los bloques sueltos son 64
+   arriba y abajo, que aquí serían un hueco en medio de la nada— y el
+   selector lleva las dos clases porque con una sola pesa lo mismo que la
+   regla de .inv-block-suelto y ganaría la escrita después.
 
    El z-index es lo que hace que la pieza se vea entera: las secciones van
    posicionadas y la de abajo se dibuja después, así que sin él la taparía
    justo por la mitad. */
-.inv-block-suelto.inv-block-adorno{padding:0 22px;background:transparent;
-  position:relative;z-index:2;overflow:visible;height:var(--inv-ad-aire,0px);
+.inv-block-suelto.inv-block-adorno{padding:var(--inv-ad-aire,0px) 22px;
+  background:transparent;position:relative;z-index:2;overflow:visible;
   display:flex;align-items:center;justify-content:center;
   gap:clamp(12px,4vw,26px)}
 /* En una sección, la cabecera lleva un margen que la separa del antetítulo
