@@ -1955,6 +1955,34 @@ for (const spec of SECTIONS) {
  * puesto gana sólo dentro de su sección. Así la portada puede llevarlos en
  * vino y el pie en dorado sin tener que elegir.
  */
+/**
+ * La decoración que el diseño preside sobre una sección.
+ *
+ * Doce de los diseños ponen una pieza encima de alguna sección —el
+ * candelabro de la ubicación, el brindis, el farol, la carroza, el medallón
+ * de laurel sobre los invitados—, y no la ponen como adorno de los datos
+ * sino como CSS suyo, en `.container::before`. Eso las hacía **imposibles de
+ * quitar**: no había campo, porque no había dato.
+ *
+ * Es un interruptor y no una lista de piezas a propósito: lo que se pide es
+ * «quítame eso de ahí», y quien lo pide está mirando una sección concreta.
+ *
+ * Las dieciocho reglas que hay son todas ornamento —se revisaron una por
+ * una—, así que apagarlas no se lleva nada que haga falta para leer.
+ */
+export const decoDisenoField: FieldSpec = {
+  key: "decoDiseno",
+  label: "Decoración del diseño",
+  type: "select",
+  span: 2,
+  fallback: 0,
+  options: [
+    { value: "", label: "La que trae el diseño" },
+    { value: "sin", label: "Sin ella" },
+  ],
+  help: "La pieza que el diseño dibuja presidiendo esta sección —un candelabro, un farol, una carroza—. Quitarla no toca los adornos que pongas tú.",
+};
+
 const nombresColorField: FieldSpec = {
   key: "nombresColor",
   label: "Color de los nombres",
@@ -1978,7 +2006,7 @@ for (const spec of SECTIONS) {
   ) continue;
   spec.adornos = true;
   spec.fondo = true;
-  spec.fields = [...spec.fields, entradaSeccionField];
+  spec.fields = [...spec.fields, entradaSeccionField, decoDisenoField];
   /* La capa detrás del texto va con el fondo y por la misma razón: quien pone
      un fondo cargado es quien va a necesitarla, y ofrecerla sólo en algunas
      secciones es garantizar que falte justo en la que hace falta. */

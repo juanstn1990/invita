@@ -5407,6 +5407,19 @@ export function renderInvitation(opts: RenderOptions): string {
       }
     }
 
+    /* La pieza que el diseño preside sobre esta sección.
+       Los doce diseños que la ponen la ponen en `.container::before`, y
+       nunca para otra cosa: se revisaron las dieciocho reglas y las
+       dieciocho son ornamento. Por eso basta con apagar el pseudoelemento
+       —no hay nada estructural que se vaya con él— y por eso la regla no
+       nombra ninguna pieza: sirve para el candelabro, el farol, la carroza
+       y la que venga. */
+    if (String(sectionData.decoDiseno || "") === "sin") {
+      extraCss.push(
+        `${sectionSel} .container::before,${sectionSel} .container::after{content:none !important}`
+      );
+    }
+
     /* Cuánto separa la franja del bloque «Adorno» a sus dos vecinas.
        En línea y no como regla porque es un número por bloque: una regla por
        franja sería escribir el mismo CSS tantas veces como adornos se

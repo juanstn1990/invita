@@ -18,7 +18,7 @@
 import { iconoHtml } from "./iconos";
 import type { Occasion } from "./design/theme";
 import type { FieldSpec, ListSpec, SectionData } from "./schema";
-import { ADORNOS, entradaSeccionField, fondoFields, panelFields } from "./schema";
+import { ADORNOS, decoDisenoField, entradaSeccionField, fondoFields, panelFields } from "./schema";
 
 export interface Block {
   /** Estable, para reordenar sin perder el foco ni los datos. */
@@ -1627,7 +1627,7 @@ export const BLOCKS: BlockSpec[] = [
  */
 for (const b of BLOCKS) {
   if (!b.fields) continue;
-  b.fields = [...b.fields, entradaSeccionField, ...fondoFields, ...panelFields];
+  b.fields = [...b.fields, entradaSeccionField, decoDisenoField, ...fondoFields, ...panelFields];
   b.adornos = true;
 }
 

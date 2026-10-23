@@ -261,6 +261,9 @@ const APARTE = new Set([
   "btnForma",
   /* Las líneas entre secciones se quitan borrando el divisor del diseño. */
   "divisores",
+  /* Y la pieza que el diseño preside sobre una sección, con una regla que
+     apaga su pseudoelemento. Tampoco hay texto que escribir. */
+  "decoDiseno",
   "btnInk",
   "fondoUrl",
   "fondoAjuste",
