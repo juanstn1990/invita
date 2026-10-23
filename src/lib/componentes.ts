@@ -1061,6 +1061,17 @@ html:not(.js) .inv-ev-constelacion .inv-dato{opacity:1;transform:none}
    El velo es el cielo cerrado: dos nubes tapan la invitación y al tocar se
    van cada una por su lado. La nube la pone el diseño en --inv-nube-img;
    sin ella no hay nubes y el velo se abre con un toque, sin más. */
+/* ── Sin botón: se toca la pantalla ──
+   El velo tal cual lo dibuja el diseño, sólo que sin su botón: lo que se
+   toca es la pantalla entera. No añade ninguna escena —ni sobre, ni telón,
+   ni nubes— a propósito, porque está pensada para la apertura con vídeo,
+   donde la escena ya la pone el vídeo y un botón no hace más que competir
+   con lo único que hay que hacer ahí. */
+#splash.inv-velo-pantalla{cursor:pointer;-webkit-tap-highlight-color:transparent}
+#splash.inv-velo-pantalla .splash-btns{display:none}
+#splash.inv-velo-pantalla.abriendo .splash-modal{opacity:0;transform:scale(1.04);
+  transition:opacity .45s ease,transform .45s ease}
+
 #splash.inv-velo-nubes{cursor:pointer;-webkit-tap-highlight-color:transparent}
 #splash.inv-velo-nubes .splash-btns{display:none}
 .inv-nube{position:absolute;z-index:1;width:min(150vw,1100px);aspect-ratio:1.95;pointer-events:none;
@@ -1930,6 +1941,37 @@ export const ABANICO_JS = `
 })();`;
 
 /** El cielo que se abre: se toca el velo, las nubes se van y entra. */
+/**
+ * Sin botón: la pantalla entera abre la invitación.
+ *
+ * Se pulsa el botón del velo y no `enterSite` a secas, igual que en las
+ * demás: ese botón es el que arranca la música y la cortina de apertura, si
+ * las hay. Sigue estando en el marcado, sólo que escondido.
+ *
+ * Los enlaces de dentro —el «cómo llegar» del velo— se dejan pasar: tocar
+ * un enlace es tocarlo, no abrir la invitación.
+ */
+export const PANTALLA_JS = `
+(function(){
+  var velo = document.querySelector('#splash.inv-velo-pantalla');
+  if (!velo) return;
+  var quieto = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var hecho = false;
+  function abrir(e){
+    if (hecho || (e && e.target.closest && e.target.closest('a'))) return;
+    hecho = true;
+    velo.classList.add('abriendo');
+    setTimeout(function(){
+      var b = velo.querySelector('.splash-btn-primary');
+      if (b) b.click(); else if (window.enterSite) window.enterSite();
+    }, quieto ? 0 : 220);
+  }
+  velo.addEventListener('click', abrir);
+  velo.addEventListener('keydown', function(e){
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); abrir(); }
+  });
+})();`;
+
 export const NUBES_JS = `
 (function(){
   var velo = document.querySelector('#splash.inv-velo-nubes');
