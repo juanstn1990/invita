@@ -1,3 +1,5 @@
+import { FONTS } from "./fonts";
+
 /**
  * Esquema canónico de una invitación.
  *
@@ -686,6 +688,30 @@ export const ADORNOS: ListSpec = {
       showIf: { key: "texto", value: "*" },
     },
     {
+      /*
+       * La letra de un adorno de texto.
+       *
+       * Va como campo suyo y no por el mecanismo de tipografías del resto:
+       * aquél cuelga de los bindings —escribe una regla CSS sobre el
+       * selector del campo— y un adorno no tiene binding, lo dibuja el
+       * renderer. Aquí la letra se escribe en la propia pieza.
+       *
+       * Y hace falta justamente aquí: un adorno de texto es casi siempre
+       * una frase suelta —«& » entre dos nombres, un «¡nos casamos!»
+       * manuscrito— y lo que la hace adorno en vez de párrafo es la letra.
+       */
+      key: "letra",
+      label: "Tipo de letra",
+      type: "select",
+      span: 2,
+      fallback: 0,
+      showIf: { key: "texto", value: "*" },
+      options: [
+        { value: "", label: "La del diseño" },
+        ...FONTS.map((f) => ({ value: f.id, label: f.name })),
+      ],
+    },
+    {
       key: "url",
       label: "Imagen o vídeo",
       type: "medio",
@@ -800,7 +826,7 @@ export const ADORNOS: ListSpec = {
     },
   ],
   defaultItem: {
-    url: "", sitio: "arriba-izq", tamano: "40", capa: "", opacidad: "100",
+    url: "", sitio: "arriba-izq", tamano: "40", capa: "", opacidad: "100", letra: "",
     entrada: "", movimiento: "", giro: "0", espejo: "",
     /* Al centro, que es de donde se parte al arrastrarlo a otro sitio. */
     x: "50", y: "50",
@@ -1101,6 +1127,82 @@ export const SECTIONS: SectionSpec[] = [
           { value: "barrido", label: "Barrido lateral" },
           { value: "desenfoque", label: "Se desenfoca" },
         ],
+      },
+      {
+        /*
+         * La pantalla que nombra a quien abre su enlace.
+         *
+         * Va **después** de la apertura, sea cual sea, y antes de la
+         * invitación: el sobre se abre, el vídeo termina, y antes de entrar
+         * hay un momento que dice «con mucho cariño para la familia Gómez,
+         * 5 pases». Es lo que convierte un enlace personalizado en algo que
+         * se nota: hasta ahora ese nombre vivía en una sección a mitad de la
+         * página, donde llega quien baja.
+         *
+         * Sin nombre no aparece, y eso no lo decide el servidor sino el
+         * navegador: el nombre viaja en la dirección. Quien abre el enlace
+         * general entra directo, como siempre.
+         */
+        key: "presenta",
+        label: "Pantalla con el nombre del invitado",
+        type: "select",
+        span: 2,
+        fallback: 0,
+        options: [
+          { value: "", label: "No" },
+          { value: "si", label: "Sí, después de la apertura" },
+        ],
+        help: "Una pantalla con la foto de la portada que dice a quién está invitando y cuántos pases tiene, y luego da paso a la invitación. Sólo la ve quien abre su enlace personalizado: sin nombre que decir, no aparece. Se va sola a los cuatro segundos, y se puede tocar para saltarla.",
+      },
+      {
+        key: "presentaFondo",
+        label: "Fondo de esa pantalla",
+        type: "image",
+        span: 2,
+        showIf: { key: "presenta", value: "si" },
+        help: "Vacío = la foto de la portada, que es lo que suele quererse. Se acerca despacio mientras se lee el nombre.",
+      },
+      {
+        key: "presentaVelo",
+        label: "Velo sobre el fondo",
+        type: "range",
+        min: 0,
+        max: 90,
+        step: 5,
+        unit: "%",
+        fallback: 62,
+        span: 2,
+        showIf: { key: "presenta", value: "si" },
+        help: "Del color del diseño, entre la foto y el nombre. Súbelo hasta que el nombre se lea cómodo: esa pantalla dura cuatro segundos y no hay segunda oportunidad.",
+      },
+      {
+        /*
+         * La letra del nombre, como campo suyo y no por el mecanismo de
+         * tipografías del resto.
+         *
+         * Aquél cuelga de los bindings —escribe una regla sobre el selector
+         * del campo— y esta pantalla no tiene binding: es una capa que monta
+         * el renderer y que sólo existe cuando se pide. Igual que la letra
+         * de un adorno de texto, se elige aquí y se escribe en la pieza.
+         */
+        key: "presentaLetra",
+        label: "Letra del nombre",
+        type: "select",
+        span: 2,
+        fallback: 0,
+        showIf: { key: "presenta", value: "si" },
+        options: [
+          { value: "", label: "La del diseño" },
+          ...FONTS.map((f) => ({ value: f.id, label: f.name })),
+        ],
+      },
+      {
+        key: "presentaColor",
+        label: "Color de las letras",
+        type: "color",
+        span: 2,
+        showIf: { key: "presenta", value: "si" },
+        help: "Vacío = el acento del diseño para el nombre y su tinta para lo demás.",
       },
       {
         key: "apertura",

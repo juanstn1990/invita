@@ -1229,6 +1229,8 @@ function ponerAdornos(
     const encima = String(it.capa || "") === "encima";
     const espejo = String(it.espejo || "");
     const entrada = ENTRADAS.has(String(it.entrada)) ? String(it.entrada) : "";
+    const letra = texto ? FONT_BY_ID[String(it.letra || "")] : undefined;
+    if (letra) ctx.fuentes?.add(letra.id);
     const movimiento = MOVIMIENTOS.has(String(it.movimiento)) ? String(it.movimiento) : "";
 
     const doc = seccion.ownerDocument;
@@ -1269,6 +1271,8 @@ function ponerAdornos(
       (texto && HEX.test(String(it.color || "").trim())
         ? `color:${String(it.color).trim()};`
         : "") +
+      /* La letra, sólo con texto: en una imagen no pinta nada. */
+      (texto && letra ? `font-family:${letra.css};` : "") +
         (sitio === "libre" ? `--inv-ad-x:${cx}%;--inv-ad-y:${cy}%;` : "") +
         /* La opacidad elegida va en una variable porque la animación de
            entrada tiene que terminar justo en ella, no en 1.
@@ -1727,6 +1731,14 @@ type Ctx = {
   peso: Peso;
   /** En el editor. Es lo único que enciende el arrastre de adornos. */
   preview?: boolean;
+  /**
+   * Las tipografías que de verdad se usan, para pedirle a Google sólo ésas.
+   *
+   * La llevan los adornos de texto, que eligen letra por su cuenta: su letra
+   * no pasa por los bindings —un adorno no tiene— así que tampoco pasaba por
+   * el sitio donde se apuntan las que hay que cargar.
+   */
+  fuentes?: Set<string>;
   /**
    * El papel rasgado de la sección anterior, y si va volteado.
    *
@@ -2572,6 +2584,45 @@ a.inv-rsvp-btn{display:flex;width:max-content;max-width:100%;margin:28px auto 0;
 
 /* Arriba y no abajo: abajo a la derecha vive el botón de la música, y dos
    controles en la misma esquina es uno de los dos sin pulsar. */
+/* ── La pantalla que nombra al invitado ──
+   Va por debajo del velo y de la cortina (9997 contra 9998 y 9999) y está
+   puesta desde el principio: cuando las de arriba se van, lo que queda es
+   ella. Así sirve igual con las dieciocho aperturas sin coordinarse con
+   ninguna — no sabe cuál hay ni le hace falta.
+
+   Reutiliza las once salidas de la cortina: sus clases no llevan el
+   selector de la cortina delante, así que valen tal cual aquí. */
+.inv-presenta{position:fixed;inset:0;z-index:9997;--inv-cortina-dur:1.6s;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--inv-surface,#fff);cursor:pointer;
+  -webkit-tap-highlight-color:transparent}
+.inv-presenta[hidden]{display:none}
+/* La foto, con el zoom lento que es lo que separa una tarjeta de una toma.
+   Va en su propia capa para poder acercarla sin arrastrar el texto. */
+.inv-presenta-fondo{position:absolute;inset:0;background:var(--inv-pre-img) center/cover no-repeat;
+  transform:scale(1.04);transition:transform 7s linear}
+.inv-presenta.entra .inv-presenta-fondo{transform:scale(1.16)}
+/* El velo: una foto cualquiera no garantiza que un texto encima se lea, y
+   aquí no hay segunda oportunidad —la pantalla dura cuatro segundos—. */
+.inv-presenta-fondo::after{content:"";position:absolute;inset:0;
+  background:var(--inv-surface,#000);opacity:var(--inv-pre-velo,.62)}
+.inv-presenta-caja{position:relative;z-index:1;width:min(86vw,520px);text-align:center;
+  display:flex;flex-direction:column;align-items:center;gap:14px}
+.inv-presenta .inv-inv-antes{margin:0;font-family:var(--inv-font-ui);
+  font-size:12px;letter-spacing:.34em;text-transform:uppercase;opacity:.75;
+  color:var(--inv-pre-color,inherit)}
+.inv-presenta .inv-inv-nombres{margin:0;
+  font-family:var(--inv-pre-letra,var(--inv-font-title));
+  font-size:clamp(30px,9vw,52px);line-height:1.15;
+  color:var(--inv-pre-color,var(--inv-accent))}
+.inv-presenta .inv-inv-despues{margin:0;font-family:var(--inv-font-ui);
+  font-size:13px;letter-spacing:.1em;opacity:.8}
+.inv-presenta .inv-rsvp-pases{margin-top:6px;opacity:0;transform:translateY(10px)}
+/* La tarjeta entra después del nombre, no a la vez: leído uno y luego el
+   otro, que es como se lee de verdad. */
+.inv-presenta.entra .inv-rsvp-pases{opacity:1;transform:none;
+  transition:opacity .7s ease 1.1s,transform .7s cubic-bezier(.2,.7,.3,1) 1.1s}
+
 /* ── «Sólo el vídeo»: la cortina hace de velo ──
    Va por encima del velo y no por debajo —al revés que siempre— porque aquí
    no hay nada del velo que enseñar: el vídeo es la pantalla de bienvenida.
@@ -4185,6 +4236,79 @@ const CORTINA_JS = `
 })();`;
 
 /**
+ * La pantalla que nombra a quien abre su enlace.
+ *
+ * No se coordina con ninguna apertura, y ahí está la gracia: la capa va
+ * debajo del velo y de la cortina y está puesta desde el principio, así que
+ * cuando las de arriba se van lo que queda es ella. Sirve igual con las
+ * dieciocho sin saber cuál hay.
+ *
+ * El relleno lo hace el guion del RSVP, que ya recorre todo lo que lleve
+ * `data-inv-invitado` y escribe el nombre palabra por palabra. Esta capa
+ * lleva ese atributo y las mismas clases dentro, así que no hay una segunda
+ * copia de nada: aquí sólo se decide **cuándo** se ve y **si** se ve.
+ *
+ * Y si no hay a quién nombrar, se quita entera. Ésa es la regla que la hace
+ * no estorbar: quien abre el enlace general no ve una pantalla que diga
+ * «con mucho cariño para» y nada más.
+ */
+const PRESENTA_JS = `
+(function(){
+  var p = document.querySelector('.inv-presenta');
+  if (!p) return;
+  var DURA = 4000;
+  var velo = document.getElementById('splash');
+
+  /* ¿Queda algo encima? El velo mientras no se haya abierto, y la cortina
+     mientras el vídeo corra. Se mira el estado, no quién lo puso: así no
+     hay que conocer las dieciocho aperturas ni enterarse de cuál se usó. */
+  function tapado(){
+    if (velo) {
+      var v = getComputedStyle(velo);
+      if (!velo.hasAttribute('hidden') && !velo.classList.contains('hidden') &&
+          v.visibility !== 'hidden' && v.opacity !== '0') return true;
+    }
+    var c = document.querySelector('.inv-cortina');
+    if (c && !c.hasAttribute('hidden') && !c.classList.contains('fuera')) return true;
+    return false;
+  }
+
+  var ido = false;
+  function irse(){
+    if (ido) return;
+    ido = true;
+    p.classList.add('fuera');
+    document.body.style.overflow = '';
+    var dur = parseFloat(getComputedStyle(p).getPropertyValue('--inv-cortina-dur')) || 1.6;
+    setTimeout(function(){ p.setAttribute('hidden', ''); }, dur * 1000 + 400);
+  }
+
+  function mostrar(){
+    p.removeAttribute('hidden');
+    document.body.style.overflow = 'hidden';
+    /* La animación de las palabras la dispara una clase que el guion del
+       RSVP ya pudo haber puesto mientras la capa estaba tapada. Se quita y
+       se vuelve a poner para que corra cuando de verdad se ve. */
+    p.classList.remove('esta');
+    void p.offsetWidth;
+    p.classList.add('esta', 'entra');
+    setTimeout(irse, DURA);
+  }
+
+  var reloj = setInterval(function(){
+    if (tapado()) return;
+    clearInterval(reloj);
+    /* Sin nombre no hay pantalla. Para cuando se destapa, el guion del RSVP
+       ya corrió: si no escribió a nadie, aquí no hay nada que enseñar. */
+    var n = p.querySelector('.inv-inv-nombres');
+    if (!n || !n.textContent.trim()) { p.remove(); return; }
+    mostrar();
+  }, 150);
+
+  p.addEventListener('click', irse);
+})();`;
+
+/**
  * Señalar y escribir sobre la propia vista previa.
  *
  * El panel tiene ciento y pico controles repartidos en once secciones, y la
@@ -4838,6 +4962,7 @@ export function renderInvitation(opts: RenderOptions): string {
     name1: String(data.event?.name1 || "").trim(),
     name2: String(data.event?.name2 || "").trim(),
     css: extraCss,
+    fuentes: fontIds,
     heroDisposicion: String(data.hero?.disposicion || ""),
     peso: pesoIconos(designOf(templateId)),
     preview,
@@ -5449,6 +5574,64 @@ export function renderInvitation(opts: RenderOptions): string {
     }
   }
 
+  /* 3 · quinquies · bis · La pantalla que nombra al invitado.
+     Va antes que nada en el cuerpo y por debajo de la cortina y del velo,
+     puesta desde el principio: cuando las de arriba se van, queda ella.
+     Fuera de la vista previa, por lo mismo que la cortina — ahí se vuelve a
+     dibujar a cada tecla y taparía justo lo que se está editando. */
+  if (String(data.splash?.presenta || "") === "si" && !preview && sectionOn("splash")) {
+    const capa = document.createElement("div");
+    const pedida = String(data.splash?.introSalida || "").trim();
+    const salida = SALIDAS.has(pedida) ? pedida : "fundido";
+    capa.setAttribute("class", `inv-presenta inv-cortina-s-${salida}`);
+    capa.setAttribute("hidden", "");
+
+    /* El mismo atributo y las mismas clases que la sección de invitados: de
+       escribir el nombre ya se encarga el guion del RSVP. */
+    const plantilla =
+      String(data.guests?.saludoInvitado ?? "Con mucho cariño para {nombre}").trim() ||
+      "Con mucho cariño para {nombre}";
+    capa.setAttribute("data-inv-invitado", plantilla);
+    if (muestra) capa.setAttribute("data-inv-demo", INVITADO_MUESTRA.nombre);
+    if (opts.pases) capa.setAttribute("data-inv-pases", String(opts.pases));
+
+    /* El fondo: el que se elija, y si no la foto de la portada —que es lo
+       que suele quererse— y si tampoco hay, la primera de la galería. Sin
+       ninguna, el papel del diseño: la capa se ve igual, sólo que lisa. */
+    const foto =
+      String(data.splash?.presentaFondo || "").trim() ||
+      String(data.hero?.backgroundUrl || "").trim() ||
+      String((data.gallery?.items as Record<string, string>[] | undefined)?.[0]?.url || "").trim();
+
+    /* El velo, la letra y el color, en variables sobre la propia capa. */
+    const velo = Math.min(90, Math.max(0, Number(data.splash?.presentaVelo ?? 62))) / 100;
+    const partes = [`--inv-pre-velo:${velo}`];
+    const letraPre = FONT_BY_ID[String(data.splash?.presentaLetra || "")];
+    if (letraPre) {
+      partes.push(`--inv-pre-letra:${letraPre.css}`);
+      fontIds.add(letraPre.id);
+    }
+    const colorPre = String(data.splash?.presentaColor || "").trim();
+    if (HEX.test(colorPre)) partes.push(`--inv-pre-color:${colorPre}`);
+    capa.setAttribute("style", partes.join(";"));
+
+    capa.innerHTML =
+      (foto
+        ? `<div class="inv-presenta-fondo" style="--inv-pre-img:url(&quot;${escapeHtml(
+            propia(foto) ? conAncho(foto, 1600) : foto
+          ).replace(/"/g, "%22")}&quot;)"></div>`
+        : `<div class="inv-presenta-fondo"></div>`) +
+      '<div class="inv-presenta-caja">' +
+      '<p class="inv-inv-antes"></p>' +
+      '<p class="inv-inv-nombres"></p>' +
+      '<p class="inv-inv-despues"></p>' +
+      '<div class="inv-rsvp-pases" data-inv-pases-texto hidden>' +
+      '<b class="inv-rsvp-pases-n"></b><span class="inv-rsvp-pases-t"></span></div>' +
+      "</div>";
+
+    document.body.insertBefore(capa, document.body.firstChild);
+  }
+
   /* 3 · sexies · Las líneas que el diseño pone entre secciones.
      Un filete de un píxel que con el fondo liso ayuda y con una sección
      rasgada estorba: cruza recto por encima del desgarrón.
@@ -5775,6 +5958,53 @@ export function renderInvitation(opts: RenderOptions): string {
       padres.setAttribute("class", "hero-padres inv-padres-invitados");
       if (cierre?.parentNode === caja) caja.insertBefore(padres, cierre.nextSibling);
       else caja.appendChild(padres);
+    }
+  }
+
+  /* 4 · ter · Los adornos del velo se van con su hoja.
+     Sólo en el lacre, y sólo los que están claramente de un lado. Un adorno
+     del velo es hijo de #splash y las dos hojas son hermanas suyas, así que
+     al abrirse se iban ellas y los adornos se quedaban flotando sobre la
+     invitación. Metiéndolos dentro de la hoja viajan pegados a ella, que es
+     lo que se espera de algo apoyado en una puerta cuando la puerta se
+     abre.
+
+     Los anclados a un lado no hay que recolocarlos: «pegado al borde
+     izquierdo» es el mismo punto en el velo y en la hoja izquierda. Los
+     sueltos sí, porque su porcentaje pasa a medirse sobre media pantalla.
+
+     Y los del centro se quedan donde están: justo encima de la juntura, no
+     pertenecen a ninguna de las dos. */
+  {
+    const velo = document.querySelector("#splash.inv-velo-lacre") as El | null;
+    const izq = velo?.querySelector(".inv-hoja-izq") as El | null;
+    const der = velo?.querySelector(".inv-hoja-der") as El | null;
+    if (velo && izq && der) {
+      /* Lo que mide una hoja, en porcentaje del velo. Si cambia en el CSS,
+         cambia aquí: es el número que convierte un punto del velo en el
+         mismo punto de la hoja. */
+      const HOJA = 50.4;
+      for (const caja of Array.from(velo.children || []) as El[]) {
+        const clase = caja.getAttribute?.("class") || "";
+        if (!clase.includes("inv-adorno")) continue;
+
+        let hoja: El | null = null;
+        if (/inv-ad-(arriba-izq|izq|abajo-izq)\b/.test(clase)) hoja = izq;
+        else if (/inv-ad-(arriba-der|der|abajo-der)\b/.test(clase)) hoja = der;
+        else if (clase.includes("inv-ad-libre")) {
+          const estilo = caja.getAttribute("style") || "";
+          const x = Number(/--inv-ad-x:([\d.]+)%/.exec(estilo)?.[1]);
+          if (Number.isFinite(x)) {
+            hoja = x < 50 ? izq : der;
+            const nueva = hoja === izq ? (x / HOJA) * 100 : ((x - (100 - HOJA)) / HOJA) * 100;
+            caja.setAttribute(
+              "style",
+              estilo.replace(/--inv-ad-x:[\d.]+%/, `--inv-ad-x:${Math.min(100, Math.max(0, nueva)).toFixed(1)}%`)
+            );
+          }
+        }
+        if (hoja) hoja.appendChild(caja);
+      }
     }
   }
 
@@ -6154,6 +6384,7 @@ export function renderInvitation(opts: RenderOptions): string {
   if (document.querySelector("[data-inv-sobre]")) scripts.push(SOBRE_JS);
   if (document.querySelector("[data-inv-libro]")) scripts.push(LIBRO_JS);
   if (document.querySelector("[data-inv-abanico]")) scripts.push(ABANICO_JS);
+  if (document.querySelector(".inv-presenta")) scripts.push(PRESENTA_JS);
   if (document.querySelector(".inv-velo-pantalla")) scripts.push(PANTALLA_JS);
   if (document.querySelector(".inv-velo-nubes")) scripts.push(NUBES_JS);
   if (document.querySelector(".inv-velo-telon")) scripts.push(TELON_JS);

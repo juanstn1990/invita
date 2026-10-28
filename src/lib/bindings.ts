@@ -226,6 +226,15 @@ const APARTE = new Set([
   /* La imagen de espera del vídeo: va como atributo `poster` del <video> de
      la cortina, que monta `ponerCortina`. */
   "introPoster",
+  /* La pantalla que nombra al invitado: una capa propia que monta el
+     renderer, como la cortina. */
+  "presenta",
+  /* Y sus ajustes: la capa la monta el renderer, así que su fondo, su velo,
+     su letra y su color se escriben en ella, no en el marcado del diseño. */
+  "presentaFondo",
+  "presentaVelo",
+  "presentaLetra",
+  "presentaColor",
   "introSonido",
   "introAjuste",
   "introSalida",
