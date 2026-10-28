@@ -10,6 +10,7 @@ import {
   uploadImages,
   type MediaItem,
   type MediaKind,
+  subirPoster,
 } from "./upload";
 import styles from "./editor.module.css";
 
@@ -90,10 +91,18 @@ function Biblioteca({
 /* ── Una sola imagen (portada) ────────────────────────────── */
 
 export function ImageField({
-  value, onChange, kind, medio,
+  value, onChange, kind, medio, onPoster,
 }: {
   value: string;
   onChange: (url: string) => void;
+  /**
+   * Dónde dejar el primer fotograma del vídeo que se acaba de subir.
+   *
+   * Lo pide el campo que lo guarda, no este componente: aquí sólo se sabe
+   * que se subió un vídeo. Sin esta prop no se saca póster, que es lo que
+   * corresponde en los campos donde no tendría dónde ir.
+   */
+  onPoster?: (url: string) => void;
   /** Los adornos se catalogan aparte de las fotos, y el vídeo aparte de todo. */
   kind?: MediaKind;
   /**
@@ -135,6 +144,12 @@ export function ImageField({
     try {
       const [url] = await uploadImages(list, kind, setPct);
       onChange(url);
+      /* El póster, después y sin bloquear: si falla, el vídeo ya está
+         puesto y lo único que se pierde es la imagen de espera. */
+      if (onPoster && list[0].type.startsWith("video/")) {
+        const poster = await subirPoster(list[0]);
+        if (poster) onPoster(poster);
+      }
     } catch (e) {
       setError((e as Error).message);
     } finally {

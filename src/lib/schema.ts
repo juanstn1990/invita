@@ -1040,6 +1040,28 @@ export const SECTIONS: SectionSpec[] = [
         help: "Se reproduce a pantalla completa al pulsar el botón y da paso a la invitación. Se ve entero, dure lo que dure, y quien no quiera esperar tiene el botón de saltar. Piensa que es lo primero que ve quien abre la invitación: unos segundos se disfrutan, medio minuto se salta.",
       },
       {
+        /*
+         * La imagen de espera del vídeo.
+         *
+         * Se escribe sola al subir el vídeo —el editor saca su primer
+         * fotograma— y existe como campo porque hay dos cosas que querer
+         * hacer con ella: verla y cambiarla. El primer fotograma de un clip
+         * no siempre es el que mejor lo presenta.
+         *
+         * Es lo que convierte «el vídeo aparece cuando llegue» en «al abrir
+         * siempre hay imagen»: el navegador pinta el póster antes de haber
+         * descargado un solo fotograma. Medido sobre una invitación
+         * publicada, el vídeo tardaba 1,2 s en una conexión normal y no
+         * llegaba en nueve segundos con 3G lento.
+         */
+        key: "introPoster",
+        label: "Imagen mientras carga el vídeo",
+        type: "image",
+        span: 2,
+        showIf: { key: "introUrl", value: "*" },
+        help: "Se pone sola al subir el vídeo: es su primer fotograma. Se ve al instante mientras el vídeo se descarga, así que al abrir la invitación nunca hay un rectángulo vacío. Puedes cambiarla por cualquier imagen.",
+      },
+      {
         key: "introSonido",
         label: "Sonido del vídeo",
         type: "select",

@@ -223,6 +223,9 @@ const APARTE = new Set([
   "apertura",
   // La cortina de apertura la monta `ponerCortina` en una capa propia.
   "introUrl",
+  /* La imagen de espera del vídeo: va como atributo `poster` del <video> de
+     la cortina, que monta `ponerCortina`. */
+  "introPoster",
   "introSonido",
   "introAjuste",
   "introSalida",

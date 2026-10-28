@@ -202,6 +202,79 @@ async function shrink(file: File, avisar?: (pct: number) => void): Promise<Blob>
   return blob && blob.size < file.size ? blob : file;
 }
 
+/**
+ * El primer fotograma de un vídeo, como imagen.
+ *
+ * Es lo que hace que al abrir la invitación **siempre** haya algo: el
+ * `<video>` lo pinta en cuanto llega, antes de haber descargado un solo
+ * fotograma del vídeo. Medido sobre una invitación de verdad, el primer
+ * fotograma del vídeo tardaba 1,2 s en una conexión normal y no llegaba en
+ * nueve segundos con 3G lento; el póster pesa una fracción de eso y se ve
+ * de inmediato.
+ *
+ * No se toma el segundo cero sino un pelín más adentro: muchos clips
+ * empiezan en negro o en un fundido, y un póster negro es lo mismo que no
+ * tener póster.
+ *
+ * Ante cualquier duda, `null`: un vídeo sin póster se comporta como siempre,
+ * que es exactamente lo que había antes de esto.
+ */
+export async function primerFotograma(file: Blob): Promise<Blob | null> {
+  const video = document.createElement("video");
+  video.muted = true;
+  video.playsInline = true;
+  video.preload = "auto";
+  video.src = URL.createObjectURL(file);
+  try {
+    await new Promise<void>((ok, fallo) => {
+      video.onloadeddata = () => ok();
+      video.onerror = () => fallo(new Error("no se pudo leer"));
+    });
+    const dur = Number.isFinite(video.duration) ? video.duration : 1;
+    await new Promise<void>((ok) => {
+      video.onseeked = () => ok();
+      /* Un décimo de segundo, o un décimo del clip si es cortísimo. */
+      video.currentTime = Math.min(0.1, dur / 10);
+    });
+    const ancho = video.videoWidth;
+    const alto = video.videoHeight;
+    if (!ancho || !alto) return null;
+    const escala = Math.min(1, MAX_SIDE / Math.max(ancho, alto));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(ancho * escala);
+    canvas.height = Math.round(alto * escala);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return null;
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    return await new Promise<Blob | null>((r) => canvas.toBlob(r, "image/jpeg", QUALITY));
+  } catch {
+    return null;
+  } finally {
+    URL.revokeObjectURL(video.src);
+  }
+}
+
+/**
+ * El póster de un vídeo, sacado y subido de una vez.
+ *
+ * Devuelve su URL, o `null` si no se pudo: el vídeo se queda sin póster y
+ * todo lo demás sigue funcionando igual.
+ */
+export async function subirPoster(file: File): Promise<string | null> {
+  try {
+    const frame = await primerFotograma(file);
+    if (!frame) return null;
+    const nombre = file.name.replace(/\.\w+$/, "") + "-poster.jpg";
+    const [url] = await uploadImages(
+      [new File([frame], nombre, { type: "image/jpeg" })],
+      "foto"
+    );
+    return url || null;
+  } catch {
+    return null;
+  }
+}
+
 /** Lo que mide una imagen, para guardarlo en la biblioteca. */
 async function medir(blob: Blob): Promise<string> {
   try {

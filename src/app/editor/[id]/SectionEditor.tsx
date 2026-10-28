@@ -176,6 +176,7 @@ export function SectionEditor({
               <Field
                 field={field}
                 value={data[field.key]}
+                onChangeExtra={onChange}
                 font={fontFor(field.key)}
                 color={
                   field.type === "text" || field.type === "textarea"
@@ -347,7 +348,7 @@ function IconoField({ value, onChange }: { value: string; onChange: (v: string) 
 }
 
 function Field({
-  field, value, onChange, font, color, align, size, anim, mediaKind,
+  field, value, onChange, onChangeExtra, font, color, align, size, anim, mediaKind,
 }: {
   field: FieldSpec;
   value: unknown;
@@ -364,6 +365,8 @@ function Field({
   anim?: { id: string; set: (id: string) => void };
   /** Con qué clase se cataloga lo que se suba desde este campo. */
   mediaKind?: "foto" | "adorno";
+  /** Para escribir en otro campo de la misma sección (el póster del vídeo). */
+  onChangeExtra?: (parche: Record<string, unknown>) => void;
 }) {
   const v = value === undefined || value === null ? "" : String(value);
   const common = {
@@ -396,7 +399,15 @@ function Field({
       ) : field.type === "image" ? (
         <ImageField value={v} onChange={onChange} kind={mediaKind} />
       ) : field.type === "video" ? (
-        <ImageField value={v} onChange={onChange} kind="video" />
+        /* El póster va a un campo hermano, «<campo>Poster», que es el que
+           lee el renderer. Se escribe solo al subir y se puede cambiar
+           después por cualquier imagen. */
+        <ImageField
+          value={v}
+          onChange={onChange}
+          kind="video"
+          onPoster={(url) => onChangeExtra?.({ [`${field.key}Poster`]: url })}
+        />
       ) : field.type === "audio" ? (
         <ImageField value={v} onChange={onChange} kind="audio" />
       ) : field.type === "medio" ? (

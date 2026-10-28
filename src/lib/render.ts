@@ -2530,11 +2530,20 @@ a.inv-rsvp-btn{display:flex;width:max-content;max-width:100%;margin:28px auto 0;
    escrito aquí: con un opacity:0 en la base, las salidas que revelan por
    geometría —el telón que sube, el círculo que se abre— tendrían que pelearse
    con él para que el vídeo no se apagara mientras se mueve. */
-.inv-cortina{position:fixed;inset:0;z-index:9998;background:#000}
+/* El fondo de la cortina: el papel del diseño, no negro.
+   Se ve en dos momentos —mientras el vídeo carga y, con «entero», en las
+   bandas de los lados— y en los dos lo que se quiere es que la cortina ya
+   se parezca a la invitación que va a destapar. Negro era la letra del cine
+   y el peor color posible sobre una invitación en crema. */
+.inv-cortina{position:fixed;inset:0;z-index:9998;background:var(--inv-surface,#000)}
 .inv-cortina[hidden]{display:none}
 .inv-cortina.fuera{pointer-events:none}
+/* Sin fondo propio: el que vale es el de la cortina, que es el papel del
+   diseño. Con su negro, las bandas de «entero» salían negras aunque la
+   cortina fuera crema, y mientras el vídeo cargaba se veía el rectángulo
+   negro por encima de todo. El póster cubre ahora ese rato. */
 .inv-cortina-video{position:absolute;inset:0;width:100%;height:100%;
-  object-fit:cover;background:#000}
+  object-fit:cover;background:transparent}
 .inv-cortina-contener .inv-cortina-video{object-fit:contain}
 
 /* Arriba y no abajo: abajo a la derecha vive el botón de la música, y dos
@@ -2561,7 +2570,10 @@ a.inv-rsvp-btn{display:flex;width:max-content;max-width:100%;margin:28px auto 0;
   letter-spacing:.06em;cursor:pointer;opacity:0;
   transition:opacity .45s ease}
 .inv-cortina.lista .inv-cortina-saltar{opacity:.85}
-.inv-cortina-saltar:hover{opacity:1}
+/* El hover sólo cuenta cuando ya hay algo que saltar: suelto, enseñaba el
+   botón con sólo pasar el ratón por esa esquina, y en la apertura de «sólo
+   el vídeo» eso es lo único que se vería encima del vídeo parado. */
+.inv-cortina.lista .inv-cortina-saltar:hover{opacity:1}
 
 /* ── Las once salidas ──────────────────────────────────────────
    Cada una declara su transición y su estado final, y ninguna sabe de las
@@ -5370,6 +5382,11 @@ export function renderInvitation(opts: RenderOptions): string {
       /* Se descarga mientras se mira el velo, que es el único rato que hay:
          al pulsar el botón ya tiene que estar listo para arrancar. */
       v.setAttribute("preload", "auto");
+      /* La imagen de espera. El navegador la pinta antes de haber bajado un
+         solo fotograma del vídeo, así que al abrir siempre hay algo que
+         mirar en vez del fondo pelado. */
+      const poster = String(data.splash?.introPoster || "").trim();
+      if (poster) v.setAttribute("poster", propia(poster) ? conAncho(poster, 1200) : poster);
       /* Sin sonido elegido va callado, y callado puede sonar la música de
          fondo encima sin que se peleen. */
       if (String(data.splash?.introSonido || "") !== "con") v.setAttribute("muted", "");
