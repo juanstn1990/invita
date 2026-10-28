@@ -1089,6 +1089,7 @@ export const SECTIONS: SectionSpec[] = [
         options: [
           { value: "", label: "Se funde (la de siempre)" },
           { value: "pantalla", label: "Sin botón: se toca la pantalla" },
+          { value: "solovideo", label: "Sólo el vídeo de apertura, a pantalla completa" },
           { value: "sobre", label: "Como un sobre que se abre" },
           { value: "sello", label: "Un sobre con sello: se toca para abrir" },
           { value: "lacre", label: "Dos hojas que se abren y parten el lacre por la mitad" },
@@ -1106,7 +1107,7 @@ export const SECTIONS: SectionSpec[] = [
           { value: "jardin", label: "Un jardín que se mece y una mariposa que se va" },
           { value: "velas", label: "Unas velas encendidas: se tocan y la luz lo llena todo" },
         ],
-        help: "Lo que pasa al pulsar el botón. Con «sobre con sello» el velo es un sobre cerrado y el sello es lo que se toca. Con «sin botón» el velo se queda como lo dibuja el diseño, se quita el botón y lo que se toca es la pantalla entera: es la que mejor va con el vídeo de apertura, donde un botón compite con lo único que hay que hacer.",
+        help: "Lo que pasa al pulsar el botón. Con «sobre con sello» el velo es un sobre cerrado y el sello es lo que se toca. Con «sin botón» el velo se queda como lo dibuja el diseño, se quita el botón y lo que se toca es la pantalla entera: Con «sólo el vídeo» no se ve nada más que el vídeo de apertura, parado en su primer fotograma: se toca, arranca y da paso a la invitación. Ésa necesita que haya vídeo puesto arriba; sin él no hay nada que enseñar y el velo sale como siempre.",
       },
       {
         key: "sello",
