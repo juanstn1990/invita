@@ -487,7 +487,12 @@ html:not(.js) .inv-ev-sendero .inv-dato{opacity:1;transform:none}
    La transición es más lenta que en las demás aperturas (2.4s): aquí lo que
    se mira es cómo se rompe el lacre, y a la velocidad de un postigo no da
    tiempo a verlo. */
-#splash.inv-velo-lacre{cursor:pointer;-webkit-tap-highlight-color:transparent;overflow:hidden;perspective:2000px}
+/* Lo que tardan las dos hojas en abrirse, en un solo sitio: lo lee el CSS
+   para la transición y el guion para saber cuándo entrar. Eran 2,4s y se
+   quedaban cortos — lo que se mira aquí es cómo se parte el lacre y cómo se
+   van las hojas, y a esa velocidad no daba tiempo a verlo. */
+#splash.inv-velo-lacre{--inv-hoja-dur:3.6s;
+  cursor:pointer;-webkit-tap-highlight-color:transparent;overflow:hidden;perspective:2000px}
 #splash.inv-velo-lacre .splash-btns{display:none}
 #splash.inv-velo-lacre .splash-modal{position:relative;z-index:1}
 .inv-hoja{position:absolute;top:0;bottom:0;width:50.4%;z-index:3;
@@ -496,7 +501,7 @@ html:not(.js) .inv-ev-sendero .inv-dato{opacity:1;transform:none}
       color-mix(in srgb,var(--inv-papel,#fdfbf7) 92%,#000) 100%),
     repeating-linear-gradient(45deg,rgba(0,0,0,.016) 0 2px,transparent 2px 6px);
   box-shadow:0 0 60px rgba(0,0,0,.45);
-  transition:transform 2.4s cubic-bezier(.25,1,.25,1)}
+  transition:transform var(--inv-hoja-dur,3.6s) cubic-bezier(.25,1,.25,1)}
 .inv-hoja-izq{left:0;transform-origin:left center;border-right:1px solid rgba(120,100,70,.28)}
 .inv-hoja-der{right:0;transform-origin:right center;border-left:1px solid rgba(120,100,70,.28)}
 #splash.abriendo .inv-hoja-izq{transform:rotateY(-112deg)}
@@ -1680,10 +1685,15 @@ export const LACRE_JS = `
     if (hecho || e.target.closest('a')) return;
     hecho = true;
     velo.classList.add('abriendo');
+    /* Se entra un poco antes de que las hojas acaben, para que la
+       invitación asome por el hueco mientras todavía se abren. El número
+       sale de la misma variable que usa el CSS: cambiar lo que dura el
+       efecto es tocar un sitio y no dos. */
+    var dur = parseFloat(getComputedStyle(velo).getPropertyValue('--inv-hoja-dur')) || 3.6;
     setTimeout(function(){
       var b = velo.querySelector('.splash-btn-primary');
       if (b) b.click(); else if (window.enterSite) window.enterSite();
-    }, quieto ? 0 : 2000);
+    }, quieto ? 0 : Math.max(0, dur * 1000 - 600));
   });
 })();`;
 
