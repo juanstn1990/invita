@@ -780,7 +780,15 @@ function revisarAdornos(
       if (malo) return `Adorno ${i + 1}: ${malo}`;
       a[campo] = DE_ARCHIVO.has(f.type) ? rutaDeBiblioteca(String(v ?? "")) : String(v ?? "");
     }
-    if (!a.url) return `El adorno ${i + 1} no tiene \`url\`: sin imagen no hay adorno.`;
+    /* Una pieza o una frase, pero algo. La comprobación pedía `url` a secas
+       desde antes de que un adorno pudiera ser texto, así que por aquí no
+       se podía escribir uno —«el adorno no tiene url»— aunque el editor
+       lleva tiempo dejándolos y el renderer sabe dibujarlos. Es la misma
+       regla que aplica `ponerAdornos`: sin imagen y sin texto, no hay nada
+       que poner. */
+    if (!a.url && !a.texto) {
+      return `El adorno ${i + 1} está vacío: ponle una imagen en \`url\` o una frase en \`texto\`.`;
+    }
     out.push(a);
   }
   return out;
