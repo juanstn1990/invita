@@ -2539,6 +2539,22 @@ a.inv-rsvp-btn{display:flex;width:max-content;max-width:100%;margin:28px auto 0;
 
 /* Arriba y no abajo: abajo a la derecha vive el botón de la música, y dos
    controles en la misma esquina es uno de los dos sin pulsar. */
+/* ── «Sólo el vídeo»: la cortina hace de velo ──
+   Va por encima del velo y no por debajo —al revés que siempre— porque aquí
+   no hay nada del velo que enseñar: el vídeo es la pantalla de bienvenida.
+   El panel del diseño se esconde, y si el vídeo no llega a cargar el guion
+   le quita la clase y vuelve el velo de siempre, con su botón. */
+#splash.inv-velo-solovideo .splash-modal{display:none}
+.inv-cortina-velo{z-index:10000;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.inv-cortina-pista{position:absolute;z-index:4;left:0;right:0;
+  bottom:calc(8vh + env(safe-area-inset-bottom));margin:0;text-align:center;
+  font-family:var(--inv-font-ui);font-size:12px;letter-spacing:.4em;
+  text-transform:uppercase;color:#fff;text-shadow:0 1px 10px rgba(0,0,0,.75);
+  animation:invPista 2.2s ease-in-out infinite;pointer-events:none}
+/* Arrancado el vídeo, la pista sobra: ya se tocó. */
+.inv-cortina-velo.andando .inv-cortina-pista{opacity:0;animation:none;
+  transition:opacity .4s ease}
+
 .inv-cortina-saltar{position:absolute;right:16px;top:18px;z-index:3;
   padding:9px 18px;border-radius:999px;border:1px solid rgba(255,255,255,.55);
   background:rgba(0,0,0,.35);color:#fff;font:inherit;font-size:13px;
@@ -2809,6 +2825,13 @@ a.inv-rsvp-btn{display:flex;width:max-content;max-width:100%;margin:28px auto 0;
 /* En una sección, la cabecera lleva un margen que la separa del antetítulo
    que viene detrás. En la franja no hay nada detrás. */
 .inv-block-adorno .inv-ad-cabecera{margin:0;flex:none}
+/* Y con la pieza suelta, la franja necesita área propia.
+   Una pieza en «libre» va en absoluto, y lo que va en absoluto no levanta a
+   su contenedor: la franja volvía a medir cero de alto, que es las dos
+   cosas que no puede ser —ni se deja arrastrar nada dentro de una caja sin
+   alto, ni un 64% de cero significa nada—. Con área, el porcentaje vuelve a
+   tener dónde caer y la pieza se puede mover con el dedo. */
+.inv-block-adorno:has(.inv-ad-libre){min-height:min(46vw,260px)}
 /* Entre dos líneas: los filetes son los pseudoelementos de la propia franja,
    que en un flex cuentan como dos hijos más —uno antes y otro después—, así
    que la pieza queda en medio sin añadir marcado. */
@@ -3867,7 +3890,7 @@ const FONDO_VIDEO_JS = `
  * inyectado; no hay marcado nuevo, así que funcionan igual en los 49 diseños
  * y en los que vengan.
  */
-const APERTURAS = new Set(["pantalla", "sobre", "sello", "deseo", "libro", "abanico", "nubes", "telon", "anillos", "ventana", "claqueta", "mariposa", "escarcha", "naipe", "jardin", "velas", "lacre"]);
+const APERTURAS = new Set(["pantalla", "solovideo", "sobre", "sello", "deseo", "libro", "abanico", "nubes", "telon", "anillos", "ventana", "claqueta", "mariposa", "escarcha", "naipe", "jardin", "velas", "lacre"]);
 
 /**
  * Cómo la cortina da paso a la invitación.
@@ -4012,6 +4035,73 @@ const CORTINA_JS = `
     document.body.style.overflow = 'hidden';
     abrir();
     reloj = setTimeout(irse, tope());
+  }
+
+  /*
+   * «Sólo el vídeo»: la cortina ya está puesta y el vídeo parado.
+   *
+   * No se envuelve enterSite como en las demás, porque aquí no hay nada
+   * que destapar al pulsar: lo que hay es un vídeo esperando el gesto. Al
+   * tocar, arranca y se pulsa el botón escondido del velo, que es el que
+   * enciende la música y entra a la invitación por debajo.
+   *
+   * Y si el vídeo no llega —un archivo borrado, un formato que el navegador
+   * no reproduce— se quita la cortina y se le devuelve al velo su panel y su
+   * botón: más vale la bienvenida de siempre que una pantalla negra que no
+   * responde. Esto es lo que distingue este modo de los otros: en los demás
+   * renunciar significa entrar sin cortina, y aquí significa volver al velo,
+   * porque nadie ha tocado nada todavía.
+   */
+  var modoVelo = c.classList.contains('inv-cortina-velo');
+  var arrancado = false;
+
+  function rendirse(){
+    if (arrancado || fuera) return;
+    fuera = true;
+    c.setAttribute('hidden', '');
+    document.body.style.overflow = '';
+    if (velo) velo.classList.remove('inv-velo-solovideo');
+  }
+
+  if (modoVelo) {
+    /* El vídeo ocupa la pantalla: nada de desplazarse por detrás. */
+    document.body.style.overflow = 'hidden';
+
+    c.addEventListener('click', function(e){
+      if (arrancado || fuera) return;
+      if (e.target.closest && e.target.closest('.inv-cortina-saltar')) return;
+      arrancado = true;
+      clearTimeout(relojEspera);
+      c.classList.add('andando');
+      c.classList.add('lista');
+
+      /* Igual que en el otro camino: con sonido, la música espera. */
+      if (musica) { musica.pause(); musica.addEventListener('play', callar); }
+
+      var p = v.play();
+      if (p && p.catch) p.catch(renunciar);
+
+      /* El botón del velo, y no enterSite a secas: ese botón es el que
+         arranca la música y el que el resto del sitio espera. */
+      var b = velo && velo.querySelector('.splash-btn-primary');
+      if (b) b.click(); else if (window.enterSite) window.enterSite();
+      abierto = true;
+
+      reloj = setTimeout(irse, tope());
+    });
+
+    v.addEventListener('error', rendirse);
+    /* Y preguntarlo, además de escucharlo: el vídeo empieza a cargar en
+       cuanto se analiza su etiqueta, así que para cuando corre este guion el
+       error pudo haber saltado ya y no lo oyó nadie. Medido con un 404: sin
+       esta línea la pantalla se quedaba puesta para siempre. */
+    if (v.error) rendirse();
+    /* Y si no falla pero tampoco llega —una conexión colgada— el mismo
+       final: el velo de siempre vale más que una pantalla parada. */
+    relojEspera = setTimeout(function(){ if (v.readyState < 2) rendirse(); }, ESPERA_MAX);
+    v.addEventListener('ended', irse);
+    saltar.addEventListener('click', irse);
+    return;
   }
 
   var previo = window.enterSite;
@@ -5256,11 +5346,22 @@ export function renderInvitation(opts: RenderOptions): string {
          la salida de siempre que una cortina que no se sabe ir. */
       const pedida = String(data.splash?.introSalida || "").trim();
       const salida = SALIDAS.has(pedida) ? pedida : "fundido";
+      /*
+       * «Sólo el vídeo»: la cortina **es** el velo.
+       *
+       * En las demás aperturas la cortina está escondida y sale al pulsar;
+       * aquí se pone desde el principio, por encima del velo y con el vídeo
+       * parado en su primer fotograma, porque eso es lo único que se quiere
+       * enseñar. Lo que falta es el gesto: ningún navegador deja arrancar un
+       * vídeo con sonido sin él.
+       */
+      const soloVideo = String(data.splash?.apertura || "") === "solovideo";
       cortina.setAttribute(
         "class",
-        `inv-cortina inv-cortina-s-${salida}${contener ? " inv-cortina-contener" : ""}`
+        `inv-cortina inv-cortina-s-${salida}${contener ? " inv-cortina-contener" : ""}` +
+          (soloVideo ? " inv-cortina-velo" : "")
       );
-      cortina.setAttribute("hidden", "");
+      if (!soloVideo) cortina.setAttribute("hidden", "");
 
       const v = document.createElement("video");
       v.setAttribute("class", "inv-cortina-video");
@@ -5278,6 +5379,14 @@ export function renderInvitation(opts: RenderOptions): string {
          vídeo de veinte segundos que no se puede saltar es una puerta
          cerrada. Aparece sola al segundo y medio para no competir con el
          primer plano. */
+      /* Y la pista, que en esta apertura es lo único que dice qué hacer. */
+      if (soloVideo) {
+        cortina.insertAdjacentHTML(
+          "beforeend",
+          `<p class="inv-cortina-pista">Toca la pantalla</p>`
+        );
+      }
+
       const saltar = document.createElement("button");
       saltar.setAttribute("class", "inv-cortina-saltar");
       saltar.setAttribute("type", "button");
