@@ -56,6 +56,20 @@ export interface RenderOptions {
   /** En el editor: sin splash, sin envío real de RSVP. */
   preview?: boolean;
   /**
+   * Es una muestra del catálogo: se enseña con un invitado de ejemplo.
+   *
+   * Una muestra existe para que alguien la mire y decida, y lo que mira es
+   * una invitación a medio enseñar: sin enlace de invitado no hay nombre ni
+   * cupos, así que la mitad que más se nota —«Con mucho cariño para
+   * Familia Gómez», «Hemos reservado 4 pases para ti»— no aparecía nunca.
+   *
+   * El ejemplo no sale de la dirección sino de que la invitación esté en la
+   * columna «Catálogo» del tablero. Eso importa: los cupos siguen sin poder
+   * escribirse en la barra, que es lo que impide que un invitado se dé más
+   * pases de los que le dieron.
+   */
+  muestra?: boolean;
+  /**
    * Enseñar la pantalla de bienvenida **dentro** del editor.
    *
    * Está apagada en la vista previa desde el primer día, y por un motivo
@@ -86,6 +100,16 @@ export interface RenderOptions {
    */
   pases?: number | null;
 }
+
+/**
+ * El invitado de ejemplo de una muestra del catálogo.
+ *
+ * Un nombre de familia y no uno propio: así el mismo ejemplo vale para una
+ * boda y para unos quince, y «Con mucho cariño para Familia Gómez» se lee
+ * como se leería de verdad. Cuatro pases porque es el número que obliga a
+ * la tarjeta a decir «pases» en plural y el más común en una familia.
+ */
+export const INVITADO_MUESTRA = { nombre: "Familia Gómez", pases: 4 };
 
 const escapeHtml = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -3569,9 +3593,20 @@ export const RSVP_JS = `
   // WhatsApp no hay uno que montar (ver el guardián de abajo), y aun así
   // quien abre su enlace personalizado tiene que verse nombrado y saber
   // cuántos pases tiene.
+  // Y con los nombres de muestra también, no sólo con los de la dirección:
+  // una invitación del catálogo —y la vista previa del editor— se miran para
+  // decidir, y el saludo es justo la parte que enseña que la invitación
+  // nombra a cada quien. Sin esto, la muestra decía los nombres arriba y
+  // debajo seguía un formulario anónimo.
+  var deMuestra = document.querySelector('[data-inv-demo]');
+  var ejemplo = deMuestra
+    ? (deMuestra.getAttribute('data-inv-demo') || '')
+        .split(/[,;|]/).map(function(n){ return n.trim(); }).filter(Boolean)
+    : [];
+  var aQuien = nombres.length ? nombres : ejemplo;
   var saludo = document.querySelector('[data-inv-saludo]');
-  if (nombres.length && saludo) {
-    saludo.textContent = saludo.getAttribute('data-inv-saludo').replace('{nombre}', unir(nombres));
+  if (aQuien.length && saludo) {
+    saludo.textContent = saludo.getAttribute('data-inv-saludo').replace('{nombre}', unir(aQuien));
     saludo.hidden = false;
   }
 
@@ -4613,7 +4648,7 @@ export function renderBloque(
 }
 
 export function renderInvitation(opts: RenderOptions): string {
-  const { templateId, data, slug = "", preview = false } = opts;
+  const { templateId, data, slug = "", preview = false, muestra = false } = opts;
   /* Pedirla sólo tiene sentido en el editor: en lo publicado manda el
      interruptor de la sección, como siempre. */
   const verSplash = preview && opts.verSplash === true;
@@ -5462,7 +5497,11 @@ export function renderInvitation(opts: RenderOptions): string {
       bloque.setAttribute("hidden", "");
       // En el editor se enseña con nombres de muestra: si no, quien está
       // armando la invitación no vería nunca esta parte.
+      /* En el editor, nombres de muestra para poder verlo mientras se arma.
+         En una muestra del catálogo, el invitado de ejemplo, que es lo que
+         hace que quien la mira vea la invitación entera y no a medias. */
       if (preview) bloque.setAttribute("data-inv-demo", "Ana Gómez, Carlos Gómez");
+      else if (muestra) bloque.setAttribute("data-inv-demo", INVITADO_MUESTRA.nombre);
       bloque.innerHTML =
         '<p class="inv-inv-antes"></p>' +
         '<p class="inv-inv-nombres"></p>' +

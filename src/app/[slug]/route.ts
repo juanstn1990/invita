@@ -10,7 +10,7 @@ import {
 import { COOKIE as COOKIE_SESION } from "@/lib/sesion";
 import { origenDe } from "@/lib/origen";
 import { prisma } from "@/lib/prisma";
-import { renderInvitation } from "@/lib/render";
+import { renderInvitation, INVITADO_MUESTRA } from "@/lib/render";
 import { TEMPLATE_BY_ID, readTemplate } from "@/lib/templates";
 import { coupleName, type InvitationData } from "@/lib/schema";
 
@@ -113,6 +113,11 @@ export async function GET(
         .catch(() => null)
     : null;
 
+  /* Las muestras del catálogo existen para enseñarse, así que se enseñan
+     enteras: con invitado de ejemplo y con cupos. Con enlace de verdad no,
+     que entonces hay un invitado real a quien nombrar. */
+  const muestra = invitation.estado === "catalogo" && !link;
+
   const contar = !esRastreador(ua) && !esOrganizador;
   if (contar) {
     const clave = claveDeApertura(link?.id ?? null, visitante);
@@ -138,7 +143,11 @@ export async function GET(
     slug: invitation.slug,
     // Para las etiquetas Open Graph: WhatsApp no resuelve rutas relativas.
     origin: origenDe(request),
-    pases: link?.pases ?? null,
+    /* Una muestra del catálogo se enseña como la vería un invitado: con su
+       nombre de ejemplo y sus cupos. Sólo cuando no se entró por un enlace
+       de verdad — ése manda siempre. */
+    muestra,
+    pases: link?.pases ?? (muestra ? INVITADO_MUESTRA.pases : null),
   });
 
   const res = new NextResponse(rendered, { headers: html });
