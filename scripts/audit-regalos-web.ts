@@ -128,6 +128,68 @@ async function main() {
   const intento = await post({ regalo: regalos[0].id, accion: "tomar", g: fam[0].code });
   ok(intento.status === 403, "y nadie puede tomar por su cuenta", `HTTP ${intento.status}`);
 
+  console.log("\n━━ Modo «ruleta»");
+  {
+    data.layout.blocks.at(-1).data.modo = "ruleta";
+    await prisma.invitation.update({ where: { id: inv.id }, data: { data: JSON.stringify(data) } });
+    await prisma.regaloEleccion.deleteMany({ where: { invitationId: inv.id } });
+
+    const vista = await get(fam[0].code);
+    ok(vista.modo === "ruleta", "la página sabe que es una ruleta", vista.modo);
+    ok(vista.regalos?.length === 3, "y recibe la lista para dibujarla", `${vista.regalos?.length}`);
+
+    /* Lo primero que hay que cerrar: en una ruleta no se escoge a dedo. El
+       botón de tomar no está en la pantalla, pero una petición escrita a
+       mano no pasa por la pantalla. */
+    const aDedo = await post({ regalo: regalos[0].id, accion: "tomar", g: fam[0].code });
+    ok(aDedo.status === 403, "no se puede escoger a dedo el regalo", `HTTP ${aDedo.status}`);
+
+    const sinCodigo = await post({ accion: "girar" });
+    ok(sinCodigo.status === 403, "sin enlace no se gira", `HTTP ${sinCodigo.status}`);
+
+    const giro = await post({ accion: "girar", g: fam[0].code });
+    ok(giro.status === 200 && !!giro.body.regalo?.nombre, "con enlace, gira", JSON.stringify(giro.body.regalo));
+
+    const otraVez = await post({ accion: "girar", g: fam[0].code });
+    ok(otraVez.status === 409, "pero una sola vez", otraVez.body.error || `HTTP ${otraVez.status}`);
+
+    const soltarlo = await post({ regalo: giro.body.regalo.id, accion: "soltar", g: fam[0].code });
+    ok(soltarlo.status === 403, "y lo que tocó no se suelta", `HTTP ${soltarlo.status}`);
+
+    const segunda = await post({ accion: "girar", g: fam[1].code });
+    ok(segunda.status === 200, "la siguiente también gira", JSON.stringify(segunda.body.regalo));
+    ok(
+      segunda.body.regalo?.id !== giro.body.regalo?.id,
+      "y no le toca el mismo",
+      `${giro.body.regalo?.nombre} · ${segunda.body.regalo?.nombre}`
+    );
+
+    /* La lista que ve cada una marca lo suyo y no dice de quién es lo
+       demás: la ruleta no es un marcador. */
+    const despues = await get(fam[0].code);
+    const mias = (despues.regalos || []).filter((r: any) => r.mio);
+    ok(mias.length === 1 && mias[0].id === giro.body.regalo.id, "en la lista le queda marcado el suyo");
+    ok(
+      (despues.regalos || []).every((r: any) => !r.de?.length),
+      "y sigue sin viajar quién tiene qué"
+    );
+
+    /* Se deja la invitación como estaba antes de esta sección: en «yo
+       asigno» y con los pañales puestos a la familia 2. Lo que viene después
+       se apoya en eso —la tarjeta dentro de la invitación es justo la de esa
+       familia— y una ruleta que vacía la lista al pasar haría fallar una
+       prueba que no tiene nada que ver con ella. */
+    await prisma.regaloEleccion.deleteMany({ where: { invitationId: inv.id } });
+    data.layout.blocks.at(-1).data.modo = "asignado";
+    await prisma.invitation.update({ where: { id: inv.id }, data: { data: JSON.stringify(data) } });
+    await prisma.regaloEleccion.create({
+      data: {
+        regaloId: regalos[2].id, invitationId: inv.id, guestLinkId: fam[1].id,
+        nombre: fam[1].names, clave: fam[1].id, asignado: true,
+      },
+    });
+  }
+
   /* ── El panel de quien invita ─────────────────────────────────
      Quien reparte los regalos no es quien hace la invitación: es la mamá,
      que entra por el panel compartido y no tiene cuenta. Por eso el regalo

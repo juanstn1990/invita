@@ -10,7 +10,7 @@
  * `Promise.all`, y se cuenta cuántos ganaron.
  */
 import { prisma } from "../src/lib/prisma";
-import { claveDeEleccion, soltarRegalo, tomarRegalo } from "../src/lib/regalos";
+import { claveDeEleccion, girarRuleta, soltarRegalo, tomarRegalo } from "../src/lib/regalos";
 
 let mal = 0;
 const ok = (b: boolean, texto: string, extra = "") => {
@@ -111,6 +111,111 @@ async function main() {
     "un regalo asignado no se suelta desde la invitación"
   );
 
+  /* ────────────────────────────────────────────────────────────
+     La ruleta
+     ──────────────────────────────────────────────────────────── */
+
+  /* Invitación aparte, para que el reparto empiece de cero: lo de arriba
+     dejó regalos a medio tomar y aquí lo que se mide es el reparto entero. */
+  const fiesta = await prisma.invitation.create({
+    data: {
+      slug: `audit-ruleta-${Date.now()}`,
+      templateId: "invitacion-bs-nube",
+      title: "Auditoría de la ruleta",
+      data: JSON.stringify({}),
+    },
+  });
+  const CUANTAS = 8;
+  const invitadas = await Promise.all(
+    Array.from({ length: CUANTAS + 1 }, (_, i) =>
+      prisma.guestLink.create({
+        data: { invitationId: fiesta.id, names: `Invitada ${i + 1}`, code: `rul${Date.now()}${i}` },
+      })
+    )
+  );
+  await prisma.regalo.createMany({
+    data: Array.from({ length: CUANTAS }, (_, i) => ({
+      invitationId: fiesta.id, nombre: `Regalo ${i + 1}`, orden: i,
+    })),
+  });
+
+  console.log("\n━━ Ocho girando a la vez, ocho regalos");
+  /* De golpe y no una detrás de otra: lo que se quiere probar es el
+     solapamiento, igual que arriba. Cada giro lee la lista entera para
+     sortear sobre ella, así que bajo serialización todos chocan con todos
+     — es el caso más duro que esta lista puede vivir. */
+  const giros = await Promise.all(
+    invitadas.slice(0, CUANTAS).map((x) => girarRuleta(fiesta.id, x.id, x.names))
+  );
+  const salieron = giros.filter((g) => g.ok).length;
+  ok(salieron === CUANTAS, "todas sacan algo, ninguna se queda sin girar", `${salieron}/${CUANTAS}`);
+
+  const tocados = giros.flatMap((g) => (g.ok ? [g.regalo.id] : []));
+  ok(
+    new Set(tocados).size === tocados.length,
+    "y no hay dos a las que les tocara el mismo",
+    `${new Set(tocados).size} distintos de ${tocados.length}`
+  );
+  const repartidos = await prisma.regaloEleccion.count({ where: { invitationId: fiesta.id } });
+  ok(repartidos === CUANTAS, "en la base queda una fila por invitada", `filas=${repartidos}`);
+
+  console.log("\n━━ Un giro por familia");
+  const otraVez = await girarRuleta(fiesta.id, invitadas[0].id, invitadas[0].names);
+  ok(
+    !otraVez.ok && otraVez.motivo === "ya-giro",
+    "la que ya giró no vuelve a girar",
+    otraVez.ok ? "le tocó otro" : otraVez.motivo
+  );
+
+  console.log("\n━━ Cuando ya no queda nada");
+  const tarde = invitadas[CUANTAS];
+  const vacia = await girarRuleta(fiesta.id, tarde.id, tarde.names);
+  ok(
+    !vacia.ok && vacia.motivo === "vacia",
+    "la novena no saca nada, y lo dice",
+    vacia.ok ? "le tocó algo" : vacia.motivo
+  );
+
+  console.log("\n━━ Lo que salió en la ruleta no se suelta");
+  const primera = invitadas[0];
+  const suyoEnRuleta = giros[0];
+  ok(
+    suyoEnRuleta.ok &&
+      !(await soltarRegalo(
+        fiesta.id, suyoEnRuleta.regalo.id, claveDeEleccion(primera.id, primera.names)
+      )),
+    "soltar lo que te tocó sería volver a girar, y no se puede"
+  );
+
+  console.log("\n━━ El azar reparte distinto cada vez");
+  /* No se mide que sea aleatorio —eso no se prueba con una corrida— sino que
+     no sea siempre el mismo orden: un sorteo que devolviera siempre el
+     primero libre pasaría todo lo de arriba y no sería una ruleta. */
+  const ordenes = new Set<string>();
+  for (let vuelta = 0; vuelta < 6; vuelta++) {
+    const otra = await prisma.invitation.create({
+      data: {
+        slug: `audit-azar-${Date.now()}-${vuelta}`,
+        templateId: "invitacion-bs-nube",
+        title: "Auditoría del azar",
+        data: JSON.stringify({}),
+      },
+    });
+    await prisma.regalo.createMany({
+      data: Array.from({ length: 5 }, (_, i) => ({
+        invitationId: otra.id, nombre: `R${i}`, orden: i,
+      })),
+    });
+    const quien = await prisma.guestLink.create({
+      data: { invitationId: otra.id, names: "Una", code: `azar${Date.now()}${vuelta}` },
+    });
+    const g = await girarRuleta(otra.id, quien.id, quien.names);
+    if (g.ok) ordenes.add(g.regalo.nombre);
+    await prisma.invitation.delete({ where: { id: otra.id } });
+  }
+  ok(ordenes.size > 1, "seis giros no dan siempre el mismo regalo", `salieron ${[...ordenes].join(", ")}`);
+
+  await prisma.invitation.delete({ where: { id: fiesta.id } });
   await prisma.invitation.delete({ where: { id: inv.id } });
   console.log(mal ? `\n${mal} mal\n` : "\nNadie se lleva el mismo regalo dos veces\n");
   process.exit(mal ? 1 : 0);

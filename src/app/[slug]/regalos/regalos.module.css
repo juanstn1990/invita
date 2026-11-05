@@ -90,3 +90,86 @@
   .ficha { grid-template-columns: auto 1fr; }
   .tomar, .soltar, .yaEsta { grid-column: 1 / -1; justify-self: stretch; text-align: center; }
 }
+
+/* ── La ruleta ──────────────────────────────────────────────────
+   El giro lo pone la pantalla con un `transform` en línea, y la duración
+   también: así la espera de JavaScript y la animación no pueden
+   desajustarse. Aquí sólo va lo que no cambia. */
+
+.ruedaZona {
+  position: relative; margin: 22px auto 0; width: min(100%, 360px);
+
+  /* Los gajos salen del acento del diseño, aclarado en cinco pasos. Puestos
+     a mano eran siempre los mismos rosas, y encima de una invitación malva o
+     verde oliva la ruleta parecía de otra aplicación.
+
+     Primero van los valores de reserva —el rosa de siempre— y encima la
+     mezcla de verdad, para los navegadores que sepan mezclar. */
+  --gajo-1: #f3dde4; --gajo-2: #fdf4ec; --gajo-3: #e8c4d2;
+  --gajo-4: #fbeadb; --gajo-5: #f6e4ea; --gajo-letra: #5c4a52;
+}
+@supports (color: color-mix(in srgb, red, blue)) {
+  .ruedaZona {
+    --gajo-1: color-mix(in srgb, var(--acento, #8a6a2f) 20%, #fff);
+    --gajo-2: color-mix(in srgb, var(--acento, #8a6a2f) 7%, #fff);
+    --gajo-3: color-mix(in srgb, var(--acento, #8a6a2f) 31%, #fff);
+    --gajo-4: color-mix(in srgb, var(--acento, #8a6a2f) 13%, #fff);
+    --gajo-5: color-mix(in srgb, var(--acento, #8a6a2f) 25%, #fff);
+    /* La letra, oscura de verdad: tiene que leerse igual sobre el gajo más
+       claro y sobre el más cargado. */
+    --gajo-letra: color-mix(in srgb, var(--acento, #8a6a2f) 45%, #2c2312);
+  }
+}
+
+/* La aguja va fuera de lo que gira, clavada arriba. */
+.aguja {
+  position: absolute; top: -2px; left: 50%; transform: translateX(-50%);
+  width: 0; height: 0; z-index: 3;
+  border-left: 13px solid transparent; border-right: 13px solid transparent;
+  border-top: 22px solid #2c2312;
+  filter: drop-shadow(0 2px 3px rgba(0,0,0,.25));
+}
+
+.ruedaGiro {
+  transition-property: transform;
+  transition-timing-function: cubic-bezier(.16,.84,.26,1);
+  filter: drop-shadow(0 10px 26px rgba(0,0,0,.14));
+}
+.ruedaGiro svg { display: block; width: 100%; height: auto; }
+
+.eje {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+  width: 86px; height: 86px; border-radius: 50%; z-index: 2;
+  border: 0; padding: 0; cursor: pointer;
+  background: #fff; color: var(--acento, #8a6a2f);
+  box-shadow: 0 4px 14px rgba(0,0,0,.16);
+  font: inherit; font-size: 13px; font-weight: 700; letter-spacing: .1em;
+}
+.eje:disabled { cursor: default; color: #b9b2a8; }
+.eje:not(:disabled):active { transform: translate(-50%,-50%) scale(.95); }
+
+.premio {
+  margin: 22px 0 0; padding: 18px 18px 20px; text-align: center;
+  background: #fff; border-radius: 18px; border: 2px solid var(--acento, #8a6a2f);
+  box-shadow: 0 6px 22px rgba(0,0,0,.07);
+  animation: entraPremio .45s cubic-bezier(.2,1.3,.4,1) both;
+}
+@keyframes entraPremio { from { opacity: 0; transform: scale(.9) translateY(10px); } }
+@media (prefers-reduced-motion: reduce) {
+  .premio { animation: none; }
+}
+.premioTitulo {
+  margin: 0; font-size: 11px; letter-spacing: .2em; text-transform: uppercase;
+  color: var(--acento, #8a6a2f);
+}
+.premioFoto {
+  display: block; margin: 12px auto 0; width: 110px; height: 110px;
+  object-fit: cover; border-radius: 14px; background: #f0ece6;
+}
+.premioNombre { margin: 6px 0 0; font-size: 22px; font-weight: 600; overflow-wrap: anywhere; }
+.premioNota { margin: 4px 0 0; font-size: 14px; color: #8a8178; overflow-wrap: anywhere; }
+
+.listaTitulo {
+  margin: 30px 0 0; text-align: center; font-size: 11px; letter-spacing: .2em;
+  text-transform: uppercase; color: #9a9289;
+}

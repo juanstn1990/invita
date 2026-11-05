@@ -50,6 +50,13 @@ export default async function RegalosEventoPage({ params }: { params: { id: stri
               su enlace y ve sólo el regalo que le pusiste aquí. No ve la lista ni lo
               que llevan los demás.
             </>
+          ) : cfg.modo === "ruleta" ? (
+            <>
+              Está en <b>«ruleta»</b>: cada invitado abre <code>{enlace}</code> desde su
+              enlace, gira <b>una sola vez</b> y le toca uno al azar de los que queden
+              libres. Lo que salga queda apartado para él y no se puede soltar ni
+              volver a girar.
+            </>
           ) : (
             <>
               Está en <b>«eligen ellos»</b>: cada invitado abre <code>{enlace}</code> desde
@@ -62,10 +69,10 @@ export default async function RegalosEventoPage({ params }: { params: { id: stri
       )}
 
       <p className={styles.aviso}>
-        Para elegir, el invitado tiene que entrar por <b>su</b> enlace personal —el de
-        «Invitados»—, no por la dirección pelada: es lo que dice quién es sin pedirle
-        que escriba su nombre. Quien entre por la dirección a secas ve la lista pero no
-        puede apartar nada.
+        Para {cfg.modo === "ruleta" ? "girar" : "elegir"}, el invitado tiene que entrar
+        por <b>su</b> enlace personal —el de «Invitados»—, no por la dirección pelada:
+        es lo que dice quién es sin pedirle que escriba su nombre. Quien entre por la
+        dirección a secas ve la lista pero no puede apartar nada.
       </p>
 
       <Panel id={invitation.id} modo={cfg.modo} />

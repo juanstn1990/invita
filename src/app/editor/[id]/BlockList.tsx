@@ -198,9 +198,9 @@ export function BlockList({
       {agregando ? (
         <div className={styles.addPanel}>
           <p className={styles.addTitle}>¿Qué bloque agregas?</p>
-          {/* Sólo los que tienen sentido en esta ocasión: la lista de
-              regalos se pidió para baby shower y en una boda sería un bloque
-              que no significa nada. Lo declara el bloque, no esto. */}
+          {/* Sólo los que tienen sentido en esta ocasión. Hoy ninguno se
+              limita, pero quien filtra es `agregables` y no esta pantalla:
+              el editor y el servidor MCP tienen que ofrecer lo mismo. */}
           {agregables(ocasion).map((spec) => (
             <button
               key={spec.type}

@@ -58,14 +58,20 @@ export interface BlockSpec {
    */
   repeatable: boolean;
   /**
-   * Las ocasiones donde este bloque tiene sentido. Sin declarar nada, todas
-   * — que es lo que valía para los dieciséis primeros.
+   * Las ocasiones donde este bloque tiene sentido. Sin declarar nada, todas.
    *
-   * Lo estrenó la lista de regalos, que se pidió sólo para baby shower: una
-   * lista de pañales y mamaderas en una boda no es un bloque menos útil, es
-   * uno que no significa nada. Antes que esconderlo con un `if` en el
-   * editor, el bloque declara dónde vive y quien lo ofrece filtra; así el
-   * editor y el servidor MCP no pueden discrepar sobre qué se puede agregar.
+   * **Hoy no lo declara ninguno**, y conviene saber por qué. Lo estrenó la
+   * lista de regalos, que nació pidiéndose para baby shower: una lista de
+   * pañales y mamaderas en una boda no es un bloque menos útil, es uno que
+   * no significa nada. Dejó de ser verdad cuando la lista aprendió a
+   * sortearse en una ruleta — repartir sin repetir es lo mismo en un baby
+   * shower, en una despedida de soltera y en una boda; lo que cambia es lo
+   * que uno escribe en la lista, y eso no lo decide el código.
+   *
+   * Se conserva porque la forma sigue siendo la correcta el día que algún
+   * bloque sí tenga ocasión: el bloque declara dónde vive y quien lo ofrece
+   * filtra, en vez de un `if` escondido en el editor que el servidor MCP no
+   * tiene.
    */
   ocasiones?: Occasion[];
   /** Campos propios; los bloques con `section` los toman del esquema. */
@@ -1316,7 +1322,7 @@ const calendario: BlockSpec = {
   ],
 };
 
-/* ── Lista de regalos (sólo baby shower) ──────────────────── */
+/* ── Lista de regalos ─────────────────────────────────────── */
 
 /**
  * La lista de regalos que los invitados se reparten.
@@ -1334,11 +1340,10 @@ const calendario: BlockSpec = {
  */
 const listaRegalos: BlockSpec = {
   type: "regalos",
-  hint: "Una lista de regalos de la que cada invitado toma el suyo",
+  hint: "Cada invitado toma el suyo, o lo saca en la ruleta; nada se repite",
   label: "Lista de regalos",
   icon: "✦",
   repeatable: false,
-  ocasiones: ["baby-shower"],
   fields: [
     { key: "label", label: "Antetítulo", type: "text", placeholder: "Opcional" },
     { key: "title", label: "Título", type: "text", placeholder: "Lista de regalos" },
@@ -1361,10 +1366,12 @@ const listaRegalos: BlockSpec = {
       span: 2,
       options: [
         { value: "elige", label: "Eligen ellos: cada invitado toma de la lista" },
+        { value: "ruleta", label: "Ruleta: giran una vez y les toca uno al azar" },
         { value: "asignado", label: "Yo asigno: le pongo su regalo a cada invitado" },
       ],
       help:
-        "Con «eligen ellos» ven lo que queda libre y toman. Con «yo asigno» cada " +
+        "Con «eligen ellos» ven lo que queda libre y toman. Con «ruleta» giran una " +
+        "sola vez y lo que salga queda apartado para ellos. Con «yo asigno» cada " +
         "invitado abre y ve sólo el suyo: ni la lista, ni lo que llevan los demás.",
     },
     {
@@ -1378,7 +1385,9 @@ const listaRegalos: BlockSpec = {
       fallback: 0,
       span: 2,
       showIf: { key: "modo", value: "elige" },
-      help: "0 = sin tope. Súbelo si quieres que nadie se lleve media lista.",
+      help:
+        "0 = sin tope. Súbelo si quieres que nadie se lleve media lista. En la " +
+        "ruleta no hace falta: se gira una vez y ya.",
     },
     {
       key: "fechaActivacion",

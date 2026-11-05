@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import styles from "./regalos.module.css";
+import { Ruleta, type Giro } from "./Ruleta";
 
 interface Regalo {
   id: string;
@@ -14,7 +15,7 @@ interface Regalo {
 }
 
 interface Estado {
-  modo: "elige" | "asignado";
+  modo: "elige" | "asignado" | "ruleta";
   abierto?: boolean;
   tope?: number;
   quien?: string;
@@ -48,6 +49,10 @@ export function Lista({ slug, codigo }: { slug: string; codigo: string }) {
   const [ocupado, setOcupado] = useState("");
   /* Para no pisar la lista con una respuesta vieja que llegó tarde. */
   const ultima = useRef(0);
+  /* Mientras la rueda gira no se refresca nada: la lista de abajo marcaría
+     el regalo como tuyo cinco segundos antes de que la rueda pare, y contar
+     el final antes del final es justo lo que se quería evitar. */
+  const pausa = useRef(false);
 
   const cargar = useCallback(async () => {
     const turno = ++ultima.current;
@@ -65,10 +70,10 @@ export function Lista({ slug, codigo }: { slug: string; codigo: string }) {
 
   useEffect(() => {
     cargar();
-    const t = setInterval(cargar, CADA);
+    const t = setInterval(() => { if (!pausa.current) cargar(); }, CADA);
     /* Al volver a la pestaña, antes de esperar los cinco segundos: es justo
        cuando más probable es que la lista esté vieja. */
-    const alVolver = () => { if (!document.hidden) cargar(); };
+    const alVolver = () => { if (!document.hidden && !pausa.current) cargar(); };
     document.addEventListener("visibilitychange", alVolver);
     return () => { clearInterval(t); document.removeEventListener("visibilitychange", alVolver); };
   }, [cargar]);
@@ -90,6 +95,41 @@ export function Lista({ slug, codigo }: { slug: string; codigo: string }) {
       setOcupado("");
       await cargar();
     }
+  }
+
+  /**
+   * Girar: una petición y ya. Quien decide qué sale es el servidor, así que
+   * lo único que hay que hacer aquí es llevarle el aviso y devolverle a la
+   * rueda el regalo que apartó.
+   */
+  async function girar(): Promise<Giro> {
+    pausa.current = true;
+    setError("");
+    try {
+      const r = await fetch(`/api/i/${slug}/regalos`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ accion: "girar", g: codigo }),
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        setError(j.error || "No se pudo girar. Inténtalo otra vez.");
+        pausa.current = false;
+        await cargar();
+        return { ok: false };
+      }
+      return { ok: true, regalo: j.regalo };
+    } catch {
+      setError("No hay conexión. Inténtalo otra vez.");
+      pausa.current = false;
+      return { ok: false };
+    }
+  }
+
+  /* La rueda ya paró: se puede volver a mirar lo que hay. */
+  function finDelGiro() {
+    pausa.current = false;
+    cargar();
   }
 
   if (!estado) return <p className={styles.cargando}>Cargando la lista…</p>;
@@ -120,6 +160,34 @@ export function Lista({ slug, codigo }: { slug: string; codigo: string }) {
             </li>
           ))}
         </ul>
+      </>
+    );
+  }
+
+  /* ── «Ruleta»: gira una vez y le toca ── */
+  if (estado.modo === "ruleta") {
+    const regalos = estado.regalos || [];
+    return (
+      <>
+        {estado.quien && <p className={styles.quien}>Hola, {estado.quien}</p>}
+        {estado.sinEnlace && (
+          <p className={styles.aviso}>
+            Esta es la lista, pero para girar hay que abrirla desde el enlace de
+            invitación que te enviaron.
+          </p>
+        )}
+        {!estado.abierto && <p className={styles.aviso}>La ruleta todavía no está abierta.</p>}
+        {error && <p className={styles.error}>{error}</p>}
+        {!regalos.length ? (
+          <p className={styles.aviso}>Todavía no hay regalos en la lista.</p>
+        ) : (
+          <Ruleta
+            regalos={regalos}
+            puedeGirar={!estado.sinEnlace && !!estado.abierto}
+            girar={girar}
+            alTerminar={finDelGiro}
+          />
+        )}
       </>
     );
   }

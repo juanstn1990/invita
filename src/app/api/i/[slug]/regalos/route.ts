@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { sesionActual } from "@/lib/auth";
 import { eventoLlego, fechaActivacionDe } from "@/lib/disponibilidadEvento";
 import {
-  claveDeEleccion, configRegalos, listarRegalos, soltarRegalo, tomarRegalo,
+  claveDeEleccion, configRegalos, girarRuleta, listarRegalos, soltarRegalo, tomarRegalo,
 } from "@/lib/regalos";
 import type { InvitationData } from "@/lib/schema";
 
@@ -133,6 +133,35 @@ export async function POST(
       { error: "Abre la lista desde tu enlace de invitación para poder elegir." },
       { status: 403 }
     );
+  }
+
+  /* La ruleta no tiene botones de tomar ni de soltar, y el servidor lo
+     sostiene además de la pantalla: escoger a dedo el regalo que la ruleta
+     iba a sortear es exactamente lo que un modo de azar no puede permitir,
+     y para hacerlo basta una petición escrita a mano. */
+  const girando = ctx.cfg.modo === "ruleta";
+  if (girando !== (body.accion === "girar")) {
+    return NextResponse.json(
+      {
+        error: girando
+          ? "En esta lista los regalos salen de la ruleta."
+          : "Esta lista no es una ruleta.",
+      },
+      { status: 403 }
+    );
+  }
+
+  if (girando) {
+    const r = await girarRuleta(ctx.invitation.id, ctx.enlace.id, ctx.enlace.names);
+    if (!r.ok) {
+      const mensajes: Record<string, string> = {
+        vacia: "Ya no queda nada por repartir.",
+        "ya-giro": "Ya giraste: tu regalo está apartado.",
+        ocupada: "Están girando varias a la vez. Vuelve a intentarlo.",
+      };
+      return NextResponse.json({ error: mensajes[r.motivo] }, { status: 409 });
+    }
+    return NextResponse.json({ ok: true, regalo: r.regalo });
   }
 
   const regaloId = String(body.regalo || "").trim();

@@ -1125,14 +1125,14 @@ export function construirServidor({ base, capturar }: OpcionesMcp): McpServer {
     {
       title: "La lista de regalos: cargarla y repartirla",
       description:
-        "Sólo en baby shower, y sólo si la invitación tiene el bloque «Lista de " +
-        "regalos». Sin acción, enumera la lista con quién tiene qué y los " +
-        "invitados a los que se puede repartir. `cargar` agrega regalos, uno por " +
-        "renglón, y lo que vaya detrás de un guion largo (—) es la nota: " +
-        "«Cochecito — color gris». `asignar` le pone su regalo a cada familia, " +
-        "varios de una vez; con el bloque en modo «yo asigno» cada invitado abre " +
-        "su enlace y ve sólo el suyo. `liberar` deshace un reparto y `quitar` " +
-        "borra un regalo de la lista.",
+        "Sólo si la invitación tiene el bloque «Lista de regalos». Sin acción, " +
+        "enumera la lista con quién tiene qué y los invitados a los que se puede " +
+        "repartir. `cargar` agrega regalos, uno por renglón, y lo que vaya detrás " +
+        "de un guion largo (—) es la nota: «Cochecito — color gris». `asignar` le " +
+        "pone su regalo a cada familia, varios de una vez; con el bloque en modo " +
+        "«yo asigno» cada invitado abre su enlace y ve sólo el suyo, y en modo " +
+        "«ruleta» cada uno gira una vez y le toca al azar lo que quede libre. " +
+        "`liberar` deshace un reparto y `quitar` borra un regalo de la lista.",
       inputSchema: {
         id: z.string().describe("El id de la invitación, de `listar`."),
         accion: z
@@ -1208,14 +1208,21 @@ export function construirServidor({ base, capturar }: OpcionesMcp): McpServer {
 
       const comoEsta = async () => {
         const lista = await listarRegalos(inv.id, null, true);
+        const modo = configRegalos(data).modo;
+        /* En la ruleta todo queda marcado como asignado —es lo que impide
+           soltarlo— pero no lo asignó nadie: salió de un giro. Decir «se lo
+           asignaste» de algo que sorteó el azar sería mentir sobre quién
+           decidió, que es justo lo que se viene a mirar en esta lista. */
+        const deQuien = (nombre: string, asignado: boolean) =>
+          `${nombre}${modo === "ruleta" ? " (le tocó)" : asignado ? " (se lo asignaste)" : " (lo eligió)"}`;
         return json({
-          modo: configRegalos(data).modo,
+          modo,
           regalos: lista.map((r) => ({
             regalo: r.nombre,
             nota: r.nota || null,
             cupo: r.cupo,
             libres: r.libres,
-            de: r.de.map((e) => `${e.nombre}${e.asignado ? " (se lo asignaste)" : " (lo eligió)"}`),
+            de: r.de.map((e) => deQuien(e.nombre, e.asignado)),
           })),
           invitados: enlaces.map((e) => ({ invitado: e.names, nota: e.note })),
           cuentas: {
@@ -1266,12 +1273,20 @@ export function construirServidor({ base, capturar }: OpcionesMcp): McpServer {
           ...sinBloque,
           ...(cfg.modo === "asignado"
             ? {}
-            : {
-                aviso:
-                  "El bloque está en «eligen ellos», así que el invitado verá la " +
-                  "lista entera además de lo suyo. Para que vea sólo su regalo, " +
-                  'escribe `modo: "asignado"` en el bloque.',
-              }),
+            : cfg.modo === "ruleta"
+              ? {
+                  aviso:
+                    "El bloque está en «ruleta». Repartir a mano sigue valiendo —es " +
+                    "cómo se le pone el suyo a quien no va a abrir el enlace— pero a " +
+                    "esa familia ya no le va a tocar girar: cada una tiene un giro y " +
+                    "éste se lo acabas de gastar tú.",
+                }
+              : {
+                  aviso:
+                    "El bloque está en «eligen ellos», así que el invitado verá la " +
+                    "lista entera además de lo suyo. Para que vea sólo su regalo, " +
+                    'escribe `modo: "asignado"` en el bloque.',
+                }),
           siguiente: "Con `invitados` sacas el enlace de cada familia para mandárselo.",
         });
       }

@@ -20,9 +20,10 @@
  * cuál es. Nadie escribe su nombre, así que no hay dos maneras de llamarse
  * igual ni forma de que alguien suelte el regalo de otro.
  *
- * **Los dos modos** son del bloque, no de aquí: en «eligen ellos» el
+ * **Los tres modos** son del bloque, no de aquí: en «eligen ellos» el
  * invitado ve la lista y toma; en «yo asigno» el organizador reparte y el
- * invitado abre y ve sólo el suyo.
+ * invitado abre y ve sólo el suyo; en «ruleta» el invitado gira y le toca
+ * uno al azar — y el azar lo echa el servidor, nunca el navegador.
  */
 
 import { prisma } from "./prisma";
@@ -35,8 +36,11 @@ import type { InvitationData } from "./schema";
    ──────────────────────────────────────────────────────────────── */
 
 export interface ConfigRegalos {
-  /** "elige" = el invitado toma de la lista · "asignado" = tú repartes. */
-  modo: "elige" | "asignado";
+  /**
+   * "elige" = el invitado toma de la lista · "asignado" = tú repartes ·
+   * "ruleta" = gira y le toca uno al azar.
+   */
+  modo: "elige" | "asignado" | "ruleta";
   titulo: string;
   texto: string;
   /** Cuántos regalos puede llevarse un mismo enlace. 0 = sin tope. */
@@ -55,7 +59,8 @@ export function configRegalos(data: InvitationData): ConfigRegalos {
   const cfg = (bloque?.data || {}) as Record<string, unknown>;
   const tope = Number(cfg.tope);
   return {
-    modo: cfg.modo === "asignado" ? "asignado" : "elige",
+    modo:
+      cfg.modo === "asignado" ? "asignado" : cfg.modo === "ruleta" ? "ruleta" : "elige",
     titulo: String(cfg.title || "") || "Lista de regalos",
     texto: String(cfg.texto || ""),
     tope: Number.isFinite(tope) && tope > 0 ? Math.min(20, tope) : 0,
@@ -272,6 +277,117 @@ export async function soltarRegalo(
     where: { invitationId, regaloId, clave, asignado: false },
   });
   return count > 0;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   La ruleta
+   ──────────────────────────────────────────────────────────────── */
+
+export type ResultadoGiro =
+  | { ok: true; regalo: { id: string; nombre: string; nota: string; imagen: string } }
+  | { ok: false; motivo: "vacia" | "ya-giro" | "ocupada" };
+
+/**
+ * Girar la ruleta: un regalo al azar de los que quedan.
+ *
+ * **El azar lo echa el servidor y no el navegador**, y ésa es la decisión
+ * de la que cuelga todo lo demás. Si la rueda sorteara en el teléfono y
+ * después avisara, pasarían las dos cosas que esta lista existe para
+ * impedir: dos invitadas girando en el mismo segundo pueden sacar el mismo
+ * regalo —cada teléfono sortea sobre su copia de la lista, y las dos copias
+ * dicen que está libre—, y cualquiera que abra las herramientas del
+ * navegador se elige el suyo. Aquí el regalo queda apartado **antes** de
+ * que la rueda empiece a moverse; lo que gira después es una animación
+ * sobre algo que ya está decidido.
+ *
+ * Es `tomarRegalo` con el regalo sin elegir: la misma transacción
+ * serializada, el mismo contar y escribir dentro, los mismos reintentos
+ * cuando el motor aborta porque otra escribía a la vez.
+ *
+ * **Un giro por familia**, y no el tope configurable del modo «eligen
+ * ellos»: una ruleta que se puede volver a girar no reparte nada: se gira
+ * hasta que salga lo barato.
+ */
+export async function girarRuleta(
+  invitationId: string,
+  guestLinkId: string,
+  nombre: string
+): Promise<ResultadoGiro> {
+  const clave = claveDeEleccion(guestLinkId, nombre);
+  for (let intento = 0; ; intento++) {
+    const r = await intentarGirar(invitationId, guestLinkId, nombre, clave);
+    if (r !== REINTENTA) return r;
+    /* Más insistencia que en `tomarRegalo`, y la razón es que aquí cada
+       intento lee la lista entera para sortear sobre ella: bajo
+       serialización eso choca con **cualquier** otra que esté escribiendo,
+       no sólo con quien va por el mismo regalo. Tres intentos bastaban allí
+       y aquí dejarían a alguien fuera sin que nada estuviera mal.
+
+       Las esperas crecen y se topan: creciendo se dejan de pisar, y con el
+       tope no se llega a hacer esperar un segundo y medio por una rueda que
+       todavía no ha empezado a moverse. */
+    if (intento >= 9) return { ok: false, motivo: "ocupada" };
+    await new Promise((r) =>
+      setTimeout(r, Math.min(200, (1 << intento) * 10) + Math.random() * 40)
+    );
+  }
+}
+
+async function intentarGirar(
+  invitationId: string,
+  guestLinkId: string,
+  nombre: string,
+  clave: string
+): Promise<ResultadoGiro | typeof REINTENTA> {
+  try {
+    return await prisma.$transaction(
+      async (tx) => {
+        const yaTiene = await tx.regaloEleccion.findFirst({
+          where: { invitationId, clave },
+          select: { id: true },
+        });
+        if (yaTiene) return { ok: false, motivo: "ya-giro" } as const;
+
+        const regalos = await tx.regalo.findMany({
+          where: { invitationId },
+          orderBy: { orden: "asc" },
+          select: {
+            id: true, nombre: true, nota: true, imagen: true, cupo: true,
+            _count: { select: { elecciones: true } },
+          },
+        });
+        const libres = regalos.filter((r) => r._count.elecciones < r.cupo);
+        if (!libres.length) return { ok: false, motivo: "vacia" } as const;
+
+        const elegido = libres[Math.floor(Math.random() * libres.length)];
+
+        /* Marcado `asignado` aunque no lo asignara nadie: ese campo es lo que
+           impide soltarlo desde la invitación, y en una ruleta soltar es
+           volver a girar. Quien invita tampoco se confunde, porque en este
+           modo no reparte nada — todo lo que hay salió de un giro. */
+        await tx.regaloEleccion.create({
+          data: { regaloId: elegido.id, invitationId, guestLinkId, nombre, clave, asignado: true },
+        });
+
+        return {
+          ok: true,
+          regalo: {
+            id: elegido.id,
+            nombre: elegido.nombre,
+            nota: elegido.nota || "",
+            imagen: elegido.imagen || "",
+          },
+        } as const;
+      },
+      { isolationLevel: "Serializable" }
+    );
+  } catch (e) {
+    /* P2002 es el índice único `(regaloId, clave)`: esta familia ya tenía
+       ese regalo, o sea que ya había girado. Lo demás es que otra escribía a
+       la vez y hay que volver a sortear sobre lo que quedó. */
+    const codigo = (e as { code?: string })?.code;
+    return codigo === "P2002" ? { ok: false, motivo: "ya-giro" } : REINTENTA;
+  }
 }
 
 /* ────────────────────────────────────────────────────────────────

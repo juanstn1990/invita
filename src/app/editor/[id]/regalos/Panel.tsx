@@ -17,7 +17,7 @@ interface Enlace { id: string; names: string; note: string | null }
  * invitados —cinco— porque aquí nadie está compitiendo por nada: se mira
  * para saber cómo va, no para llegar antes que otro.
  */
-export function Panel({ id, modo }: { id: string; modo: "elige" | "asignado" }) {
+export function Panel({ id, modo }: { id: string; modo: "elige" | "asignado" | "ruleta" }) {
   const [regalos, setRegalos] = useState<Regalo[]>([]);
   const [enlaces, setEnlaces] = useState<Enlace[]>([]);
   const [texto, setTexto] = useState("");
