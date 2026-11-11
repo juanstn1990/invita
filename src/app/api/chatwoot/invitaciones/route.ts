@@ -79,6 +79,11 @@ export async function POST(req: Request) {
     chatwootCuenta: cuenta,
     chatwootConversacion: conversacion,
     ...(entero(body.contacto) ? { chatwootContacto: entero(body.contacto) } : {}),
+    /* El último mensaje que ya había en la conversación al crearla. Lo de
+       antes es historia —a veces importada de meses atrás— y «aplicar
+       cambios» empieza a leer desde aquí. Llenarla con el chat entero sigue
+       siendo posible a propósito, con «leer toda la conversación». */
+    ...(entero(body.desde) ? { chatwootHasta: entero(body.desde) } : {}),
     ...(telefono ? { telefono } : {}),
   });
 

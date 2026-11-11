@@ -33,6 +33,12 @@ services:
       MCP_TOKEN: ${MCP_TOKEN:-}
       # Con qué dirección se arman los enlaces que devuelve el MCP.
       INVITA_URL: ${INVITA_URL:-http://localhost:3000}
+      # La integración con Chatwoot. Sin CHATWOOT_TOKEN, `/api/chatwoot/*`
+      # responde 503, igual que el MCP sin su llave. OpenAI es quien lee la
+      # conversación y propone los cambios.
+      CHATWOOT_TOKEN: ${CHATWOOT_TOKEN:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-6-luna}
     volumes:
       - ${INVITA_DATA:-/mnt/c/Users/Public/Invita}/biblioteca:/data/biblioteca
     restart: unless-stopped

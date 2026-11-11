@@ -26,6 +26,9 @@ const DE_CONTENIDO = new Set(["text", "textarea", "datetime", "url", "tel", "emo
 
 const MODELO = process.env.OPENAI_MODEL || "gpt-6-luna";
 
+/** Cuántos mensajes ya revisados se mandan como contexto de los nuevos. */
+const CONTEXTO = 15;
+
 export interface Mensaje {
   id: number;
   /** `nota` es una nota privada del agente: lo que se habló por teléfono. */
@@ -266,8 +269,13 @@ export async function proponer(o: {
   }
 
   const desde = o.todo ? 0 : o.hasta || 0;
-  const mensajes = o.mensajes
-    .filter((m) => m.texto?.trim() || m.adjuntos?.length)
+  const conAlgo = o.mensajes.filter((m) => m.texto?.trim() || m.adjuntos?.length);
+  /* Lo ya revisado sólo sirve para entender lo nuevo («la segunda» responde
+     a una pregunta de antes), y con unos pocos mensajes basta. Mandar toda
+     la historia —que puede ser de meses, importada de WhatsApp— cuesta más
+     y le da al modelo material viejo que proponer otra vez. */
+  const previos = conAlgo.filter((m) => m.id <= desde).slice(-CONTEXTO);
+  const mensajes = [...previos, ...conAlgo.filter((m) => m.id > desde)]
     .map((m) => ({
       id: m.id,
       de: m.de,

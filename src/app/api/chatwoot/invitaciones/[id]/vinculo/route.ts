@@ -43,9 +43,12 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       chatwootCuenta: cuenta,
       chatwootConversacion: conversacion,
       chatwootContacto: entero(body.contacto) ?? null,
-      /* Se parte de cero al cambiar de conversación: los ids de mensaje de
-         la anterior no dicen nada de ésta. */
-      ...(deOtra || inv.chatwootConversacion === null ? { chatwootHasta: null } : {}),
+      /* Al enlazarla a una conversación se empieza a leer desde el último
+         mensaje que ya había: lo anterior es historia. Los ids de mensaje de
+         otra conversación no dicen nada de ésta, así que no se conservan. */
+      ...(deOtra || inv.chatwootConversacion === null
+        ? { chatwootHasta: entero(body.desde) ?? null }
+        : {}),
       ...(telefono && !inv.telefono ? { telefono } : {}),
     },
     select: CAMPOS_FICHA,
