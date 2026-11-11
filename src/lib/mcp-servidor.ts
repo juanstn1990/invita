@@ -47,6 +47,8 @@ import {
 } from "./blocks";
 import { ESTADO_POR_ID, estadoDe, PAGO_POR_ID, pagoDe } from "./tablero";
 import { actualizarConParche, deshacer } from "./plantillas";
+import { crearDesde, cuantosOrigenes, partidaDe } from "./partida";
+import { fotosDe, rutaMultimedia } from "./multimedia";
 import { descargar, guardarEnBiblioteca, TIPOS_BIBLIOTECA, urlsUsables } from "./subir";
 import { limpiarNombres, limpiarPases, nuevoCodigo, resumirLink, urlDeLink } from "./invitados";
 import { asignarRegalo, cargarRegalos, configRegalos, listarRegalos, tieneRegalos } from "./regalos";
@@ -237,10 +239,13 @@ export function construirServidor({ base, capturar }: OpcionesMcp): McpServer {
     {
       title: "Crear una invitación",
       description:
-        "Crea una invitación en borrador, o desde un diseño en blanco " +
-        "(`diseno`) o copiando una plantilla guardada (`plantilla`). Uno de " +
-        "los dos, nunca los dos ni ninguno, y **no hay valor por defecto**: " +
-        "pregúntaselo a la persona antes de llamar a esto.",
+        "Crea una invitación en borrador desde uno de tres puntos de partida: " +
+        "un diseño en blanco (`diseno`), una plantilla guardada (`plantilla`) " +
+        "o **otra invitación** (`invitacion`), que es como se parte de una " +
+        "muestra del catálogo: copia su contenido y su diseño, y no su enlace, " +
+        "sus invitados ni sus confirmaciones. Uno de los tres, nunca varios " +
+        "ni ninguno, y **no hay valor por defecto**: pregúntaselo a la " +
+        "persona antes de llamar a esto.",
       inputSchema: {
         diseno: z
           .string()
@@ -250,98 +255,61 @@ export function construirServidor({ base, capturar }: OpcionesMcp): McpServer {
           .string()
           .optional()
           .describe("El id de una plantilla guardada de `plantillas`."),
+        invitacion: z
+          .string()
+          .optional()
+          .describe("El id de otra invitación, p.ej. una de `muestras`."),
         titulo: z.string().optional().describe("Nombre interno, sólo para el listado."),
       },
     },
-    async ({ diseno, plantilla, titulo }) => {
-      /* Ni lo uno ni lo otro: se devuelven las dos listas, para que la
-         pregunta se pueda hacer en este mismo turno en vez de gastar uno en
-         decir «falta un parámetro». */
-      if (!diseno && !plantilla) {
+    async ({ diseno, plantilla, invitacion, titulo }) => {
+      const origen = { diseno, plantilla, invitacion };
+      const opciones = async () => {
         const guardadas = await prisma.plantilla.findMany({ orderBy: { createdAt: "desc" } });
+        return JSON.stringify(
+          {
+            disenos: catalogo(),
+            plantillas: guardadas.map((p) => ({ id: p.id, nombre: p.nombre })),
+          },
+          null,
+          2
+        );
+      };
+
+      /* Sin origen: se devuelven las listas, para que la pregunta se pueda
+         hacer en este mismo turno en vez de gastar uno en decir «falta un
+         parámetro». */
+      if (cuantosOrigenes(origen) === 0) {
         return error(
-          "Hace falta elegir de dónde parte. Enséñale esto a la persona y vuelve:\n\n" +
-            JSON.stringify(
-              {
-                disenos: catalogo(),
-                plantillas: guardadas.map((p) => ({ id: p.id, nombre: p.nombre })),
-              },
-              null,
-              2
-            )
+          "Hace falta elegir de dónde parte. Enséñale esto a la persona y vuelve " +
+            "(o mira `muestras` para partir de una invitación del catálogo):\n\n" +
+            (await opciones())
         );
       }
-      if (diseno && plantilla) {
+      if (cuantosOrigenes(origen) > 1) {
         return error(
-          "Uno de los dos, no los dos: un diseño es marcado en blanco y una " +
-            "plantilla ya trae contenido. Con ambos no está claro cuál manda."
+          "Uno solo: un diseño es marcado en blanco, y una plantilla o una " +
+            "invitación ya traen contenido. Con varios no está claro cuál manda."
         );
       }
 
-      /* De una plantilla: se copia su `data` tal cual, como hace el botón del
-         editor. Lo que no está ahí —el enlace público, las confirmaciones,
-         los enlaces de invitado— nace vacío, que es lo correcto: son de la
-         invitación de la que salió la plantilla, no del punto de partida. */
-      let templateId: string;
-      let datos: Record<string, unknown>;
-      let deDonde: string;
-
-      if (plantilla) {
-        const p = await prisma.plantilla.findUnique({ where: { id: plantilla } });
-        if (!p) {
-          const guardadas = await prisma.plantilla.findMany({ orderBy: { createdAt: "desc" } });
-          return error(
-            `No hay ninguna plantilla con id "${plantilla}". Las que hay:\n\n` +
-              JSON.stringify(guardadas.map((x) => ({ id: x.id, nombre: x.nombre })), null, 2)
-          );
-        }
-        if (!TEMPLATE_BY_ID[p.templateId]) {
-          return error(
-            `La plantilla "${p.nombre}" sale del diseño "${p.templateId}", que ya no ` +
-              `existe. No hay con qué dibujarla.`
-          );
-        }
-        templateId = p.templateId;
-        datos = JSON.parse(p.data);
-        deDonde = `plantilla "${p.nombre}"`;
-      } else {
-        const tpl = TEMPLATE_BY_ID[diseno!];
-        if (!tpl) {
-          return error(
-            `"${diseno}" no es un diseño. Si es una plantilla guardada, mírala en ` +
-              `\`plantillas\`. Los diseños son:\n\n` +
-              JSON.stringify(catalogo(), null, 2)
-          );
-        }
-        templateId = diseno!;
-        datos = presetFor(tpl) as unknown as Record<string, unknown>;
-        deDonde = `diseño "${tpl.name}"`;
+      const partida = await partidaDe(origen);
+      if ("error" in partida) {
+        return error(`${partida.error} Lo que hay:\n\n` + (await opciones()));
       }
 
-      const slug = await slugLibre(nombresDe(datos));
-
-      const inv = await prisma.invitation.create({
-        data: {
-          slug,
-          slugAuto: true,
-          templateId,
-          title: titulo || `${TEMPLATE_BY_ID[templateId].name} · ${slug}`,
-          data: JSON.stringify(datos),
-          published: false,
-          ...(plantilla ? { plantillaId: plantilla } : {}),
-        },
-      });
+      const inv = await crearDesde(partida, titulo);
 
       return json({
         id: inv.id,
         slug: inv.slug,
-        diseno: templateId,
-        parteDe: deDonde,
+        diseno: partida.templateId,
+        parteDe: partida.deDonde,
         editor: `${base}/editor/${inv.id}`,
         siguiente: "Pide `esquema` con este diseño para saber qué campos admite.",
-        aviso: plantilla
-          ? "Copia la plantilla entera. Lo que no se sobreescriba se queda como estaba en ella."
-          : "Nace con contenido de ejemplo. Lo que no se sobreescriba se queda así.",
+        aviso: diseno
+          ? "Nace con contenido de ejemplo. Lo que no se sobreescriba se queda así."
+          : "Copia el contenido entero. Lo que no se sobreescriba se queda como estaba.",
       });
     }
   );
@@ -944,8 +912,9 @@ export function construirServidor({ base, capturar }: OpcionesMcp): McpServer {
             }
           : {}),
         siguiente:
-          "Enséñale las que encajan y deja que elija. Para partir de una, `crear` " +
-          "con su `disenoId` como diseño.",
+          "Enséñale las que encajan y deja que elija. Para partir de una con su " +
+          "contenido, `crear` con su `id` como `invitacion`; para quedarse sólo " +
+          "con el diseño en blanco, `crear` con su `disenoId` como `diseno`.",
       });
     }
   );
@@ -1378,6 +1347,52 @@ export function construirServidor({ base, capturar }: OpcionesMcp): McpServer {
           ver: `${base}${f.url}`,
         }))
       );
+    }
+  );
+
+  /* ── Las fotos del cliente ───────────────────────────────────── */
+
+  server.registerTool(
+    "multimedia",
+    {
+      title: "Las fotos que subió el cliente",
+      description:
+        "El enlace de multimedia de una invitación y lo que el cliente ha " +
+        "subido por él: la foto de **portada** y las **demás**. El enlace se " +
+        "le pasa al cliente para que deje ahí sus fotos en vez de mandarlas " +
+        "por WhatsApp. Las URLs que devuelve ya están en la biblioteca, así " +
+        "que se pueden poner directamente con `escribir`: la portada en el " +
+        "campo de imagen de la portada, y las otras en la galería o en un " +
+        "bloque de foto (`esquema` y `bloques` dicen dónde caben). Enséñale " +
+        "a la persona qué hay antes de colocarlas.",
+      inputSchema: {
+        id: z.string().describe("El id de la invitación."),
+      },
+      annotations: { readOnlyHint: true },
+    },
+    async ({ id }) => {
+      const inv = await prisma.invitation.findUnique({
+        where: { id }, select: { id: true, title: true, manageToken: true },
+      });
+      if (!inv) return error(`No hay ninguna invitación con id "${id}".`);
+
+      const fotos = await fotosDe(inv.id);
+      const una = (f: (typeof fotos)[number]) => ({
+        url: f.url, nombre: f.nombre,
+        ...(f.ancho && f.alto ? { medidas: `${f.ancho}×${f.alto}` } : {}),
+        subida: f.subida.slice(0, 10),
+      });
+      const portada = fotos.find((f) => f.papel === "portada");
+      const otras = fotos.filter((f) => f.papel === "foto");
+      return json({
+        invitacion: inv.title,
+        enlaceParaElCliente: `${base}${await rutaMultimedia(inv)}`,
+        portada: portada ? una(portada) : null,
+        fotos: otras.map(una),
+        ...(fotos.length
+          ? {}
+          : { aviso: "El cliente todavía no ha subido nada. Pásale el enlace." }),
+      });
     }
   );
 

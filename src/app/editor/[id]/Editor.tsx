@@ -32,20 +32,21 @@ type SaveState = "idle" | "saving" | "saved" | "error" | "caducada";
  * Va aquí, junto a las confirmaciones, porque es lo mismo visto desde el otro
  * lado: allí se crean los enlaces y aquí llegan las respuestas.
  */
-function PanelCompartido({ token }: { token: string }) {
+function PanelCompartido({ token, multimedia }: { token: string; multimedia?: boolean }) {
+  const ruta = multimedia ? `/m/${token}` : `/g/${token}`;
   const [copiado, setCopiado] = useState(false);
-  const url = typeof window === "undefined" ? `/g/${token}` : `${window.location.origin}/g/${token}`;
+  const url = typeof window === "undefined" ? ruta : `${window.location.origin}${ruta}`;
 
   return (
     <div className={styles.panelInvitados}>
-      <p className={styles.panelInvitadosTitulo}>Panel de invitados</p>
+      <p className={styles.panelInvitadosTitulo}>{multimedia ? "Multimedia" : "Panel de invitados"}</p>
       <p className={styles.panelInvitadosTexto}>
-        Pásale este enlace a quien vaya a invitar. Desde ahí crea un enlace por
-        familia —con los nombres dentro— y ve quién ha confirmado. No hace falta
-        que entre aquí.
+        {multimedia
+          ? "Pásale este enlace al cliente para que suba sus fotos: una de portada y las demás. Llegan a la biblioteca, marcadas con esta invitación."
+          : "Pásale este enlace a quien vaya a invitar. Desde ahí crea un enlace por familia —con los nombres dentro— y ve quién ha confirmado. No hace falta que entre aquí."}
       </p>
       <div className={styles.panelInvitadosFila}>
-        <code className={`mono ${styles.panelInvitadosUrl}`}>/g/{token}</code>
+        <code className={`mono ${styles.panelInvitadosUrl}`}>{ruta}</code>
         <button
           className="btn btn-sm"
           onClick={async () => {
@@ -60,7 +61,7 @@ function PanelCompartido({ token }: { token: string }) {
         >
           {copiado ? "Copiado" : "Copiar"}
         </button>
-        <a className="btn btn-ghost btn-sm" href={`/g/${token}`} target="_blank" rel="noopener">
+        <a className="btn btn-ghost btn-sm" href={ruta} target="_blank" rel="noopener">
           Abrir
         </a>
       </div>
@@ -563,6 +564,7 @@ export function Editor(props: EditorProps) {
               <>
                 <Aperturas {...props.aperturas} publicada={published} />
                 <PanelCompartido token={props.manageToken} />
+                <PanelCompartido token={props.manageToken} multimedia />
                 <RsvpList rsvps={props.rsvps} published={published} slug={slug} />
               </>
             ) : (

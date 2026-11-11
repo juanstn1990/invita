@@ -78,6 +78,20 @@ model Invitation {
   /// para saber, cuando se mejora una plantilla, qué invitaciones se hicieron
   /// con la versión anterior — hasta ahora no había forma de saberlo.
   plantillaId String?
+  /// De qué otra invitación se copió, si se creó «basada en» una —una
+  /// muestra del catálogo, casi siempre—. Informativo como `plantillaId`:
+  /// sirve para saber qué campos siguen trayendo el contenido de la muestra
+  /// y cuáles ya son del cliente.
+  basadaEn    String?
+  /// El vínculo con la conversación de Chatwoot desde la que se creó o a la
+  /// que se enlazó. Va por id y no por teléfono porque el número no siempre
+  /// llega (WhatsApp manda a veces un `@lid`) ni llega siempre igual escrito.
+  chatwootCuenta       Int?
+  chatwootConversacion Int?
+  chatwootContacto     Int?
+  /// Hasta qué mensaje de esa conversación ya se revisó, para que «aplicar
+  /// cambios» mire sólo lo nuevo y no vuelva a proponer lo ya aplicado.
+  chatwootHasta        Int?
   /// Visitas crudas, incluidos rastreadores y recargas. Se conserva porque ya
   /// venía contando, pero lo que se muestra sale de `Apertura`, que distingue
   /// personas de rastreadores. Ver `src/lib/aperturas.ts`.
@@ -92,6 +106,8 @@ model Invitation {
   deseos     Wish[]
   regalos    Regalo[]
   elecciones RegaloEleccion[]
+
+  @@index([chatwootCuenta, chatwootConversacion])
 }
 
 /// Un link personalizado: los nombres que van a salir en la invitación y un
@@ -289,10 +305,17 @@ model Media {
   height    Int?
   /// Para separar la decoración de las fotos del evento en el selector.
   kind      String   @default("foto")
+  /// Para qué invitación la subió el cliente desde su enlace de multimedia
+  /// (`/m/…`), y en qué espacio: "portada" o "foto". Vacío en lo que sube
+  /// el organizador. No es una relación: borrar la invitación no se lleva
+  /// una foto que puede estar puesta en otra.
+  invitationId String?
+  papel        String?
   createdAt DateTime @default(now())
 
   @@index([createdAt])
   @@index([kind])
+  @@index([invitationId])
 }
 
 /// Quién puede entrar al editor.
